@@ -32,6 +32,9 @@ self.addEventListener('fetch', event => {
   // CDNs externos y OneSignal — dejar pasar sin interceptar
   if (url.hostname !== self.location.hostname) return;
 
+  // Rutas API — dejar pasar sin interceptar (nunca cachear)
+  if (url.pathname === '/validate-license' || url.pathname === '/send-notification') return;
+
   // HTML (navegación) — Network First: siempre intenta la red primero
   if (event.request.mode === 'navigate') {
     event.respondWith(

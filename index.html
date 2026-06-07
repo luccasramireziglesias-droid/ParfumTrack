@@ -2441,6 +2441,9 @@ async function activarLicencia() {
       const data = await resp.json();
       valid = data.valid === true;
       if (valid) serverToken = data.token || null;
+    } else {
+      // Servidor con error (500, etc.) → fallback a HMAC client-side
+      valid = await isValidActivationCode(code);
     }
   } catch(e) {
     // Sin internet o función no disponible → fallback a HMAC client-side
