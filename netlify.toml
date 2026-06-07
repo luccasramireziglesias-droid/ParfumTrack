@@ -1,0 +1,83 @@
+# Parfum Track — Netlify config
+
+[build]
+  publish = "."
+
+# Directorio de Netlify Functions (validación de licencias server-side)
+[functions]
+  directory = "netlify/functions"
+
+# Compresión gzip — reduce 300KB a ~90KB
+[build.processing]
+  skip_processing = false
+
+[build.processing.html]
+  pretty_urls = true
+
+# Headers para PWA e instalar desde el navegador
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Content-Type = "application/javascript"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Service-Worker-Allowed = "/"
+
+[[headers]]
+  for = "/app.js"
+  [headers.values]
+    Content-Type = "application/javascript"
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://plausible.io; style-src 'self' 'unsafe-inline' https://fonts.bunny.net; font-src https://fonts.bunny.net; img-src 'self' data: blob:; connect-src 'self' https://fonts.bunny.net https://*.netlify.app https://plausible.io;"
+
+# Rutas de API — apuntan a las Netlify Functions
+[[redirects]]
+  from = "/api/validate-license"
+  to = "/.netlify/functions/validate-license"
+  status = 200
+
+[[redirects]]
+  from = "/api/verify-token"
+  to = "/.netlify/functions/verify-token"
+  status = 200
+
+# Rutas — archivos estáticos tienen prioridad; todo lo demás va al index.html
+[[redirects]]
+  from = "/manifest.json"
+  to = "/manifest.json"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/sw.js"
+  to = "/sw.js"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/*.png"
+  to = "/:splat"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

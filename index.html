@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png">
+<link rel="icon" href="/icon-512.png" sizes="512x512" type="image/png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Parfum Track">
+<title>Parfum Track</title>
+<link rel="manifest" href="/manifest.json">
+<!-- ══ Plausible Analytics — privacy-friendly, sin cookies, GDPR compliant ══
+     Pasos para activar:
+     1. Crear cuenta en https://plausible.io (plan free disponible)
+     2. Agregar tu dominio (ej: parfumtrack.netlify.app)
+     3. Reemplazar "tu-dominio.netlify.app" por el dominio real abajo
+-->
+<script defer data-domain="parfumtrackapp.netlify.app" src="https://plausible.io/js/script.js"></script>
+
+<!-- fonts.bunny.net: CDN privado, sin tracking de Google, mismo formato de URL -->
+<link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+<link href="https://fonts.bunny.net/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.bunny.net/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"></noscript>
+
+
+
+<style>
+:root{--bg:#0f0f1a;--bg2:#1a1a2e;--bg3:#16213e;--card:#1e1e35;--card2:#252542;--gold:#c9a84c;--gold2:#e8c97e;--gold-dim:rgba(201,168,76,0.13);--text:#f0ece4;--text2:#b8b5d0;--text3:#7a77a0;--danger:#e07070;--success:#70c9a0;--warn:#e0b060;--border:rgba(201,168,76,0.18);--border2:rgba(201,168,76,0.25);--info:#70a8e0;--radius:14px;--radius-sm:8px;}
+[data-theme="light"]{--bg:#f7f3ec;--bg2:#eee9de;--bg3:#e5dece;--card:#ffffff;--card2:#f0ebe0;--gold:#8c6820;--gold2:#6b4e14;--gold-dim:rgba(140,104,32,0.1);--text:#1a1208;--text2:#4a3e2c;--text3:#7a6e5c;--danger:#c04040;--success:#2e8a60;--warn:#b07020;--border:rgba(140,104,32,0.22);--border2:rgba(140,104,32,0.35);--info:#2a68a0;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direction:column;transition:background .25s,color .25s}
+.app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;width:100%}
+.header{padding:44px 18px 12px;background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%);flex-shrink:0;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-80px;right:-50px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.09) 0%,transparent 70%);pointer-events:none}
+.brand-row{display:flex;align-items:center;justify-content:space-between}
+.brand-left{display:flex;align-items:center;gap:12px}
+.logo-svg{width:48px;height:48px;flex-shrink:0;filter:drop-shadow(0 0 8px rgba(201,168,76,0.3))}
+.brand-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--gold2);letter-spacing:1px;line-height:1;white-space:nowrap}
+.brand-sub{font-size:10px;font-weight:300;color:var(--text2);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+@media(max-width:600px){.brand-sub{display:none}}
+.header-right{display:flex;gap:6px;align-items:center}
+.icon-btn{background:none;border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);padding:6px 9px;cursor:pointer;font-size:14px;flex-shrink:0}
+.header-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}
+.hstat{background:var(--gold-dim);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:7px 8px;text-align:center;cursor:pointer}
+.hstat-num{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--gold2)}
+.hstat-lbl{font-size:10px;color:var(--text2);margin-top:1px}
+.meta-strip{display:flex;gap:6px;margin-top:8px;overflow-x:auto;padding-bottom:2px}
+.meta-strip::-webkit-scrollbar{display:none}
+.meta-item{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;white-space:nowrap;flex-shrink:0}
+.meta-item-lbl{font-size:9px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase}
+.meta-item-val{font-size:12px;font-weight:500;color:var(--gold2);margin-top:1px}
+/* resumen diario */
+.daily-banner{margin-top:9px;background:rgba(112,201,160,0.1);border:0.5px solid rgba(112,201,160,0.3);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;color:var(--success);display:none}
+.daily-banner.show{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* ── BOTTOM NAV ── */
+/* .tabs eliminado — navegación bottom-nav y mas-drawer */
+.bottom-nav{
+  display:flex;
+  border-top:0.5px solid var(--border);
+  background:var(--bg2);
+  flex-shrink:0;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.bn-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:8px 4px 6px;
+  border:none;background:none;
+  color:var(--text3);cursor:pointer;
+  transition:color .18s;
+  position:relative;
+  gap:3px;
+  font-size:9px;letter-spacing:.3px;
+  font-family:'DM Sans',sans-serif;
+}
+.bn-item:active{opacity:.7}
+.bn-item.active{color:var(--gold2)}
+.bn-item.active .bn-icon::after{
+  content:'';position:absolute;top:-3px;left:50%;transform:translateX(-50%);
+  width:28px;height:2px;background:var(--gold);border-radius:2px;
+}
+.bn-icon{font-size:20px;position:relative;line-height:1}
+.bn-badge{
+  position:absolute;top:-2px;right:-6px;
+  background:var(--danger);color:#fff;
+  border-radius:20px;font-size:9px;font-weight:700;
+  padding:1px 4px;min-width:14px;text-align:center;
+  display:none;
+}
+.bn-badge.show{display:block}
+
+/* ── MÁS DRAWER ── */
+.mas-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  z-index:200;opacity:0;pointer-events:none;
+  transition:opacity .22s;
+}
+.mas-overlay.open{opacity:1;pointer-events:all}
+.mas-drawer{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;
+  background:var(--bg2);
+  border-top:0.5px solid var(--border2);
+  border-radius:20px 20px 0 0;
+  z-index:201;
+  padding:12px 0 calc(16px + env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateY(100%);
+  transition:transform .28s cubic-bezier(.32,1,.55,1);
+}
+.mas-overlay.open .mas-drawer{transform:translateX(-50%) translateY(0)}
+.mas-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px}
+.mas-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:0 12px}
+.mas-item{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:14px 8px;border-radius:var(--radius-sm);
+  border:none;background:none;
+  color:var(--text2);cursor:pointer;
+  transition:background .15s,color .15s;
+  font-family:'DM Sans',sans-serif;
+}
+.mas-item:active{background:var(--gold-dim)}
+.mas-item.active{color:var(--gold2);background:var(--gold-dim)}
+.mas-icon{font-size:22px;line-height:1}
+.mas-label{font-size:10px;letter-spacing:.2px}
+
+.content{flex:1;overflow-y:auto;padding:13px;-webkit-overflow-scrolling:touch}
+.content::-webkit-scrollbar{display:none}
+.section{display:none}.section.active{display:block}
+.search-wrap{position:relative;margin-bottom:12px}
+.search-wrap input{width:100%;padding:10px 12px 10px 36px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px}
+.search-wrap input::placeholder{color:var(--text3)}
+.search-wrap input:focus{outline:none;border-color:var(--gold)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px}
+.venta-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:9px;overflow:hidden}
+.venta-card.pendiente{border-color:rgba(224,176,96,0.4)}.venta-card.completada{border-color:rgba(112,201,160,0.3)}
+.vc-header{display:flex;justify-content:space-between;align-items:flex-start;padding:11px 12px 7px}
+.vc-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--text);line-height:1.2;max-width:62%}
+.vc-meta{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.vc-date{font-size:11px;color:var(--text2)}
+.vc-body{padding:0 12px 10px;display:flex;flex-direction:column;gap:4px}
+.vc-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text2)}
+.vc-row span:last-child{color:var(--gold)}
+.pos{color:var(--success)!important}.neg{color:var(--danger)!important}
+.vc-nota{font-size:11px;color:var(--text2);font-style:italic;padding:4px 12px 8px;border-top:0.5px solid var(--border)}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500}
+.badge-cuota{background:rgba(201,168,76,0.15);color:var(--gold2);border:0.5px solid rgba(201,168,76,0.3)}
+.badge-debe{background:rgba(224,112,112,0.12);color:var(--danger);border:0.5px solid rgba(224,112,112,0.3)}
+.badge-ok{background:rgba(112,201,160,0.12);color:var(--success);border:0.5px solid rgba(112,201,160,0.3)}
+.badge-dias{background:rgba(224,112,112,0.1);color:var(--danger);border:0.5px solid rgba(224,112,112,0.25);font-size:9px}
+.badge-dias.warn{background:rgba(224,176,96,0.1);color:var(--warn);border-color:rgba(224,176,96,0.3)}
+.badges-row{display:flex;gap:4px;flex-wrap:wrap;padding:0 12px 7px}
+.cuotas-panel{border-top:0.5px solid var(--border);background:var(--bg3)}
+.cuotas-panel-header{padding:8px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.cuotas-panel-header span{font-size:12px;color:var(--gold);font-weight:500}
+.cuotas-panel-body{padding:0 12px 11px;display:none}.cuotas-panel-body.open{display:block}
+.cuota-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid rgba(255,255,255,0.05)}
+.cuota-item:last-child{border-bottom:none}
+.cuota-num{font-size:12px;color:var(--text2)}.cuota-fecha{font-size:11px;color:var(--text3);margin-top:1px}
+.cuota-monto{font-size:13px;font-weight:500}.cuota-ok{color:var(--success)}.cuota-pend{color:var(--warn)}
+.btn-pagar-cuota{padding:4px 11px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:var(--radius-sm);font-size:11px;font-weight:500;cursor:pointer}
+.add-cuota-form{margin-top:9px;display:flex;gap:6px;align-items:center}
+.add-cuota-form input{flex:1;padding:7px 9px;background:var(--card2);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif}
+.add-cuota-form input:focus{outline:none;border-color:var(--gold)}
+.btn-add-cuota{padding:7px 11px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:11px;cursor:pointer;white-space:nowrap}
+.mes-sep{display:flex;align-items:center;gap:8px;margin:15px 0 9px}
+.mes-sep-line{flex:1;height:0.5px;background:var(--border)}
+.mes-sep-label{font-size:11px;color:var(--gold);letter-spacing:1.2px;text-transform:uppercase;font-weight:500;white-space:nowrap}
+.mes-total{display:flex;justify-content:space-between;margin-bottom:9px;font-size:12px;color:var(--text2);padding:6px 10px;background:var(--bg3);border-radius:var(--radius-sm)}
+.mes-filter{display:flex;gap:5px;margin-bottom:12px;overflow-x:auto;padding-bottom:3px}
+.mes-filter::-webkit-scrollbar{display:none}
+.mes-chip{padding:4px 11px;border:0.5px solid var(--border);border-radius:20px;background:var(--card);color:var(--text2);font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.mes-chip.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold2)}
+.filter-row{display:flex;gap:5px;margin-bottom:11px;overflow-x:auto}
+.filter-row::-webkit-scrollbar{display:none}
+.filter-chip{padding:4px 10px;border:0.5px solid var(--border);border-radius:20px;background:var(--card);color:var(--text2);font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.filter-chip.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold2)}
+.g-summary{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:13px}
+.g-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:11px}
+.g-card-lbl{font-size:11px;color:var(--text2);margin-bottom:3px}
+.g-card-val{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;color:var(--gold2)}
+.g-card-val.green{color:var(--success)}.g-card-val.red{color:var(--danger)}.g-card-val.warn{color:var(--warn)}
+.section-title{font-size:11px;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:7px;margin-top:4px}
+.comparar-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+.cmp-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px}
+.cmp-mes{font-size:11px;color:var(--gold);margin-bottom:6px;font-weight:500}
+.cmp-row{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);padding:2px 0}
+.cmp-row span:last-child{color:var(--text)}
+.chart-wrap{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:12px}
+.chart-title{font-size:12px;color:var(--text2);margin-bottom:10px}
+/* META MENSUAL */
+.meta-bar-wrap{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:12px}
+.meta-bar-top{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:7px}
+.meta-bar-top strong{color:var(--gold2)}
+.meta-bar{height:10px;background:var(--bg3);border-radius:20px;overflow:hidden}
+.meta-bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .4s}
+.meta-bar-fill.over{background:linear-gradient(90deg,var(--success),#a0e8c0)}
+/* STATS AVANZADAS */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
+.stat-mini{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px}
+.stat-mini-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.stat-mini-val{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--text)}
+.stat-mini-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.bar-chart-simple{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.bar-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.bar-label{color:var(--text2);width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.bar-fill-wrap{flex:1;height:8px;background:var(--bg3);border-radius:20px;overflow:hidden}
+.bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .3s}
+.bar-val{color:var(--gold2);font-size:11px;white-space:nowrap}
+/* STOCK */
+.perf-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.card-body{display:flex;align-items:center;gap:10px;padding:10px}
+.perf-thumb{width:52px;height:52px;border-radius:var(--radius-sm);flex-shrink:0;background:var(--bg3);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--text3);font-size:20px}
+.perf-thumb img{width:100%;height:100%;object-fit:cover}
+.card-info{flex:1;min-width:0}
+.card-name{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.stock-pill{font-size:11px;font-weight:500;padding:2px 7px;border-radius:20px}
+.pill-ok{background:rgba(112,201,160,0.15);color:var(--success)}.pill-low{background:rgba(224,176,96,0.15);color:var(--warn)}.pill-out{background:rgba(224,112,112,0.15);color:var(--danger)}
+.qty-ctrl{display:flex;align-items:center;gap:5px}
+.qty-btn{width:26px;height:26px;border-radius:var(--radius-sm);background:var(--card2);border:0.5px solid var(--border);color:var(--gold2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.qty-btn:active{background:var(--gold-dim)}
+.qty-num{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--text);min-width:18px;text-align:center}
+/* CAJA */
+.caja-saldo{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;text-align:center}
+.caja-saldo-lbl{font-size:11px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.caja-saldo-val{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;color:var(--gold2)}
+.mov-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:8px;padding:11px 12px;display:flex;justify-content:space-between;align-items:center}
+.mov-card.entrada{border-left:3px solid var(--success)}.mov-card.salida{border-left:3px solid var(--danger)}
+.mov-info{flex:1}.mov-desc{font-size:13px;color:var(--text);font-weight:500}.mov-meta{font-size:11px;color:var(--text2);margin-top:2px}
+.mov-monto{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600}
+.mov-monto.entrada{color:var(--success)}.mov-monto.salida{color:var(--danger)}
+/* GASTOS */
+.gasto-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.gasto-card.envio_compra{border-left:3px solid var(--gold)}.gasto-card.envio_venta{border-left:3px solid #7ec8e8}.gasto-card.bolsas{border-left:3px solid #c870e0}.gasto-card.otro{border-left:3px solid var(--text3)}
+.gc-header{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 12px 5px}
+.gc-cat{font-size:13px;font-weight:500;color:var(--text)}.gc-monto{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--danger)}
+.gc-body{padding:0 12px 9px;display:flex;flex-direction:column;gap:3px}
+.gc-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text2)}.gc-row span:last-child{color:var(--text)}
+.perfume-envio-tag{display:inline-flex;align-items:center;gap:4px;background:var(--card2);border:0.5px solid var(--border);border-radius:20px;padding:2px 7px;font-size:11px;color:var(--text2);margin:2px}
+.perfume-envio-tag button{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;line-height:1;padding:0}
+.gastos-resumen-cat{background:var(--bg3);border-radius:var(--radius-sm);padding:9px 11px;margin-bottom:7px}
+.gastos-resumen-cat-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);padding:2px 0}
+.gastos-resumen-cat-row span:last-child{color:var(--danger);font-weight:500}
+/* DESCUENTO */
+.descuento-row{display:flex;align-items:center;gap:7px;margin-bottom:12px;background:var(--bg3);border-radius:var(--radius-sm);padding:8px 10px}
+.descuento-row label{font-size:11px;color:var(--text2);white-space:nowrap}
+.descuento-row input{flex:1;padding:6px 9px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif}
+.precio-sugerido{font-size:11px;color:var(--success);margin-top:4px;padding:5px 9px;background:rgba(112,201,160,0.08);border-radius:var(--radius-sm);display:none}
+/* IMPORTAR */
+.import-zone{border:1.5px dashed rgba(201,168,76,0.35);border-radius:var(--radius);padding:26px 16px;text-align:center;cursor:pointer;background:var(--card);transition:.15s;margin-bottom:13px}
+.import-zone:active,.import-zone.drag{border-color:var(--gold);background:var(--gold-dim)}
+.import-zone-icon{font-size:34px;margin-bottom:9px}
+.import-zone h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--gold2);margin-bottom:5px}
+.import-zone p{font-size:13px;color:var(--text2);line-height:1.5}
+.import-zone small{font-size:11px;color:var(--text3);margin-top:5px;display:block}
+.import-result{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:11px;display:none}
+.import-result.show{display:block}
+.import-result h4{font-size:13px;font-weight:500;color:var(--gold2);margin-bottom:9px}
+.import-stat{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);padding:4px 0;border-bottom:0.5px solid var(--border)}
+.import-stat:last-child{border-bottom:none}
+.import-stat span:last-child{color:var(--success);font-weight:500}
+.import-preview-list{margin-top:9px;max-height:160px;overflow-y:auto}
+.import-preview-item{font-size:11px;color:var(--text2);padding:3px 0;border-bottom:0.5px solid rgba(255,255,255,0.04)}
+.import-preview-item span{color:var(--gold)}
+.import-errors{background:rgba(224,112,112,0.08);border:0.5px solid rgba(224,112,112,0.25);border-radius:var(--radius-sm);padding:9px;margin-top:9px;font-size:12px;color:var(--danger);line-height:1.6;display:none}
+.import-errors.show{display:block}
+.btn-import-confirm{width:100%;padding:11px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:7px;display:none}
+.btn-import-confirm.show{display:block}
+.formato-info{background:rgba(201,168,76,0.07);border:0.5px solid var(--border);border-radius:var(--radius);padding:13px;margin-top:13px}
+.formato-info h4{font-size:13px;color:var(--gold2);margin-bottom:7px}
+.formato-info p{font-size:12px;color:var(--text2);line-height:1.6}
+.col-pills{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
+.col-pill{background:var(--card2);border:0.5px solid var(--border);border-radius:5px;padding:2px 7px;font-size:11px;color:var(--text2);font-family:monospace}
+/* FORM */
+.form-group{margin-bottom:12px}
+.form-label{font-size:11px;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px;display:block}
+.form-group input,.form-group select{width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px}
+.form-group select option{background:var(--bg2)}
+.form-group input::placeholder{color:var(--text3)}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--gold)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.btn-primary{width:100%;padding:12px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:3px}
+.btn-primary:active{opacity:.85}
+.btn-outline{width:100%;padding:11px;background:none;border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;margin-top:9px;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-outline:active{background:var(--gold-dim)}
+.btn-icon{background:none;border:none;cursor:pointer;padding:3px;color:var(--text3);font-size:13px;line-height:1}
+.btn-wa{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;background:rgba(37,211,102,0.15);border:0.5px solid rgba(37,211,102,0.4);color:#25d366;border-radius:var(--radius-sm);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.btn-wa:active{opacity:.8}
+.empty{text-align:center;padding:40px 14px;color:var(--text2)}
+.empty-icon{font-size:38px;color:var(--text3);margin-bottom:9px}
+.empty p{font-size:14px;line-height:1.6}
+.alert-banner{background:rgba(224,176,96,0.1);border:0.5px solid rgba(224,176,96,0.3);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;color:var(--warn);margin-bottom:11px;display:none;align-items:center;gap:7px}
+.alert-banner.show{display:flex}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--card2);border:0.5px solid var(--border);color:var(--text);padding:9px 18px;border-radius:30px;font-size:13px;opacity:0;transition:opacity .25s,transform .25s;z-index:999;pointer-events:none;max-width:90vw;text-align:center;line-height:1.4}
+.toast.has-undo{pointer-events:all;display:flex;align-items:center;gap:12px;border-radius:14px;padding:10px 14px 10px 18px}
+.toast-undo-btn{background:var(--gold);color:#1a1a2e;border:none;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:20px 17px 32px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal h3{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--gold2);margin-bottom:5px}
+.modal p{font-size:14px;color:var(--text2);margin-bottom:16px;line-height:1.5}
+.modal-btns{display:flex;gap:9px;margin-top:10px}
+.modal-btns button{flex:1;padding:11px;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;border:0.5px solid var(--border)}
+.btn-cancel{background:var(--card);color:var(--text2)}
+.btn-confirm-del{background:rgba(224,112,112,0.2);color:var(--danger);border-color:rgba(224,112,112,0.3)}
+.btn-confirm-ok{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border-color:var(--gold)}
+/* FOTO CATÁLOGO */
+.catalogo-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.cat-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer}
+.cat-card-img{width:100%;height:120px;object-fit:cover;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:36px;color:var(--text3)}
+.cat-card-img img{width:100%;height:100%;object-fit:cover}
+.cat-card-info{padding:8px 10px}
+.cat-card-name{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--text)}
+.cat-card-price{font-size:12px;color:var(--gold);margin-top:2px}
+.cat-card-ml{font-size:11px;color:var(--text2)}
+
+
+.pin-setup-wrap .pin-dots{justify-content:center}
+.pin-setup-wrap .pin-grid{max-width:260px;margin:0 auto}
+.card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);}
+
+
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE — Android / iPhone / Desktop
+   ═══════════════════════════════════════════════ */
+
+/* ── BASE MOBILE (hasta 480px) — ya funciona ── */
+
+/* ── TABLET / IPHONE GRANDE (481px - 768px) ── */
+@media (min-width: 481px) and (max-width: 768px) {
+  .app { max-width: 600px; }
+  .header { padding: 48px 24px 14px; }
+  .header-row { gap: 14px; }
+  .brand-title { font-size: 22px; }
+  .stat-card { padding: 13px; }
+  .stat-val { font-size: 22px; }
+  .tab { padding: 11px 14px; font-size: 12px; }
+  .content { padding: 14px; }
+  .venta-card { border-radius: 12px; }
+  .g-cards { grid-template-columns: repeat(3, 1fr); }
+  .form-group input, .form-group select, .form-group textarea { font-size: 16px; padding: 13px; }
+  .btn-primary { padding: 14px; font-size: 15px; }
+  .cuota-card { padding: 13px 16px; }
+  .stat-mini { padding: 12px; }
+  .modal-box { max-width: 520px; }
+}
+
+/* Banner de trial/demo: en mobile empuja el body */
+@media (max-width: 768px) {
+  body.has-top-banner { padding-top: 32px; }
+  /* Indicador de scroll en tabs mobile */
+  .tabs-wrap::after { display: block; }
+}
+
+/* ── DESKTOP / LAPTOP (769px+) ── */
+@media (min-width: 769px) {
+  html, body { overflow: auto; }
+
+  .app {
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .tabs-wrap::after { display: none; }
+  /* Cuando hay banner de trial/demo arriba, ajustar el alto del grid */
+  body.has-top-banner .app { margin-top: 32px; height: calc(100vh - 32px); }
+
+  /* Header: columna completa, sin overflow */
+  .header {
+    grid-column: 1 / -1;
+    padding: 12px 32px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: visible;
+  }
+  .header-row { margin-bottom: 0; }
+  .stats-row { display: flex; flex-direction: row; gap: 12px; margin-bottom: 0; }
+  .stat-card { min-width: 120px; padding: 10px 16px; }
+  .stat-val { font-size: 20px; }
+  .stat-lbl { font-size: 11px; }
+
+  /* brand-row: logo + título a la izquierda, controles a la derecha SIN salirse */
+  .header .brand-row { width: 100%; overflow: visible; gap: 8px; }
+  .header .brand-left { flex: 1 1 0; min-width: 0; overflow: hidden; }
+  .header .brand-title { font-size: 18px; overflow: hidden; text-overflow: ellipsis; }
+  .header .header-right { flex-shrink: 0; gap: 4px; }
+  /* Logo más chico en mobile para ganar espacio */
+  .header .logo-svg { width: 36px; height: 36px; }
+  /* Profile badge compacto */
+  #profile-badge { max-width: 80px !important; font-size: 10px !important; padding: 3px 7px !important; }
+  /* icon-btn compacto */
+  .header .icon-btn { padding: 5px 7px !important; font-size: 13px !important; min-width: 32px !important; min-height: 32px !important; width: 32px !important; }
+
+  /* stats: fila de 3 cajas con tamaño fijo */
+  .header-stats { margin-top: 0; grid-template-columns: repeat(3, 100px); gap: 8px; }
+  .hstat { min-width: 0; }
+
+  /* meta-strip y banner: sin margen extra */
+  .header .meta-strip   { margin-top: 0; }
+  .header .daily-banner { margin-top: 0; }
+
+  /* tabs eliminado — navegación manejada por bottom-nav */
+
+  /* Contenido principal a la derecha */
+  .content {
+    grid-column: 2;
+    grid-row: 2;
+    overflow-y: auto;
+    padding: 24px 32px;
+    height: 100%;
+  }
+
+  /* Grillas más amplias */
+  .g-cards { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stat-mini-grid, .stat-grid { grid-template-columns: repeat(4, 1fr); }
+  .form-row { grid-template-columns: 1fr 1fr 1fr; }
+
+  /* Cards más anchas */
+  .venta-card { border-radius: 12px; margin-bottom: 10px; }
+  .modal-overlay { align-items: center; }
+  .modal-box { max-width: 560px; border-radius: 16px; }
+  .modal-box.modal-box-lg { max-width: 720px; }
+
+  /* Tipografía más grande */
+  .brand-title { font-size: 22px; }
+  .brand-sub { font-size: 11px; }
+  .tab { font-size: 13px; }
+  .section-title { font-size: 12px; }
+  .btn-primary { font-size: 14px; padding: 13px; }
+  .form-group input, .form-group select { font-size: 14px; }
+
+  /* Ventas en desktop — ancho completo, cards en 2 cols dentro del mes */
+  #ventas-list { display: block; }
+  .ventas-mes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  #cuotas-pendientes-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  #cuotas-pendientes-list > div:first-child { grid-column: 1 / -1; }
+  #gastos-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  #gastos-list .gastos-resumen-cat { grid-column: 1 / -1; }
+
+  /* Stock en 3 columnas */
+  #perfume-list { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  #catalogo-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+  /* Scrollbar elegante */
+  .content::-webkit-scrollbar { width: 5px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 10px; }
+  .content::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.4); }
+  .tabs::-webkit-scrollbar { width: 3px; }
+  .tabs::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.15); border-radius: 10px; }
+
+  /* Header icons más grandes */
+  .icon-btn { width: 36px; height: 36px; font-size: 17px; }
+  .header-icons { gap: 8px; }
+
+  /* Daily banner en desktop */
+  #daily-banner { font-size: 13px; padding: 8px 16px; }
+  #meta-strip { gap: 24px; }
+
+  /* Toast en esquina */
+  .toast { bottom: 24px; right: 24px; left: auto; transform: none; }
+  .toast.show { transform: none; opacity: 1; }
+}
+
+/* ── DESKTOP ANCHO (1200px+) ── */
+@media (min-width: 1200px) {
+  .app { grid-template-columns: 280px 1fr; }
+  .tabs { width: 280px; }
+  .g-cards { grid-template-columns: repeat(5, 1fr); }
+  #perfume-list { grid-template-columns: repeat(4, 1fr); }
+  #catalogo-grid { grid-template-columns: repeat(5, 1fr); }
+  .ventas-mes-grid { grid-template-columns: 1fr 1fr 1fr; }
+  #cuotas-pendientes-list { grid-template-columns: 1fr 1fr 1fr; }
+  #gastos-list { grid-template-columns: 1fr 1fr 1fr; }
+  .content { padding: 28px 40px; }
+}
+
+/* ── IPHONE ESPECÍFICO (Safari) ── */
+@supports (-webkit-touch-callout: none) {
+  .btn-primary, .tab, .icon-btn, .btn-sm {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  /* Safe area para iPhone con notch */
+  .header { padding-top: max(44px, env(safe-area-inset-top, 44px)); }
+  .tabs { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  html, body { 
+    height: -webkit-fill-available;
+    overscroll-behavior: none;
+  }
+  .app { min-height: -webkit-fill-available; }
+}
+
+/* ── ANDROID ESPECÍFICO ── */
+@media (max-width: 480px) {
+  /* Touch targets mínimo 44px */
+  .tab { min-height: 44px; }
+  .btn-primary { min-height: 48px; }
+  .icon-btn { min-height: 40px; min-width: 40px; }
+  .btn-sm { min-height: 36px; padding: 8px 12px; }
+  
+  /* Inputs más grandes para teclado */
+  .form-group input, .form-group select, .form-group textarea { 
+    font-size: 16px; /* evita zoom automático en iOS/Android */
+    min-height: 44px;
+  }
+  
+  /* Cards compactas */
+  .stat-card { padding: 10px 12px; }
+  .g-card { padding: 10px; }
+  
+  /* Evitar overflow horizontal */
+  .vc-header { flex-wrap: wrap; gap: 6px; }
+  .vc-actions { flex-wrap: wrap; }
+
+  /* ── FIX HEADER MOBILE: todos los controles deben entrar en 390px ── */
+  .brand-row { overflow: hidden; gap: 6px; }
+  .brand-left { flex: 1 1 0; min-width: 0; overflow: hidden; gap: 8px; }
+  .brand-title { font-size: 17px !important; white-space: nowrap; }
+  .logo-svg { width: 34px !important; height: 34px !important; }
+  .header-right { flex-shrink: 0; gap: 3px !important; }
+  /* Profile badge compacto */
+  #profile-badge { max-width: 90px !important; font-size: 10px !important; padding: 3px 7px !important; }
+  /* icon-btn compacto en header */
+  .header-right .icon-btn { padding: 5px 6px !important; font-size: 13px !important; min-width: 30px !important; min-height: 30px !important; width: 30px !important; height: 30px !important; }
+  /* Pill compacto */
+  .sync-status-pill { padding: 3px 6px !important; font-size: 10px !important; }
+}
+
+/* ── PRINT ── */
+@media print {
+  .tabs, .header-icons, .btn-primary, .btn-sm, .icon-btn { display: none !important; }
+  .content { overflow: visible; height: auto; }
+  .app { display: block; }
+  body { background: white; color: black; }
+}
+
+/* ── ONBOARDING ── */
+.ob-overlay{position:fixed;inset:0;z-index:10000;background:rgba(7,7,14,.92);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:24px;}
+.ob-overlay.show{display:flex;}
+.ob-welcome{max-width:420px;text-align:center;animation:obFade .5s ease;}
+.ob-welcome h2{font-size:26px;font-weight:700;color:var(--gold2);margin-bottom:12px;}
+.ob-welcome p{font-size:15px;color:var(--text2);line-height:1.6;margin-bottom:24px;}
+.ob-welcome .ob-steps{display:flex;flex-direction:column;gap:10px;margin-bottom:28px;text-align:left;}
+.ob-step{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.ob-step-n{width:30px;height:30px;flex-shrink:0;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);color:var(--gold2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+.ob-step-tx{font-size:13px;color:var(--text2);line-height:1.4;}
+.ob-step-tx strong{color:var(--text);}
+.ob-btns{display:flex;flex-direction:column;gap:10px;}
+.ob-btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#07070e;border:none;border-radius:30px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;}
+.ob-btn-skip{background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:6px;font-family:inherit;}
+@keyframes obFade{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.tour-backdrop{position:fixed;inset:0;z-index:10001;background:rgba(7,7,14,.78);display:none;}
+.tour-backdrop.show{display:block;}
+.tour-highlight{position:fixed;z-index:10002;border:2px solid var(--gold2);border-radius:10px;box-shadow:0 0 0 4px rgba(201,168,76,.25),0 0 30px rgba(201,168,76,.4);pointer-events:none;transition:all .35s cubic-bezier(.4,0,.2,1);display:none;}
+.tour-highlight.show{display:block;}
+.tour-tip{position:fixed;z-index:10003;max-width:300px;background:var(--card);border:1px solid var(--gold);border-radius:14px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none;animation:obFade .3s ease;}
+.tour-tip.show{display:block;}
+.tour-tip h3{font-size:16px;color:var(--gold2);margin-bottom:8px;font-weight:600;}
+.tour-tip p{font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:16px;}
+.tour-tip-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.tour-progress{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.tour-tip-btns{display:flex;gap:8px;}
+.tour-btn{border-radius:20px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit;border:none;}
+.tour-btn-next{background:var(--gold2);color:#07070e;font-weight:600;}
+.tour-btn-skip{background:none;border:1px solid var(--border);color:var(--text3);}
+@media(max-width:768px){.tour-tip{max-width:calc(100vw - 32px);}}
+
+</style>
+<body>
+
+<!-- ONBOARDING: Pantalla de bienvenida -->
+<div class="ob-overlay" id="ob-welcome-screen">
+  <div class="ob-welcome">
+    <svg viewBox="0 0 100 100" width="72" height="72" style="display:block;margin:0 auto 20px;"><defs><linearGradient id="obdrop" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f5dfa0"/><stop offset="50%" stop-color="#e8c97e"/><stop offset="100%" stop-color="#c9a84c"/></linearGradient></defs><path d="M50 8 L74 52 a26 26 0 1 1 -48 0 Z" fill="url(#obdrop)"/></svg>
+    <h2>¡Bienvenido a Parfum Track!</h2>
+    <p>Tu nuevo sistema para gestionar las ventas de perfumes. En 1 minuto te muestro lo esencial.</p>
+    <p style="font-size:12px;color:var(--text3);margin-top:-14px;margin-bottom:20px;background:rgba(201,168,76,.07);border:0.5px solid rgba(201,168,76,.2);border-radius:8px;padding:8px 12px;">💾 Tus datos se guardan en este celular. Hacé backups frecuentes para no perderlos.</p>
+    <div class="ob-steps">
+      <div class="ob-step"><div class="ob-step-n">1</div><div class="ob-step-tx"><strong>Registrá tus ventas</strong> al contado o en cuotas</div></div>
+      <div class="ob-step"><div class="ob-step-n">2</div><div class="ob-step-tx"><strong>Seguí las cuotas</strong> y cobrá lo que te deben</div></div>
+      <div class="ob-step"><div class="ob-step-n">3</div><div class="ob-step-tx"><strong>Controlá tu caja</strong> y mirá tus ganancias</div></div>
+    </div>
+    <div class="ob-btns">
+      <button class="ob-btn-primary" onclick="iniciarTour()">Hacer el recorrido (1 min)</button>
+      <button class="ob-btn-skip" onclick="cerrarOnboarding()">Saltar, ya sé usarla</button>
+    </div>
+  </div>
+</div>
+
+<!-- ONBOARDING: Tour interactivo -->
+<div class="tour-backdrop" id="tour-backdrop"></div>
+<div class="tour-highlight" id="tour-highlight"></div>
+<div class="tour-tip" id="tour-tip">
+  <h3 id="tour-tip-title"></h3>
+  <p id="tour-tip-text"></p>
+  <div class="tour-tip-foot">
+    <span class="tour-progress" id="tour-progress"></span>
+    <div class="tour-tip-btns">
+      <button class="tour-btn tour-btn-skip" onclick="terminarTour()">Saltar</button>
+      <button class="tour-btn tour-btn-next" id="tour-next-btn" onclick="tourSiguiente()">Siguiente</button>
+    </div>
+  </div>
+</div>
+
+<div id="app-loading" style="position:fixed;inset:0;background:var(--bg);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;">
+  <div style="font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--gold2);letter-spacing:2px;"><svg viewBox="0 0 100 100" width="24" height="24" style="vertical-align:middle;display:inline-block;"><defs><linearGradient id="dhead" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f5dfa0"/><stop offset="50%" stop-color="#e8c97e"/><stop offset="100%" stop-color="#c9a84c"/></linearGradient></defs><path d="M50 8 L74 52 a26 26 0 1 1 -48 0 Z" fill="url(#dhead)"/><ellipse cx="40" cy="62" rx="8" ry="12" fill="#ffffff" opacity="0.4"/></svg></div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold2);letter-spacing:2px;">Parfum Track</div>
+  <div style="width:40px;height:2px;background:var(--gold-dim);border-radius:2px;overflow:hidden;margin-top:8px;">
+    <div style="width:100%;height:100%;background:var(--gold);animation:loadbar 1s ease-in-out infinite;"></div>
+  </div>
+</div>
+<style>@keyframes loadbar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}</style>
+<div class="app">
+  <div class="header">
+    <div class="brand-row">
+      <div class="brand-left">
+        <svg class="logo-svg" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 10 C50 10 15 50 15 75 C15 95 31 110 50 110 C69 110 85 95 85 75 C85 50 50 10 50 10Z" fill="#c9a84c"/>
+          <path d="M50 30 C50 30 27 60 27 75 C27 88 37 97 50 97 C63 97 73 88 73 75 C73 60 50 30 50 30Z" fill="#e8c97e" opacity="0.22"/>
+          <ellipse cx="39" cy="65" rx="6" ry="11" fill="#f5dfa0" opacity="0.38" transform="rotate(-20 39 65)"/>
+        </svg>
+        <div><div class="brand-title">Parfum Track</div><div class="brand-sub">Gestión de ventas</div></div>
+      </div>
+      <div class="header-right" style="gap:5px;">
+        <button id="profile-badge" onclick="showProfileScreen()" style="background:var(--gold-dim);border:0.5px solid var(--border);color:var(--gold2);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;min-width:0;">🍶</button>
+        <div id="sync-status-pill" class="sync-status-pill warn" onclick="showTab('ajustes')" title="Estado del backup">
+          <div class="sync-status-dot"></div>
+          <span id="sync-status-label">Backup</span>
+        </div>
+        <button class="icon-btn" onclick="backupData()" title="Backup datos">💾</button>
+        <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">🌙</button>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="hstat" onclick="showTab('ganancias')"><div class="hstat-num" id="st-ventas">0</div><div class="hstat-lbl">Ventas</div></div>
+      <div class="hstat" onclick="showTab('ganancias')"><div class="hstat-num" id="st-ganancia">$0</div><div class="hstat-lbl">Ganancia</div></div>
+      <div class="hstat" onclick="showTab('cuotas')"><div class="hstat-num" id="st-debe" style="color:var(--warn)">$0</div><div class="hstat-lbl">Debe</div><div class="hstat-sub" id="st-cuotas-pendientes" style="font-size:9px;color:var(--text3);margin-top:1px;display:none"></div></div>
+    </div>
+    <div class="meta-strip" id="meta-strip"></div>
+    <div class="daily-banner" id="daily-banner"></div>
+  </div>
+
+  <!-- BOTTOM NAV — 5 items principales -->
+  <nav class="bottom-nav">
+    <button class="bn-item active" id="bn-ventas" onclick="showTab('ventas')">
+      <span class="bn-icon">💰</span>Ventas
+    </button>
+    <button class="bn-item" id="bn-cuotas" onclick="showTab('cuotas')">
+      <span class="bn-icon">🗓</span>Cuotas
+      <span class="bn-badge" id="bn-badge-cuotas"></span>
+    </button>
+    <button class="bn-item" id="bn-add" onclick="showTab('add')" style="color:var(--gold2)">
+      <span class="bn-icon" style="width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;margin-top:-14px;box-shadow:0 2px 12px rgba(201,168,76,0.35)">✦</span>
+      Nueva
+    </button>
+    <button class="bn-item" id="bn-ganancias" onclick="showTab('ganancias')">
+      <span class="bn-icon">📊</span>Gráficos
+    </button>
+    <button class="bn-item" id="bn-mas" onclick="abrirMas()">
+      <span class="bn-icon">⋯</span>Más
+    </button>
+  </nav>
+
+  <!-- DRAWER "MÁS" -->
+  <div class="mas-overlay" id="mas-overlay" onclick="cerrarMas()">
+    <div class="mas-drawer" onclick="event.stopPropagation()">
+      <div class="mas-handle"></div>
+      <div class="mas-grid">
+        <button class="mas-item" id="masitem-caja" onclick="showTabFromMas('caja')">
+          <span class="mas-icon">🏦</span>
+          <span class="mas-label">Caja</span>
+        </button>
+        <button class="mas-item" id="masitem-stock" onclick="showTabFromMas('stock')">
+          <span class="mas-icon">📦</span>
+          <span class="mas-label">Stock</span>
+        </button>
+        <button class="mas-item" id="masitem-catalogo" onclick="showTabFromMas('catalogo')">
+          <span class="mas-icon">🛍</span>
+          <span class="mas-label">Catálogo</span>
+        </button>
+        <button class="mas-item" id="masitem-gastos" onclick="showTabFromMas('gastos')">
+          <span class="mas-icon">💸</span>
+          <span class="mas-label">Gastos</span>
+        </button>
+        <button class="mas-item" id="masitem-importar" onclick="showTabFromMas('importar')">
+          <span class="mas-icon">📥</span>
+          <span class="mas-label">Importar</span>
+        </button>
+        <button class="mas-item" id="masitem-ajustes" onclick="showTabFromMas('ajustes')">
+          <span class="mas-icon">⚙</span>
+          <span class="mas-label">Ajustes</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="content">
+
+    <!-- VENTAS -->
+    <div id="tab-ventas" class="section active">
+      <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="search-ventas" placeholder="Buscar perfume, cliente, vendedor..." oninput="renderVentas()"></div>
+      <div class="mes-filter" id="mes-filter-ventas"></div>
+      <div class="filter-row">
+        <button class="filter-chip active" id="fchip-todas" onclick="setFiltroEstado('todas')">Todas</button>
+        <button class="filter-chip" id="fchip-hoy" onclick="setFiltroEstado('hoy')">📅 Hoy</button>
+        <button class="filter-chip" id="fchip-pendiente" onclick="setFiltroEstado('pendiente')">⏳ Con deuda</button>
+        <button class="filter-chip" id="fchip-completada" onclick="setFiltroEstado('completada')">✅ Completadas</button>
+      </div>
+      <div id="ventas-list"></div>
+    </div>
+
+    <!-- CUOTAS -->
+    <div id="tab-cuotas" class="section"><div id="cuotas-pendientes-list"></div></div>
+
+    <!-- GASTOS -->
+    <div id="tab-gastos" class="section">
+      <div class="g-summary" style="margin-bottom:13px">
+        <div class="g-card"><div class="g-card-lbl">Total gastos</div><div class="g-card-val red" id="gs-total">$0</div></div>
+        <div class="g-card"><div class="g-card-lbl">Este mes</div><div class="g-card-val red" id="gs-mes">$0</div></div>
+      </div>
+      <div class="mes-filter" id="mes-filter-gastos"></div>
+      <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:13px">
+        <div style="font-size:12px;color:var(--gold2);font-weight:500;margin-bottom:11px">✦ NUEVO GASTO</div>
+        <div class="form-group"><label class="form-label">Categoría</label>
+          <select id="g-categoria" onchange="toggleGastoCat()">
+            <option value="envio_compra">📦 Envío de compra</option>
+            <option value="envio_venta">🚚 Envío de venta</option>
+            <option value="bolsas">🛍 Bolsas y packaging</option>
+            <option value="otro">📋 Otro gasto</option>
+          </select>
+        </div>
+        <div id="g-otro-extra" style="display:none"><div class="form-group"><label class="form-label">Nombre del gasto</label><input type="text" id="g-otro-nombre" placeholder="Ej: Comisión, publicidad..."></div></div>
+        <div id="g-envio-compra-extra" style="display:none">
+          <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:9px;margin-bottom:11px">
+            <div style="font-size:11px;color:var(--gold);margin-bottom:7px">PERFUMES EN ESTE ENVÍO</div>
+            <div id="g-perfumes-envio-list"></div>
+            <div style="display:flex;gap:6px;margin-top:7px">
+              <input type="text" id="g-perfume-envio-input" placeholder="Nombre del perfume" list="sug-perfume-gasto" style="flex:1;padding:6px 9px;background:var(--card2);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px">
+              <datalist id="sug-perfume-gasto"></datalist>
+              <button onclick="agregarPerfumeEnvio()" style="padding:6px 11px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:11px;cursor:pointer;white-space:nowrap">+ Agregar</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Monto</label><input type="number" id="g-monto" placeholder="0" min="0" inputmode="numeric"></div>
+          <div class="form-group"><label class="form-label">Fecha</label><input type="date" id="g-fecha"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Descripción (opcional)</label><input type="text" id="g-descripcion" placeholder="Ej: Envío SCENTA..."></div>
+        <button class="btn-primary" onclick="addGasto()">Guardar gasto</button>
+      </div>
+      <div id="gastos-list"></div>
+    </div>
+
+    <!-- ANÁLISIS -->
+    <div id="tab-ganancias" class="section">
+      <div class="mes-filter" id="mes-filter-gan"></div>
+      <!-- META MENSUAL -->
+      <div class="meta-bar-wrap">
+        <div class="meta-bar-top">
+          <span>🎯 Meta mensual: <strong id="meta-label">sin definir</strong></span>
+          <button onclick="abrirModalMeta()" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:12px">Editar</button>
+        </div>
+        <div class="meta-bar"><div class="meta-bar-fill" id="meta-bar-fill" style="width:0%"></div></div>
+        <div style="font-size:11px;color:var(--text2);margin-top:5px" id="meta-progress-lbl"></div>
+      </div>
+      <!-- COMPARAR -->
+      <div style="display:flex;gap:7px;margin-bottom:11px;align-items:center">
+        <select id="cmp-mes1" onchange="renderComparacion()" style="flex:1;padding:8px 10px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px"></select>
+        <span style="font-size:12px;color:var(--text3)">vs</span>
+        <select id="cmp-mes2" onchange="renderComparacion()" style="flex:1;padding:8px 10px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px"></select>
+      </div>
+      <div id="comparacion-result" style="display:none;margin-bottom:13px"></div>
+      <div class="g-summary">
+        <div class="g-card"><div class="g-card-lbl">Total ventas</div><div class="g-card-val" id="g-totalv">0</div></div>
+        <div class="g-card"><div class="g-card-lbl">Ganancia bruta</div><div class="g-card-val green" id="g-neta">$0</div></div>
+        <div class="g-card"><div class="g-card-lbl">Gastos período</div><div class="g-card-val red" id="g-gastos-periodo">$0</div></div>
+        <div class="g-card" style="border-color:rgba(112,201,160,0.3)"><div class="g-card-lbl">💚 Ganancia real</div><div class="g-card-val green" id="g-real">$0</div><div style="font-size:10px;color:var(--text3);margin-top:3px">Bruta − Gastos</div></div>
+        <div class="g-card"><div class="g-card-lbl">Cobrado</div><div class="g-card-val" id="g-cobrado">$0</div></div>
+        <div class="g-card"><div class="g-card-lbl">Por cobrar</div><div class="g-card-val warn" id="g-debe">$0</div></div>
+      </div>
+      <!-- GRÁFICO -->
+      <div class="chart-wrap"><div class="chart-title">📈 Ganancia por mes</div><canvas id="chart-meses" height="160"></canvas></div>
+      <!-- STATS AVANZADAS -->
+      <div class="section-title">📊 Estadísticas avanzadas</div>
+      <div class="stat-grid" id="stats-avanzadas"></div>
+      <div class="section-title">Días con más ventas</div>
+      <div class="bar-chart-simple" id="chart-dias"></div>
+      <div class="section-title">📊 Estadísticas del mes</div>
+      <div class="stat-grid" id="stats-mes"></div>
+      <div class="section-title" style="margin-top:13px">📦 Stock comprado en el período</div>
+      <div id="gan-compras"></div>
+      <div class="section-title" style="margin-top:13px">Por perfume</div><div id="gan-list"></div>
+      <div class="section-title" style="margin-top:13px">Por vendedor</div><div id="gan-vendedor"></div>
+      <button class="btn-outline" onclick="exportExcel()">📥 Exportar Excel formato VIP</button>
+    </div>
+
+    <!-- CAJA -->
+    <div id="tab-caja" class="section">
+      <div class="caja-saldo"><div class="caja-saldo-lbl">Saldo actual</div><div class="caja-saldo-val" id="caja-saldo">$0</div></div>
+      <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:13px">
+        <div style="font-size:12px;color:var(--gold2);font-weight:500;margin-bottom:11px">✦ NUEVO MOVIMIENTO</div>
+        <div class="form-group"><label class="form-label">Tipo</label><select id="caja-tipo"><option value="entrada">💚 Entrada</option><option value="salida">🔴 Salida</option></select></div>
+        <div class="form-group"><label class="form-label">Descripción</label><input type="text" id="caja-desc" placeholder="Ej: Cobro cuota, pago envío..."></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Monto</label><input type="number" id="caja-monto" placeholder="0" min="0" inputmode="numeric"></div>
+          <div class="form-group"><label class="form-label">Fecha</label><input type="date" id="caja-fecha"></div>
+        </div>
+        <button class="btn-primary" onclick="addMovCaja()">Registrar</button>
+      </div>
+      <div class="mes-filter" id="mes-filter-caja"></div>
+      <div id="caja-list"></div>
+    </div>
+
+    <!-- CATÁLOGO -->
+    <div id="tab-catalogo" class="section">
+
+      <!-- BARRA DE ACCIONES -->
+      <div style="display:flex;gap:7px;margin-bottom:12px;align-items:center;">
+        <div class="search-wrap" style="flex:1;margin-bottom:0"><span class="search-icon">🔍</span><input type="text" id="search-catalogo" placeholder="Buscar perfume..." oninput="renderCatalogo()"></div>
+        <button id="btn-modo-seleccion" onclick="toggleModoSeleccion()" style="background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);padding:8px 11px;cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap;flex-shrink:0;">☑ Seleccionar</button>
+      </div>
+
+      <!-- PANEL MODO SELECCIÓN -->
+      <div id="catalogo-sel-panel" style="display:none;background:var(--card);border:0.5px solid var(--border2);border-radius:var(--radius);padding:13px;margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;font-weight:600;margin-bottom:10px;">✦ ARMAR CATÁLOGO PERSONALIZADO</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:11px;">Tocá los perfumes para marcarlos. El catálogo solo incluirá los seleccionados.</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;">
+          <button onclick="seleccionarTodosConStock()" style="padding:6px 11px;background:var(--bg3);border:0.5px solid var(--border);color:var(--text2);border-radius:20px;font-size:11px;cursor:pointer;">✦ Con stock</button>
+          <button onclick="seleccionarTodos()" style="padding:6px 11px;background:var(--bg3);border:0.5px solid var(--border);color:var(--text2);border-radius:20px;font-size:11px;cursor:pointer;">Todos</button>
+          <button onclick="deseleccionarTodos()" style="padding:6px 11px;background:var(--bg3);border:0.5px solid var(--border);color:var(--text2);border-radius:20px;font-size:11px;cursor:pointer;">Ninguno</button>
+          <span id="sel-count-label" style="padding:6px 11px;font-size:11px;color:var(--gold2);font-weight:500;align-self:center;margin-left:auto;">0 seleccionados</span>
+        </div>
+      </div>
+
+      <!-- BOTONES COMPARTIR (siempre visibles abajo del grid) -->
+      <div id="catalogo-share-bar" style="display:flex;gap:8px;margin-bottom:12px;">
+        <button onclick="compartirCatalogoConStock()" style="flex:1;padding:10px 8px;background:linear-gradient(135deg,rgba(37,211,102,0.18),rgba(37,211,102,0.08));border:1px solid rgba(37,211,102,0.4);color:#25d366;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          💬 Enviar con stock
+        </button>
+        <button id="btn-share-seleccion" onclick="compartirCatalogoSeleccion()" style="flex:1;padding:10px 8px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;">
+          📤 Compartir selección
+        </button>
+      </div>
+
+      <!-- GRID DE PERFUMES -->
+      <div id="catalogo-grid" class="catalogo-grid"></div>
+
+    </div>
+
+    <!-- STOCK -->
+    <div id="tab-stock" class="section">
+      <div class="alert-banner" id="low-alert">⚠ Hay perfumes con stock bajo o agotado</div>
+
+      <!-- BARRA SUPERIOR -->
+      <div style="display:flex;gap:7px;align-items:center;margin-bottom:12px">
+        <div class="search-wrap" style="flex:1;margin-bottom:0"><span class="search-icon">🔍</span><input type="text" id="search-inp" placeholder="Buscar perfume..." oninput="renderStock()"></div>
+        <button onclick="toggleAgregarStock()" id="btn-agregar-stock" style="background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);padding:8px 12px;cursor:pointer;font-size:13px;font-weight:500;flex-shrink:0">+ Agregar</button>
+        <button onclick="toggleStockOpciones()" id="btn-stock-opc" style="background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);padding:8px 10px;cursor:pointer;font-size:14px;flex-shrink:0" title="Opciones">⚙</button>
+      </div>
+
+      <!-- OPCIONES AVANZADAS -->
+      <div id="stock-opciones" style="display:none;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px;margin-bottom:12px;margin-top:-6px">
+        <div style="font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Opciones avanzadas</div>
+        <button onclick="confirmarBorrarStock()" style="width:100%;padding:8px;background:none;border:0.5px solid rgba(224,112,112,0.3);color:var(--danger);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;text-align:left">
+          🗑 Borrar todo el stock
+        </button>
+      </div>
+
+      <!-- FORMULARIO AGREGAR STOCK (colapsable) -->
+      <div id="agregar-stock-panel" style="display:none;margin-bottom:14px;">
+        <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:13px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;">
+            <div style="font-size:12px;color:var(--gold2);font-weight:500;letter-spacing:.5px">📦 AGREGAR STOCK DE COMPRA</div>
+            <button onclick="toggleAgregarStock()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;">×</button>
+          </div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:13px;line-height:1.6;background:rgba(201,168,76,0.06);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px">💡 El costo total se descuenta automáticamente de Caja como salida.</div>
+          <div class="form-group"><label class="form-label">Perfume</label><input type="text" id="as-perfume" placeholder="Nombre del perfume" list="sug-as-perfume"><datalist id="sug-as-perfume"></datalist></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Cantidad</label><input type="number" id="as-cantidad" placeholder="1" min="1" value="1" inputmode="numeric" oninput="calcTotalStock()"></div>
+            <div class="form-group"><label class="form-label">Precio compra (c/u)</label><input type="number" id="as-precio" placeholder="0" min="0" inputmode="numeric" oninput="calcTotalStock()"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Proveedor</label><input type="text" id="as-proveedor" placeholder="SCENTA..." list="sug-as-proveedor"><datalist id="sug-as-proveedor"></datalist></div>
+            <div class="form-group"><label class="form-label">Precio venta habitual</label><input type="number" id="as-pventa" placeholder="0" min="0" inputmode="numeric"></div>
+          </div>
+          <div id="as-total-preview" style="display:none;background:rgba(224,112,112,0.08);border:0.5px solid rgba(224,112,112,0.25);border-radius:var(--radius-sm);padding:9px 12px;font-size:13px;color:var(--danger);margin-bottom:12px"></div>
+          <button class="btn-primary" onclick="agregarStockYCerrar()">Agregar al stock</button>
+        </div>
+      </div>
+
+      <!-- LISTA DE STOCK -->
+      <div id="perfume-list"></div>
+    </div>
+
+    <!-- IMPORTAR -->
+    <div id="tab-ajustes" class="section">
+      <div class="section-title">⚙ Ajustes</div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px;">
+
+        <!-- PIN -->
+        <div class="card" style="padding:20px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">🔒 Seguridad</div>
+          <div id="pin-estado-desc" style="font-size:12px;color:var(--text3);margin-bottom:14px;">Protegé el acceso a tu app con un PIN de 4 dígitos.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="btn-configurar-pin" class="btn-primary" onclick="abrirSetupPin()" style="max-width:220px;">🔑 Configurar PIN</button>
+            <button id="btn-desactivar-pin" onclick="desactivarPin()" style="display:none;padding:11px 16px;background:none;border:0.5px solid rgba(224,112,112,0.4);color:var(--danger);border-radius:var(--radius);font-size:13px;cursor:pointer;">✕ Desactivar</button>
+          </div>
+        </div>
+
+        <!-- TUTORIAL -->
+        <div class="card" style="padding:20px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">🎓 Tutorial</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">¿Querés volver a ver el recorrido por todas las secciones de la app?</div>
+          <button class="btn-outline" onclick="reiniciarTour()" style="max-width:220px;">↻ Ver el recorrido de nuevo</button>
+        </div>
+
+        <!-- BACKUP -->
+        <div class="card" style="padding:20px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">💾 Backup de datos</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">Guardá una copia de seguridad de todas tus ventas, stock y caja. Si borrás el caché del navegador, <strong style="color:var(--warn);">perdés todo</strong> sin backup.</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:14px;">Último backup: <span id="ajustes-ultimo-backup">calculando...</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+            <button class="btn-primary" onclick="backupData()" style="max-width:200px;">💾 Descargar backup</button>
+            <button class="btn-outline" onclick="backupPorWhatsApp()" style="max-width:200px;margin-top:0;">📲 Compartir backup</button>
+          </div>
+
+          <div style="border-top:0.5px solid var(--border);padding-top:14px;margin-top:4px;">
+            <div style="font-size:12px;color:var(--gold2);font-weight:500;margin-bottom:8px;">📧 Email para backups</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">Guardá tu email para que el botón "Backup por email" lo complete automáticamente.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <input type="email" id="cfg-backup-email" placeholder="tu@email.com" style="flex:1;min-width:160px;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;">
+              <button class="btn-outline" onclick="guardarEmailBackup()" style="margin-top:0;">Guardar</button>
+            </div>
+          </div>
+
+          <div style="border-top:0.5px solid var(--border);padding-top:14px;margin-top:14px;">
+            <div style="font-size:12px;color:var(--gold2);font-weight:500;margin-bottom:8px;">⏰ Backup automático</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">La app descarga un backup sola cada cierto tiempo al abrirla.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <select id="cfg-autobackup" style="flex:1;min-width:160px;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;cursor:pointer;">
+                <option value="0">Desactivado</option>
+                <option value="3">Cada 3 días</option>
+                <option value="7">Cada 7 días</option>
+                <option value="15">Cada 15 días</option>
+                <option value="30">Cada 30 días</option>
+              </select>
+              <button class="btn-outline" onclick="guardarAutoBackup()" style="margin-top:0;">Guardar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- LICENCIA -->
+        <div class="card" style="padding:20px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">🪪 Licencia</div>
+          <div id="ajustes-licencia-info" style="font-size:12px;color:var(--text3);">Cargando...</div>
+        </div>
+
+        <!-- DATOS -->
+        <div class="card" style="padding:20px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">🗂 Datos de la app</div>
+          <div id="ajustes-data-info" style="font-size:12px;color:var(--text3);line-height:1.8;">Calculando...</div>
+          <div id="storage-bar-wrap" style="margin-top:10px;">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:5px;">
+              <span>Espacio usado en este celular</span><span id="storage-pct-label">—</span>
+            </div>
+            <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+              <div id="storage-bar" style="height:100%;border-radius:3px;background:var(--success);width:0%;transition:width .6s;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MEDIOS DE PAGO -->
+        <div class="card" style="padding:20px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">💳 Medios de pago</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">Configurá tu alias de Mercado Pago y datos de transferencia para cobrar desde cada venta.</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">Alias Mercado Pago</label>
+            <input type="text" id="cfg-mp-alias" placeholder="tu.alias.mp" style="width:100%;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;"></div>
+            <div style="border-top:0.5px solid var(--border);margin:4px 0 8px;padding-top:12px">
+              <div style="font-size:11px;color:var(--gold);font-weight:500;letter-spacing:.5px;margin-bottom:10px;">🏦 TRANSFERENCIA BANCARIA</div>
+            </div>
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">Titular cuenta</label>
+            <input type="text" id="cfg-titular" placeholder="Tu nombre completo" style="width:100%;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;"></div>
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">Banco</label>
+            <input type="text" id="cfg-banco" placeholder="Ej: Santander, Galicia, BBVA..." style="width:100%;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;" list="sug-bancos">
+            <datalist id="sug-bancos">
+              <option value="Santander"></option><option value="Galicia"></option><option value="BBVA"></option>
+              <option value="Macro"></option><option value="Nación"></option><option value="Provincia"></option>
+              <option value="HSBC"></option><option value="Itaú"></option><option value="Brubank"></option>
+              <option value="Uala"></option><option value="Naranja X"></option><option value="BROU"></option>
+              <option value="Scotiabank"></option><option value="Itaú Uruguay"></option>
+            </datalist></div>
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">CBU / CVU</label>
+            <input type="text" id="cfg-cbu" placeholder="0000000000000000000000" style="width:100%;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;"></div>
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">Alias bancario</label>
+            <input type="text" id="cfg-alias-banco" placeholder="tu.alias.banco" style="width:100%;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;"></div>
+            <button class="btn-primary" onclick="guardarConfigPago()" style="max-width:220px;margin-top:4px;">💾 Guardar configuración</button>
+          </div>
+        </div>
+
+        <!-- PERFILES -->
+        <div class="card" style="padding:20px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">👥 Perfiles</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">Cada perfil tiene sus propias ventas, stock y caja. Útil para múltiples vendedores en el mismo dispositivo.</div>
+          <div id="ajustes-perfiles-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+          <button class="btn-primary" onclick="abrirCrearPerfil()" style="max-width:220px;">+ Nuevo perfil</button>
+        </div>
+
+        <!-- OPTIMIZAR FOTOS -->
+        <div class="card" style="padding:20px;border-color:rgba(251,191,36,0.2);">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">🗜 Optimizar fotos del stock</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Las fotos guardadas antes de esta versión pueden estar ocupando mucho espacio. Optimizarlas las comprime sin perder calidad visible.</div>
+          <div id="opt-fotos-info" style="font-size:12px;color:var(--text2);margin-bottom:12px;padding:10px 12px;background:var(--bg3);border-radius:var(--radius-sm);display:none;"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="analizarFotos()" style="padding:9px 16px;background:var(--card2);border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;">🔍 Analizar espacio</button>
+            <button onclick="optimizarTodasLasFotos()" id="btn-opt-fotos" style="padding:9px 16px;background:rgba(251,191,36,0.1);border:0.5px solid rgba(251,191,36,0.35);color:var(--warn);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;display:none;">⚡ Optimizar todas</button>
+          </div>
+        </div>
+
+        <!-- PELIGRO -->
+        <div class="card" style="padding:20px;border-color:rgba(224,112,112,0.25);">
+          <div style="font-size:13px;font-weight:600;color:var(--danger);margin-bottom:4px;">⚠ Zona peligrosa</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">Borrá todos los datos de la app. Esta acción <strong style="color:var(--danger);">no se puede deshacer</strong>.</div>
+          <button onclick="resetApp()" style="background:rgba(224,112,112,0.1);border:0.5px solid rgba(224,112,112,0.4);color:var(--danger);border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;cursor:pointer;">🗑 Borrar todos los datos</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="tab-importar" class="section">
+      <div class="import-zone" id="import-zone" onclick="document.getElementById('file-import').click()">
+        <div class="import-zone-icon">📂</div><h3>Subir Excel Parfum Track</h3>
+        <p>Tocá para elegir tu archivo<br>o arrastrálo acá</p><small>Formatos: .xlsx · .xls</small>
+      </div>
+      <input type="file" id="file-import" accept=".xlsx,.xls" style="display:none" onchange="handleImportFile(event)">
+      <input type="file" id="file-restore" accept=".json" style="display:none" onchange="restoreBackup(event)">
+      <div class="import-result" id="import-result"><h4>📋 Vista previa</h4><div id="import-stats"></div><div class="import-preview-list" id="import-preview"></div><div class="import-errors" id="import-errors"></div></div>
+      <button class="btn-import-confirm" id="btn-import-confirm" onclick="confirmImport()">✓ Confirmar e importar</button>
+      <div class="formato-info">
+        <h4>📋 Formato esperado</h4>
+        <p>Cada hoja con el nombre del mes:<br><strong style="color:var(--gold)">MARZO, ABRIL, MAYO, JUNIO...</strong></p>
+        <div class="col-pills" style="margin-top:7px"><span class="col-pill">Nº VENTAS</span><span class="col-pill">FECHA</span><span class="col-pill">PERFUME</span><span class="col-pill">PRECIO VENTA</span><span class="col-pill">CUOTAS</span><span class="col-pill">DEBE DE CUOTA</span><span class="col-pill">PAGO</span><span class="col-pill">COMPRA</span><span class="col-pill">GANANCIA</span><span class="col-pill">PROVEEDOR</span><span class="col-pill">VENDEDOR</span><span class="col-pill">CLIENTE</span></div>
+      </div>
+      <div style="margin-top:13px">
+        <div style="font-size:12px;color:var(--gold2);font-weight:500;margin-bottom:9px">💾 Backup de datos</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button class="btn-outline" style="margin-top:0" onclick="backupData()">⬇ Descargar backup</button>
+          <button class="btn-outline" style="margin-top:0" onclick="document.getElementById('file-restore').click()">⬆ Restaurar backup</button>
+        </div>
+        <p style="font-size:11px;color:var(--text3);margin-top:8px">El backup guarda todas tus ventas, stock y gastos en un archivo JSON. Restaurálo si cambiás de teléfono.</p>
+      </div>
+    </div>
+
+    <!-- NUEVA VENTA -->
+    <div id="tab-add" class="section">
+      <div class="form-group"><label class="form-label">Perfume</label><input type="text" id="f-perfume" maxlength="80" placeholder="Nombre del perfume" list="sug-perfume" oninput="onPerfumeInput()"><datalist id="sug-perfume"></datalist></div>
+      <div class="precio-sugerido" id="precio-sugerido"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Precio venta</label><input type="number" id="f-pventa" placeholder="0" min="0" inputmode="numeric" oninput="recalcCuotas();calcGananciaPreview()"></div>
+        <div class="form-group"><label class="form-label">Precio compra</label><input type="number" id="f-pcompra" placeholder="0" min="0" inputmode="numeric" oninput="calcGananciaPreview()"></div>
+      </div>
+      <!-- DESCUENTO -->
+      <div class="descuento-row">
+        <label>% Descuento:</label>
+        <input type="number" id="f-descuento" placeholder="0" min="0" max="100" inputmode="numeric" style="max-width:80px" oninput="calcGananciaPreview()">
+        <span id="ganancia-preview" style="font-size:12px;color:var(--success);flex:1;text-align:right"></span>
+      </div>
+      <div class="form-group"><label class="form-label">¿Venta en cuotas?</label>
+        <select id="f-tipo-cuota" onchange="toggleCuotasForm()"><option value="contado">Contado</option><option value="cuotas">En cuotas</option></select>
+      </div>
+      <div id="cuotas-form-extra" style="display:none">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Cant. cuotas</label><input type="number" id="f-num-cuotas" placeholder="2" min="2" max="24" value="2" inputmode="numeric" oninput="recalcCuotas()"></div>
+          <div class="form-group"><label class="form-label">Monto 1ra cuota</label><input type="number" id="f-primera-cuota" placeholder="0" min="0" inputmode="numeric" oninput="recalcCuotas()"></div>
+        </div>
+        <div id="cuotas-preview" style="background:var(--bg3);border-radius:var(--radius-sm);padding:9px;margin-bottom:12px;font-size:12px;color:var(--text2)"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Proveedor</label><input type="text" id="f-proveedor" maxlength="60" placeholder="SCENTA..." list="sug-proveedor"><datalist id="sug-proveedor"></datalist></div>
+        <div class="form-group"><label class="form-label">Vendedor</label><input type="text" id="f-vendedor" maxlength="60" placeholder="LUCCAS..." list="sug-vendedor"><datalist id="sug-vendedor"></datalist></div>
+      </div>
+      <div class="form-group"><label class="form-label">Cliente</label><input type="text" id="f-cliente" maxlength="80" placeholder="Nombre del cliente" list="sug-cliente"><datalist id="sug-cliente"></datalist></div>
+      <div class="form-group"><label class="form-label">Nota interna</label><textarea id="f-nota" maxlength="400" rows="3" placeholder="Ej: paga a fin de mes, por encargo..." style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical;min-height:70px"></textarea></div>
+      <button class="btn-primary" id="btn-guardar-venta" onclick="addVenta()">Guardar venta</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" id="del-stock-modal">
+  <div class="modal"><h3>Eliminar perfume</h3><p id="del-stock-msg">¿Eliminar este perfume del stock?</p>
+  <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('del-stock-modal')">Cancelar</button><button class="btn-confirm-del" id="del-stock-btn">Eliminar</button></div></div>
+</div>
+
+
+<!-- MODALES -->
+<div class="modal-overlay" id="modal-del-mes">
+  <div class="modal">
+    <h3>⚠ Eliminar mes</h3>
+    <p>Vas a eliminar todas las ventas de <strong id="del-mes-label" style="color:var(--gold2)"></strong>.</p>
+    <div style="margin:14px 0;padding:14px;background:rgba(224,112,112,0.1);border:1px solid rgba(224,112,112,0.3);border-radius:10px;text-align:center;">
+      <div style="font-size:32px;font-weight:800;color:var(--danger)" id="del-mes-num">0</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:3px">ventas · ganancia: <span id="del-mes-gan" style="color:var(--danger);font-weight:600"></span></div>
+    </div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:14px">Esta acción elimina todas las ventas del mes. Podés deshacerla en los primeros 8 segundos.</p>
+    <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-del-mes')">Cancelar</button><button class="btn-confirm-del" id="btn-del-mes-confirm" onclick="confirmarEliminarMes()" disabled style="opacity:.5;cursor:not-allowed">Sí, eliminar (<span id="del-mes-countdown">3</span>)</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="del-modal">
+  <div class="modal"><h3>Eliminar venta</h3><p id="del-modal-msg">¿Eliminar esta venta?</p>
+  <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('del-modal')">Cancelar</button><button class="btn-confirm-del" id="del-confirm-btn">Eliminar</button></div></div>
+</div>
+
+<!-- MODAL EDITAR VENTA -->
+<div class="modal-overlay" id="modal-editar-venta">
+  <div class="modal" style="max-width:420px;">
+    <h3 style="margin-bottom:16px">✏️ Editar venta</h3>
+    <div class="form-group"><label class="form-label">Perfume</label><input type="text" id="ev-perfume" maxlength="80" placeholder="Nombre del perfume" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group"><label class="form-label">Precio venta</label><input type="number" id="ev-pventa" placeholder="0" inputmode="numeric" oninput="calcEditGananciaPreview()" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
+      <div class="form-group"><label class="form-label">Precio compra</label><input type="number" id="ev-pcompra" placeholder="0" inputmode="numeric" oninput="calcEditGananciaPreview()" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Cliente</label><input type="text" id="ev-cliente" maxlength="80" placeholder="Nombre del cliente" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
+    <div class="form-group"><label class="form-label">Nota interna</label><textarea id="ev-nota" maxlength="400" rows="3" placeholder="Opcional" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical;min-height:70px"></textarea></div>
+    <div id="ev-preview" style="font-size:12px;color:var(--text3);margin-bottom:12px;min-height:18px"></div>
+    <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-editar-venta')">Cancelar</button><button class="btn-confirm-ok" onclick="guardarEditarVenta()">Guardar cambios</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-cuota">
+  <div class="modal"><h3 id="modal-cuota-title">Registrar pago</h3><p id="modal-cuota-desc"></p>
+  <div class="form-group"><label class="form-label">Monto recibido</label><input type="number" id="modal-cuota-monto" placeholder="0" inputmode="numeric" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
+  <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-cuota')">Cancelar</button><button class="btn-confirm-ok" id="modal-cuota-ok">Registrar pago</button></div></div>
+</div>
+<div class="modal-overlay" id="modal-meta">
+  <div class="modal"><h3>🎯 Meta mensual</h3><p>Definí cuánto querés ganar este mes para ver tu progreso.</p>
+  <div class="form-group"><label class="form-label">Meta de ganancia ($)</label><input type="number" id="meta-input" placeholder="0" min="0" inputmode="numeric" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
+  <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-meta')">Cancelar</button><button class="btn-confirm-ok" onclick="guardarMeta()">Guardar meta</button></div></div>
+</div>
+<div class="modal-overlay" id="modal-editar">
+  <div class="modal"><h3>Editar perfume</h3>
+    <div style="margin-bottom:13px">
+      <div class="form-label" style="margin-bottom:7px">Foto del perfume</div>
+      <div id="edit-foto-preview" style="width:100%;height:150px;border-radius:var(--radius);background:var(--bg3);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:48px;overflow:hidden;margin-bottom:9px">🍶</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px">
+        <button onclick="document.getElementById('edit-foto-input').click()" style="padding:9px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:12px;cursor:pointer">📷 Galería</button>
+        <button onclick="buscarEnPinterest()" style="padding:9px;background:rgba(230,0,35,0.1);border:0.5px solid rgba(230,0,35,0.4);color:#ff6b7a;border-radius:var(--radius-sm);font-size:12px;cursor:pointer">Pinterest 🔍</button>
+      </div>
+      <div style="position:relative">
+        <input type="url" id="edit-foto-url" placeholder="O pegá una URL de imagen aquí..." style="width:100%;padding:8px 65px 8px 11px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif" oninput="previewFotoUrl()">
+        <button onclick="previewFotoUrl(true)" style="position:absolute;right:5px;top:50%;transform:translateY(-50%);padding:3px 9px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:5px;font-size:11px;cursor:pointer">Cargar</button>
+      </div>
+      <button id="edit-foto-quitar" onclick="quitarFotoEdit()" style="width:100%;padding:6px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;margin-top:7px;display:none">× Quitar foto</button>
+      <input type="file" id="edit-foto-input" accept="image/*" style="display:none" onchange="previewFotoEdit(event)">
+    </div>
+    <div class="form-group"><label class="form-label">Nombre</label><input type="text" id="edit-nombre" placeholder="Nombre del perfume"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Mililitros (ml)</label><input type="number" id="edit-ml" placeholder="Ej: 100" min="0" inputmode="numeric"></div>
+      <div class="form-group"><label class="form-label">Precio compra</label><input type="number" id="edit-precio" placeholder="0" min="0" inputmode="numeric"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Precio venta habitual</label><input type="number" id="edit-pventa" placeholder="0" min="0" inputmode="numeric"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Proveedor</label><input type="text" id="edit-proveedor" placeholder="SCENTA..."></div>
+      <div class="form-group"><label class="form-label">Stock actual</label><input type="number" id="edit-stock" placeholder="0" min="0" inputmode="numeric"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Stock mínimo (alerta)</label><input type="number" id="edit-stock-min" placeholder="3" min="0" inputmode="numeric"></div>
+    <div class="form-group"><label class="form-label">Notas</label><input type="text" id="edit-notas" placeholder="Observaciones opcionales"></div>
+    <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-editar')">Cancelar</button><button class="btn-confirm-ok" onclick="guardarEdicionPerfume()">Guardar cambios</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+  <script src="/app.js?v=5"></script>
+
+<!-- ═══════ PERFIL SELECTOR (shown on unlock) ═══════ -->
+<div id="profile-screen" style="position:fixed;inset:0;background:var(--bg);z-index:9998;display:none;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;">
+  <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--gold2);letter-spacing:2px;margin-bottom:4px;"><svg viewBox="0 0 100 100" width="22" height="22" style="vertical-align:middle;display:inline-block;"><defs><linearGradient id="dpin" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f5dfa0"/><stop offset="50%" stop-color="#e8c97e"/><stop offset="100%" stop-color="#c9a84c"/></linearGradient></defs><path d="M50 8 L74 52 a26 26 0 1 1 -48 0 Z" fill="url(#dpin)"/><ellipse cx="40" cy="62" rx="8" ry="12" fill="#ffffff" opacity="0.4"/></svg> Parfum Track</div>
+  <div style="font-size:11px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:32px;">Seleccioná tu perfil</div>
+  <div id="profile-list" style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"></div>
+  <button onclick="abrirCrearPerfil()" style="width:100%;max-width:340px;padding:13px;background:var(--gold-dim);border:1px solid var(--gold);border-radius:var(--radius);color:var(--gold2);font-size:14px;font-weight:500;cursor:pointer;letter-spacing:.5px;">+ Nuevo perfil</button>
+</div>
+
+<!-- ═══════ MODAL CREAR/EDITAR PERFIL ═══════ -->
+<div id="modal-perfil" class="modal-overlay" style="z-index:9999;">
+  <div class="modal">
+    <h3 id="modal-perfil-title">Nuevo perfil</h3>
+    <div class="form-group">
+      <label class="form-label">Nombre del perfil</label>
+      <input type="text" id="perfil-nombre-input" placeholder="Ej: Luccas, María, Negocio..." maxlength="24" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Emoji / ícono</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;" id="emoji-picker">
+        <span>👤</span><span>👩</span><span>👨</span><span>💼</span><span>🌸</span><span>🍶</span><span>⭐</span><span>🦋</span><span>🌙</span><span>💎</span><span>🔥</span><span>🎯</span>
+      </div>
+      <input type="text" id="perfil-emoji-input" value="👤" maxlength="2" style="width:70px;padding:8px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:20px;text-align:center;margin-top:8px;">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modal-perfil')">Cancelar</button>
+      <button class="btn-confirm-ok" onclick="guardarPerfil()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL PAGO ═══════ -->
+<div id="modal-pago" class="modal-overlay">
+  <div class="modal">
+    <h3>💳 Cobrar venta</h3>
+    <div id="modal-pago-info" style="background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.7;"></div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Elegí cómo cobrás:</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button onclick="cobrarMP()" class="btn-pago-method" style="background:rgba(0,158,95,0.12);border:1px solid rgba(0,158,95,0.35);color:#00bb6e;">
+        <span style="font-size:20px;">💚</span>
+        <div><div style="font-weight:500;font-size:14px;">Mercado Pago</div><div style="font-size:11px;opacity:.7;">Abre link de pago con el monto</div></div>
+      </button>
+      <button onclick="cobrarTransferencia()" class="btn-pago-method" style="background:rgba(112,168,224,0.12);border:1px solid rgba(112,168,224,0.35);color:var(--info);">
+        <span style="font-size:20px;">🏦</span>
+        <div><div style="font-weight:500;font-size:14px;">Transferencia bancaria</div><div style="font-size:11px;opacity:.7;">Copia datos + monto al portapapeles</div></div>
+      </button>
+      <button onclick="cobrarEfectivo()" class="btn-pago-method" style="background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.35);color:var(--gold2);">
+        <span style="font-size:20px;">💵</span>
+        <div><div style="font-weight:500;font-size:14px;">Efectivo</div><div style="font-size:11px;opacity:.7;">Registrar como cobrado</div></div>
+      </button>
+    </div>
+    <button class="btn-cancel" onclick="closeModal('modal-pago')" style="margin-top:14px;width:100%;">Cancelar</button>
+  </div>
+</div>
+
+<style>
+.btn-pago-method{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:var(--radius);cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;width:100%;transition:opacity .15s;}
+.btn-pago-method:active{opacity:.75;}
+.profile-btn{width:100%;padding:16px 18px;background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;display:flex;align-items:center;gap:14px;transition:border-color .15s,transform .1s;}
+.profile-btn:active{transform:scale(.98);}
+.profile-btn.active-profile{border-color:var(--gold);background:var(--gold-dim);}
+.profile-btn-icon{font-size:26px;flex-shrink:0;}
+.profile-btn-name{font-size:15px;font-weight:500;color:var(--text);text-align:left;}
+.profile-btn-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+#emoji-picker span{font-size:22px;cursor:pointer;padding:4px;border-radius:6px;transition:background .1s;}
+#emoji-picker span:hover{background:var(--card2);}
+</style>
+
+<!-- ═══════ PIN SCREEN ═══════ -->
+<div id="pin-screen" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;padding:32px;">
+  <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:var(--gold2);letter-spacing:2px;margin-bottom:6px;"><svg viewBox="0 0 100 100" width="22" height="22" style="vertical-align:middle;display:inline-block;"><defs><linearGradient id="dprof" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f5dfa0"/><stop offset="50%" stop-color="#e8c97e"/><stop offset="100%" stop-color="#c9a84c"/></linearGradient></defs><path d="M50 8 L74 52 a26 26 0 1 1 -48 0 Z" fill="url(#dprof)"/><ellipse cx="40" cy="62" rx="8" ry="12" fill="#ffffff" opacity="0.4"/></svg> Parfum Track</div>
+  <div style="font-size:11px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:36px;">Ingresá tu PIN</div>
+  <div id="pin-dots" style="display:flex;gap:16px;margin-bottom:12px;">
+    <div class="pdot"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div>
+  </div>
+  <div id="pin-err" style="font-size:13px;color:var(--danger);height:20px;margin-bottom:24px;text-align:center;"></div>
+  <div id="pin-pad" style="display:grid;grid-template-columns:repeat(3,80px);gap:12px;">
+    <button class="pkey">1</button><button class="pkey">2</button><button class="pkey">3</button>
+    <button class="pkey">4</button><button class="pkey">5</button><button class="pkey">6</button>
+    <button class="pkey">7</button><button class="pkey">8</button><button class="pkey">9</button>
+    <button class="pkey" data-action="back">⌫</button>
+    <button class="pkey">0</button>
+    <button class="pkey pkey-ok" data-action="ok">✓</button>
+  </div>
+</div>
+<style>
+.pdot{width:14px;height:14px;border-radius:50%;background:var(--card2);border:1.5px solid var(--border);transition:all .15s;}
+.pdot.on{background:var(--gold2);border-color:var(--gold2);}
+.pkey{width:80px;height:80px;border-radius:50%;background:var(--card);border:1px solid var(--border2);color:var(--text);font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;transition:background .1s,transform .1s;}
+.pkey:active{background:var(--card2);transform:scale(.92);}
+.pkey-ok{background:var(--gold-dim);border-color:var(--gold);color:var(--gold2);}
+.pkey-sm{width:70px;height:70px;font-size:22px;}
+</style>
+
+<!-- ═══════ LICENSE MODAL ═══════ -->
+<div id="license-modal" class="modal-overlay" style="z-index:10000;">
+  <div class="modal" style="text-align:center;">
+    <div style="font-size:32px;margin-bottom:12px;">⚠️</div>
+    <h3 id="license-title">Licencia</h3>
+    <p id="license-msg" style="margin-bottom:20px;"></p>
+    <button class="btn-primary" onclick="document.getElementById('license-modal').classList.remove('open')" style="max-width:200px;margin:0 auto;">Entendido</button>
+  </div>
+</div>
+
+<!-- ═══════ BACKUP REMINDER MODAL ═══════ -->
+<div id="backup-modal" class="modal-overlay">
+  <div class="modal" style="text-align:center;">
+    <div style="font-size:36px;margin-bottom:12px;">💾</div>
+    <h3>¡Hacé un backup!</h3>
+    <p style="margin-bottom:8px;">No hiciste un backup en más de 7 días. Si borrás el caché del navegador <strong>perdés todos tus datos</strong>.</p>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:20px;">Último backup: <span id="ultimo-backup-fecha">nunca</span></p>
+    <button class="btn-primary" onclick="backupDataYClose()" style="margin-bottom:10px;">💾 Descargar backup ahora</button>
+    <button class="btn-outline" onclick="snoozeBackup()" style="margin-top:0;font-size:13px;">Recordarme mañana</button>
+  </div>
+</div>
+
+<!-- ═══════ PDF RECEIPT MODAL ═══════ -->
+<div id="pdf-modal" class="modal-overlay">
+  <div class="modal">
+    <h3>🧾 Recibo de venta</h3>
+    <p id="pdf-modal-desc" style="margin-bottom:16px;font-size:13px;"></p>
+    <div id="pdf-preview" style="background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;font-size:12px;line-height:1.8;color:var(--text2);margin-bottom:16px;font-family:'DM Mono',monospace;white-space:pre-wrap;"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('pdf-modal')">Cancelar</button>
+      <button class="btn-confirm-ok" onclick="generarPDF()" id="btn-gen-pdf">📥 Descargar PDF</button>
+      <button class="btn-wa" onclick="enviarReciboWA()" id="btn-wa-recibo">📲 WA</button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* PIN */
+/* PIN CSS below */
+</style>
+
+
+<!-- ═══════ BACKUP PROACTIVO BANNER ═══════ -->
+<div id="backup-proactive-banner">
+  <div class="bpb-top">
+    <div class="bpb-title" id="bpb-title">💾 ¿Cuándo fue tu último backup?</div>
+    <button class="bpb-close" onclick="cerrarBackupBanner()">✕</button>
+  </div>
+  <div class="bpb-desc" id="bpb-desc">Guardá tus datos para no perderlos si cambiás de dispositivo o borrás el caché.</div>
+  <div class="bpb-btns">
+    <button class="bpb-btn-main" onclick="backupDesdeBanner()">💾 Descargar backup</button>
+    <button class="bpb-btn-snooze" onclick="snoozeBackupBanner()">Después</button>
+  </div>
+</div>
+
+
+
+<!-- ═══════ SCRIPT: QR SHARE + BACKUP PROACTIVO ═══════ -->
+
+<!-- ═══════ MODAL PREVIEW CATÁLOGO ═══════ -->
+<div id="modal-catalogo-preview" class="modal-overlay" style="z-index:10000;">
+  <div class="modal" style="max-width:420px;padding:0;overflow:hidden;border-radius:var(--radius);display:flex;flex-direction:column;max-height:92vh;">
+    <!-- Header del modal (fijo arriba) -->
+    <div style="padding:16px 18px 12px;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--gold2);">Vista previa del catálogo</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;" id="cat-preview-count"></div>
+      </div>
+      <button onclick="closeModal('modal-catalogo-preview')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;padding:4px;">✕</button>
+    </div>
+
+    <!-- Navegación de páginas (visible solo si hay más de 12) -->
+    <div id="cat-paginacion" style="display:none;padding:10px 16px;background:var(--bg2);border-bottom:0.5px solid var(--border);display:none;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;">
+      <button onclick="catCambiarPagina(-1)" id="cat-btn-prev" style="padding:7px 14px;background:var(--card);border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;">← Anterior</button>
+      <div style="text-align:center;">
+        <div id="cat-pagina-label" style="font-size:13px;font-weight:600;color:var(--gold2);">Foto 1 de 2</div>
+        <div id="cat-pagina-sub" style="font-size:10px;color:var(--text3);">12 perfumes por foto</div>
+      </div>
+      <button onclick="catCambiarPagina(1)" id="cat-btn-next" style="padding:7px 14px;background:var(--card);border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;">Siguiente →</button>
+    </div>
+
+    <!-- Zona scrollable: canvas + personalización -->
+    <div style="overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;">
+      <div style="padding:16px;background:var(--bg3);">
+        <div style="position:relative;border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.4);">
+          <canvas id="catalogo-canvas" style="width:100%;display:block;border-radius:10px;"></canvas>
+          <div id="cat-canvas-loading" style="position:absolute;inset:0;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border-radius:10px;">
+            <div style="font-size:28px;">🎨</div>
+            <div style="font-size:13px;color:var(--text2);">Generando imagen...</div>
+          </div>
+        </div>
+
+        <!-- Opciones de personalización -->
+        <div style="margin-top:13px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:11px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;font-weight:600;margin-bottom:3px;">Personalizar</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <label style="font-size:12px;color:var(--text2);white-space:nowrap;">Título:</label>
+            <input type="text" id="cat-titulo-input" placeholder="🍶 Perfumes disponibles" value="🍶 Perfumes disponibles"
+              style="flex:1;padding:7px 10px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;"
+              oninput="regenerarCatalogoCanvas()">
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <label style="font-size:12px;color:var(--text2);white-space:nowrap;">Pie:</label>
+            <input type="text" id="cat-pie-input" placeholder="Ej: Escribime por WhatsApp 📲"
+              style="flex:1;padding:7px 10px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;"
+              oninput="regenerarCatalogoCanvas()">
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;">
+            <label style="font-size:11px;color:var(--text3);">Tema:</label>
+            <button onclick="setCatTema('dark')" id="tema-dark" class="cat-tema-btn cat-tema-active" style="">🌙 Oscuro</button>
+            <button onclick="setCatTema('light')" id="tema-light" class="cat-tema-btn">☀️ Claro</button>
+            <button onclick="setCatTema('gold')" id="tema-gold" class="cat-tema-btn">✨ Dorado</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra sticky de acciones -->
+    <div id="cat-action-bar" style="
+      position:sticky;bottom:0;
+      padding:12px 16px 16px;
+      background:var(--bg2);
+      border-top:0.5px solid var(--border2);
+      display:flex;flex-direction:column;gap:8px;
+      box-shadow:0 -8px 24px rgba(0,0,0,.35);
+      z-index:10;
+    ">
+      <!-- Botón principal: Compartir todas (solo si hay varias páginas) -->
+      <button onclick="compartirTodasLasFotos()" id="btn-compartir-todas" style="display:none;width:100%;padding:14px 8px;background:linear-gradient(135deg,rgba(37,211,102,0.22),rgba(37,211,102,0.08));border:1px solid rgba(37,211,102,0.55);color:#25d366;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.3px;">
+        📤 Compartir todas las fotos de una vez
+      </button>
+      <!-- Fila 1: WhatsApp esta foto + PDF -->
+      <div style="display:flex;gap:8px;">
+        <button onclick="compartirImagenCatalogo()" style="flex:1;padding:12px 8px;background:linear-gradient(135deg,rgba(37,211,102,0.12),rgba(37,211,102,0.04));border:1px solid rgba(37,211,102,0.35);color:#25d366;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;" id="btn-wa-esta">
+          💬 Esta foto
+        </button>
+        <button onclick="descargarPDFCatalogo()" id="btn-pdf-catalogo" style="flex:1;padding:12px 8px;background:linear-gradient(135deg,rgba(224,112,112,0.18),rgba(224,112,112,0.06));border:1px solid rgba(224,112,112,0.45);color:#e07070;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          📄 PDF
+        </button>
+      </div>
+      <!-- Fila 2: Imagen + Copiar -->
+      <div style="display:flex;gap:8px;">
+        <button onclick="descargarImagenCatalogo()" style="flex:1;padding:10px 8px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          ⬇ Esta foto
+        </button>
+        <button onclick="descargarTodasLasFotos()" id="btn-descargar-todas" style="flex:1;padding:10px 8px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;">
+          ⬇ Todas las fotos
+        </button>
+        <button onclick="copiarImagenCatalogo()" id="btn-copiar-img" style="flex:1;padding:10px 8px;background:var(--card2);border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          📋 Copiar
+        </button>
+        <button onclick="closeModal('modal-catalogo-preview')" style="padding:10px 12px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0;">
+          ✕
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ═══ CATÁLOGO NUEVO ═══ */
+.catalogo-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.cat-card-v2{
+  background:var(--card);border:0.5px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+  cursor:pointer;transition:border-color .15s,transform .1s;
+  position:relative;
+}
+.cat-card-v2:active{transform:scale(.97);}
+.cat-card-v2.seleccionado{border-color:var(--gold);background:var(--gold-dim);}
+.cat-card-v2.sin-stock{opacity:.55;}
+.cat-card-img-v2{
+  width:100%;aspect-ratio:1;background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;overflow:hidden;position:relative;
+}
+.cat-card-img-v2 img{width:100%;height:100%;object-fit:cover;}
+.cat-stock-badge{
+  position:absolute;top:6px;right:6px;
+  padding:2px 7px;border-radius:20px;font-size:9px;font-weight:600;
+  backdrop-filter:blur(4px);
+}
+.cat-stock-ok{background:rgba(112,201,160,0.85);color:#0f1a0f;}
+.cat-stock-low{background:rgba(224,176,96,0.85);color:#1a1200;}
+.cat-stock-out{background:rgba(224,112,112,0.85);color:#1a0000;}
+.cat-sel-check{
+  position:absolute;top:6px;left:6px;
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(0,0,0,.5);border:2px solid rgba(255,255,255,.4);
+  display:none;align-items:center;justify-content:center;
+  font-size:12px;transition:.15s;
+}
+.modo-seleccion .cat-sel-check{display:flex;}
+.cat-card-v2.seleccionado .cat-sel-check{background:var(--gold);border-color:var(--gold);color:#1a1a2e;}
+.cat-card-info-v2{padding:9px 10px 11px;}
+.cat-card-name-v2{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:4px;}
+.cat-card-price-v2{font-size:15px;font-weight:700;color:var(--gold2);font-family:'Cormorant Garamond',serif;}
+.cat-card-ml-v2{font-size:10px;color:var(--text3);margin-top:2px;}
+
+.cat-tema-btn{
+  padding:4px 11px;border-radius:20px;font-size:11px;cursor:pointer;
+  background:var(--card);border:0.5px solid var(--border);color:var(--text2);
+  font-family:'DM Sans',sans-serif;transition:.15s;
+}
+.cat-tema-active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold2);}
+</style>
+
+<!-- ═══════ SCRIPT: CATÁLOGO VISUAL ═══════ -->
+
+<!-- ═══════ MODAL CONFIGURAR PIN ═══════ -->
+<div id="modal-pin-setup" class="modal-overlay" style="z-index:10001;">
+  <div class="modal" style="text-align:center;max-width:340px;">
+    <div style="font-size:36px;margin-bottom:8px;" id="pin-setup-emoji">🔑</div>
+    <h3 id="pin-setup-title" style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold2);margin-bottom:6px;">Configurar PIN</h3>
+    <p id="pin-setup-desc" style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:18px;"></p>
+
+    <!-- Dots de progreso -->
+    <div style="display:flex;gap:16px;justify-content:center;margin-bottom:10px;" id="pin-setup-dots">
+      <div class="pdot"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div>
+    </div>
+    <div id="pin-setup-err" style="font-size:12px;color:var(--danger);height:16px;margin-bottom:16px;text-align:center;"></div>
+
+    <!-- Teclado numérico -->
+    <div id="pin-setup-pad" style="display:grid;grid-template-columns:repeat(3,70px);gap:10px;margin:0 auto 18px;width:fit-content;">
+      <button class="pkey pkey-sm">1</button><button class="pkey pkey-sm">2</button><button class="pkey pkey-sm">3</button>
+      <button class="pkey pkey-sm">4</button><button class="pkey pkey-sm">5</button><button class="pkey pkey-sm">6</button>
+      <button class="pkey pkey-sm">7</button><button class="pkey pkey-sm">8</button><button class="pkey pkey-sm">9</button>
+      <button class="pkey pkey-sm" data-action="back">⌫</button>
+      <button class="pkey pkey-sm">0</button>
+      <button class="pkey pkey-sm pkey-ok" data-action="ok">✓</button>
+    </div>
+
+    <button onclick="closeModal('modal-pin-setup')" style="width:100%;padding:10px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══════ MODAL ACTIVACIÓN DE LICENCIA ═══════ -->
+<div id="modal-activacion" class="modal-overlay" style="z-index:10000;">
+  <div class="modal" style="text-align:center;max-width:360px;">
+    <div style="font-size:40px;margin-bottom:8px;">🔑</div>
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold2);margin-bottom:6px;">Activar Parfum Track</h3>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:18px;">
+      Ingresá el código de activación que recibiste para desbloquear todas las funciones sin restricciones.
+    </p>
+    <div style="margin-bottom:14px;">
+      <input
+        type="text"
+        id="activation-code-input"
+        placeholder="PT-XXXX-XXXX"
+        maxlength="20"
+        autocomplete="off"
+        autocapitalize="characters"
+        spellcheck="false"
+        style="width:100%;padding:13px 16px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:10px;color:var(--gold2);font-size:16px;font-family:'DM Mono','Courier New',monospace;font-weight:600;letter-spacing:2px;text-align:center;text-transform:uppercase;transition:border-color .2s;"
+        oninput="this.value=this.value.toUpperCase()"
+        onkeydown="if(event.key==='Enter')activarLicencia()"
+      >
+      <div id="activation-error" style="font-size:12px;color:var(--danger);min-height:18px;margin-top:6px;"></div>
+    </div>
+    <button
+      onclick="activarLicencia()"
+      style="width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.5px;margin-bottom:10px;transition:opacity .15s;"
+      onmouseover="this.style.opacity='.9'"
+      onmouseout="this.style.opacity='1'"
+    >Activar</button>
+    <button
+      onclick="closeModal('modal-activacion')"
+      style="width:100%;padding:10px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:10px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;"
+    >Ahora no</button>
+    <div style="margin-top:16px;padding-top:14px;border-top:0.5px solid var(--border);font-size:11px;color:var(--text3);line-height:1.6;">
+      ¿No tenés código? Contactá al desarrollador por WhatsApp para obtener tu licencia.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL BIENVENIDA TRIAL ═══════ -->
+<div id="modal-trial-bienvenida" class="modal-overlay" style="z-index:10000;">
+  <div class="modal" style="text-align:center;max-width:360px;">
+    <div style="font-size:44px;margin-bottom:8px;">🍶</div>
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold2);margin-bottom:6px;">¡Bienvenido a Parfum Track!</h3>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:14px;">
+      Tenés <strong style="color:var(--gold2);">7 días de prueba gratuita</strong> con todas las funciones habilitadas.
+    </p>
+    <div style="font-size:12px;color:var(--text3);line-height:1.7;margin-bottom:16px;padding:0 4px;">
+      Cargamos ventas y stock de ejemplo para que puedas explorar la app. Podés borrarlos desde <strong style="color:var(--text2)">Ajustes → Zona peligrosa</strong>.
+    </div>
+    <button
+      onclick="closeModal('modal-trial-bienvenida')"
+      style="width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.3px;"
+    >¡Empezar a explorar!</button>
+  </div>
+</div>
+
+<style>
+@keyframes shake-input {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(8px)}
+  60%{transform:translateX(-5px)}
+  80%{transform:translateX(5px)}
+}
+.has-top-banner .app{margin-top:36px;}
+.has-top-banner .header{padding-top:52px;}
+#activation-code-input:focus{outline:none;border-color:var(--gold);}
+
+/* ═══ SYNC / QR STYLES ═══ */
+.sync-status-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px;border-radius:20px;font-size:10px;font-weight:500;
+  border:0.5px solid var(--border);color:var(--text3);
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.sync-status-pill.ok{color:var(--success);border-color:rgba(112,201,160,0.4);background:rgba(112,201,160,0.08);}
+.sync-status-pill.warn{color:var(--warn);border-color:rgba(224,176,96,0.4);background:rgba(224,176,96,0.08);}
+.sync-status-pill.danger{color:var(--danger);border-color:rgba(224,112,112,0.4);background:rgba(224,112,112,0.08);}
+.sync-status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+
+/* Backup proactive banner */
+#backup-proactive-banner{
+  display:none;
+  position:fixed;bottom:calc(60px + env(safe-area-inset-bottom));
+  left:50%;transform:translateX(-50%);
+  width:calc(100% - 24px);max-width:456px;
+  background:var(--card2);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:13px 14px;
+  z-index:500;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  animation:slideUpBanner .3s cubic-bezier(.32,1,.55,1);
+}
+#backup-proactive-banner.show{display:block;}
+@keyframes slideUpBanner{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.bpb-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.bpb-title{font-size:13px;font-weight:600;color:var(--text);}
+.bpb-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1;padding:2px;}
+.bpb-desc{font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5;}
+.bpb-btns{display:flex;gap:7px;}
+.bpb-btn-main{flex:1;padding:9px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.bpb-btn-snooze{padding:9px 12px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* QR Modal */
+
+
+/* ── Indicador de scroll en tabs (mobile) ── */
+.tabs-wrap{position:relative;}
+.tabs-wrap::after{content:'';position:absolute;right:0;top:0;bottom:1px;width:40px;background:linear-gradient(to left,var(--bg2),transparent);pointer-events:none;border-radius:0 6px 0 0;}
+</style>
+
+
+</body>
+</html>

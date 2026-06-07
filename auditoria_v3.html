@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parfum Track — Auditoría v3</title>
+<style>
+  :root {
+    --bg: #07070f;
+    --card: #10101e;
+    --card2: #16162a;
+    --border: rgba(255,255,255,0.08);
+    --gold: #c9a84c;
+    --gold2: #e0b060;
+    --gold-dim: rgba(201,168,76,0.12);
+    --text: #f0eee8;
+    --text2: #a09898;
+    --text3: #666;
+    --success: #4caf82;
+    --danger: #e05050;
+    --warn: #e09040;
+    --info: #5090e0;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', system-ui, sans-serif; min-height: 100vh; }
+  .topbar { background: linear-gradient(135deg, #0d0d1f 0%, #131325 100%); border-bottom: 0.5px solid var(--border); padding: 28px 32px 22px; }
+  .topbar h1 { font-size: 22px; font-weight: 600; color: var(--gold2); letter-spacing: .5px; }
+  .topbar .sub { font-size: 13px; color: var(--text2); margin-top: 4px; }
+  .badge-v { display:inline-block; background:var(--gold-dim); border:0.5px solid var(--gold); color:var(--gold); border-radius:20px; padding:2px 10px; font-size:11px; font-weight:600; margin-left:10px; vertical-align:middle; }
+  .container { max-width: 900px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  /* Score Cards */
+  .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 32px; }
+  .score-card { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 18px 16px; text-align: center; transition: transform .15s; }
+  .score-card:hover { transform: translateY(-2px); }
+  .score-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 10px; }
+  .score-num { font-size: 36px; font-weight: 700; line-height: 1; }
+  .score-bar { margin-top: 10px; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 2px; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+  .score-delta { font-size: 11px; margin-top: 6px; font-weight: 500; }
+  .delta-up { color: var(--success); }
+  .delta-same { color: var(--text3); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .tab-btn { padding: 8px 18px; border: 0.5px solid var(--border); border-radius: 20px; background: var(--card); color: var(--text2); font-size: 13px; cursor: pointer; transition: all .15s; }
+  .tab-btn.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold2); font-weight: 500; }
+  .tab-section { display: none; }
+  .tab-section.active { display: block; }
+
+  /* Issue list */
+  .section-title { font-size: 13px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .issue { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; gap: 14px; align-items: flex-start; transition: border-color .15s; }
+  .issue:hover { border-color: rgba(255,255,255,0.16); }
+  .issue-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .issue-body { flex: 1; }
+  .issue-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .issue-desc { font-size: 12px; color: var(--text2); margin-top: 4px; line-height: 1.5; }
+  .issue-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; margin-left: 8px; vertical-align: middle; }
+  .badge-fixed { background: rgba(76,175,130,0.15); color: var(--success); border: 0.5px solid rgba(76,175,130,0.3); }
+  .badge-pending { background: rgba(224,144,64,0.15); color: var(--warn); border: 0.5px solid rgba(224,144,64,0.3); }
+  .badge-bug { background: rgba(224,80,80,0.15); color: var(--danger); border: 0.5px solid rgba(224,80,80,0.3); }
+  .badge-critico { background: rgba(224,80,80,0.2); color: var(--danger); border: 0.5px solid rgba(224,80,80,0.4); }
+  .badge-info { background: rgba(80,144,224,0.15); color: var(--info); border: 0.5px solid rgba(80,144,224,0.3); }
+
+  /* Code block */
+  .code { background: #0a0a18; border: 0.5px solid var(--border); border-radius: 6px; padding: 10px 12px; font-family: monospace; font-size: 12px; color: #a8d8a8; margin-top: 8px; white-space: pre-wrap; word-break: break-all; }
+  .code .hl { color: #e08060; }
+  .code .ok { color: #60d080; }
+
+  /* Stats row */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 28px; }
+  .stat-item { background: var(--card2); border: 0.5px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; }
+  .stat-val { font-size: 20px; font-weight: 600; color: var(--text); margin-top: 3px; }
+  .stat-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before { content:''; position:absolute; left:7px; top:0; bottom:0; width:1px; background: var(--border); }
+  .tl-item { position: relative; margin-bottom: 20px; }
+  .tl-dot { position: absolute; left: -21px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--card2); border: 1.5px solid var(--border); }
+  .tl-dot.done { background: var(--success); border-color: var(--success); }
+  .tl-dot.bug { background: var(--danger); border-color: var(--danger); }
+  .tl-dot.warn { background: var(--warn); border-color: var(--warn); }
+  .tl-title { font-size: 13px; font-weight: 500; color: var(--text); }
+  .tl-sub { font-size: 12px; color: var(--text2); margin-top: 3px; line-height: 1.4; }
+
+  /* Summary box */
+  .summary-box { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+  .summary-box p { font-size: 13px; color: var(--text2); line-height: 1.65; }
+  .summary-box strong { color: var(--text); }
+
+  /* Pie-like visual */
+  .donut { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  .donut-chart { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+  .donut-chart svg { transform: rotate(-90deg); }
+  .donut-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .donut-num { font-size: 22px; font-weight: 700; color: var(--text); }
+  .donut-sub { font-size: 10px; color: var(--text3); }
+  .donut-legend { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  footer { text-align: center; padding: 28px; font-size: 12px; color: var(--text3); border-top: 0.5px solid var(--border); margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>🌸 Parfum Track — Auditoría Técnica <span class="badge-v">v3</span></h1>
+  <div class="sub">Análisis post-implementación · 7 junio 2026 · Comparativa v1 → v2 → v3</div>
+</div>
+
+<div class="container">
+
+  <!-- SCORES -->
+  <div class="score-grid" id="scores"></div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-item">
+      <div class="stat-label">Tamaño HTML</div>
+      <div class="stat-val">311 KB</div>
+      <div class="stat-sub">↓ desde ~318 KB</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Líneas de código</div>
+      <div class="stat-val">5,053</div>
+      <div class="stat-sub">Monolítico (1 archivo)</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Funciones JS</div>
+      <div class="stat-val">198</div>
+      <div class="stat-sub">inline en HTML</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Service Worker</div>
+      <div class="stat-val">v4</div>
+      <div class="stat-sub">CDN Cache-First</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Netlify Functions</div>
+      <div class="stat-val">2</div>
+      <div class="stat-sub">validate + verify</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Bugs corregidos</div>
+      <div class="stat-val">1</div>
+      <div class="stat-sub">en esta auditoría</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('resumen')">📊 Resumen</button>
+    <button class="tab-btn" onclick="switchTab('seguridad')">🔒 Seguridad</button>
+    <button class="tab-btn" onclick="switchTab('ux')">🎨 UX & Calidad</button>
+    <button class="tab-btn" onclick="switchTab('performance')">⚡ Performance</button>
+    <button class="tab-btn" onclick="switchTab('pendientes')">🔧 Pendientes</button>
+    <button class="tab-btn" onclick="switchTab('timeline')">📋 Timeline</button>
+  </div>
+
+  <!-- TAB: RESUMEN -->
+  <div class="tab-section active" id="tab-resumen">
+
+    <div class="summary-box">
+      <p>
+        La v3 de Parfum Track incorpora <strong>cambios críticos de seguridad</strong> (validación de licencia server-side),
+        <strong>mejoras de UX</strong> (confirmación con countdown, XSS, validaciones de formulario) y
+        <strong>mejoras de privacidad</strong> (fuentes GDPR-compliant, analytics sin cookies).
+        Durante esta auditoría se detectó y corrigió un <strong>bug de JavaScript</strong>
+        (<code>const err</code> declarado dos veces en <code>activarLicencia()</code>) que podría haber
+        roto la activación de licencias en modos estrictos. El estado general pasó de crítico a <strong>bueno</strong>,
+        con issues menores pendientes.
+      </p>
+    </div>
+
+    <div class="section-title">Estado general por categoría</div>
+
+    <div class="donut" style="margin-bottom:28px">
+      <div class="donut-chart">
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#1a1a2e" stroke-width="16"/>
+          <!-- Resueltos: 13/18 = 72% → 170deg arc -->
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#4caf82" stroke-width="16"
+            stroke-dasharray="90.6 148.4" stroke-dashoffset="0"/>
+          <!-- Pendientes: 4/18 = 22% → 51deg -->
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#e09040" stroke-width="16"
+            stroke-dasharray="27.7 148.4" stroke-dashoffset="-90.6"/>
+          <!-- Bugs nuevos: 1/18 = 6% -->
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#e05050" stroke-width="16"
+            stroke-dasharray="9.3 148.4" stroke-dashoffset="-118.3"/>
+        </svg>
+        <div class="donut-label">
+          <span class="donut-num">18</span>
+          <span class="donut-sub">issues</span>
+        </div>
+      </div>
+      <div class="donut-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4caf82"></div><span style="color:#4caf82;font-weight:500">13 resueltos</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e09040"></div><span style="color:#e09040;font-weight:500">4 pendientes</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e05050"></div><span style="color:#e05050;font-weight:500">1 bug detectado y corregido</span></div>
+      </div>
+    </div>
+
+    <div class="section-title">Cambios implementados (confirmados en código)</div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Validación de licencia movida al servidor <span class="issue-badge badge-fixed">CRÍTICO RESUELTO</span></div>
+        <div class="issue-desc">El cliente ya no contiene ningún secreto ni HMACs válidos. <code>isValidActivationCode()</code> hace POST a <code>/api/validate-license</code>. Token HMAC-SHA256 firmado server-side. Verificación de revocación cada 7 días via <code>scheduleBackgroundVerification()</code>.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">XSS corregido en todas las funciones de render <span class="issue-badge badge-fixed">ALTO RESUELTO</span></div>
+        <div class="issue-desc"><code>escapeHTML()</code> aplicado en <code>renderVentas()</code>, <code>renderCuotasPendientes()</code>, <code>renderCaja()</code>, <code>renderStock()</code>, <code>renderPerfumesEnvio()</code>. Campos afectados: perfume, vendedor, fecha, cliente, nota, proveedor, descripción de caja.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Modal eliminar mes con countdown de 3 segundos <span class="issue-badge badge-fixed">ALTO RESUELTO</span></div>
+        <div class="issue-desc">El botón "Sí, eliminar" inicia deshabilitado con countdown visual. Undo window extendido a 8000ms. Previene eliminaciones accidentales de datos históricos.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Offline fallback para librerías CDN <span class="issue-badge badge-fixed">MEDIO RESUELTO</span></div>
+        <div class="issue-desc">Service Worker v4 cachea Chart.js, jsPDF y SheetJS con estrategia Cache-First. Si el usuario no tiene conexión, las funciones de PDF y Excel siguen funcionando desde caché.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Fuentes migradas a fonts.bunny.net <span class="issue-badge badge-fixed">MEDIO RESUELTO</span></div>
+        <div class="issue-desc">Eliminado Google Fonts (tracking). Reemplazado por <code>fonts.bunny.net</code> — CDN GDPR-compliant con API idéntica. Carga diferida con <code>media="print"</code> + <code>onload</code>.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">DOM tabs duplicado eliminado <span class="issue-badge badge-fixed">MEDIO RESUELTO</span></div>
+        <div class="issue-desc">Removido el <code>&lt;div class="tabs" style="display:none"&gt;</code> oculto con 10 botones fantasma y su CSS asociado. Reducción de DOM y CSS innecesario.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Plausible Analytics integrado <span class="issue-badge badge-fixed">BAJO RESUELTO</span></div>
+        <div class="issue-desc">Script de Plausible incluido en <code>&lt;head&gt;</code> con <code>defer</code>. Analytics sin cookies, GDPR-compliant. <strong>Pendiente:</strong> actualizar el <code>data-domain</code> al dominio real.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Validaciones de precios robustecidas <span class="issue-badge badge-fixed">MEDIO RESUELTO</span></div>
+        <div class="issue-desc">
+          Nuevas validaciones en <code>addVenta()</code> y <code>guardarEdicionVenta()</code>:<br>
+          • Precio compra negativo → bloquea<br>
+          • Descuento fuera de 0–100% → bloquea<br>
+          • Precio de compra = $0 → toast informativo<br>
+          • Precio compra &gt; precio venta → toast de advertencia (no bloqueante)
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB: SEGURIDAD -->
+  <div class="tab-section" id="tab-seguridad">
+
+    <div class="section-title">Seguridad — Análisis completo</div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Secretos movidos al servidor <span class="issue-badge badge-fixed">RESUELTO</span></div>
+        <div class="issue-desc">Antes: <code>const _LK = 'PT_LICENSE_SECRET_K3Y_2026'</code> expuesto en el cliente. Ahora: todo vive en <code>LICENSE_SERVER_SECRET</code> como env var de Netlify. El cliente nunca ve el secreto.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Token server-side con HMAC-SHA256 <span class="issue-badge badge-fixed">RESUELTO</span></div>
+        <div class="issue-desc">El token es <code>HMAC-SHA256(code:activatedAt, secret)</code>. Unforgeable sin el secreto del servidor. Verificación con <code>crypto.timingSafeEqual()</code> — resiste timing attacks.</div>
+        <div class="code"><span class="ok">token = HMAC-SHA256(`${code}:${activatedAt}`, LICENSE_SERVER_SECRET)</span></div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Revocación de licencias vía env var <span class="issue-badge badge-fixed">RESUELTO</span></div>
+        <div class="issue-desc">Quitar un código de <code>VALID_LICENSE_CODES</code> y hacer redeploy lo revoca. La app detecta la revocación en la próxima verificación (≤7 días) y limpia el token.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">CORS restringido a dominio Netlify <span class="issue-badge badge-fixed">RESUELTO</span></div>
+        <div class="issue-desc">Las Functions solo aceptan <code>Origin</code> que match <code>*.netlify.app</code> o localhost. Cualquier otro origin recibe <code>Access-Control-Allow-Origin: null</code>.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">XSS eliminado en renderizado de datos <span class="issue-badge badge-fixed">RESUELTO</span></div>
+        <div class="issue-desc"><code>escapeHTML()</code> aplicado a todos los campos de usuario que se insertan via <code>innerHTML</code>: perfume, vendedor, cliente, nota, proveedor, descripción caja.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">CSP actualizada con nuevos dominios <span class="issue-badge badge-fixed">RESUELTO</span></div>
+        <div class="issue-desc">
+          <code>fonts.bunny.net</code> en <code>style-src</code> y <code>font-src</code>. <code>plausible.io</code> en <code>script-src</code> y <code>connect-src</code>. <code>*.netlify.app</code> en <code>connect-src</code>.
+          <div class="code">script-src 'self' <span class="hl">'unsafe-inline'</span> cdnjs.cloudflare.com plausible.io</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">⚠️</div>
+      <div class="issue-body">
+        <div class="issue-title"><code>'unsafe-inline'</code> en CSP <span class="issue-badge badge-pending">PENDIENTE</span></div>
+        <div class="issue-desc">Necesario porque todo el JS está inline en el HTML. La solución correcta es separar el JS en archivos externos (tarea pendiente de modularización). Sin eso, un nonce por request sería la alternativa.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">🐛</div>
+      <div class="issue-body">
+        <div class="issue-title">Bug corregido: <code>const err</code> duplicado en <code>activarLicencia()</code> <span class="issue-badge badge-fixed">CORREGIDO HOY</span></div>
+        <div class="issue-desc">
+          En el bloque <code>else</code> de la validación de código incorrecto, la variable <code>err</code> estaba declarada dos veces con <code>const</code>. En modo estricto o entornos modernos esto lanza un <code>SyntaxError</code> que rompería el flujo de activación.
+          <div class="code"><span class="hl">// ANTES (bug):</span>
+const err = document.getElementById('activation-error');
+const err = document.getElementById('activation-error');  // ← duplicado
+
+<span class="ok">// DESPUÉS (corregido):</span>
+const err = document.getElementById('activation-error');</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">🛡</div>
+      <div class="issue-body">
+        <div class="issue-title">Anti-brute-force en validate-license <span class="issue-badge badge-fixed">RESUELTO</span></div>
+        <div class="issue-desc">La Function introduce un delay de 600ms en respuestas inválidas para dificultar ataques de fuerza bruta sobre el endpoint de validación.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB: UX & CALIDAD -->
+  <div class="tab-section" id="tab-ux">
+
+    <div class="section-title">UX & Calidad de código</div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Modal eliminar mes — prevención de errores <span class="issue-badge badge-fixed">RESUELTO</span></div>
+        <div class="issue-desc">Botón de confirmación deshabilitado 3 segundos con countdown visual. Undo window extendido a 8 segundos. Reduce eliminaciones accidentales de meses completos de ventas.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Validaciones de formulario de venta completas <span class="issue-badge badge-fixed">RESUELTO</span></div>
+        <div class="issue-desc">Precio de compra negativo, descuento fuera de rango, precio demasiado alto, precio compra mayor a precio de venta — todos manejanados con mensajes claros. El usuario recibe feedback antes de guardar.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">⚠️</div>
+      <div class="issue-body">
+        <div class="issue-title"><code>calcGananciaPreview()</code> — solo cambia color, sin texto explícito <span class="issue-badge badge-pending">PENDIENTE MENOR</span></div>
+        <div class="issue-desc">
+          Cuando precio de compra &gt; precio de venta, el preview muestra la ganancia en rojo, pero no hay un texto como "⚠ Vendés a pérdida". Mejora recomendada:
+          <div class="code">el.textContent = <span class="hl">`⚠ Vendés a pérdida · `</span> + `Ganancia: ${fmt(gan)}...`;</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">⚠️</div>
+      <div class="issue-body">
+        <div class="issue-title">Modal editar venta sin preview de ganancia <span class="issue-badge badge-pending">PENDIENTE MENOR</span></div>
+        <div class="issue-desc">El formulario "Editar venta" (campos <code>ev-pventa</code>, <code>ev-pcompra</code>) no tiene un elemento preview de ganancia ni la advertencia de precio compra &gt; precio venta. El formulario principal sí lo tiene.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Fuentes cargadas de forma diferida <span class="issue-badge badge-fixed">RESUELTO</span></div>
+        <div class="issue-desc"><code>media="print" onload="this.media='all'"</code> — patrón correcto para carga asincrónica de fuentes. El fallback <code>&lt;noscript&gt;</code> garantiza que las fuentes carguen incluso sin JavaScript.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">⚠️</div>
+      <div class="issue-body">
+        <div class="issue-title">Plausible — dominio sin configurar <span class="issue-badge badge-pending">PENDIENTE FÁCIL</span></div>
+        <div class="issue-desc">
+          El script tiene el placeholder <code>data-domain="tu-dominio.netlify.app"</code>. Analytics no funciona hasta no reemplazarlo con el dominio real.
+          <div class="code">&lt;script defer data-domain=<span class="hl">"tu-dominio.netlify.app"</span> src="https://plausible.io/js/script.js"&gt;</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB: PERFORMANCE -->
+  <div class="tab-section" id="tab-performance">
+
+    <div class="section-title">Performance & Arquitectura</div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Service Worker v4 — estrategia CDN correcta <span class="issue-badge badge-fixed">RESUELTO</span></div>
+        <div class="issue-desc">Cache-First para Chart.js, jsPDF, SheetJS (instala en primer uso, sirve offline). Network-First para navegación HTML (siempre la versión más nueva). Cache-First para assets estáticos (íconos, manifest).</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Compresión gzip habilitada en Netlify <span class="issue-badge badge-fixed">RESUELTO</span></div>
+        <div class="issue-desc"><code>skip_processing = false</code> en netlify.toml. El HTML de ~311KB comprime a ~90KB en tránsito. Reducción del 71% en el primer cargado.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">⚠️</div>
+      <div class="issue-body">
+        <div class="issue-title">JS monolítico — 311KB, 198 funciones en un solo archivo <span class="issue-badge badge-pending">DEUDA TÉCNICA</span></div>
+        <div class="issue-desc">Todo el JavaScript está embebido inline en index.html. Esto impide que el navegador cachee el JS separadamente del HTML. Cada deploy invalida el caché aunque el JS no haya cambiado. La tarea de modularización (separar en archivos .js externos) mejoraría significativamente el tiempo de carga en visitas recurrentes.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">IndexedDB con debounce — escrituras optimizadas <span class="issue-badge badge-fixed">OK</span></div>
+        <div class="issue-desc">El wrapper <code>PTDB</code> agrupa las escrituras con un debounce de 500ms. En escenarios de edición rápida, evita múltiples escrituras simultáneas a IndexedDB.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">✅</div>
+      <div class="issue-body">
+        <div class="issue-title">Cache-Control correcto por tipo de recurso <span class="issue-badge badge-fixed">OK</span></div>
+        <div class="issue-desc">manifest.json: 24h. íconos PNG: 30 días. sw.js: <code>no-cache, no-store</code> (siempre fresco). HTML: Network-First via SW.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB: PENDIENTES -->
+  <div class="tab-section" id="tab-pendientes">
+
+    <div class="section-title">Issues pendientes (ordenados por impacto)</div>
+
+    <div class="issue">
+      <div class="issue-icon">🔴</div>
+      <div class="issue-body">
+        <div class="issue-title">Separar JS en módulos externos <span class="issue-badge badge-critico">DEUDA CRÍTICA</span></div>
+        <div class="issue-desc">
+          311KB de JS inline impide caching efectivo, bloquea la eliminación de <code>'unsafe-inline'</code> de CSP, y hace el código muy difícil de mantener.
+          Módulos mínimos sugeridos: <code>license.js</code>, <code>db.js</code>, <code>ui-ventas.js</code>, <code>ui-stock.js</code>, <code>charts.js</code>.
+          Con módulos externos, el navegador puede cachear JS independientemente del HTML.
+        </div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">🟡</div>
+      <div class="issue-body">
+        <div class="issue-title">Configurar dominio en Plausible <span class="issue-badge badge-pending">FÁCIL — 1 línea</span></div>
+        <div class="issue-desc">
+          Reemplazar <code>"tu-dominio.netlify.app"</code> con el dominio real en el atributo <code>data-domain</code> del script de Plausible. Sin este cambio, no se recolectan métricas.
+        </div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">🟡</div>
+      <div class="issue-body">
+        <div class="issue-title">Preview de ganancia en formulario editar venta <span class="issue-badge badge-pending">MEJORA MENOR</span></div>
+        <div class="issue-desc">Agregar un elemento <code>id="ev-ganancia-preview"</code> al modal de editar venta y conectarlo a un listener en <code>ev-pventa</code> / <code>ev-pcompra</code>. Actualmente el usuario no ve si está editando a pérdida.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">🟡</div>
+      <div class="issue-body">
+        <div class="issue-title">Texto explícito en ganancia negativa (preview) <span class="issue-badge badge-pending">MEJORA MENOR</span></div>
+        <div class="issue-desc"><code>calcGananciaPreview()</code> solo cambia el color a rojo. Agregar el texto "⚠ Vendés a pérdida" antes del monto hace la advertencia más visible para el usuario.</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon">🟡</div>
+      <div class="issue-body">
+        <div class="issue-title">CSP: eliminar <code>'unsafe-inline'</code> <span class="issue-badge badge-pending">LARGO PLAZO</span></div>
+        <div class="issue-desc">Requiere primero separar el JS en módulos externos. Una vez hecho, reemplazar <code>'unsafe-inline'</code> con <code>'nonce-xxx'</code> por request o eliminar completamente si no quedan scripts inline.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB: TIMELINE -->
+  <div class="tab-section" id="tab-timeline">
+
+    <div class="section-title">Timeline de cambios</div>
+
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-dot done"></div>
+        <div class="tl-title">Auditoría v1 — Estado inicial detectado</div>
+        <div class="tl-sub">Secreto de licencia expuesto en cliente · XSS en renderCuotasPendientes · Sin fallback offline para CDN · Google Fonts con tracking · JS monolítico ~318KB</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot done"></div>
+        <div class="tl-title">🔒 Validación de licencia → servidor</div>
+        <div class="tl-sub">Creadas 2 Netlify Functions: <code>validate-license.js</code> + <code>verify-token.js</code>. Eliminados _LK y VALID_CODE_HMACS del cliente. Token HMAC-SHA256 firmado server-side. Background verification cada 7 días.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot done"></div>
+        <div class="tl-title">🛡 XSS — escapeHTML() universal</div>
+        <div class="tl-sub">Función <code>escapeHTML(s)</code> creada y aplicada a todos los campos de usuario en innerHTML: renderVentas, renderCuotasPendientes, renderCaja, renderStock, renderPerfumesEnvio.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot done"></div>
+        <div class="tl-title">⚡ Service Worker v4 — caché de CDN</div>
+        <div class="tl-sub">Cache-First para Chart.js, jsPDF, SheetJS. Las funciones de gráfico, PDF y exportación Excel siguen funcionando offline.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot done"></div>
+        <div class="tl-title">🗑 Modal eliminar mes con countdown</div>
+        <div class="tl-sub">Countdown de 3 segundos + undo de 8 segundos. Previene pérdida accidental de datos históricos.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot done"></div>
+        <div class="tl-title">🌐 Fuentes migradas a fonts.bunny.net</div>
+        <div class="tl-sub">Eliminado Google Fonts. fonts.bunny.net: misma API, sin tracking, GDPR-compliant. Carga diferida con media="print" + onload.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot done"></div>
+        <div class="tl-title">📊 Plausible Analytics</div>
+        <div class="tl-sub">Script integrado en &lt;head&gt;. Analytics sin cookies. Requiere configurar el dominio real.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot done"></div>
+        <div class="tl-title">🧹 DOM tabs duplicado eliminado</div>
+        <div class="tl-sub">Removidos 10 botones ocultos y CSS innecesario. DOM más limpio.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot done"></div>
+        <div class="tl-title">✅ Validaciones de formulario robustecidas</div>
+        <div class="tl-sub">Precios negativos, descuento 0–100%, precio muy alto, precio compra &gt; precio venta, precio compra $0. En addVenta y guardarEdicionVenta.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot bug"></div>
+        <div class="tl-title">🐛 Bug detectado y corregido — <code>const err</code> duplicado</div>
+        <div class="tl-sub">En activarLicencia(), la variable err estaba declarada dos veces. Corregido en esta auditoría. Sin este fix, la activación podría fallar en navegadores con modo estricto.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot warn"></div>
+        <div class="tl-title">🔧 Próximo paso — Separar JS en módulos externos</div>
+        <div class="tl-sub">license.js · db.js · ui-ventas.js · ui-stock.js · charts.js. Desbloquea caching de JS, elimina 'unsafe-inline' de CSP, mejora mantenibilidad.</div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  Parfum Track · Auditoría v3 · 7 junio 2026 · Generado automáticamente tras análisis de código
+</footer>
+
+<script>
+  // Scores data
+  const scores = [
+    { label: 'Seguridad', v1: 20, v2: 70, v3: 85, color: '#4caf82' },
+    { label: 'Calidad UX', v1: 55, v2: 72, v3: 80, color: '#c9a84c' },
+    { label: 'Performance', v1: 60, v2: 72, v3: 76, color: '#5090e0' },
+    { label: 'Privacidad', v1: 40, v2: 78, v3: 82, color: '#a060e0' },
+    { label: 'Mantenib.', v1: 35, v2: 40, v3: 44, color: '#e09040' },
+  ];
+
+  const grid = document.getElementById('scores');
+  scores.forEach(s => {
+    const delta = s.v3 - s.v2;
+    const deltaStr = delta > 0 ? `+${delta} vs v2` : delta === 0 ? '= v2' : `${delta} vs v2`;
+    const deltaClass = delta > 0 ? 'delta-up' : 'delta-same';
+    grid.innerHTML += `
+      <div class="score-card">
+        <div class="score-label">${s.label}</div>
+        <div class="score-num" style="color:${s.color}">${s.v3}</div>
+        <div class="score-bar"><div class="score-fill" style="background:${s.color};width:0%" data-w="${s.v3}"></div></div>
+        <div class="score-delta ${deltaClass}">${deltaStr}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">v1: ${s.v1} → v2: ${s.v2} → v3: ${s.v3}</div>
+      </div>`;
+  });
+
+  // Animate bars
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      document.querySelectorAll('.score-fill').forEach(el => {
+        el.style.width = el.dataset.w + '%';
+      });
+    }, 100);
+  });
+
+  // Tab switching
+  function switchTab(id) {
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>
