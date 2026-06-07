@@ -26,6 +26,8 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
 <link rel="apple-touch-icon" href="/icon-192.png">
+<!-- OneSignal Web Push SDK -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"></noscript>
 
@@ -1101,6 +1103,17 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button onclick="analizarFotos()" style="padding:9px 16px;background:var(--card2);border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;">🔍 Analizar espacio</button>
             <button onclick="optimizarTodasLasFotos()" id="btn-opt-fotos" style="padding:9px 16px;background:rgba(251,191,36,0.1);border:0.5px solid rgba(251,191,36,0.35);color:var(--warn);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;display:none;">⚡ Optimizar todas</button>
+          </div>
+        </div>
+
+        <!-- NOTIFICACIONES -->
+        <div class="card" style="padding:20px;" id="card-notificaciones">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">🔔 Notificaciones push</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">Recibí recordatorios automáticos cuando tenés cobros pendientes hace más de 12 horas.</div>
+          <div id="notif-estado" style="font-size:12px;margin-bottom:12px;"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="btn-activar-notif" onclick="activarNotificaciones()" style="padding:9px 16px;background:rgba(61,191,138,.1);border:0.5px solid rgba(61,191,138,.35);color:var(--success);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;font-weight:600;">🔔 Activar notificaciones</button>
+            <button id="btn-desactivar-notif" onclick="desactivarNotificaciones()" style="display:none;padding:9px 16px;background:rgba(224,112,112,.1);border:0.5px solid rgba(224,112,112,.35);color:var(--danger);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;">🔕 Desactivar</button>
           </div>
         </div>
 
@@ -3279,6 +3292,19 @@ function renderAjustes() {
   }
   // Refrescar estado del PIN
   if (typeof actualizarCardPin === 'function') actualizarCardPin();
+
+  // Estado de notificaciones push
+  const notifSubscribed = localStorage.getItem('pt_notif_subscribed') === '1';
+  const notifEstadoEl = document.getElementById('notif-estado');
+  const btnActivar = document.getElementById('btn-activar-notif');
+  const btnDesactivar = document.getElementById('btn-desactivar-notif');
+  if (notifEstadoEl) {
+    notifEstadoEl.innerHTML = notifSubscribed
+      ? `<span style="color:var(--success)">✅ Notificaciones activas</span> — te avisamos cuando tenés cobros pendientes`
+      : `<span style="color:var(--text3)">⭕ Notificaciones desactivadas</span>`;
+  }
+  if (btnActivar) btnActivar.style.display = notifSubscribed ? 'none' : 'block';
+  if (btnDesactivar) btnDesactivar.style.display = notifSubscribed ? 'block' : 'none';
 }
 
 // ══════════════════════════════════
@@ -3635,6 +3661,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Hide loading screen
   const loader = document.getElementById('app-loading');
   if (loader) loader.style.display = 'none';
+  // Disparar evento para que OneSignal chequee cobros pendientes
+  window.dispatchEvent(new Event('pt-app-ready'));
   // Attach modal backdrop close listeners
   ['modal-del-mes','del-modal','modal-cuota','modal-editar','modal-meta',
    'backup-modal','pdf-modal','modal-pago','modal-perfil','del-stock-modal','license-modal',
@@ -5466,6 +5494,116 @@ async function descargarPDFCatalogo() {
         navigator.serviceWorker.register('/sw.js').catch(() => {});
       });
     }
+  </script>
+
+  <script>
+  // ══════════════════════════════════════════════
+  // ONESIGNAL — Notificaciones push
+  // ══════════════════════════════════════════════
+  const ONESIGNAL_APP_ID = '4b037409-ce19-48b9-932c-3021b31b2a33';
+
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: ONESIGNAL_APP_ID,
+      serviceWorkerPath: '/sw.js',
+      serviceWorkerScope: '/',
+      notifyButton: { enable: false }, // usamos nuestro propio botón en Ajustes
+      promptOptions: {
+        slidedown: {
+          prompts: [{
+            type: 'push',
+            autoPrompt: false,
+            text: {
+              actionMessage: '🍶 Activá los recordatorios de cobros pendientes de Parfum Track.',
+              acceptButton: 'Sí, activar',
+              cancelButton: 'Ahora no',
+            }
+          }]
+        }
+      }
+    });
+
+    // Guardar estado de suscripción para mostrarlo en Ajustes
+    const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
+    localStorage.setItem('pt_notif_subscribed', isSubscribed ? '1' : '0');
+
+    // Chequear cobros pendientes y notificar si corresponde
+    OneSignal.User.PushSubscription.addEventListener('change', async (event) => {
+      localStorage.setItem('pt_notif_subscribed', event.current.optedIn ? '1' : '0');
+      if (typeof renderAjustes === 'function') renderAjustes();
+    });
+  });
+
+  // ── Pedir permiso de notificaciones (llamado desde Ajustes) ──
+  async function activarNotificaciones() {
+    if (!window.OneSignal) { toast('📶 Conectate a internet para activar las notificaciones'); return; }
+    try {
+      await OneSignal.Slidedown.promptPush();
+    } catch(e) {
+      toast('⚠ No se pudo activar las notificaciones');
+    }
+  }
+
+  async function desactivarNotificaciones() {
+    if (!window.OneSignal) return;
+    try {
+      await OneSignal.User.PushSubscription.optOut();
+      localStorage.setItem('pt_notif_subscribed', '0');
+      toast('🔕 Notificaciones desactivadas');
+      if (typeof renderAjustes === 'function') renderAjustes();
+    } catch(e) {
+      toast('⚠ No se pudo desactivar');
+    }
+  }
+
+  // ── Enviar notificación de cobros pendientes (via OneSignal REST API desde Netlify Function) ──
+  // Se llama automáticamente al abrir la app si hay deudas y pasaron +12h desde la última notif
+  async function checkYNotificarCobros() {
+    try {
+      if (!window.OneSignal) return;
+      const optedIn = await OneSignal.User.PushSubscription.optedIn;
+      if (!optedIn) return;
+
+      const ultima = parseInt(localStorage.getItem('pt_last_cobros_notif') || '0');
+      const ahora = Date.now();
+      if (ahora - ultima < 12 * 60 * 60 * 1000) return; // cada 12 horas máximo
+
+      // Calcular deudas pendientes (ventas con debe > 0)
+      const deudas = (window.ventas || []).filter(v => {
+        const debe = typeof calcDebe === 'function' ? calcDebe(v) : 0;
+        return debe > 0;
+      });
+      if (!deudas.length) return;
+
+      const totalDebe = deudas.reduce((s, v) => s + (typeof calcDebe === 'function' ? calcDebe(v) : 0), 0);
+      const fmtMonto = typeof fmt === 'function' ? fmt(totalDebe) : '$' + totalDebe;
+
+      // Mostrar notificación local via OneSignal
+      const subscriptionId = OneSignal.User.PushSubscription.id;
+      if (!subscriptionId) return;
+
+      await fetch('/.netlify/functions/send-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subscriptionId,
+          title: '💰 Cobros pendientes — Parfum Track',
+          message: `Tenés ${deudas.length} venta${deudas.length !== 1 ? 's' : ''} sin cobrar por ${fmtMonto}`,
+          url: '/'
+        })
+      });
+
+      localStorage.setItem('pt_last_cobros_notif', ahora.toString());
+    } catch(e) {
+      // Silencioso — las notificaciones son opcionales
+    }
+  }
+
+  // Chequear cobros 3 segundos después de que la app carga
+  window.addEventListener('pt-app-ready', () => {
+    setTimeout(checkYNotificarCobros, 3000);
+  });
   </script>
 </body>
 </html>
