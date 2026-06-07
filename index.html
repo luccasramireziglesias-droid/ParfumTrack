@@ -5624,9 +5624,141 @@ async function descargarPDFCatalogo() {
     }
   }
 
+  // ── Notificación: cuotas vencidas hace +30 días ──────────────
+  async function checkYNotificarCuotasVencidas() {
+    try {
+      if (!window.OneSignal) return;
+      const optedIn = await OneSignal.User.PushSubscription.optedIn;
+      if (!optedIn) return;
+
+      const ultima = parseInt(localStorage.getItem('pt_last_cuotas_notif') || '0');
+      const ahora = Date.now();
+      if (ahora - ultima < 12 * 60 * 60 * 1000) return; // máximo cada 12h
+
+      const vencidas = (window.ventas || []).filter(v => {
+        if (!v.esCuotas || ventaCompletada(v)) return false;
+        return diasDesdeUltimoPago(v) >= 30;
+      });
+      if (!vencidas.length) return;
+
+      const totalDebe = vencidas.reduce((s, v) => s + calcDebe(v), 0);
+      const fmtMonto = typeof fmt === 'function' ? fmt(totalDebe) : '$' + totalDebe;
+      const subscriptionId = OneSignal.User.PushSubscription.id;
+      if (!subscriptionId) return;
+
+      await fetch('/send-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subscriptionId,
+          title: '📅 Cuotas vencidas — Parfum Track',
+          message: `${vencidas.length} cuota${vencidas.length !== 1 ? 's' : ''} sin cobrar hace más de 30 días (${fmtMonto})`,
+          url: '/'
+        })
+      });
+
+      localStorage.setItem('pt_last_cuotas_notif', ahora.toString());
+    } catch(e) { /* silencioso */ }
+  }
+
+  // ── Notificación: meta mensual alcanzada ──────────────────────
+  async function checkYNotificarMeta() {
+    try {
+      if (!window.OneSignal) return;
+      const optedIn = await OneSignal.User.PushSubscription.optedIn;
+      if (!optedIn) return;
+      if (!metaMensual || metaMensual <= 0) return;
+
+      // Solo notificar una vez por mes
+      const mesActual = new Date().toISOString().slice(0, 7); // "2026-06"
+      const ultimoMes = localStorage.getItem('pt_last_meta_notif_mes') || '';
+      if (ultimoMes === mesActual) return;
+
+      // Calcular ganancia del mes actual
+      const hoy = new Date();
+      const gananciaEsteMes = (window.ventas || [])
+        .filter(v => {
+          if (!v.fecha) return false;
+          const [d, m, a] = v.fecha.split('/');
+          return parseInt(a) === hoy.getFullYear() && parseInt(m) === (hoy.getMonth() + 1);
+        })
+        .reduce((s, v) => s + (v.ganancia || 0), 0);
+
+      if (gananciaEsteMes < metaMensual) return;
+
+      const subscriptionId = OneSignal.User.PushSubscription.id;
+      if (!subscriptionId) return;
+
+      const fmtMonto = typeof fmt === 'function' ? fmt(gananciaEsteMes) : '$' + gananciaEsteMes;
+      await fetch('/send-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subscriptionId,
+          title: '🎯 ¡Meta mensual alcanzada! — Parfum Track',
+          message: `¡Superaste tu meta! Ganancia del mes: ${fmtMonto}`,
+          url: '/'
+        })
+      });
+
+      localStorage.setItem('pt_last_meta_notif_mes', mesActual);
+    } catch(e) { /* silencioso */ }
+  }
+
+  // ── Notificación: resumen semanal (lunes) ─────────────────────
+  async function checkYNotificarResumenSemanal() {
+    try {
+      if (!window.OneSignal) return;
+      const optedIn = await OneSignal.User.PushSubscription.optedIn;
+      if (!optedIn) return;
+
+      const hoy = new Date();
+      if (hoy.getDay() !== 1) return; // solo lunes
+
+      // Solo una vez por semana
+      const semanaActual = `${hoy.getFullYear()}-W${Math.ceil((hoy.getDate() - hoy.getDay() + 1) / 7)}`;
+      const ultimaSemana = localStorage.getItem('pt_last_resumen_semana') || '';
+      if (ultimaSemana === semanaActual) return;
+
+      // Calcular datos de la semana anterior (últimos 7 días)
+      const hace7dias = new Date(hoy.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const ventasSemana = (window.ventas || []).filter(v => {
+        if (!v.fecha) return false;
+        const [d, m, a] = v.fecha.split('/');
+        const fechaV = new Date(parseInt(a), parseInt(m) - 1, parseInt(d));
+        return fechaV >= hace7dias && fechaV < hoy;
+      });
+
+      if (!ventasSemana.length) return; // sin ventas esa semana, no notificar
+
+      const ganancia = ventasSemana.reduce((s, v) => s + (v.ganancia || 0), 0);
+      const fmtMonto = typeof fmt === 'function' ? fmt(ganancia) : '$' + ganancia;
+      const subscriptionId = OneSignal.User.PushSubscription.id;
+      if (!subscriptionId) return;
+
+      await fetch('/send-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subscriptionId,
+          title: '📊 Resumen semanal — Parfum Track',
+          message: `La semana pasada: ${ventasSemana.length} venta${ventasSemana.length !== 1 ? 's' : ''} · Ganancia: ${fmtMonto}`,
+          url: '/'
+        })
+      });
+
+      localStorage.setItem('pt_last_resumen_semana', semanaActual);
+    } catch(e) { /* silencioso */ }
+  }
+
   // Chequear cobros 3 segundos después de que la app carga
   window.addEventListener('pt-app-ready', () => {
-    setTimeout(checkYNotificarCobros, 3000);
+    setTimeout(() => {
+      checkYNotificarCobros();
+      checkYNotificarCuotasVencidas();
+      checkYNotificarMeta();
+      checkYNotificarResumenSemanal();
+    }, 3000);
   });
   </script>
 </body>
