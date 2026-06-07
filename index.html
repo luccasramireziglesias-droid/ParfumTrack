@@ -561,9 +561,9 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
 }
 
 /* ── ONBOARDING ── */
-.ob-overlay{position:fixed;inset:0;z-index:10000;background:rgba(7,7,14,.92);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:24px;}
+.ob-overlay{position:fixed;inset:0;z-index:10000;background:rgba(7,7,14,.92);backdrop-filter:blur(10px);display:none;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;}
 .ob-overlay.show{display:flex;}
-.ob-welcome{max-width:420px;text-align:center;animation:obFade .5s ease;}
+.ob-welcome{max-width:420px;width:100%;text-align:center;animation:obFade .5s ease;margin:auto;}
 .ob-welcome h2{font-size:26px;font-weight:700;color:var(--gold2);margin-bottom:12px;}
 .ob-welcome p{font-size:15px;color:var(--text2);line-height:1.6;margin-bottom:24px;}
 .ob-welcome .ob-steps{display:flex;flex-direction:column;gap:10px;margin-bottom:28px;text-align:left;}
