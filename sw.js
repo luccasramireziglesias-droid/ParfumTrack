@@ -1,6 +1,6 @@
 // Parfum Track — Service Worker v5
 // v5: app.js cacheado como asset estático (JS separado del HTML)
-const CACHE_NAME = 'parfumtrack-v5';
+const CACHE_NAME = 'parfumtrack-v6';
 
 const STATIC_ASSETS = [
   '/manifest.json',

@@ -6239,8 +6239,6 @@ document.addEventListener("click", function (e) {
   const fn = window[fnName];
   if (typeof fn === "function") {
     fn(arg !== undefined ? arg : undefined);
-  } else {
-    console.warn("[delegation] función no encontrada:", fnName);
   }
 });
 
