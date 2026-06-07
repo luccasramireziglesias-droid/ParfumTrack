@@ -91,3 +91,12 @@ self.addEventListener('fetch', event => {
     })
   );
 });
+response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      });
+      return cached || fetchPromise;
+    })
+  );
+});
