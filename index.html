@@ -607,8 +607,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       <div class="ob-step"><div class="ob-step-n">3</div><div class="ob-step-tx"><strong>Controlá tu caja</strong> y mirá tus ganancias</div></div>
     </div>
     <div class="ob-btns">
-      <button class="ob-btn-primary" onclick="iniciarTour()">Hacer el recorrido (1 min)</button>
-      <button class="ob-btn-skip" onclick="cerrarOnboarding()">Saltar, ya sé usarla</button>
+      <button class="ob-btn-primary" data-action="iniciarTour">Hacer el recorrido (1 min)</button>
+      <button class="ob-btn-skip" data-action="cerrarOnboarding">Saltar, ya sé usarla</button>
     </div>
   </div>
 </div>
@@ -622,8 +622,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
   <div class="tour-tip-foot">
     <span class="tour-progress" id="tour-progress"></span>
     <div class="tour-tip-btns">
-      <button class="tour-btn tour-btn-skip" onclick="terminarTour()">Saltar</button>
-      <button class="tour-btn tour-btn-next" id="tour-next-btn" onclick="tourSiguiente()">Siguiente</button>
+      <button class="tour-btn tour-btn-skip" data-action="terminarTour">Saltar</button>
+      <button class="tour-btn tour-btn-next" id="tour-next-btn" data-action="tourSiguiente">Siguiente</button>
     </div>
   </div>
 </div>
@@ -648,19 +648,19 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
         <div><div class="brand-title">Parfum Track</div><div class="brand-sub">Gestión de ventas</div></div>
       </div>
       <div class="header-right" style="gap:5px;">
-        <button id="profile-badge" onclick="showProfileScreen()" style="background:var(--gold-dim);border:0.5px solid var(--border);color:var(--gold2);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;min-width:0;">🍶</button>
-        <div id="sync-status-pill" class="sync-status-pill warn" onclick="showTab('ajustes')" title="Estado del backup">
+        <button id="profile-badge" data-action="showProfileScreen" style="background:var(--gold-dim);border:0.5px solid var(--border);color:var(--gold2);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;min-width:0;">🍶</button>
+        <div id="sync-status-pill" class="sync-status-pill warn" data-action="showTab" data-arg="ajustes" title="Estado del backup">
           <div class="sync-status-dot"></div>
           <span id="sync-status-label">Backup</span>
         </div>
-        <button class="icon-btn" onclick="backupData()" title="Backup datos">💾</button>
-        <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">🌙</button>
+        <button class="icon-btn" data-action="backupData" title="Backup datos">💾</button>
+        <button class="icon-btn" data-action="toggleTheme" id="theme-btn">🌙</button>
       </div>
     </div>
     <div class="header-stats">
-      <div class="hstat" onclick="showTab('ganancias')"><div class="hstat-num" id="st-ventas">0</div><div class="hstat-lbl">Ventas</div></div>
-      <div class="hstat" onclick="showTab('ganancias')"><div class="hstat-num" id="st-ganancia">$0</div><div class="hstat-lbl">Ganancia</div></div>
-      <div class="hstat" onclick="showTab('cuotas')"><div class="hstat-num" id="st-debe" style="color:var(--warn)">$0</div><div class="hstat-lbl">Debe</div><div class="hstat-sub" id="st-cuotas-pendientes" style="font-size:9px;color:var(--text3);margin-top:1px;display:none"></div></div>
+      <div class="hstat" data-action="showTab" data-arg="ganancias"><div class="hstat-num" id="st-ventas">0</div><div class="hstat-lbl">Ventas</div></div>
+      <div class="hstat" data-action="showTab" data-arg="ganancias"><div class="hstat-num" id="st-ganancia">$0</div><div class="hstat-lbl">Ganancia</div></div>
+      <div class="hstat" data-action="showTab" data-arg="cuotas"><div class="hstat-num" id="st-debe" style="color:var(--warn)">$0</div><div class="hstat-lbl">Debe</div><div class="hstat-sub" id="st-cuotas-pendientes" style="font-size:9px;color:var(--text3);margin-top:1px;display:none"></div></div>
     </div>
     <div class="meta-strip" id="meta-strip"></div>
     <div class="daily-banner" id="daily-banner"></div>
@@ -668,51 +668,51 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
 
   <!-- BOTTOM NAV — 5 items principales -->
   <nav class="bottom-nav">
-    <button class="bn-item active" id="bn-ventas" onclick="showTab('ventas')">
+    <button class="bn-item active" id="bn-ventas" data-action="showTab" data-arg="ventas">
       <span class="bn-icon">💰</span>Ventas
     </button>
-    <button class="bn-item" id="bn-cuotas" onclick="showTab('cuotas')">
+    <button class="bn-item" id="bn-cuotas" data-action="showTab" data-arg="cuotas">
       <span class="bn-icon">🗓</span>Cuotas
       <span class="bn-badge" id="bn-badge-cuotas"></span>
     </button>
-    <button class="bn-item" id="bn-add" onclick="showTab('add')" style="color:var(--gold2)">
+    <button class="bn-item" id="bn-add" data-action="showTab" data-arg="add" style="color:var(--gold2)">
       <span class="bn-icon" style="width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;margin-top:-14px;box-shadow:0 2px 12px rgba(201,168,76,0.35)">✦</span>
       Nueva
     </button>
-    <button class="bn-item" id="bn-ganancias" onclick="showTab('ganancias')">
+    <button class="bn-item" id="bn-ganancias" data-action="showTab" data-arg="ganancias">
       <span class="bn-icon">📊</span>Gráficos
     </button>
-    <button class="bn-item" id="bn-mas" onclick="abrirMas()">
+    <button class="bn-item" id="bn-mas" data-action="abrirMas">
       <span class="bn-icon">⋯</span>Más
     </button>
   </nav>
 
   <!-- DRAWER "MÁS" -->
-  <div class="mas-overlay" id="mas-overlay" onclick="cerrarMas()">
-    <div class="mas-drawer" onclick="event.stopPropagation()">
+  <div class="mas-overlay" id="mas-overlay">
+    <div class="mas-drawer">
       <div class="mas-handle"></div>
       <div class="mas-grid">
-        <button class="mas-item" id="masitem-caja" onclick="showTabFromMas('caja')">
+        <button class="mas-item" id="masitem-caja" data-action="showTabFromMas" data-arg="caja">
           <span class="mas-icon">🏦</span>
           <span class="mas-label">Caja</span>
         </button>
-        <button class="mas-item" id="masitem-stock" onclick="showTabFromMas('stock')">
+        <button class="mas-item" id="masitem-stock" data-action="showTabFromMas" data-arg="stock">
           <span class="mas-icon">📦</span>
           <span class="mas-label">Stock</span>
         </button>
-        <button class="mas-item" id="masitem-catalogo" onclick="showTabFromMas('catalogo')">
+        <button class="mas-item" id="masitem-catalogo" data-action="showTabFromMas" data-arg="catalogo">
           <span class="mas-icon">🛍</span>
           <span class="mas-label">Catálogo</span>
         </button>
-        <button class="mas-item" id="masitem-gastos" onclick="showTabFromMas('gastos')">
+        <button class="mas-item" id="masitem-gastos" data-action="showTabFromMas" data-arg="gastos">
           <span class="mas-icon">💸</span>
           <span class="mas-label">Gastos</span>
         </button>
-        <button class="mas-item" id="masitem-importar" onclick="showTabFromMas('importar')">
+        <button class="mas-item" id="masitem-importar" data-action="showTabFromMas" data-arg="importar">
           <span class="mas-icon">📥</span>
           <span class="mas-label">Importar</span>
         </button>
-        <button class="mas-item" id="masitem-ajustes" onclick="showTabFromMas('ajustes')">
+        <button class="mas-item" id="masitem-ajustes" data-action="showTabFromMas" data-arg="ajustes">
           <span class="mas-icon">⚙</span>
           <span class="mas-label">Ajustes</span>
         </button>
@@ -728,10 +728,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="search-ventas" placeholder="Buscar perfume, cliente, vendedor..." oninput="renderVentas()"></div>
       <div class="mes-filter" id="mes-filter-ventas"></div>
       <div class="filter-row">
-        <button class="filter-chip active" id="fchip-todas" onclick="setFiltroEstado('todas')">Todas</button>
-        <button class="filter-chip" id="fchip-hoy" onclick="setFiltroEstado('hoy')">📅 Hoy</button>
-        <button class="filter-chip" id="fchip-pendiente" onclick="setFiltroEstado('pendiente')">⏳ Con deuda</button>
-        <button class="filter-chip" id="fchip-completada" onclick="setFiltroEstado('completada')">✅ Completadas</button>
+        <button class="filter-chip active" id="fchip-todas" data-action="setFiltroEstado" data-arg="todas">Todas</button>
+        <button class="filter-chip" id="fchip-hoy" data-action="setFiltroEstado" data-arg="hoy">📅 Hoy</button>
+        <button class="filter-chip" id="fchip-pendiente" data-action="setFiltroEstado" data-arg="pendiente">⏳ Con deuda</button>
+        <button class="filter-chip" id="fchip-completada" data-action="setFiltroEstado" data-arg="completada">✅ Completadas</button>
       </div>
       <div id="ventas-list"></div>
     </div>
@@ -764,7 +764,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
             <div style="display:flex;gap:6px;margin-top:7px">
               <input type="text" id="g-perfume-envio-input" placeholder="Nombre del perfume" list="sug-perfume-gasto" style="flex:1;padding:6px 9px;background:var(--card2);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px">
               <datalist id="sug-perfume-gasto"></datalist>
-              <button onclick="agregarPerfumeEnvio()" style="padding:6px 11px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:11px;cursor:pointer;white-space:nowrap">+ Agregar</button>
+              <button data-action="agregarPerfumeEnvio" style="padding:6px 11px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:11px;cursor:pointer;white-space:nowrap">+ Agregar</button>
             </div>
           </div>
         </div>
@@ -773,7 +773,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
           <div class="form-group"><label class="form-label">Fecha</label><input type="date" id="g-fecha"></div>
         </div>
         <div class="form-group"><label class="form-label">Descripción (opcional)</label><input type="text" id="g-descripcion" placeholder="Ej: Envío SCENTA..."></div>
-        <button class="btn-primary" onclick="addGasto()">Guardar gasto</button>
+        <button class="btn-primary" data-action="addGasto">Guardar gasto</button>
       </div>
       <div id="gastos-list"></div>
     </div>
@@ -785,7 +785,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       <div class="meta-bar-wrap">
         <div class="meta-bar-top">
           <span>🎯 Meta mensual: <strong id="meta-label">sin definir</strong></span>
-          <button onclick="abrirModalMeta()" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:12px">Editar</button>
+          <button data-action="abrirModalMeta" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:12px">Editar</button>
         </div>
         <div class="meta-bar"><div class="meta-bar-fill" id="meta-bar-fill" style="width:0%"></div></div>
         <div style="font-size:11px;color:var(--text2);margin-top:5px" id="meta-progress-lbl"></div>
@@ -818,7 +818,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       <div id="gan-compras"></div>
       <div class="section-title" style="margin-top:13px">Por perfume</div><div id="gan-list"></div>
       <div class="section-title" style="margin-top:13px">Por vendedor</div><div id="gan-vendedor"></div>
-      <button class="btn-outline" onclick="exportExcel()">📥 Exportar Excel formato VIP</button>
+      <button class="btn-outline" data-action="exportExcel">📥 Exportar Excel formato VIP</button>
     </div>
 
     <!-- CAJA -->
@@ -832,7 +832,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
           <div class="form-group"><label class="form-label">Monto</label><input type="number" id="caja-monto" placeholder="0" min="0" inputmode="numeric"></div>
           <div class="form-group"><label class="form-label">Fecha</label><input type="date" id="caja-fecha"></div>
         </div>
-        <button class="btn-primary" onclick="addMovCaja()">Registrar</button>
+        <button class="btn-primary" data-action="addMovCaja">Registrar</button>
       </div>
       <div class="mes-filter" id="mes-filter-caja"></div>
       <div id="caja-list"></div>
@@ -844,7 +844,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       <!-- BARRA DE ACCIONES -->
       <div style="display:flex;gap:7px;margin-bottom:12px;align-items:center;">
         <div class="search-wrap" style="flex:1;margin-bottom:0"><span class="search-icon">🔍</span><input type="text" id="search-catalogo" placeholder="Buscar perfume..." oninput="renderCatalogo()"></div>
-        <button id="btn-modo-seleccion" onclick="toggleModoSeleccion()" style="background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);padding:8px 11px;cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap;flex-shrink:0;">☑ Seleccionar</button>
+        <button id="btn-modo-seleccion" data-action="toggleModoSeleccion" style="background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);padding:8px 11px;cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap;flex-shrink:0;">☑ Seleccionar</button>
       </div>
 
       <!-- PANEL MODO SELECCIÓN -->
@@ -852,19 +852,19 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
         <div style="font-size:11px;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;font-weight:600;margin-bottom:10px;">✦ ARMAR CATÁLOGO PERSONALIZADO</div>
         <div style="font-size:12px;color:var(--text2);margin-bottom:11px;">Tocá los perfumes para marcarlos. El catálogo solo incluirá los seleccionados.</div>
         <div style="display:flex;gap:7px;flex-wrap:wrap;">
-          <button onclick="seleccionarTodosConStock()" style="padding:6px 11px;background:var(--bg3);border:0.5px solid var(--border);color:var(--text2);border-radius:20px;font-size:11px;cursor:pointer;">✦ Con stock</button>
-          <button onclick="seleccionarTodos()" style="padding:6px 11px;background:var(--bg3);border:0.5px solid var(--border);color:var(--text2);border-radius:20px;font-size:11px;cursor:pointer;">Todos</button>
-          <button onclick="deseleccionarTodos()" style="padding:6px 11px;background:var(--bg3);border:0.5px solid var(--border);color:var(--text2);border-radius:20px;font-size:11px;cursor:pointer;">Ninguno</button>
+          <button data-action="seleccionarTodosConStock" style="padding:6px 11px;background:var(--bg3);border:0.5px solid var(--border);color:var(--text2);border-radius:20px;font-size:11px;cursor:pointer;">✦ Con stock</button>
+          <button data-action="seleccionarTodos" style="padding:6px 11px;background:var(--bg3);border:0.5px solid var(--border);color:var(--text2);border-radius:20px;font-size:11px;cursor:pointer;">Todos</button>
+          <button data-action="deseleccionarTodos" style="padding:6px 11px;background:var(--bg3);border:0.5px solid var(--border);color:var(--text2);border-radius:20px;font-size:11px;cursor:pointer;">Ninguno</button>
           <span id="sel-count-label" style="padding:6px 11px;font-size:11px;color:var(--gold2);font-weight:500;align-self:center;margin-left:auto;">0 seleccionados</span>
         </div>
       </div>
 
       <!-- BOTONES COMPARTIR (siempre visibles abajo del grid) -->
       <div id="catalogo-share-bar" style="display:flex;gap:8px;margin-bottom:12px;">
-        <button onclick="compartirCatalogoConStock()" style="flex:1;padding:10px 8px;background:linear-gradient(135deg,rgba(37,211,102,0.18),rgba(37,211,102,0.08));border:1px solid rgba(37,211,102,0.4);color:#25d366;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        <button data-action="compartirCatalogoConStock" style="flex:1;padding:10px 8px;background:linear-gradient(135deg,rgba(37,211,102,0.18),rgba(37,211,102,0.08));border:1px solid rgba(37,211,102,0.4);color:#25d366;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
           💬 Enviar con stock
         </button>
-        <button id="btn-share-seleccion" onclick="compartirCatalogoSeleccion()" style="flex:1;padding:10px 8px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;">
+        <button id="btn-share-seleccion" data-action="compartirCatalogoSeleccion" style="flex:1;padding:10px 8px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;">
           📤 Compartir selección
         </button>
       </div>
@@ -881,14 +881,14 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       <!-- BARRA SUPERIOR -->
       <div style="display:flex;gap:7px;align-items:center;margin-bottom:12px">
         <div class="search-wrap" style="flex:1;margin-bottom:0"><span class="search-icon">🔍</span><input type="text" id="search-inp" placeholder="Buscar perfume..." oninput="renderStock()"></div>
-        <button onclick="toggleAgregarStock()" id="btn-agregar-stock" style="background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);padding:8px 12px;cursor:pointer;font-size:13px;font-weight:500;flex-shrink:0">+ Agregar</button>
-        <button onclick="toggleStockOpciones()" id="btn-stock-opc" style="background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);padding:8px 10px;cursor:pointer;font-size:14px;flex-shrink:0" title="Opciones">⚙</button>
+        <button data-action="toggleAgregarStock" id="btn-agregar-stock" style="background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);padding:8px 12px;cursor:pointer;font-size:13px;font-weight:500;flex-shrink:0">+ Agregar</button>
+        <button data-action="toggleStockOpciones" id="btn-stock-opc" style="background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);padding:8px 10px;cursor:pointer;font-size:14px;flex-shrink:0" title="Opciones">⚙</button>
       </div>
 
       <!-- OPCIONES AVANZADAS -->
       <div id="stock-opciones" style="display:none;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px;margin-bottom:12px;margin-top:-6px">
         <div style="font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Opciones avanzadas</div>
-        <button onclick="confirmarBorrarStock()" style="width:100%;padding:8px;background:none;border:0.5px solid rgba(224,112,112,0.3);color:var(--danger);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;text-align:left">
+        <button data-action="confirmarBorrarStock" style="width:100%;padding:8px;background:none;border:0.5px solid rgba(224,112,112,0.3);color:var(--danger);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;text-align:left">
           🗑 Borrar todo el stock
         </button>
       </div>
@@ -898,7 +898,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
         <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:13px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;">
             <div style="font-size:12px;color:var(--gold2);font-weight:500;letter-spacing:.5px">📦 AGREGAR STOCK DE COMPRA</div>
-            <button onclick="toggleAgregarStock()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;">×</button>
+            <button data-action="toggleAgregarStock" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;">×</button>
           </div>
           <div style="font-size:12px;color:var(--text2);margin-bottom:13px;line-height:1.6;background:rgba(201,168,76,0.06);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px">💡 El costo total se descuenta automáticamente de Caja como salida.</div>
           <div class="form-group"><label class="form-label">Perfume</label><input type="text" id="as-perfume" placeholder="Nombre del perfume" list="sug-as-perfume"><datalist id="sug-as-perfume"></datalist></div>
@@ -911,7 +911,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
             <div class="form-group"><label class="form-label">Precio venta habitual</label><input type="number" id="as-pventa" placeholder="0" min="0" inputmode="numeric"></div>
           </div>
           <div id="as-total-preview" style="display:none;background:rgba(224,112,112,0.08);border:0.5px solid rgba(224,112,112,0.25);border-radius:var(--radius-sm);padding:9px 12px;font-size:13px;color:var(--danger);margin-bottom:12px"></div>
-          <button class="btn-primary" onclick="agregarStockYCerrar()">Agregar al stock</button>
+          <button class="btn-primary" data-action="agregarStockYCerrar">Agregar al stock</button>
         </div>
       </div>
 
@@ -930,8 +930,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
           <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">🔒 Seguridad</div>
           <div id="pin-estado-desc" style="font-size:12px;color:var(--text3);margin-bottom:14px;">Protegé el acceso a tu app con un PIN de 4 dígitos.</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button id="btn-configurar-pin" class="btn-primary" onclick="abrirSetupPin()" style="max-width:220px;">🔑 Configurar PIN</button>
-            <button id="btn-desactivar-pin" onclick="desactivarPin()" style="display:none;padding:11px 16px;background:none;border:0.5px solid rgba(224,112,112,0.4);color:var(--danger);border-radius:var(--radius);font-size:13px;cursor:pointer;">✕ Desactivar</button>
+            <button id="btn-configurar-pin" class="btn-primary" data-action="abrirSetupPin" style="max-width:220px;">🔑 Configurar PIN</button>
+            <button id="btn-desactivar-pin" data-action="desactivarPin" style="display:none;padding:11px 16px;background:none;border:0.5px solid rgba(224,112,112,0.4);color:var(--danger);border-radius:var(--radius);font-size:13px;cursor:pointer;">✕ Desactivar</button>
           </div>
         </div>
 
@@ -939,7 +939,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
         <div class="card" style="padding:20px;">
           <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">🎓 Tutorial</div>
           <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">¿Querés volver a ver el recorrido por todas las secciones de la app?</div>
-          <button class="btn-outline" onclick="reiniciarTour()" style="max-width:220px;">↻ Ver el recorrido de nuevo</button>
+          <button class="btn-outline" data-action="reiniciarTour" style="max-width:220px;">↻ Ver el recorrido de nuevo</button>
         </div>
 
         <!-- BACKUP -->
@@ -948,8 +948,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
           <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">Guardá una copia de seguridad de todas tus ventas, stock y caja. Si borrás el caché del navegador, <strong style="color:var(--warn);">perdés todo</strong> sin backup.</div>
           <div style="font-size:11px;color:var(--text3);margin-bottom:14px;">Último backup: <span id="ajustes-ultimo-backup">calculando...</span></div>
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
-            <button class="btn-primary" onclick="backupData()" style="max-width:200px;">💾 Descargar backup</button>
-            <button class="btn-outline" onclick="backupPorWhatsApp()" style="max-width:200px;margin-top:0;">📲 Compartir backup</button>
+            <button class="btn-primary" data-action="backupData" style="max-width:200px;">💾 Descargar backup</button>
+            <button class="btn-outline" data-action="backupPorWhatsApp" style="max-width:200px;margin-top:0;">📲 Compartir backup</button>
           </div>
 
           <div style="border-top:0.5px solid var(--border);padding-top:14px;margin-top:4px;">
@@ -957,7 +957,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
             <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">Guardá tu email para que el botón "Backup por email" lo complete automáticamente.</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <input type="email" id="cfg-backup-email" placeholder="tu@email.com" style="flex:1;min-width:160px;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;">
-              <button class="btn-outline" onclick="guardarEmailBackup()" style="margin-top:0;">Guardar</button>
+              <button class="btn-outline" data-action="guardarEmailBackup" style="margin-top:0;">Guardar</button>
             </div>
           </div>
 
@@ -972,7 +972,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
                 <option value="15">Cada 15 días</option>
                 <option value="30">Cada 30 días</option>
               </select>
-              <button class="btn-outline" onclick="guardarAutoBackup()" style="margin-top:0;">Guardar</button>
+              <button class="btn-outline" data-action="guardarAutoBackup" style="margin-top:0;">Guardar</button>
             </div>
           </div>
         </div>
@@ -1022,7 +1022,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
             <input type="text" id="cfg-cbu" placeholder="0000000000000000000000" style="width:100%;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;"></div>
             <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">Alias bancario</label>
             <input type="text" id="cfg-alias-banco" placeholder="tu.alias.banco" style="width:100%;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;"></div>
-            <button class="btn-primary" onclick="guardarConfigPago()" style="max-width:220px;margin-top:4px;">💾 Guardar configuración</button>
+            <button class="btn-primary" data-action="guardarConfigPago" style="max-width:220px;margin-top:4px;">💾 Guardar configuración</button>
           </div>
         </div>
 
@@ -1031,7 +1031,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
           <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">👥 Perfiles</div>
           <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">Cada perfil tiene sus propias ventas, stock y caja. Útil para múltiples vendedores en el mismo dispositivo.</div>
           <div id="ajustes-perfiles-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-          <button class="btn-primary" onclick="abrirCrearPerfil()" style="max-width:220px;">+ Nuevo perfil</button>
+          <button class="btn-primary" data-action="abrirCrearPerfil" style="max-width:220px;">+ Nuevo perfil</button>
         </div>
 
         <!-- OPTIMIZAR FOTOS -->
@@ -1040,8 +1040,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
           <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Las fotos guardadas antes de esta versión pueden estar ocupando mucho espacio. Optimizarlas las comprime sin perder calidad visible.</div>
           <div id="opt-fotos-info" style="font-size:12px;color:var(--text2);margin-bottom:12px;padding:10px 12px;background:var(--bg3);border-radius:var(--radius-sm);display:none;"></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button onclick="analizarFotos()" style="padding:9px 16px;background:var(--card2);border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;">🔍 Analizar espacio</button>
-            <button onclick="optimizarTodasLasFotos()" id="btn-opt-fotos" style="padding:9px 16px;background:rgba(251,191,36,0.1);border:0.5px solid rgba(251,191,36,0.35);color:var(--warn);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;display:none;">⚡ Optimizar todas</button>
+            <button data-action="analizarFotos" style="padding:9px 16px;background:var(--card2);border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;">🔍 Analizar espacio</button>
+            <button data-action="optimizarTodasLasFotos" id="btn-opt-fotos" style="padding:9px 16px;background:rgba(251,191,36,0.1);border:0.5px solid rgba(251,191,36,0.35);color:var(--warn);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;display:none;">⚡ Optimizar todas</button>
           </div>
         </div>
 
@@ -1049,21 +1049,21 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
         <div class="card" style="padding:20px;border-color:rgba(224,112,112,0.25);">
           <div style="font-size:13px;font-weight:600;color:var(--danger);margin-bottom:4px;">⚠ Zona peligrosa</div>
           <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">Borrá todos los datos de la app. Esta acción <strong style="color:var(--danger);">no se puede deshacer</strong>.</div>
-          <button onclick="resetApp()" style="background:rgba(224,112,112,0.1);border:0.5px solid rgba(224,112,112,0.4);color:var(--danger);border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;cursor:pointer;">🗑 Borrar todos los datos</button>
+          <button data-action="resetApp" style="background:rgba(224,112,112,0.1);border:0.5px solid rgba(224,112,112,0.4);color:var(--danger);border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;cursor:pointer;">🗑 Borrar todos los datos</button>
         </div>
 
       </div>
     </div>
 
     <div id="tab-importar" class="section">
-      <div class="import-zone" id="import-zone" onclick="document.getElementById('file-import').click()">
+      <div class="import-zone" id="import-zone" data-action="triggerFileImport">
         <div class="import-zone-icon">📂</div><h3>Subir Excel Parfum Track</h3>
         <p>Tocá para elegir tu archivo<br>o arrastrálo acá</p><small>Formatos: .xlsx · .xls</small>
       </div>
       <input type="file" id="file-import" accept=".xlsx,.xls" style="display:none" onchange="handleImportFile(event)">
       <input type="file" id="file-restore" accept=".json" style="display:none" onchange="restoreBackup(event)">
       <div class="import-result" id="import-result"><h4>📋 Vista previa</h4><div id="import-stats"></div><div class="import-preview-list" id="import-preview"></div><div class="import-errors" id="import-errors"></div></div>
-      <button class="btn-import-confirm" id="btn-import-confirm" onclick="confirmImport()">✓ Confirmar e importar</button>
+      <button class="btn-import-confirm" id="btn-import-confirm" data-action="confirmImport">✓ Confirmar e importar</button>
       <div class="formato-info">
         <h4>📋 Formato esperado</h4>
         <p>Cada hoja con el nombre del mes:<br><strong style="color:var(--gold)">MARZO, ABRIL, MAYO, JUNIO...</strong></p>
@@ -1072,8 +1072,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       <div style="margin-top:13px">
         <div style="font-size:12px;color:var(--gold2);font-weight:500;margin-bottom:9px">💾 Backup de datos</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn-outline" style="margin-top:0" onclick="backupData()">⬇ Descargar backup</button>
-          <button class="btn-outline" style="margin-top:0" onclick="document.getElementById('file-restore').click()">⬆ Restaurar backup</button>
+          <button class="btn-outline" style="margin-top:0" data-action="backupData">⬇ Descargar backup</button>
+          <button class="btn-outline" style="margin-top:0" data-action="triggerFileRestore">⬆ Restaurar backup</button>
         </div>
         <p style="font-size:11px;color:var(--text3);margin-top:8px">El backup guarda todas tus ventas, stock y gastos en un archivo JSON. Restaurálo si cambiás de teléfono.</p>
       </div>
@@ -1109,7 +1109,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       </div>
       <div class="form-group"><label class="form-label">Cliente</label><input type="text" id="f-cliente" maxlength="80" placeholder="Nombre del cliente" list="sug-cliente"><datalist id="sug-cliente"></datalist></div>
       <div class="form-group"><label class="form-label">Nota interna</label><textarea id="f-nota" maxlength="400" rows="3" placeholder="Ej: paga a fin de mes, por encargo..." style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical;min-height:70px"></textarea></div>
-      <button class="btn-primary" id="btn-guardar-venta" onclick="addVenta()">Guardar venta</button>
+      <button class="btn-primary" id="btn-guardar-venta" data-action="addVenta">Guardar venta</button>
     </div>
 
   </div>
@@ -1117,7 +1117,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
 
 <div class="modal-overlay" id="del-stock-modal">
   <div class="modal"><h3>Eliminar perfume</h3><p id="del-stock-msg">¿Eliminar este perfume del stock?</p>
-  <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('del-stock-modal')">Cancelar</button><button class="btn-confirm-del" id="del-stock-btn">Eliminar</button></div></div>
+  <div class="modal-btns"><button class="btn-cancel" data-action="closeModal" data-arg="del-stock-modal">Cancelar</button><button class="btn-confirm-del" id="del-stock-btn">Eliminar</button></div></div>
 </div>
 
 
@@ -1131,12 +1131,12 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       <div style="font-size:12px;color:var(--text2);margin-top:3px">ventas · ganancia: <span id="del-mes-gan" style="color:var(--danger);font-weight:600"></span></div>
     </div>
     <p style="font-size:12px;color:var(--text3);margin-bottom:14px">Esta acción elimina todas las ventas del mes. Podés deshacerla en los primeros 8 segundos.</p>
-    <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-del-mes')">Cancelar</button><button class="btn-confirm-del" id="btn-del-mes-confirm" onclick="confirmarEliminarMes()" disabled style="opacity:.5;cursor:not-allowed">Sí, eliminar (<span id="del-mes-countdown">3</span>)</button></div>
+    <div class="modal-btns"><button class="btn-cancel" data-action="closeModal" data-arg="modal-del-mes">Cancelar</button><button class="btn-confirm-del" id="btn-del-mes-confirm" data-action="confirmarEliminarMes" disabled style="opacity:.5;cursor:not-allowed">Sí, eliminar (<span id="del-mes-countdown">3</span>)</button></div>
   </div>
 </div>
 <div class="modal-overlay" id="del-modal">
   <div class="modal"><h3>Eliminar venta</h3><p id="del-modal-msg">¿Eliminar esta venta?</p>
-  <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('del-modal')">Cancelar</button><button class="btn-confirm-del" id="del-confirm-btn">Eliminar</button></div></div>
+  <div class="modal-btns"><button class="btn-cancel" data-action="closeModal" data-arg="del-modal">Cancelar</button><button class="btn-confirm-del" id="del-confirm-btn">Eliminar</button></div></div>
 </div>
 
 <!-- MODAL EDITAR VENTA -->
@@ -1151,18 +1151,18 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
     <div class="form-group"><label class="form-label">Cliente</label><input type="text" id="ev-cliente" maxlength="80" placeholder="Nombre del cliente" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
     <div class="form-group"><label class="form-label">Nota interna</label><textarea id="ev-nota" maxlength="400" rows="3" placeholder="Opcional" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical;min-height:70px"></textarea></div>
     <div id="ev-preview" style="font-size:12px;color:var(--text3);margin-bottom:12px;min-height:18px"></div>
-    <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-editar-venta')">Cancelar</button><button class="btn-confirm-ok" onclick="guardarEditarVenta()">Guardar cambios</button></div>
+    <div class="modal-btns"><button class="btn-cancel" data-action="closeModal" data-arg="modal-editar-venta">Cancelar</button><button class="btn-confirm-ok" data-action="guardarEditarVenta">Guardar cambios</button></div>
   </div>
 </div>
 <div class="modal-overlay" id="modal-cuota">
   <div class="modal"><h3 id="modal-cuota-title">Registrar pago</h3><p id="modal-cuota-desc"></p>
   <div class="form-group"><label class="form-label">Monto recibido</label><input type="number" id="modal-cuota-monto" placeholder="0" inputmode="numeric" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
-  <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-cuota')">Cancelar</button><button class="btn-confirm-ok" id="modal-cuota-ok">Registrar pago</button></div></div>
+  <div class="modal-btns"><button class="btn-cancel" data-action="closeModal" data-arg="modal-cuota">Cancelar</button><button class="btn-confirm-ok" id="modal-cuota-ok">Registrar pago</button></div></div>
 </div>
 <div class="modal-overlay" id="modal-meta">
   <div class="modal"><h3>🎯 Meta mensual</h3><p>Definí cuánto querés ganar este mes para ver tu progreso.</p>
   <div class="form-group"><label class="form-label">Meta de ganancia ($)</label><input type="number" id="meta-input" placeholder="0" min="0" inputmode="numeric" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
-  <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-meta')">Cancelar</button><button class="btn-confirm-ok" onclick="guardarMeta()">Guardar meta</button></div></div>
+  <div class="modal-btns"><button class="btn-cancel" data-action="closeModal" data-arg="modal-meta">Cancelar</button><button class="btn-confirm-ok" data-action="guardarMeta">Guardar meta</button></div></div>
 </div>
 <div class="modal-overlay" id="modal-editar">
   <div class="modal"><h3>Editar perfume</h3>
@@ -1170,14 +1170,14 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       <div class="form-label" style="margin-bottom:7px">Foto del perfume</div>
       <div id="edit-foto-preview" style="width:100%;height:150px;border-radius:var(--radius);background:var(--bg3);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:48px;overflow:hidden;margin-bottom:9px">🍶</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px">
-        <button onclick="document.getElementById('edit-foto-input').click()" style="padding:9px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:12px;cursor:pointer">📷 Galería</button>
-        <button onclick="buscarEnPinterest()" style="padding:9px;background:rgba(230,0,35,0.1);border:0.5px solid rgba(230,0,35,0.4);color:#ff6b7a;border-radius:var(--radius-sm);font-size:12px;cursor:pointer">Pinterest 🔍</button>
+        <button data-action="triggerEditFotoInput" style="padding:9px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:12px;cursor:pointer">📷 Galería</button>
+        <button data-action="buscarEnPinterest" style="padding:9px;background:rgba(230,0,35,0.1);border:0.5px solid rgba(230,0,35,0.4);color:#ff6b7a;border-radius:var(--radius-sm);font-size:12px;cursor:pointer">Pinterest 🔍</button>
       </div>
       <div style="position:relative">
         <input type="url" id="edit-foto-url" placeholder="O pegá una URL de imagen aquí..." style="width:100%;padding:8px 65px 8px 11px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif" oninput="previewFotoUrl()">
-        <button onclick="previewFotoUrl(true)" style="position:absolute;right:5px;top:50%;transform:translateY(-50%);padding:3px 9px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:5px;font-size:11px;cursor:pointer">Cargar</button>
+        <button data-action="previewFotoUrlTrue" style="position:absolute;right:5px;top:50%;transform:translateY(-50%);padding:3px 9px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:5px;font-size:11px;cursor:pointer">Cargar</button>
       </div>
-      <button id="edit-foto-quitar" onclick="quitarFotoEdit()" style="width:100%;padding:6px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;margin-top:7px;display:none">× Quitar foto</button>
+      <button id="edit-foto-quitar" data-action="quitarFotoEdit" style="width:100%;padding:6px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;margin-top:7px;display:none">× Quitar foto</button>
       <input type="file" id="edit-foto-input" accept="image/*" style="display:none" onchange="previewFotoEdit(event)">
     </div>
     <div class="form-group"><label class="form-label">Nombre</label><input type="text" id="edit-nombre" placeholder="Nombre del perfume"></div>
@@ -1192,7 +1192,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
     </div>
     <div class="form-group"><label class="form-label">Stock mínimo (alerta)</label><input type="number" id="edit-stock-min" placeholder="3" min="0" inputmode="numeric"></div>
     <div class="form-group"><label class="form-label">Notas</label><input type="text" id="edit-notas" placeholder="Observaciones opcionales"></div>
-    <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-editar')">Cancelar</button><button class="btn-confirm-ok" onclick="guardarEdicionPerfume()">Guardar cambios</button></div>
+    <div class="modal-btns"><button class="btn-cancel" data-action="closeModal" data-arg="modal-editar">Cancelar</button><button class="btn-confirm-ok" data-action="guardarEdicionPerfume">Guardar cambios</button></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -1203,7 +1203,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
   <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--gold2);letter-spacing:2px;margin-bottom:4px;"><svg viewBox="0 0 100 100" width="22" height="22" style="vertical-align:middle;display:inline-block;"><defs><linearGradient id="dpin" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f5dfa0"/><stop offset="50%" stop-color="#e8c97e"/><stop offset="100%" stop-color="#c9a84c"/></linearGradient></defs><path d="M50 8 L74 52 a26 26 0 1 1 -48 0 Z" fill="url(#dpin)"/><ellipse cx="40" cy="62" rx="8" ry="12" fill="#ffffff" opacity="0.4"/></svg> Parfum Track</div>
   <div style="font-size:11px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:32px;">Seleccioná tu perfil</div>
   <div id="profile-list" style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"></div>
-  <button onclick="abrirCrearPerfil()" style="width:100%;max-width:340px;padding:13px;background:var(--gold-dim);border:1px solid var(--gold);border-radius:var(--radius);color:var(--gold2);font-size:14px;font-weight:500;cursor:pointer;letter-spacing:.5px;">+ Nuevo perfil</button>
+  <button data-action="abrirCrearPerfil" style="width:100%;max-width:340px;padding:13px;background:var(--gold-dim);border:1px solid var(--gold);border-radius:var(--radius);color:var(--gold2);font-size:14px;font-weight:500;cursor:pointer;letter-spacing:.5px;">+ Nuevo perfil</button>
 </div>
 
 <!-- ═══════ MODAL CREAR/EDITAR PERFIL ═══════ -->
@@ -1222,8 +1222,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       <input type="text" id="perfil-emoji-input" value="👤" maxlength="2" style="width:70px;padding:8px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:20px;text-align:center;margin-top:8px;">
     </div>
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal('modal-perfil')">Cancelar</button>
-      <button class="btn-confirm-ok" onclick="guardarPerfil()">Guardar</button>
+      <button class="btn-cancel" data-action="closeModal" data-arg="modal-perfil">Cancelar</button>
+      <button class="btn-confirm-ok" data-action="guardarPerfil">Guardar</button>
     </div>
   </div>
 </div>
@@ -1235,20 +1235,20 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
     <div id="modal-pago-info" style="background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.7;"></div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Elegí cómo cobrás:</p>
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <button onclick="cobrarMP()" class="btn-pago-method" style="background:rgba(0,158,95,0.12);border:1px solid rgba(0,158,95,0.35);color:#00bb6e;">
+      <button data-action="cobrarMP" class="btn-pago-method" style="background:rgba(0,158,95,0.12);border:1px solid rgba(0,158,95,0.35);color:#00bb6e;">
         <span style="font-size:20px;">💚</span>
         <div><div style="font-weight:500;font-size:14px;">Mercado Pago</div><div style="font-size:11px;opacity:.7;">Abre link de pago con el monto</div></div>
       </button>
-      <button onclick="cobrarTransferencia()" class="btn-pago-method" style="background:rgba(112,168,224,0.12);border:1px solid rgba(112,168,224,0.35);color:var(--info);">
+      <button data-action="cobrarTransferencia" class="btn-pago-method" style="background:rgba(112,168,224,0.12);border:1px solid rgba(112,168,224,0.35);color:var(--info);">
         <span style="font-size:20px;">🏦</span>
         <div><div style="font-weight:500;font-size:14px;">Transferencia bancaria</div><div style="font-size:11px;opacity:.7;">Copia datos + monto al portapapeles</div></div>
       </button>
-      <button onclick="cobrarEfectivo()" class="btn-pago-method" style="background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.35);color:var(--gold2);">
+      <button data-action="cobrarEfectivo" class="btn-pago-method" style="background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.35);color:var(--gold2);">
         <span style="font-size:20px;">💵</span>
         <div><div style="font-weight:500;font-size:14px;">Efectivo</div><div style="font-size:11px;opacity:.7;">Registrar como cobrado</div></div>
       </button>
     </div>
-    <button class="btn-cancel" onclick="closeModal('modal-pago')" style="margin-top:14px;width:100%;">Cancelar</button>
+    <button class="btn-cancel" data-action="closeModal" data-arg="modal-pago" style="margin-top:14px;width:100%;">Cancelar</button>
   </div>
 </div>
 
@@ -1291,16 +1291,6 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
 .pkey-sm{width:70px;height:70px;font-size:22px;}
 </style>
 
-<!-- ═══════ LICENSE MODAL ═══════ -->
-<div id="license-modal" class="modal-overlay" style="z-index:10000;">
-  <div class="modal" style="text-align:center;">
-    <div style="font-size:32px;margin-bottom:12px;">⚠️</div>
-    <h3 id="license-title">Licencia</h3>
-    <p id="license-msg" style="margin-bottom:20px;"></p>
-    <button class="btn-primary" onclick="document.getElementById('license-modal').classList.remove('open')" style="max-width:200px;margin:0 auto;">Entendido</button>
-  </div>
-</div>
-
 <!-- ═══════ BACKUP REMINDER MODAL ═══════ -->
 <div id="backup-modal" class="modal-overlay">
   <div class="modal" style="text-align:center;">
@@ -1308,8 +1298,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
     <h3>¡Hacé un backup!</h3>
     <p style="margin-bottom:8px;">No hiciste un backup en más de 7 días. Si borrás el caché del navegador <strong>perdés todos tus datos</strong>.</p>
     <p style="font-size:13px;color:var(--text3);margin-bottom:20px;">Último backup: <span id="ultimo-backup-fecha">nunca</span></p>
-    <button class="btn-primary" onclick="backupDataYClose()" style="margin-bottom:10px;">💾 Descargar backup ahora</button>
-    <button class="btn-outline" onclick="snoozeBackup()" style="margin-top:0;font-size:13px;">Recordarme mañana</button>
+    <button class="btn-primary" data-action="backupDataYClose" style="margin-bottom:10px;">💾 Descargar backup ahora</button>
+    <button class="btn-outline" data-action="snoozeBackup" style="margin-top:0;font-size:13px;">Recordarme mañana</button>
   </div>
 </div>
 
@@ -1320,9 +1310,9 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
     <p id="pdf-modal-desc" style="margin-bottom:16px;font-size:13px;"></p>
     <div id="pdf-preview" style="background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;font-size:12px;line-height:1.8;color:var(--text2);margin-bottom:16px;font-family:'DM Mono',monospace;white-space:pre-wrap;"></div>
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal('pdf-modal')">Cancelar</button>
-      <button class="btn-confirm-ok" onclick="generarPDF()" id="btn-gen-pdf">📥 Descargar PDF</button>
-      <button class="btn-wa" onclick="enviarReciboWA()" id="btn-wa-recibo">📲 WA</button>
+      <button class="btn-cancel" data-action="closeModal" data-arg="pdf-modal">Cancelar</button>
+      <button class="btn-confirm-ok" data-action="generarPDF" id="btn-gen-pdf">📥 Descargar PDF</button>
+      <button class="btn-wa" data-action="enviarReciboWA" id="btn-wa-recibo">📲 WA</button>
     </div>
   </div>
 </div>
@@ -1337,12 +1327,12 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
 <div id="backup-proactive-banner">
   <div class="bpb-top">
     <div class="bpb-title" id="bpb-title">💾 ¿Cuándo fue tu último backup?</div>
-    <button class="bpb-close" onclick="cerrarBackupBanner()">✕</button>
+    <button class="bpb-close" data-action="cerrarBackupBanner">✕</button>
   </div>
   <div class="bpb-desc" id="bpb-desc">Guardá tus datos para no perderlos si cambiás de dispositivo o borrás el caché.</div>
   <div class="bpb-btns">
-    <button class="bpb-btn-main" onclick="backupDesdeBanner()">💾 Descargar backup</button>
-    <button class="bpb-btn-snooze" onclick="snoozeBackupBanner()">Después</button>
+    <button class="bpb-btn-main" data-action="backupDesdeBanner">💾 Descargar backup</button>
+    <button class="bpb-btn-snooze" data-action="snoozeBackupBanner">Después</button>
   </div>
 </div>
 
@@ -1359,17 +1349,17 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
         <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--gold2);">Vista previa del catálogo</div>
         <div style="font-size:11px;color:var(--text3);margin-top:2px;" id="cat-preview-count"></div>
       </div>
-      <button onclick="closeModal('modal-catalogo-preview')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;padding:4px;">✕</button>
+      <button data-action="closeModal" data-arg="modal-catalogo-preview" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;padding:4px;">✕</button>
     </div>
 
     <!-- Navegación de páginas (visible solo si hay más de 12) -->
     <div id="cat-paginacion" style="display:none;padding:10px 16px;background:var(--bg2);border-bottom:0.5px solid var(--border);display:none;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;">
-      <button onclick="catCambiarPagina(-1)" id="cat-btn-prev" style="padding:7px 14px;background:var(--card);border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;">← Anterior</button>
+      <button data-action="catCambiarPaginaPrev" id="cat-btn-prev" style="padding:7px 14px;background:var(--card);border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;">← Anterior</button>
       <div style="text-align:center;">
         <div id="cat-pagina-label" style="font-size:13px;font-weight:600;color:var(--gold2);">Foto 1 de 2</div>
         <div id="cat-pagina-sub" style="font-size:10px;color:var(--text3);">12 perfumes por foto</div>
       </div>
-      <button onclick="catCambiarPagina(1)" id="cat-btn-next" style="padding:7px 14px;background:var(--card);border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;">Siguiente →</button>
+      <button data-action="catCambiarPaginaNext" id="cat-btn-next" style="padding:7px 14px;background:var(--card);border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;">Siguiente →</button>
     </div>
 
     <!-- Zona scrollable: canvas + personalización -->
@@ -1400,9 +1390,9 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;">
             <label style="font-size:11px;color:var(--text3);">Tema:</label>
-            <button onclick="setCatTema('dark')" id="tema-dark" class="cat-tema-btn cat-tema-active" style="">🌙 Oscuro</button>
-            <button onclick="setCatTema('light')" id="tema-light" class="cat-tema-btn">☀️ Claro</button>
-            <button onclick="setCatTema('gold')" id="tema-gold" class="cat-tema-btn">✨ Dorado</button>
+            <button data-action="setCatTema" data-arg="dark" id="tema-dark" class="cat-tema-btn cat-tema-active" style="">🌙 Oscuro</button>
+            <button data-action="setCatTema" data-arg="light" id="tema-light" class="cat-tema-btn">☀️ Claro</button>
+            <button data-action="setCatTema" data-arg="gold" id="tema-gold" class="cat-tema-btn">✨ Dorado</button>
           </div>
         </div>
       </div>
@@ -1419,30 +1409,30 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       z-index:10;
     ">
       <!-- Botón principal: Compartir todas (solo si hay varias páginas) -->
-      <button onclick="compartirTodasLasFotos()" id="btn-compartir-todas" style="display:none;width:100%;padding:14px 8px;background:linear-gradient(135deg,rgba(37,211,102,0.22),rgba(37,211,102,0.08));border:1px solid rgba(37,211,102,0.55);color:#25d366;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.3px;">
+      <button data-action="compartirTodasLasFotos" id="btn-compartir-todas" style="display:none;width:100%;padding:14px 8px;background:linear-gradient(135deg,rgba(37,211,102,0.22),rgba(37,211,102,0.08));border:1px solid rgba(37,211,102,0.55);color:#25d366;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.3px;">
         📤 Compartir todas las fotos de una vez
       </button>
       <!-- Fila 1: WhatsApp esta foto + PDF -->
       <div style="display:flex;gap:8px;">
-        <button onclick="compartirImagenCatalogo()" style="flex:1;padding:12px 8px;background:linear-gradient(135deg,rgba(37,211,102,0.12),rgba(37,211,102,0.04));border:1px solid rgba(37,211,102,0.35);color:#25d366;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;" id="btn-wa-esta">
+        <button data-action="compartirImagenCatalogo" style="flex:1;padding:12px 8px;background:linear-gradient(135deg,rgba(37,211,102,0.12),rgba(37,211,102,0.04));border:1px solid rgba(37,211,102,0.35);color:#25d366;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;" id="btn-wa-esta">
           💬 Esta foto
         </button>
-        <button onclick="descargarPDFCatalogo()" id="btn-pdf-catalogo" style="flex:1;padding:12px 8px;background:linear-gradient(135deg,rgba(224,112,112,0.18),rgba(224,112,112,0.06));border:1px solid rgba(224,112,112,0.45);color:#e07070;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        <button data-action="descargarPDFCatalogo" id="btn-pdf-catalogo" style="flex:1;padding:12px 8px;background:linear-gradient(135deg,rgba(224,112,112,0.18),rgba(224,112,112,0.06));border:1px solid rgba(224,112,112,0.45);color:#e07070;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">
           📄 PDF
         </button>
       </div>
       <!-- Fila 2: Imagen + Copiar -->
       <div style="display:flex;gap:8px;">
-        <button onclick="descargarImagenCatalogo()" style="flex:1;padding:10px 8px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        <button data-action="descargarImagenCatalogo" style="flex:1;padding:10px 8px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">
           ⬇ Esta foto
         </button>
-        <button onclick="descargarTodasLasFotos()" id="btn-descargar-todas" style="flex:1;padding:10px 8px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;">
+        <button data-action="descargarTodasLasFotos" id="btn-descargar-todas" style="flex:1;padding:10px 8px;background:var(--gold-dim);border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;">
           ⬇ Todas las fotos
         </button>
-        <button onclick="copiarImagenCatalogo()" id="btn-copiar-img" style="flex:1;padding:10px 8px;background:var(--card2);border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        <button data-action="copiarImagenCatalogo" id="btn-copiar-img" style="flex:1;padding:10px 8px;background:var(--card2);border:0.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">
           📋 Copiar
         </button>
-        <button onclick="closeModal('modal-catalogo-preview')" style="padding:10px 12px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0;">
+        <button data-action="closeModal" data-arg="modal-catalogo-preview" style="padding:10px 12px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0;">
           ✕
         </button>
       </div>
@@ -1523,7 +1513,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       <button class="pkey pkey-sm pkey-ok" data-action="ok">✓</button>
     </div>
 
-    <button onclick="closeModal('modal-pin-setup')" style="width:100%;padding:10px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Cancelar</button>
+    <button data-action="closeModal" data-arg="modal-pin-setup" style="width:100%;padding:10px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Cancelar</button>
   </div>
 </div>
 
@@ -1551,13 +1541,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       <div id="activation-error" style="font-size:12px;color:var(--danger);min-height:18px;margin-top:6px;"></div>
     </div>
     <button
-      onclick="activarLicencia()"
+      data-action="activarLicencia"
       style="width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.5px;margin-bottom:10px;transition:opacity .15s;"
       onmouseover="this.style.opacity='.9'"
       onmouseout="this.style.opacity='1'"
     >Activar</button>
     <button
-      onclick="closeModal('modal-activacion')"
+      data-action="closeModal" data-arg="modal-activacion"
       style="width:100%;padding:10px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:10px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;"
     >Ahora no</button>
     <div style="margin-top:16px;padding-top:14px;border-top:0.5px solid var(--border);font-size:11px;color:var(--text3);line-height:1.6;">
@@ -1578,7 +1568,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       Cargamos ventas y stock de ejemplo para que puedas explorar la app. Podés borrarlos desde <strong style="color:var(--text2)">Ajustes → Zona peligrosa</strong>.
     </div>
     <button
-      onclick="closeModal('modal-trial-bienvenida')"
+      data-action="closeModal" data-arg="modal-trial-bienvenida"
       style="width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.3px;"
     >¡Empezar a explorar!</button>
   </div>
