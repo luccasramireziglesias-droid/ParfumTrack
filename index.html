@@ -2430,7 +2430,7 @@ async function activarLicencia() {
 
   // 1. Intentar validación serverless (más segura)
   try {
-    const resp = await fetch('/.netlify/functions/validate-license', {
+    const resp = await fetch('/validate-license', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
@@ -5583,7 +5583,7 @@ async function descargarPDFCatalogo() {
       const subscriptionId = OneSignal.User.PushSubscription.id;
       if (!subscriptionId) return;
 
-      await fetch('/.netlify/functions/send-notification', {
+      await fetch('/send-notification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
