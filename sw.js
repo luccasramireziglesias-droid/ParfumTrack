@@ -79,19 +79,10 @@ self.addEventListener('fetch', event => {
   // app.js: Cache First → el navegador sirve desde caché, se actualiza en background.
   // En el próximo deploy, el SW v-bump limpia el caché viejo y fuerza la descarga.
   event.respondWith(
-    caches.match(event.request).then(cached => {
+    caches.match(event.request, {ignoreSearch: true}).then(cached => {
       const fetchPromise = fetch(event.request).then(response => {
         if (response.ok) {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      });
-      return cached || fetchPromise;
-    })
-  );
-});
-response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;

@@ -219,7 +219,7 @@ function renderComprasPeriodo(){
   +compras.map(c=>`<div class="venta-card"><div class="vc-header"><div class="vc-name" style="font-size:14px">${c.desc.replace('📦 Compra stock: ','')}</div><div class="vc-meta"><div class="vc-date">📅 ${c.fecha}</div></div></div><div class="vc-body"><div class="vc-row"><span>Invertido</span><span style="color:var(--danger)">${fmt(c.monto)}</span></div></div></div>`).join('');
 }
 
-function showTab(t){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById('tab-'+t).classList.add('active');if(t==='ventas'){renderMesFilter('mes-filter-ventas','ventas');renderVentas();}if(t==='cuotas')renderCuotasPendientes();if(t==='gastos'){renderMesFilter('mes-filter-gastos','gastos');renderGastos();initFecha('g-fecha');fillSuggestionsGasto();}if(t==='ganancias'){renderMesFilter('mes-filter-gan','ganancias');renderGanancias();fillComparadores();renderMetaBar();}if(t==='caja'){renderMesFilter('mes-filter-caja','caja');renderCaja();initFecha('caja-fecha');}if(t==='catalogo')renderCatalogo();if(t==='stock')renderStock();if(t==='add')fillSuggestions();if(t==='stock')fillStockSuggestions();if(t==='ajustes')renderAjustes();updateStats();}
+function showTab(t){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById('tab-'+t).classList.add('active');if(t==='ventas'){renderMesFilter('mes-filter-ventas','ventas');renderVentas();}if(t==='cuotas')renderCuotasPendientes();if(t==='gastos'){renderMesFilter('mes-filter-gastos','gastos');renderGastos();initFecha('g-fecha');fillSuggestionsGasto();}if(t==='ganancias'){renderMesFilter('mes-filter-gan','ganancias');renderGanancias();fillComparadores();renderMetaBar();}if(t==='caja'){renderMesFilter('mes-filter-caja','caja');renderCaja();initFecha('caja-fecha');}if(t==='catalogo')renderCatalogo();if(t==='stock'){renderStock();fillStockSuggestions();}if(t==='add')fillSuggestions();if(t==='ajustes')renderAjustes();updateStats();}
 function renderMesFilter(cId,tab){const meses=tab==='gastos'?mesesDeGastos():tab==='caja'?mesesDeCaja():mesesDeVentas();const active=tab==='ventas'?activeMesVentas:tab==='gastos'?activeMesGastos:tab==='caja'?activeMesCaja:activeMesGan;const el=document.getElementById(cId);if(!meses.length){el.innerHTML='';return;}el.innerHTML=[`<button class="mes-chip ${active==='todos'?'active':''}" onclick="setMes('todos','${tab}')">Todos</button>`,...meses.map(m=>`<button class="mes-chip ${active===m?'active':''}" onclick="setMes('${m}','${tab}')">${mesLabel(m)}</button>`)].join('');}
 function setMes(mes,tab){if(tab==='ventas'){activeMesVentas=mes;renderMesFilter('mes-filter-ventas','ventas');renderVentas();}else if(tab==='gastos'){activeMesGastos=mes;renderMesFilter('mes-filter-gastos','gastos');renderGastos();}else if(tab==='caja'){activeMesCaja=mes;renderMesFilter('mes-filter-caja','caja');renderCaja();}else{activeMesGan=mes;renderMesFilter('mes-filter-gan','ganancias');renderGanancias();renderMetaBar();}}
 function setFiltroEstado(estado){filtroEstado=estado;['todas','hoy','pendiente','completada'].forEach(e=>document.getElementById('fchip-'+e)?.classList.toggle('active',e===estado));renderVentas();}
@@ -959,7 +959,7 @@ function mostrarBannerTrialVencido(restantes) {
     document.body.appendChild(banner);
     document.body.classList.add('has-top-banner');
   }
-  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9000;padding:8px 14px;text-align:center;font-size:12px;cursor:pointer;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;';
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9000;padding:max(8px, env(safe-area-inset-top)) 14px 8px;text-align:center;font-size:12px;cursor:pointer;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;';
   banner.style.background = 'linear-gradient(90deg,rgba(224,112,112,0.18),rgba(224,112,112,0.06))';
   banner.style.borderBottom = '1px solid var(--danger)';
   banner.style.color = '#e07070';
@@ -986,7 +986,7 @@ function mostrarBannerTrial(label) {
   const col = urgente ? '#e07070' : 'var(--gold2)';
   const bg  = urgente ? 'linear-gradient(90deg,rgba(224,112,112,0.15),rgba(224,112,112,0.04))' : 'linear-gradient(90deg,var(--gold-dim),rgba(201,168,76,0.04))';
   const bdr = urgente ? 'var(--danger)' : 'var(--gold)';
-  banner.style.cssText = `position:fixed;top:0;left:0;right:0;z-index:9000;background:${bg};border-bottom:1px solid ${bdr};padding:7px 14px;text-align:center;font-size:12px;color:${col};backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;`;
+  banner.style.cssText = `position:fixed;top:0;left:0;right:0;z-index:9000;background:${bg};border-bottom:1px solid ${bdr};padding:max(7px, env(safe-area-inset-top)) 14px 7px;text-align:center;font-size:12px;color:${col};backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;`;
   banner.innerHTML = `${urgente ? '⚠️' : '⏳'} Prueba gratuita: quedan <strong>${label}</strong> &nbsp;·&nbsp; <span onclick="abrirModalActivacion()" style="text-decoration:underline;cursor:pointer;">Activar licencia →</span>`;
 }
 
@@ -1019,11 +1019,11 @@ function cargarDatosDemo() {
   ];
 
   ventas = [
-    {id:1, perfume:'Haramain Gold', precioVenta:3900, precioCompra:3100, ganancia:800, cliente:'María G.', vendedor:'', fecha:fechaRel(2), esCuotas:false, cuotasPagos:[{monto:3900,fecha:fechaRel(2)}], cuotasTotal:1, proveedor:'SCENTA'},
-    {id:2, perfume:'Bharara King', precioVenta:3900, precioCompra:3300, ganancia:600, cliente:'José R.', vendedor:'', fecha:fechaRel(5), esCuotas:true, cuotasPagos:[{monto:1950,fecha:fechaRel(5)}], cuotasTotal:2, proveedor:'ESTEFANI'},
-    {id:3, perfume:'Yara Rosa', precioVenta:2500, precioCompra:1800, ganancia:700, cliente:'Lucía P.', vendedor:'', fecha:fechaRel(8), esCuotas:false, cuotasPagos:[{monto:2500,fecha:fechaRel(8)}], cuotasTotal:1, proveedor:'SCENTA'},
-    {id:4, perfume:'CDN Urban Elixir', precioVenta:2900, precioCompra:2650, ganancia:250, cliente:'Ana M.', vendedor:'', fecha:fechaRel(12), esCuotas:true, cuotasPagos:[{monto:1000,fecha:fechaRel(12)}], cuotasTotal:3, proveedor:'ESTEFANI'},
-    {id:5, perfume:'Haramain Gold', precioVenta:3900, precioCompra:3100, ganancia:800, cliente:'Carla S.', vendedor:'', fecha:fechaRel(15), esCuotas:false, cuotasPagos:[{monto:3900,fecha:fechaRel(15)}], cuotasTotal:1, proveedor:'SCENTA'}
+    {id:Date.now()+1, perfume:'Haramain Gold', precioVenta:3900, precioCompra:3100, ganancia:800, cliente:'María G.', vendedor:'', fecha:fechaRel(2), esCuotas:false, cuotasPagos:[{monto:3900,fecha:fechaRel(2)}], cuotasTotal:1, proveedor:'SCENTA'},
+    {id:Date.now()+2, perfume:'Bharara King', precioVenta:3900, precioCompra:3300, ganancia:600, cliente:'José R.', vendedor:'', fecha:fechaRel(5), esCuotas:true, cuotasPagos:[{monto:1950,fecha:fechaRel(5)}], cuotasTotal:2, proveedor:'ESTEFANI'},
+    {id:Date.now()+3, perfume:'Yara Rosa', precioVenta:2500, precioCompra:1800, ganancia:700, cliente:'Lucía P.', vendedor:'', fecha:fechaRel(8), esCuotas:false, cuotasPagos:[{monto:2500,fecha:fechaRel(8)}], cuotasTotal:1, proveedor:'SCENTA'},
+    {id:Date.now()+4, perfume:'CDN Urban Elixir', precioVenta:2900, precioCompra:2650, ganancia:250, cliente:'Ana M.', vendedor:'', fecha:fechaRel(12), esCuotas:true, cuotasPagos:[{monto:1000,fecha:fechaRel(12)}], cuotasTotal:3, proveedor:'ESTEFANI'},
+    {id:Date.now()+5, perfume:'Haramain Gold', precioVenta:3900, precioCompra:3100, ganancia:800, cliente:'Carla S.', vendedor:'', fecha:fechaRel(15), esCuotas:false, cuotasPagos:[{monto:3900,fecha:fechaRel(15)}], cuotasTotal:1, proveedor:'SCENTA'}
   ];
 
   gastos = [

@@ -10,6 +10,9 @@
 
 const crypto = require('crypto');
 
+const DELAY_ON_INVALID = 300;
+function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, headers: corsHeaders(event) };
@@ -57,6 +60,7 @@ exports.handler = async (event) => {
   }
 
   if (!tokensMatch) {
+    await delay(DELAY_ON_INVALID);
     return { statusCode: 200, headers, body: JSON.stringify({ valid: false, reason: 'invalid_token' }) };
   }
 
@@ -65,6 +69,7 @@ exports.handler = async (event) => {
     .split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
 
   if (!validCodes.includes(normalizedCode)) {
+    await delay(DELAY_ON_INVALID);
     return { statusCode: 200, headers, body: JSON.stringify({ valid: false, reason: 'revoked' }) };
   }
 
