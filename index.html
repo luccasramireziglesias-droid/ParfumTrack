@@ -1771,9 +1771,7 @@ function _renderVentasLote(el) {
     const grid = el.querySelector(`#vmg-${mes}`);
     if (grid) {
       batch.filter(v=>(mesKey(v.fecha)||'Sin fecha')===mes).forEach(v=>{
-        const div = document.createElement('div');
-        div.innerHTML = renderVentaCard(v);
-        grid.appendChild(div.firstChild || div);
+        grid.insertAdjacentHTML('beforeend', renderVentaCard(v));
       });
     }
   });
