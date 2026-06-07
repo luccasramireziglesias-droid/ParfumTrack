@@ -1757,6 +1757,7 @@ function _renderVentasLote(el) {
   const mesesEnLote = [...new Set(batch.map(v => mesKey(v.fecha)||'Sin fecha'))];
   const yaRenderizados = new Set([...el.querySelectorAll('[data-mes]')].map(e=>e.dataset.mes));
   mesesEnLote.forEach(mes => {
+    const mesId = mes.replace(/\//g, '-'); // '06/2026' → '06-2026' (válido en selectores CSS)
     let mesEl = el.querySelector(`[data-mes="${mes}"]`);
     if (!mesEl) {
       const vs = porMes[mes];
@@ -1765,10 +1766,10 @@ function _renderVentasLote(el) {
       const esActual=mes===mesMasReciente;
       const wrapper = document.createElement('div');
       wrapper.setAttribute('data-mes', mes);
-      wrapper.innerHTML = `<div class="mes-sep"><div class="mes-sep-line"></div><div style="display:flex;align-items:center;gap:5px;white-space:nowrap"><div class="mes-sep-label">${mesLabel(mes)}</div>${esActual?`<span style="background:rgba(112,201,160,0.2);color:var(--success);border:0.5px solid rgba(112,201,160,0.4);border-radius:20px;font-size:9px;padding:1px 6px;font-weight:500">ACTUAL</span>`:''}</div><div class="mes-sep-line"></div><button onclick="eliminarMes('${mes}')" style="background:none;border:0.5px solid rgba(224,112,112,0.3);color:var(--danger);border-radius:var(--radius-sm);padding:3px 8px;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">🗑 Mes</button></div><div class="mes-total"><span>${vs.length} venta${vs.length!==1?'s':''} · Gan: <strong style="color:var(--success)">${fmt(totGan)}</strong></span>${totDebe>0?`<span style="color:var(--warn)">Debe: ${fmt(totDebe)}</span>`:''}</div><div class="ventas-mes-grid" id="vmg-${mes}"></div>`;
+      wrapper.innerHTML = `<div class="mes-sep"><div class="mes-sep-line"></div><div style="display:flex;align-items:center;gap:5px;white-space:nowrap"><div class="mes-sep-label">${mesLabel(mes)}</div>${esActual?`<span style="background:rgba(112,201,160,0.2);color:var(--success);border:0.5px solid rgba(112,201,160,0.4);border-radius:20px;font-size:9px;padding:1px 6px;font-weight:500">ACTUAL</span>`:''}</div><div class="mes-sep-line"></div><button onclick="eliminarMes('${mes}')" style="background:none;border:0.5px solid rgba(224,112,112,0.3);color:var(--danger);border-radius:var(--radius-sm);padding:3px 8px;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">🗑 Mes</button></div><div class="mes-total"><span>${vs.length} venta${vs.length!==1?'s':''} · Gan: <strong style="color:var(--success)">${fmt(totGan)}</strong></span>${totDebe>0?`<span style="color:var(--warn)">Debe: ${fmt(totDebe)}</span>`:''}</div><div class="ventas-mes-grid" id="vmg-${mesId}"></div>`;
       el.appendChild(wrapper);
     }
-    const grid = el.querySelector(`#vmg-${mes}`);
+    const grid = el.querySelector(`#vmg-${mesId}`);
     if (grid) {
       batch.filter(v=>(mesKey(v.fecha)||'Sin fecha')===mes).forEach(v=>{
         grid.insertAdjacentHTML('beforeend', renderVentaCard(v));
