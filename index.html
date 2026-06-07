@@ -745,6 +745,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
           <span class="mas-icon">📥</span>
           <span class="mas-label">Importar</span>
         </button>
+        <button class="mas-item" id="masitem-clientes" onclick="showTabFromMas('clientes')">
+          <span class="mas-icon">👥</span>
+          <span class="mas-label">Clientes</span>
+        </button>
         <button class="mas-item" id="masitem-ajustes" onclick="showTabFromMas('ajustes')">
           <span class="mas-icon">⚙</span>
           <span class="mas-label">Ajustes</span>
@@ -870,7 +874,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       <div id="gan-compras"></div>
       <div class="section-title" style="margin-top:13px">Por perfume</div><div id="gan-list"></div>
       <div class="section-title" style="margin-top:13px">Por vendedor</div><div id="gan-vendedor"></div>
-      <button class="btn-outline" onclick="exportExcel()">📥 Exportar Excel formato VIP</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+        <button class="btn-outline" onclick="exportExcel()">📥 Exportar Excel formato VIP</button>
+        <button class="btn-outline" style="border-color:rgba(201,168,76,.4);color:var(--gold2)" onclick="generarReporteMensualPDF()">📄 Reporte PDF del mes</button>
+      </div>
     </div>
 
     <!-- CAJA -->
@@ -1114,6 +1121,16 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
 
     </div>
 
+    <!-- ═══════ CLIENTES ═══════ -->
+    <div id="tab-clientes" class="section">
+      <div class="section-title">👥 Clientes</div>
+      <div class="search-wrap" style="margin-bottom:10px">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-clientes" placeholder="Buscar cliente..." oninput="renderClientes()">
+      </div>
+      <div id="clientes-list"></div>
+    </div>
+
     <div id="tab-importar" class="section">
       <div class="import-zone" id="import-zone" onclick="document.getElementById('file-import').click()">
         <div class="import-zone-icon">📂</div><h3>Subir Excel Parfum Track</h3>
@@ -1177,6 +1194,16 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
 <div class="modal-overlay" id="del-stock-modal">
   <div class="modal"><h3>Eliminar perfume</h3><p id="del-stock-msg">¿Eliminar este perfume del stock?</p>
   <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('del-stock-modal')">Cancelar</button><button class="btn-confirm-del" id="del-stock-btn">Eliminar</button></div></div>
+</div>
+
+<!-- Modal detalle cliente -->
+<div class="modal-overlay" id="modal-detalle-cliente">
+  <div class="modal" style="max-height:80vh;overflow-y:auto;padding:20px">
+    <div id="detalle-cliente-body"></div>
+    <div style="margin-top:14px">
+      <button class="btn-cancel" style="width:100%" onclick="closeModal('modal-detalle-cliente')">Cerrar</button>
+    </div>
+  </div>
 </div>
 
 
@@ -1477,7 +1504,7 @@ function renderComprasPeriodo(){
   +compras.map(c=>`<div class="venta-card"><div class="vc-header"><div class="vc-name" style="font-size:14px">${c.desc.replace('📦 Compra stock: ','')}</div><div class="vc-meta"><div class="vc-date">📅 ${c.fecha}</div></div></div><div class="vc-body"><div class="vc-row"><span>Invertido</span><span style="color:var(--danger)">${fmt(c.monto)}</span></div></div></div>`).join('');
 }
 
-function showTab(t){const tabs=['ventas','cuotas','gastos','ganancias','caja','catalogo','stock','importar','add','ajustes'];document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',tabs[i]===t));document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById('tab-'+t).classList.add('active');if(t==='ventas'){renderMesFilter('mes-filter-ventas','ventas');renderVentas();}if(t==='cuotas')renderCuotasPendientes();if(t==='gastos'){renderMesFilter('mes-filter-gastos','gastos');renderGastos();initFecha('g-fecha');fillSuggestionsGasto();}if(t==='ganancias'){renderMesFilter('mes-filter-gan','ganancias');renderGanancias();fillComparadores();renderMetaBar();}if(t==='caja'){renderMesFilter('mes-filter-caja','caja');renderCaja();initFecha('caja-fecha');}if(t==='catalogo')renderCatalogo();if(t==='stock')renderStock();if(t==='add')fillSuggestions();if(t==='stock')fillStockSuggestions();if(t==='ajustes')renderAjustes();updateStats();}
+function showTab(t){const tabs=['ventas','cuotas','gastos','ganancias','caja','catalogo','stock','importar','add','ajustes','clientes'];document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',tabs[i]===t));document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));const tabEl=document.getElementById('tab-'+t);if(tabEl)tabEl.classList.add('active');if(t==='ventas'){renderMesFilter('mes-filter-ventas','ventas');renderVentas();}if(t==='cuotas')renderCuotasPendientes();if(t==='gastos'){renderMesFilter('mes-filter-gastos','gastos');renderGastos();initFecha('g-fecha');fillSuggestionsGasto();}if(t==='ganancias'){renderMesFilter('mes-filter-gan','ganancias');renderGanancias();fillComparadores();renderMetaBar();}if(t==='caja'){renderMesFilter('mes-filter-caja','caja');renderCaja();initFecha('caja-fecha');}if(t==='catalogo')renderCatalogo();if(t==='stock')renderStock();if(t==='add')fillSuggestions();if(t==='stock')fillStockSuggestions();if(t==='ajustes')renderAjustes();if(t==='clientes')renderClientes();updateStats();}
 function renderMesFilter(cId,tab){const meses=tab==='gastos'?mesesDeGastos():tab==='caja'?mesesDeCaja():mesesDeVentas();const active=tab==='ventas'?activeMesVentas:tab==='gastos'?activeMesGastos:tab==='caja'?activeMesCaja:activeMesGan;const el=document.getElementById(cId);if(!meses.length){el.innerHTML='';return;}el.innerHTML=[`<button class="mes-chip ${active==='todos'?'active':''}" onclick="setMes('todos','${tab}')">Todos</button>`,...meses.map(m=>`<button class="mes-chip ${active===m?'active':''}" onclick="setMes('${m}','${tab}')">${mesLabel(m)}</button>`)].join('');}
 function setMes(mes,tab){if(tab==='ventas'){activeMesVentas=mes;renderMesFilter('mes-filter-ventas','ventas');renderVentas();}else if(tab==='gastos'){activeMesGastos=mes;renderMesFilter('mes-filter-gastos','gastos');renderGastos();}else if(tab==='caja'){activeMesCaja=mes;renderMesFilter('mes-filter-caja','caja');renderCaja();}else{activeMesGan=mes;renderMesFilter('mes-filter-gan','ganancias');renderGanancias();renderMetaBar();}}
 function setFiltroEstado(estado){filtroEstado=estado;['todas','hoy','pendiente','completada'].forEach(e=>document.getElementById('fchip-'+e)?.classList.toggle('active',e===estado));renderVentas();actualizarBtnLimpiarFiltros();}
@@ -1517,6 +1544,120 @@ function exportarVentasCSV(){
   toast('📊 CSV exportado correctamente');
 }
 function actualizarBtnLimpiarFiltros(){const q=(document.getElementById('search-ventas')?.value||'').trim();const hayFiltro=q||filtroEstado!=='todas'||activeMesVentas;const btn=document.getElementById('btn-limpiar-filtros');if(btn)btn.style.display=hayFiltro?'block':'none';}
+
+// ══════════════════════════════════════════════
+// MÓDULO DE CLIENTES
+// ══════════════════════════════════════════════
+function renderClientes() {
+  const q = (document.getElementById('search-clientes')?.value || '').toLowerCase().trim();
+  const el = document.getElementById('clientes-list');
+  if (!el) return;
+
+  // Construir perfiles desde ventas
+  const map = {};
+  ventas.forEach(v => {
+    const nombre = (v.cliente || '').trim();
+    if (!nombre) return;
+    if (!map[nombre]) map[nombre] = { nombre, ventas: [], totalGan: 0, totalVenta: 0, totalDebe: 0 };
+    map[nombre].ventas.push(v);
+    map[nombre].totalGan += (v.ganancia || 0);
+    map[nombre].totalVenta += (v.precioVenta || 0);
+    map[nombre].totalDebe += calcDebe(v);
+  });
+
+  let clientes = Object.values(map).sort((a, b) => b.totalVenta - a.totalVenta);
+  if (q) clientes = clientes.filter(c => c.nombre.toLowerCase().includes(q));
+
+  if (!clientes.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">👥</div><p>${q ? 'Sin resultados.' : 'Aún no hay clientes registrados.<br>Se generan automáticamente desde las ventas.'}</p></div>`;
+    return;
+  }
+
+  el.innerHTML = clientes.map(c => {
+    const ultVenta = c.ventas.slice().sort((a, b) => {
+      const da = a.fecha ? a.fecha.split('/').reverse().join('') : '0';
+      const db = b.fecha ? b.fecha.split('/').reverse().join('') : '0';
+      return db.localeCompare(da);
+    })[0];
+    const perfumesUnicos = [...new Set(c.ventas.map(v => v.perfume).filter(Boolean))];
+    const deudaColor = c.totalDebe > 0 ? 'var(--warn)' : 'var(--success)';
+
+    return `<div class="card" style="padding:16px;margin-bottom:10px;cursor:pointer" onclick="verDetalleCliente('${escapeHTML(c.nombre).replace(/'/g,"\\'")}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--text)">${escapeHTML(c.nombre)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${c.ventas.length} compra${c.ventas.length!==1?'s':''} · Última: ${ultVenta?.fecha||'—'}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:14px;font-weight:700;color:var(--gold2)">${fmt(c.totalVenta)}</div>
+          <div style="font-size:11px;color:var(--text3)">facturado</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:80px;background:var(--bg3);border-radius:8px;padding:8px 10px">
+          <div style="font-size:10px;color:var(--text3)">Ganancia</div>
+          <div style="font-size:13px;font-weight:600;color:var(--success)">${fmt(c.totalGan)}</div>
+        </div>
+        <div style="flex:1;min-width:80px;background:var(--bg3);border-radius:8px;padding:8px 10px">
+          <div style="font-size:10px;color:var(--text3)">Por cobrar</div>
+          <div style="font-size:13px;font-weight:600;color:${deudaColor}">${c.totalDebe > 0 ? fmt(c.totalDebe) : '✓ Al día'}</div>
+        </div>
+        <div style="flex:2;min-width:120px;background:var(--bg3);border-radius:8px;padding:8px 10px">
+          <div style="font-size:10px;color:var(--text3)">Perfumes preferidos</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">${perfumesUnicos.slice(0,3).map(escapeHTML).join(', ')}${perfumesUnicos.length>3?` +${perfumesUnicos.length-3}`:''}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function verDetalleCliente(nombre) {
+  const ventasCliente = ventas.filter(v => (v.cliente||'').trim() === nombre)
+    .sort((a, b) => {
+      const da = a.fecha ? a.fecha.split('/').reverse().join('') : '0';
+      const db = b.fecha ? b.fecha.split('/').reverse().join('') : '0';
+      return db.localeCompare(da);
+    });
+  if (!ventasCliente.length) return;
+
+  const totGan = ventasCliente.reduce((s, v) => s + (v.ganancia || 0), 0);
+  const totVenta = ventasCliente.reduce((s, v) => s + (v.precioVenta || 0), 0);
+  const totDebe = ventasCliente.reduce((s, v) => s + calcDebe(v), 0);
+
+  let html = `<div style="font-size:16px;font-weight:800;color:var(--gold2);margin-bottom:2px">${escapeHTML(nombre)}</div>`;
+  html += `<div style="font-size:12px;color:var(--text3);margin-bottom:14px">${ventasCliente.length} compra${ventasCliente.length!==1?'s':''} · ${fmt(totVenta)} facturado</div>`;
+  html += `<div style="display:flex;gap:8px;margin-bottom:14px">
+    <div style="flex:1;background:var(--bg3);border-radius:8px;padding:10px;text-align:center">
+      <div style="font-size:10px;color:var(--text3)">Ganancia total</div>
+      <div style="font-size:14px;font-weight:700;color:var(--success)">${fmt(totGan)}</div>
+    </div>
+    <div style="flex:1;background:var(--bg3);border-radius:8px;padding:10px;text-align:center">
+      <div style="font-size:10px;color:var(--text3)">Deuda</div>
+      <div style="font-size:14px;font-weight:700;color:${totDebe>0?'var(--warn)':'var(--success)'}'">${totDebe>0?fmt(totDebe):'✓ Al día'}</div>
+    </div>
+  </div>`;
+  html += `<div style="font-size:12px;font-weight:600;color:var(--gold);margin-bottom:8px">HISTORIAL</div>`;
+  html += ventasCliente.map(v => {
+    const debe = calcDebe(v);
+    return `<div style="background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${escapeHTML(v.perfume||'')}</div>
+        <div style="font-size:11px;color:var(--text3)">${v.fecha||''} ${v.esCuotas?'· Cuotas':''}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:13px;font-weight:600;color:var(--gold2)">${fmt(v.precioVenta||0)}</div>
+        ${debe>0?`<div style="font-size:11px;color:var(--warn)">Debe ${fmt(debe)}</div>`:`<div style="font-size:11px;color:var(--success)">✓</div>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Mostrar en modal genérico
+  const modal = document.getElementById('modal-detalle-cliente');
+  if (modal) {
+    document.getElementById('detalle-cliente-body').innerHTML = html;
+    modal.classList.add('open');
+  }
+}
 function updateStats(){
   document.getElementById('st-ventas').textContent=ventas.length;
   document.getElementById('st-ganancia').textContent=fmt(ventas.reduce((s,v)=>s+(v.ganancia||0),0));
@@ -1563,7 +1704,88 @@ function confirmarEliminarMes(){
     });
   });
 }
-function renderVentas(){const q=(document.getElementById('search-ventas').value||'').toLowerCase();let filtered=activeMesVentas==='todos'?ventas:ventas.filter(v=>mesKey(v.fecha)===activeMesVentas);if(q)filtered=filtered.filter(v=>[v.perfume,v.cliente,v.vendedor,v.proveedor].some(x=>(x||'').toLowerCase().includes(q)));if(filtroEstado==='hoy')filtered=filtered.filter(v=>v.fecha===hoy());else if(filtroEstado==='pendiente')filtered=filtered.filter(v=>v.esCuotas&&!ventaCompletada(v));else if(filtroEstado==='completada')filtered=filtered.filter(v=>ventaCompletada(v));const el=document.getElementById('ventas-list');if(!filtered.length){el.innerHTML=`<div class="empty"><div class="empty-icon">💸</div><p>No hay ventas${q?' con ese criterio':activeMesVentas!=='todos'?' en este mes':''} todavía.</p></div>`;return;}const mesMasReciente=mesesDeVentas()[0]||'';const porMes={};filtered.forEach(v=>{const k=mesKey(v.fecha)||'Sin fecha';if(!porMes[k])porMes[k]=[];porMes[k].push(v);});el.innerHTML=Object.keys(porMes).sort().reverse().map(mes=>{const vs=porMes[mes];const totGan=vs.reduce((s,v)=>s+(v.ganancia||0),0);const totDebe=vs.reduce((s,v)=>s+calcDebe(v),0);const esActual=mes===mesMasReciente;return `<div class="mes-sep"><div class="mes-sep-line"></div><div style="display:flex;align-items:center;gap:5px;white-space:nowrap"><div class="mes-sep-label">${mesLabel(mes)}</div>${esActual?`<span style="background:rgba(112,201,160,0.2);color:var(--success);border:0.5px solid rgba(112,201,160,0.4);border-radius:20px;font-size:9px;padding:1px 6px;font-weight:500">ACTUAL</span>`:''}</div><div class="mes-sep-line"></div><button onclick="eliminarMes('${mes}')" style="background:none;border:0.5px solid rgba(224,112,112,0.3);color:var(--danger);border-radius:var(--radius-sm);padding:3px 8px;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">🗑 Mes</button></div><div class="mes-total"><span>${vs.length} venta${vs.length!==1?'s':''} · Gan: <strong style="color:var(--success)">${fmt(totGan)}</strong></span>${totDebe>0?`<span style="color:var(--warn)">Debe: ${fmt(totDebe)}</span>`:''}</div><div class=\"ventas-mes-grid\">${vs.map(v=>renderVentaCard(v)).join('')}</div>`;}).join('');}
+// ── Virtualización simple: render por lotes con IntersectionObserver ──
+const VENTAS_LOTE = 30;
+let _ventasFiltradas = [];
+let _ventasRendered = 0;
+let _ventasObserver = null;
+
+function renderVentas(){
+  const q=(document.getElementById('search-ventas').value||'').toLowerCase();
+  let filtered=activeMesVentas==='todos'?ventas:ventas.filter(v=>mesKey(v.fecha)===activeMesVentas);
+  if(q)filtered=filtered.filter(v=>[v.perfume,v.cliente,v.vendedor,v.proveedor].some(x=>(x||'').toLowerCase().includes(q)));
+  if(filtroEstado==='hoy')filtered=filtered.filter(v=>v.fecha===hoy());
+  else if(filtroEstado==='pendiente')filtered=filtered.filter(v=>v.esCuotas&&!ventaCompletada(v));
+  else if(filtroEstado==='completada')filtered=filtered.filter(v=>ventaCompletada(v));
+  _ventasFiltradas = filtered;
+  _ventasRendered = 0;
+  if(_ventasObserver){_ventasObserver.disconnect();_ventasObserver=null;}
+  const el=document.getElementById('ventas-list');
+  if(!filtered.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">💸</div><p>No hay ventas${q?' con ese criterio':activeMesVentas!=='todos'?' en este mes':''} todavía.</p></div>`;
+    return;
+  }
+  el.innerHTML = '';
+  _renderVentasLote(el);
+}
+
+function _getVentasMesBloques(list) {
+  const mesMasReciente=mesesDeVentas()[0]||'';
+  const porMes={};
+  list.forEach(v=>{const k=mesKey(v.fecha)||'Sin fecha';if(!porMes[k])porMes[k]=[];porMes[k].push(v);});
+  return {porMes, mesMasReciente};
+}
+
+function _renderVentasLote(el) {
+  const batch = _ventasFiltradas.slice(_ventasRendered, _ventasRendered + VENTAS_LOTE);
+  if (!batch.length) return;
+  const {porMes, mesMasReciente} = _getVentasMesBloques(_ventasFiltradas);
+  // Renderiza solo los meses que tienen ventas en este lote
+  const mesesEnLote = [...new Set(batch.map(v => mesKey(v.fecha)||'Sin fecha'))];
+  const yaRenderizados = new Set([...el.querySelectorAll('[data-mes]')].map(e=>e.dataset.mes));
+  mesesEnLote.forEach(mes => {
+    let mesEl = el.querySelector(`[data-mes="${mes}"]`);
+    if (!mesEl) {
+      const vs = porMes[mes];
+      const totGan=vs.reduce((s,v)=>s+(v.ganancia||0),0);
+      const totDebe=vs.reduce((s,v)=>s+calcDebe(v),0);
+      const esActual=mes===mesMasReciente;
+      const wrapper = document.createElement('div');
+      wrapper.setAttribute('data-mes', mes);
+      wrapper.innerHTML = `<div class="mes-sep"><div class="mes-sep-line"></div><div style="display:flex;align-items:center;gap:5px;white-space:nowrap"><div class="mes-sep-label">${mesLabel(mes)}</div>${esActual?`<span style="background:rgba(112,201,160,0.2);color:var(--success);border:0.5px solid rgba(112,201,160,0.4);border-radius:20px;font-size:9px;padding:1px 6px;font-weight:500">ACTUAL</span>`:''}</div><div class="mes-sep-line"></div><button onclick="eliminarMes('${mes}')" style="background:none;border:0.5px solid rgba(224,112,112,0.3);color:var(--danger);border-radius:var(--radius-sm);padding:3px 8px;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">🗑 Mes</button></div><div class="mes-total"><span>${vs.length} venta${vs.length!==1?'s':''} · Gan: <strong style="color:var(--success)">${fmt(totGan)}</strong></span>${totDebe>0?`<span style="color:var(--warn)">Debe: ${fmt(totDebe)}</span>`:''}</div><div class="ventas-mes-grid" id="vmg-${mes}"></div>`;
+      el.appendChild(wrapper);
+    }
+    const grid = el.querySelector(`#vmg-${mes}`);
+    if (grid) {
+      batch.filter(v=>(mesKey(v.fecha)||'Sin fecha')===mes).forEach(v=>{
+        const div = document.createElement('div');
+        div.innerHTML = renderVentaCard(v);
+        grid.appendChild(div.firstChild || div);
+      });
+    }
+  });
+  _ventasRendered += batch.length;
+  // Si quedan más ventas, agregar centinela para IntersectionObserver
+  if (_ventasRendered < _ventasFiltradas.length) {
+    let sentinel = el.querySelector('#ventas-sentinel');
+    if (!sentinel) {
+      sentinel = document.createElement('div');
+      sentinel.id = 'ventas-sentinel';
+      sentinel.style.cssText = 'height:40px;display:flex;align-items:center;justify-content:center;';
+      sentinel.innerHTML = `<span style="font-size:12px;color:var(--text3)">Cargando más ventas...</span>`;
+    }
+    el.appendChild(sentinel);
+    if (!_ventasObserver) {
+      _ventasObserver = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) { _renderVentasLote(el); }
+      }, { threshold: 0.1 });
+    }
+    _ventasObserver.observe(sentinel);
+  } else {
+    const sentinel = el.querySelector('#ventas-sentinel');
+    if (sentinel) sentinel.remove();
+  }
+}
 // Fix XSS: sanitizar todo campo de usuario antes de inyectar en innerHTML
 function escapeHTML(s){
   if(s==null)return '';
@@ -2187,21 +2409,45 @@ async function activarLicencia() {
   const code = input.value.trim().toUpperCase();
   if (!code) { shakeInput(input); return; }
 
-  // Mostrar estado de carga mientras se computa el HMAC
   const btn = document.querySelector('#modal-activacion .btn-gold, #modal-activacion button[onclick*="activar"]');
   if (btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
 
-  const valid = await isValidActivationCode(code);
+  let valid = false;
+  let serverToken = null;
+
+  // 1. Intentar validación serverless (más segura)
+  try {
+    const resp = await fetch('/.netlify/functions/validate-license', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+      signal: AbortSignal.timeout(6000)
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      valid = data.valid === true;
+      if (valid) serverToken = data.token || null;
+    }
+  } catch(e) {
+    // Sin internet o función no disponible → fallback a HMAC client-side
+    valid = await isValidActivationCode(code);
+  }
 
   if (btn) { btn.disabled = false; btn.textContent = '🔑 Activar'; }
 
   if (valid) {
-    // Guardar el HMAC del código (nunca el código en texto plano)
-    const enc2 = new TextEncoder();
-    const km2 = await crypto.subtle.importKey('raw', enc2.encode(_LK), {name:'HMAC',hash:'SHA-256'}, false, ['sign']);
-    const sig2 = await crypto.subtle.sign('HMAC', km2, enc2.encode(code));
-    const hmacHex = [...new Uint8Array(sig2)].map(b=>b.toString(16).padStart(2,'0')).join('');
-    localStorage.setItem('pt_activated_code', hmacHex);
+    // Guardar token del servidor (si existe) o HMAC local como prueba de activación
+    if (serverToken) {
+      localStorage.setItem('pt_activated_code', serverToken);
+      localStorage.setItem('pt_activation_mode', 'server');
+    } else {
+      const enc2 = new TextEncoder();
+      const km2 = await crypto.subtle.importKey('raw', enc2.encode(_LK), {name:'HMAC',hash:'SHA-256'}, false, ['sign']);
+      const sig2 = await crypto.subtle.sign('HMAC', km2, enc2.encode(code));
+      const hmacHex = [...new Uint8Array(sig2)].map(b=>b.toString(16).padStart(2,'0')).join('');
+      localStorage.setItem('pt_activated_code', hmacHex);
+      localStorage.setItem('pt_activation_mode', 'offline');
+    }
     localStorage.setItem('pt_activated_at', Date.now().toString());
     const banner = document.getElementById('trial-banner');
     if (banner) banner.remove();
@@ -2770,6 +3016,128 @@ function loadPaymentConfig(){
   }catch(e){}
 }
 
+// ══════════════════════════════════════════════
+// REPORTE PDF MENSUAL
+// ══════════════════════════════════════════════
+async function generarReporteMensualPDF() {
+  if (!(await ensureJsPDF())) return;
+  const { jsPDF } = window.jspdf;
+
+  const mes = activeMesGan;
+  const filtered = mes === 'todos' ? ventas : ventas.filter(v => mesKey(v.fecha) === mes);
+  const gastFilt = mes === 'todos' ? gastos : gastos.filter(g => mesKey(g.fecha) === mes);
+
+  if (!filtered.length) { toast('⚠ No hay ventas en este período para generar el reporte'); return; }
+
+  const mesNombre = mes === 'todos' ? 'Historial completo' : mesLabel(mes);
+  const totGan = filtered.reduce((s, v) => s + (v.ganancia || 0), 0);
+  const totVenta = filtered.reduce((s, v) => s + (v.precioVenta || 0), 0);
+  const totGast = gastFilt.reduce((s, g) => s + g.monto, 0);
+  const ganReal = totGan - totGast;
+  const totDebe = filtered.reduce((s, v) => s + calcDebe(v), 0);
+  const totCob = filtered.reduce((s, v) => s + (v.esCuotas ? (v.cuotasPagos || []).reduce((a, p) => a + p.monto, 0) : (v.precioVenta || 0)), 0);
+
+  // Ranking por perfume
+  const byP = {};
+  filtered.forEach(v => {
+    const k = v.perfume || '?';
+    if (!byP[k]) byP[k] = { nombre: k, ventas: 0, gan: 0 };
+    byP[k].ventas++; byP[k].gan += (v.ganancia || 0);
+  });
+  const topPerfumes = Object.values(byP).sort((a, b) => b.gan - a.gan).slice(0, 5);
+
+  // Deudas pendientes
+  const deudas = filtered.filter(v => calcDebe(v) > 0).sort((a, b) => calcDebe(b) - calcDebe(a)).slice(0, 8);
+
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  const W = 210, gold = [201, 168, 76], dark = [15, 15, 26], white = [240, 236, 228];
+  const gray = [130, 125, 160], lightGray = [60, 58, 90], green = [70, 180, 130], red = [224, 112, 112];
+
+  // ── Fondo ──
+  doc.setFillColor(...dark); doc.rect(0, 0, W, 297, 'F');
+
+  // ── Header dorado ──
+  doc.setFillColor(...gold); doc.rect(0, 0, W, 28, 'F');
+  doc.setTextColor(...dark); doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
+  doc.text('PARFUM TRACK', 14, 11);
+  doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+  doc.text('REPORTE MENSUAL DE VENTAS', 14, 18);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+  doc.text(mesNombre.toUpperCase(), W - 14, 11, { align: 'right' });
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+  doc.text('Generado: ' + hoy(), W - 14, 18, { align: 'right' });
+
+  let y = 38;
+
+  // ── Tarjetas de resumen ──
+  const cards = [
+    { label: 'Ventas', value: filtered.length.toString(), color: gold },
+    { label: 'Ganancia bruta', value: fmt(totGan), color: green },
+    { label: 'Gastos', value: fmt(totGast), color: red },
+    { label: 'Ganancia real', value: fmt(ganReal), color: ganReal >= 0 ? green : red },
+    { label: 'Cobrado', value: fmt(totCob), color: white },
+    { label: 'Por cobrar', value: fmt(totDebe), color: totDebe > 0 ? [230, 160, 60] : green },
+  ];
+  const cW = (W - 28 - 10) / 3, cH = 18;
+  cards.forEach((c, i) => {
+    const col = i % 3, row = Math.floor(i / 3);
+    const cx = 14 + col * (cW + 5), cy = y + row * (cH + 4);
+    doc.setFillColor(...lightGray); doc.roundedRect(cx, cy, cW, cH, 2, 2, 'F');
+    doc.setTextColor(...gray); doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+    doc.text(c.label.toUpperCase(), cx + 4, cy + 5.5);
+    doc.setTextColor(...c.color); doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+    doc.text(c.value, cx + 4, cy + 13);
+  });
+  y += 2 * (cH + 4) + 10;
+
+  // ── Top perfumes ──
+  doc.setTextColor(...gold); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+  doc.text('TOP PERFUMES POR GANANCIA', 14, y); y += 6;
+  doc.setFillColor(...lightGray); doc.rect(14, y, W - 28, 0.3, 'F'); y += 4;
+  topPerfumes.forEach((p, i) => {
+    const barW = Math.max(2, (p.gan / (topPerfumes[0].gan || 1)) * 80);
+    doc.setFillColor(...green); doc.roundedRect(14, y - 3, barW, 5, 1, 1, 'F');
+    doc.setTextColor(...white); doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+    doc.text(`${i + 1}. ${p.nombre}`, 14 + barW + 2, y);
+    doc.setTextColor(...green); doc.setFont('helvetica', 'bold');
+    doc.text(fmt(p.gan), W - 14, y, { align: 'right' });
+    doc.setTextColor(...gray); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+    doc.text(`${p.ventas} venta${p.ventas !== 1 ? 's' : ''}`, W - 35, y);
+    y += 9;
+  });
+  y += 4;
+
+  // ── Cobros pendientes ──
+  if (deudas.length) {
+    doc.setTextColor(...[230, 130, 80]); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.text('COBROS PENDIENTES', 14, y); y += 6;
+    doc.setFillColor(...lightGray); doc.rect(14, y, W - 28, 0.3, 'F'); y += 4;
+    deudas.forEach(v => {
+      const debe = calcDebe(v);
+      doc.setTextColor(...white); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+      const cliente = v.cliente || 'Sin nombre';
+      doc.text(`• ${v.perfume}`, 14, y);
+      doc.setTextColor(...gray); doc.text(cliente, 80, y);
+      doc.setTextColor(...red); doc.setFont('helvetica', 'bold');
+      doc.text(fmt(debe), W - 14, y, { align: 'right' });
+      doc.setTextColor(...gray); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+      doc.text(v.fecha || '', W - 14, y + 4, { align: 'right' });
+      y += 9;
+      if (y > 270) return;
+    });
+    y += 4;
+  }
+
+  // ── Pie ──
+  doc.setFillColor(...gold); doc.rect(0, 285, W, 12, 'F');
+  doc.setTextColor(...dark); doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+  doc.text('Parfum Track · Gestión de ventas para revendedoras', W / 2, 291, { align: 'center' });
+
+  const nombreArchivo = `parfumtrack_reporte_${mes === 'todos' ? 'completo' : mes}_${hoy().replace(/\//g, '-')}.pdf`;
+  doc.save(nombreArchivo);
+  toast('📄 Reporte PDF generado correctamente');
+}
+
 // loadPaymentConfig() se llama después de definir PAYMENT_CONFIG (ver abajo)
 
 function renderAjustes() {
@@ -3270,7 +3638,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Attach modal backdrop close listeners
   ['modal-del-mes','del-modal','modal-cuota','modal-editar','modal-meta',
    'backup-modal','pdf-modal','modal-pago','modal-perfil','del-stock-modal','license-modal',
-   'modal-activacion','modal-trial-bienvenida'].forEach(id => {
+   'modal-activacion','modal-trial-bienvenida','modal-detalle-cliente'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('click', e => {
       if (e.target === el) closeModal(id);
