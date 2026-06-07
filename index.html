@@ -5541,31 +5541,24 @@ async function descargarPDFCatalogo() {
 
   // ── Pedir permiso de notificaciones (llamado desde Ajustes) ──
   async function activarNotificaciones() {
-    // 1. Pedir permiso nativo del browser (funciona en cualquier dominio)
     if (!('Notification' in window)) { toast('⚠ Tu browser no soporta notificaciones'); return; }
-    let perm = Notification.permission;
-    if (perm === 'denied') { toast('🚫 Notificaciones bloqueadas. Habilitálas en la configuración del browser.'); return; }
-    if (perm === 'default') {
-      perm = await Notification.requestPermission();
-    }
+    if (Notification.permission === 'denied') { toast('🚫 Notificaciones bloqueadas. Habilitálas en la configuración del browser.'); return; }
+
+    // Pedir permiso nativo del browser
+    const perm = Notification.permission === 'granted'
+      ? 'granted'
+      : await Notification.requestPermission();
+
     if (perm !== 'granted') { toast('⚠ Permiso no otorgado'); return; }
 
-    // 2. Con permiso otorgado, suscribir via OneSignal
-    try {
-      if (window.OneSignal) {
-        await OneSignal.User.PushSubscription.optIn();
-        const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
-        localStorage.setItem('pt_notif_subscribed', isSubscribed ? '1' : '0');
-      } else {
-        localStorage.setItem('pt_notif_subscribed', '1');
-      }
-      toast('🔔 ¡Notificaciones activadas!');
-      if (typeof renderAjustes === 'function') renderAjustes();
-    } catch(e) {
-      // Permiso concedido aunque OneSignal falle
-      localStorage.setItem('pt_notif_subscribed', '1');
-      toast('🔔 ¡Notificaciones activadas!');
-      if (typeof renderAjustes === 'function') renderAjustes();
+    // Guardar estado y mostrar éxito — el resto es opcional (OneSignal puede fallar sin problema)
+    localStorage.setItem('pt_notif_subscribed', '1');
+    toast('🔔 ¡Notificaciones activadas!');
+    if (typeof renderAjustes === 'function') renderAjustes();
+
+    // Intentar suscribir via OneSignal en segundo plano (no bloquea)
+    if (window.OneSignal) {
+      OneSignal.User.PushSubscription.optIn().catch(() => {});
     }
   }
 
