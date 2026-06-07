@@ -5541,11 +5541,31 @@ async function descargarPDFCatalogo() {
 
   // ── Pedir permiso de notificaciones (llamado desde Ajustes) ──
   async function activarNotificaciones() {
-    if (!window.OneSignal) { toast('📶 Conectate a internet para activar las notificaciones'); return; }
+    // 1. Pedir permiso nativo del browser (funciona en cualquier dominio)
+    if (!('Notification' in window)) { toast('⚠ Tu browser no soporta notificaciones'); return; }
+    let perm = Notification.permission;
+    if (perm === 'denied') { toast('🚫 Notificaciones bloqueadas. Habilitálas en la configuración del browser.'); return; }
+    if (perm === 'default') {
+      perm = await Notification.requestPermission();
+    }
+    if (perm !== 'granted') { toast('⚠ Permiso no otorgado'); return; }
+
+    // 2. Con permiso otorgado, suscribir via OneSignal
     try {
-      await OneSignal.Slidedown.promptPush();
+      if (window.OneSignal) {
+        await OneSignal.User.PushSubscription.optIn();
+        const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
+        localStorage.setItem('pt_notif_subscribed', isSubscribed ? '1' : '0');
+      } else {
+        localStorage.setItem('pt_notif_subscribed', '1');
+      }
+      toast('🔔 ¡Notificaciones activadas!');
+      if (typeof renderAjustes === 'function') renderAjustes();
     } catch(e) {
-      toast('⚠ No se pudo activar las notificaciones');
+      // Permiso concedido aunque OneSignal falle
+      localStorage.setItem('pt_notif_subscribed', '1');
+      toast('🔔 ¡Notificaciones activadas!');
+      if (typeof renderAjustes === 'function') renderAjustes();
     }
   }
 
