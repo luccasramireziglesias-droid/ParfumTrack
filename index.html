@@ -363,90 +363,131 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
   .tabs-wrap::after { display: block; }
 }
 
-/* ── DESKTOP / LAPTOP (769px+) ── */
+/* ═══════════════════════════════════════════════════
+   DESKTOP / LAPTOP (769px+)
+   Layout: sidebar izquierdo + header arriba + contenido derecha
+═══════════════════════════════════════════════════ */
 @media (min-width: 769px) {
-  html, body { overflow: auto; }
+  html, body { overflow: hidden; }
 
+  /* ── Grid principal ── */
   .app {
     max-width: 100%;
     display: grid;
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: 240px 1fr;
     grid-template-rows: auto 1fr;
     height: 100vh;
     overflow: hidden;
   }
-
-  .tabs-wrap::after { display: none; }
-  /* Cuando hay banner de trial/demo arriba, ajustar el alto del grid */
   body.has-top-banner .app { margin-top: 32px; height: calc(100vh - 32px); }
 
-  /* Header: columna completa, sin overflow */
+  /* ── Ocultar bottom nav y drawer mobile ── */
+  .bottom-nav { display: none !important; }
+  .mas-overlay { display: none !important; }
+
+  /* ── Header: fila completa ── */
   .header {
     grid-column: 1 / -1;
-    padding: 12px 32px 10px;
+    grid-row: 1;
+    padding: 10px 28px 10px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     overflow: visible;
   }
   .header-row { margin-bottom: 0; }
-  .stats-row { display: flex; flex-direction: row; gap: 12px; margin-bottom: 0; }
-  .stat-card { min-width: 120px; padding: 10px 16px; }
-  .stat-val { font-size: 20px; }
-  .stat-lbl { font-size: 11px; }
-
-  /* brand-row: logo + título a la izquierda, controles a la derecha SIN salirse */
   .header .brand-row { width: 100%; overflow: visible; gap: 8px; }
-  .header .brand-left { flex: 1 1 0; min-width: 0; overflow: hidden; }
-  .header .brand-title { font-size: 18px; overflow: hidden; text-overflow: ellipsis; }
-  .header .header-right { flex-shrink: 0; gap: 4px; }
-  /* Logo más chico en mobile para ganar espacio */
-  .header .logo-svg { width: 36px; height: 36px; }
-  /* Profile badge compacto */
-  #profile-badge { max-width: 80px !important; font-size: 10px !important; padding: 3px 7px !important; }
-  /* icon-btn compacto */
-  .header .icon-btn { padding: 5px 7px !important; font-size: 13px !important; min-width: 32px !important; min-height: 32px !important; width: 32px !important; }
-
-  /* stats: fila de 3 cajas con tamaño fijo */
-  .header-stats { margin-top: 0; grid-template-columns: repeat(3, 100px); gap: 8px; }
-  .hstat { min-width: 0; }
-
-  /* meta-strip y banner: sin margen extra */
-  .header .meta-strip   { margin-top: 0; }
+  .header .brand-left { flex: 1 1 0; min-width: 0; }
+  .header .brand-title { font-size: 17px; }
+  .header .header-right { flex-shrink: 0; gap: 6px; }
+  .header .logo-svg { width: 34px; height: 34px; }
+  #profile-badge { max-width: 110px !important; font-size: 11px !important; }
+  .header .icon-btn { min-width: 34px !important; min-height: 34px !important; }
+  .header-stats { margin-top: 0; grid-template-columns: repeat(3, minmax(80px, 120px)); gap: 8px; }
+  .header .meta-strip { margin-top: 0; }
   .header .daily-banner { margin-top: 0; }
 
-  /* Tabs van verticales en la barra lateral */
-  .tabs {
+  /* ── Sidebar (tabs-wrap) ── */
+  .tabs-wrap {
     grid-column: 1;
     grid-row: 2;
+    display: flex;
     flex-direction: column;
-    border-bottom: none;
+    background: var(--bg2);
     border-right: 0.5px solid var(--border);
+    overflow: hidden;
+  }
+  .tabs {
+    display: flex !important;   /* sobrescribir display:none del CSS mobile */
+    flex-direction: column;
+    flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 12px 0;
-    background: var(--bg2);
-    width: 260px;
+    padding: 8px 0 20px;
   }
+  .tabs::-webkit-scrollbar { width: 3px; }
+  .tabs::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 10px; }
+
+  /* Logo en sidebar */
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px 16px;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 6px;
+  }
+  .sidebar-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gold2);
+    letter-spacing: 0.3px;
+  }
+
+  /* Separadores de sección */
+  .sidebar-section-lbl {
+    display: block;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    color: var(--text3);
+    padding: 12px 16px 4px;
+    text-transform: uppercase;
+  }
+
+  /* Cada botón de nav */
   .tab {
-    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px;
     text-align: left;
     font-size: 13px;
-    border-bottom: none;
+    font-weight: 400;
+    border: none;
     border-left: 2.5px solid transparent;
     border-radius: 0;
     width: 100%;
-    justify-content: flex-start;
+    background: none;
+    color: var(--text2);
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+    white-space: nowrap;
+    overflow: hidden;
   }
+  .tab:hover { background: rgba(201,168,76,0.05); color: var(--text); }
   .tab.active {
     border-left-color: var(--gold);
-    border-bottom: none;
-    background: rgba(201,168,76,0.08);
+    background: rgba(201,168,76,0.1);
     color: var(--gold2);
+    font-weight: 500;
   }
   .tab.active::after { display: none; }
+  .tab-icon { font-size: 16px; flex-shrink: 0; line-height: 1; }
+  .tab-lbl { font-size: 13px; }
 
-  /* Contenido principal a la derecha */
+  /* ── Área de contenido ── */
   .content {
     grid-column: 2;
     grid-row: 2;
@@ -454,28 +495,12 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
     padding: 24px 32px;
     height: 100%;
   }
+  .content::-webkit-scrollbar { width: 5px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 10px; }
+  .content::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.4); }
 
-  /* Grillas más amplias */
-  .g-cards { grid-template-columns: repeat(4, 1fr); gap: 12px; }
-  .stat-mini-grid, .stat-grid { grid-template-columns: repeat(4, 1fr); }
-  .form-row { grid-template-columns: 1fr 1fr 1fr; }
-
-  /* Cards más anchas */
-  .venta-card { border-radius: 12px; margin-bottom: 10px; }
-  .modal-overlay { align-items: center; }
-  .modal-box { max-width: 560px; border-radius: 16px; }
-  .modal-box.modal-box-lg { max-width: 720px; }
-
-  /* Tipografía más grande */
-  .brand-title { font-size: 22px; }
-  .brand-sub { font-size: 11px; }
-  .tab { font-size: 13px; }
-  .section-title { font-size: 12px; }
-  .btn-primary { font-size: 14px; padding: 13px; }
-  .form-group input, .form-group select { font-size: 14px; }
-
-  /* Ventas en desktop — ancho completo, cards en 2 cols dentro del mes */
-  #ventas-list { display: block; }
+  /* ── Cards de ventas en 2 cols ── */
   .ventas-mes-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -497,35 +522,38 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
   }
   #gastos-list .gastos-resumen-cat { grid-column: 1 / -1; }
 
-  /* Stock en 3 columnas */
+  /* ── Grillas más amplias ── */
+  .g-cards { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stat-mini-grid, .stat-grid { grid-template-columns: repeat(4, 1fr); }
+  .form-row { grid-template-columns: 1fr 1fr 1fr; }
+
+  /* ── Stock / catálogo ── */
   #perfume-list { grid-template-columns: repeat(3, 1fr); gap: 12px; }
   #catalogo-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
 
-  /* Scrollbar elegante */
-  .content::-webkit-scrollbar { width: 5px; }
-  .content::-webkit-scrollbar-track { background: transparent; }
-  .content::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 10px; }
-  .content::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.4); }
-  .tabs::-webkit-scrollbar { width: 3px; }
-  .tabs::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.15); border-radius: 10px; }
+  /* ── Modales centrados ── */
+  .venta-card { border-radius: 10px; }
+  .modal-overlay { align-items: center; }
+  .modal-box { max-width: 560px; border-radius: 16px; }
+  .modal-box.modal-box-lg { max-width: 720px; }
 
-  /* Header icons más grandes */
-  .icon-btn { width: 36px; height: 36px; font-size: 17px; }
-  .header-icons { gap: 8px; }
+  /* ── Tipografía ── */
+  .section-title { font-size: 12px; }
+  .btn-primary { font-size: 14px; padding: 13px; }
+  .form-group input, .form-group select { font-size: 14px; }
 
-  /* Daily banner en desktop */
-  #daily-banner { font-size: 13px; padding: 8px 16px; }
-  #meta-strip { gap: 24px; }
-
-  /* Toast en esquina */
+  /* ── Toast en esquina ── */
   .toast { bottom: 24px; right: 24px; left: auto; transform: none; }
   .toast.show { transform: none; opacity: 1; }
+
+  /* ── Daily banner / meta strip ── */
+  #daily-banner { font-size: 13px; padding: 8px 16px; }
+  #meta-strip { gap: 24px; }
 }
 
 /* ── DESKTOP ANCHO (1200px+) ── */
 @media (min-width: 1200px) {
-  .app { grid-template-columns: 280px 1fr; }
-  .tabs { width: 280px; }
+  .app { grid-template-columns: 260px 1fr; }
   .g-cards { grid-template-columns: repeat(5, 1fr); }
   #perfume-list { grid-template-columns: repeat(4, 1fr); }
   #catalogo-grid { grid-template-columns: repeat(5, 1fr); }
@@ -533,6 +561,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
   #cuotas-pendientes-list { grid-template-columns: 1fr 1fr 1fr; }
   #gastos-list { grid-template-columns: 1fr 1fr 1fr; }
   .content { padding: 28px 40px; }
+}
+
+/* ── DESKTOP ULTRA ANCHO (1600px+) ── */
+@media (min-width: 1600px) {
+  .app { grid-template-columns: 280px 1fr; }
+  .ventas-mes-grid { grid-template-columns: repeat(4, 1fr); }
+  .content { padding: 32px 48px; max-width: none; }
 }
 
 /* ── IPHONE ESPECÍFICO (Safari) ── */
@@ -759,21 +794,30 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
     </div>
   </div>
 
-  <!-- tabs originales ocultos — necesarios para el sistema showTab() -->
+  <!-- sidebar de navegación — visible en desktop, oculto en mobile (usa bottom nav) -->
   <div class="tabs-wrap">
-<div class="tabs" style="display:none">
-    <button class="tab active" id="tabbtn-ventas" onclick="showTab('ventas')">Ventas</button>
-    <button class="tab" id="tabbtn-cuotas" onclick="showTab('cuotas')">Cuotas</button>
-    <button class="tab" id="tabbtn-gastos" onclick="showTab('gastos')">Gastos</button>
-    <button class="tab" id="tabbtn-ganancias" onclick="showTab('ganancias')">Gráficos</button>
-    <button class="tab" id="tabbtn-caja" onclick="showTab('caja')">Caja</button>
-    <button class="tab" id="tabbtn-catalogo" onclick="showTab('catalogo')">Catálogo</button>
-    <button class="tab" id="tabbtn-stock" onclick="showTab('stock')">Stock</button>
-    <button class="tab" id="tabbtn-importar" onclick="showTab('importar')">Importar</button>
-    <button class="tab" id="tabbtn-add" onclick="showTab('add')">Nueva</button>
-    <button class="tab" id="tabbtn-ajustes" onclick="showTab('ajustes')">Ajustes</button>
+    <div class="tabs">
+      <div class="sidebar-logo">
+        <span style="font-size:22px;">🌿</span>
+        <span class="sidebar-brand">Parfum Track</span>
+      </div>
+      <div class="sidebar-section-lbl">NAVEGACIÓN</div>
+      <button class="tab active" id="tabbtn-ventas" onclick="showTab('ventas')"><span class="tab-icon">🛍️</span><span class="tab-lbl">Ventas</span></button>
+      <button class="tab" id="tabbtn-cuotas" onclick="showTab('cuotas')"><span class="tab-icon">📋</span><span class="tab-lbl">Cuotas</span></button>
+      <button class="tab" id="tabbtn-clientes" onclick="showTab('clientes')"><span class="tab-icon">👥</span><span class="tab-lbl">Clientes</span></button>
+      <div class="sidebar-section-lbl">FINANZAS</div>
+      <button class="tab" id="tabbtn-gastos" onclick="showTab('gastos')"><span class="tab-icon">💸</span><span class="tab-lbl">Gastos</span></button>
+      <button class="tab" id="tabbtn-ganancias" onclick="showTab('ganancias')"><span class="tab-icon">📊</span><span class="tab-lbl">Gráficos</span></button>
+      <button class="tab" id="tabbtn-caja" onclick="showTab('caja')"><span class="tab-icon">💵</span><span class="tab-lbl">Caja</span></button>
+      <div class="sidebar-section-lbl">INVENTARIO</div>
+      <button class="tab" id="tabbtn-catalogo" onclick="showTab('catalogo')"><span class="tab-icon">🗂️</span><span class="tab-lbl">Catálogo</span></button>
+      <button class="tab" id="tabbtn-stock" onclick="showTab('stock')"><span class="tab-icon">📦</span><span class="tab-lbl">Stock</span></button>
+      <button class="tab" id="tabbtn-importar" onclick="showTab('importar')"><span class="tab-icon">⬆️</span><span class="tab-lbl">Importar</span></button>
+      <div class="sidebar-section-lbl">SISTEMA</div>
+      <button class="tab" id="tabbtn-add" onclick="showTab('add')"><span class="tab-icon">➕</span><span class="tab-lbl">Nueva venta</span></button>
+      <button class="tab" id="tabbtn-ajustes" onclick="showTab('ajustes')"><span class="tab-icon">⚙️</span><span class="tab-lbl">Ajustes</span></button>
+    </div>
   </div>
-</div>
 
   <div class="content">
 
@@ -1517,7 +1561,7 @@ function renderComprasPeriodo(){
   +compras.map(c=>`<div class="venta-card"><div class="vc-header"><div class="vc-name" style="font-size:14px">${c.desc.replace('📦 Compra stock: ','')}</div><div class="vc-meta"><div class="vc-date">📅 ${c.fecha}</div></div></div><div class="vc-body"><div class="vc-row"><span>Invertido</span><span style="color:var(--danger)">${fmt(c.monto)}</span></div></div></div>`).join('');
 }
 
-function showTab(t){const tabs=['ventas','cuotas','gastos','ganancias','caja','catalogo','stock','importar','add','ajustes','clientes'];document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',tabs[i]===t));document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));const tabEl=document.getElementById('tab-'+t);if(tabEl)tabEl.classList.add('active');if(t==='ventas'){renderMesFilter('mes-filter-ventas','ventas');renderVentas();}if(t==='cuotas')renderCuotasPendientes();if(t==='gastos'){renderMesFilter('mes-filter-gastos','gastos');renderGastos();initFecha('g-fecha');fillSuggestionsGasto();}if(t==='ganancias'){renderMesFilter('mes-filter-gan','ganancias');renderGanancias();fillComparadores();renderMetaBar();}if(t==='caja'){renderMesFilter('mes-filter-caja','caja');renderCaja();initFecha('caja-fecha');}if(t==='catalogo')renderCatalogo();if(t==='stock')renderStock();if(t==='add')fillSuggestions();if(t==='stock')fillStockSuggestions();if(t==='ajustes')renderAjustes();if(t==='clientes')renderClientes();updateStats();}
+function showTab(t){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));const activeTabBtn=document.getElementById('tabbtn-'+t);if(activeTabBtn)activeTabBtn.classList.add('active');document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));const tabEl=document.getElementById('tab-'+t);if(tabEl)tabEl.classList.add('active');if(t==='ventas'){renderMesFilter('mes-filter-ventas','ventas');renderVentas();}if(t==='cuotas')renderCuotasPendientes();if(t==='gastos'){renderMesFilter('mes-filter-gastos','gastos');renderGastos();initFecha('g-fecha');fillSuggestionsGasto();}if(t==='ganancias'){renderMesFilter('mes-filter-gan','ganancias');renderGanancias();fillComparadores();renderMetaBar();}if(t==='caja'){renderMesFilter('mes-filter-caja','caja');renderCaja();initFecha('caja-fecha');}if(t==='catalogo')renderCatalogo();if(t==='stock')renderStock();if(t==='add')fillSuggestions();if(t==='stock')fillStockSuggestions();if(t==='ajustes')renderAjustes();if(t==='clientes')renderClientes();updateStats();}
 function renderMesFilter(cId,tab){const meses=tab==='gastos'?mesesDeGastos():tab==='caja'?mesesDeCaja():mesesDeVentas();const active=tab==='ventas'?activeMesVentas:tab==='gastos'?activeMesGastos:tab==='caja'?activeMesCaja:activeMesGan;const el=document.getElementById(cId);if(!meses.length){el.innerHTML='';return;}el.innerHTML=[`<button class="mes-chip ${active==='todos'?'active':''}" onclick="setMes('todos','${tab}')">Todos</button>`,...meses.map(m=>`<button class="mes-chip ${active===m?'active':''}" onclick="setMes('${m}','${tab}')">${mesLabel(m)}</button>`)].join('');}
 function setMes(mes,tab){if(tab==='ventas'){activeMesVentas=mes;renderMesFilter('mes-filter-ventas','ventas');renderVentas();}else if(tab==='gastos'){activeMesGastos=mes;renderMesFilter('mes-filter-gastos','gastos');renderGastos();}else if(tab==='caja'){activeMesCaja=mes;renderMesFilter('mes-filter-caja','caja');renderCaja();}else{activeMesGan=mes;renderMesFilter('mes-filter-gan','ganancias');renderGanancias();renderMetaBar();}}
 function setFiltroEstado(estado){filtroEstado=estado;['todas','hoy','pendiente','completada'].forEach(e=>document.getElementById('fchip-'+e)?.classList.toggle('active',e===estado));renderVentas();actualizarBtnLimpiarFiltros();}
