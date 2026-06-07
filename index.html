@@ -1521,7 +1521,7 @@ function showTab(t){const tabs=['ventas','cuotas','gastos','ganancias','caja','c
 function renderMesFilter(cId,tab){const meses=tab==='gastos'?mesesDeGastos():tab==='caja'?mesesDeCaja():mesesDeVentas();const active=tab==='ventas'?activeMesVentas:tab==='gastos'?activeMesGastos:tab==='caja'?activeMesCaja:activeMesGan;const el=document.getElementById(cId);if(!meses.length){el.innerHTML='';return;}el.innerHTML=[`<button class="mes-chip ${active==='todos'?'active':''}" onclick="setMes('todos','${tab}')">Todos</button>`,...meses.map(m=>`<button class="mes-chip ${active===m?'active':''}" onclick="setMes('${m}','${tab}')">${mesLabel(m)}</button>`)].join('');}
 function setMes(mes,tab){if(tab==='ventas'){activeMesVentas=mes;renderMesFilter('mes-filter-ventas','ventas');renderVentas();}else if(tab==='gastos'){activeMesGastos=mes;renderMesFilter('mes-filter-gastos','gastos');renderGastos();}else if(tab==='caja'){activeMesCaja=mes;renderMesFilter('mes-filter-caja','caja');renderCaja();}else{activeMesGan=mes;renderMesFilter('mes-filter-gan','ganancias');renderGanancias();renderMetaBar();}}
 function setFiltroEstado(estado){filtroEstado=estado;['todas','hoy','pendiente','completada'].forEach(e=>document.getElementById('fchip-'+e)?.classList.toggle('active',e===estado));renderVentas();actualizarBtnLimpiarFiltros();}
-function limpiarFiltrosVentas(){document.getElementById('search-ventas').value='';setFiltroEstado('todas');activeMesVentas=null;renderMesFilter('mes-filter-ventas','ventas');renderVentas();actualizarBtnLimpiarFiltros();}
+function limpiarFiltrosVentas(){document.getElementById('search-ventas').value='';setFiltroEstado('todas');activeMesVentas='todos';renderMesFilter('mes-filter-ventas','ventas');renderVentas();actualizarBtnLimpiarFiltros();}
 
 function exportarVentasCSV(){
   if(!ventas.length){toast('⚠ No hay ventas para exportar');return;}
@@ -1646,7 +1646,7 @@ function verDetalleCliente(nombre) {
     </div>
     <div style="flex:1;background:var(--bg3);border-radius:8px;padding:10px;text-align:center">
       <div style="font-size:10px;color:var(--text3)">Deuda</div>
-      <div style="font-size:14px;font-weight:700;color:${totDebe>0?'var(--warn)':'var(--success)'}'">${totDebe>0?fmt(totDebe):'✓ Al día'}</div>
+      <div style="font-size:14px;font-weight:700;color:${totDebe>0?'var(--warn)':'var(--success)'}">${totDebe>0?fmt(totDebe):'✓ Al día'}</div>
     </div>
   </div>`;
   html += `<div style="font-size:12px;font-weight:600;color:var(--gold);margin-bottom:8px">HISTORIAL</div>`;
@@ -1937,7 +1937,6 @@ function renderMetaBar(){
   const lbl=document.getElementById('meta-label');
   const pct=document.getElementById('meta-progress-lbl');
   if(!el)return;
-  const mes=new Date().toLocaleDateString('es-AR',{month:'2-digit',year:'numeric'}).replace('/','//');
   const mesK=mesKey(hoy());
   const ganMes=ventas.filter(v=>mesKey(v.fecha)===mesK).reduce((s,v)=>s+(v.ganancia||0),0);
   if(!metaMensual){el.style.width='0%';if(lbl)lbl.textContent='Sin meta';if(pct)pct.textContent='';return;}
@@ -2035,14 +2034,13 @@ function agregarStock(){
   // Actualizar o crear perfume en stock
   let p=perfumes.find(x=>x.nombre.toLowerCase()===nombre.toLowerCase());
   if(!p){
-    p={nombre,precio,pVenta:pventa,stock:0,proveedor,foto:null,stockMin:3,historialPrecios:[{precio,fecha:hoy()}]};
+    p={nombre,precio,pVenta:pventa,stock:cantidad,proveedor,foto:null,stockMin:3,historialPrecios:[{precio,fecha:hoy()}]};
     perfumes.push(p);
   } else {
     if(precio!==p.precio){if(!p.historialPrecios)p.historialPrecios=[];p.historialPrecios.push({precio,fecha:hoy()});}
     p.precio=precio;if(pventa)p.pVenta=pventa;if(proveedor)p.proveedor=proveedor;
     p.stock=(p.stock||0)+cantidad;
   }
-  if(!p.stock&&p.stock!==0)p.stock=cantidad; // solo si es nuevo sin stock inicializado
   // Registrar salida en Caja con referencia al stock
   caja.unshift({
     id:Date.now(),
@@ -3195,11 +3193,11 @@ function renderAjustes() {
     const profiles = getProfiles();
     perfilesEl.innerHTML = profiles.map(p=>{
       const isActive = p.id === activeProfile;
-      const vCount = (() => { try{ return JSON.parse(localStorage.getItem(`vip_ventas_v2_${p.id}`)||'[]').length; }catch(e){ return 0; } })();
+      const vCount = isActive ? ventas.length : null;
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border:0.5px solid ${isActive?'var(--gold)':'var(--border)'};border-radius:var(--radius-sm);">
         <span style="font-size:20px;">${p.emoji||'👤'}</span>
         <div style="flex:1;"><div style="font-size:13px;font-weight:500;color:var(--text);">${p.name}${isActive?' <span style="font-size:10px;color:var(--gold2);">(activo)</span>':''}</div>
-        <div style="font-size:11px;color:var(--text3);">${vCount} ventas</div></div>
+        ${vCount!==null?`<div style="font-size:11px;color:var(--text3);">${vCount} ventas</div>`:''}</div>
         <button onclick="editarPerfil('${p.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;">✏️</button>
         ${!isActive?`<button onclick="eliminarPerfil('${p.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;">🗑</button>`:''}
       </div>`;
@@ -3461,16 +3459,12 @@ function showProfileScreen(){
   }
 
   list.innerHTML = profiles.map(p => {
-    const vCount = (() => {
-      try{ return JSON.parse(localStorage.getItem(`vip_ventas_v2_${p.id}`)||'[]').length; }catch(e){ return 0; }
-    })();
     const isActive = p.id === activeProfile;
     return `<div style="width:100%;max-width:340px;position:relative;">
       <button class="profile-btn ${isActive?'active-profile':''}" onclick="selectProfile('${p.id}')" style="width:100%;padding-right:44px;">
         <div class="profile-btn-icon">${p.emoji||'👤'}</div>
         <div style="flex:1;text-align:left;">
           <div class="profile-btn-name">${p.name}</div>
-          <div class="profile-btn-sub">${vCount} venta${vCount!==1?'s':''} registradas</div>
         </div>
       </button>
       <button onclick="editarPerfil('${p.id}')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;padding:6px;font-size:16px;line-height:1;">✏️</button>
@@ -4085,11 +4079,12 @@ var bottomNavMap = {
   ganancias: 'bn-ganancias',
 };
 
-// Sobrescribir showTab para actualizar el bottom nav
+// Sobrescribir showTab para actualizar el bottom nav y sync status
 var _origShowTab = showTab;
 showTab = function(t) {
   _origShowTab(t);
   updateBottomNav(t);
+  if (t === 'ajustes') updateSyncStatus();
 };
 
 function updateBottomNav(t) {
@@ -4275,14 +4270,7 @@ document.addEventListener('DOMContentLoaded', function() {
   checkBackupProactiveBanner();
 });
 
-// También actualizar pill cuando se accede a ajustes
-const _origShowTab2 = showTab;
-showTab = function(t) {
-  _origShowTab2(t);
-  if (t === 'ajustes') {
-    updateSyncStatus();
-  }
-};
+// (updateSyncStatus on ajustes is merged into the _origShowTab override above)
 </script>
 
 <!-- ═══════ MODAL PREVIEW CATÁLOGO ═══════ -->
