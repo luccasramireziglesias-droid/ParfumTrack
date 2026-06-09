@@ -3904,7 +3904,14 @@ function enterApp(){
   const badge = document.getElementById('profile-badge');
   if(badge && p) badge.textContent = (p.emoji||'🍶') + ' ' + (p.name.length > 8 ? p.name.slice(0,8)+'…' : p.name);
   document.title = (p ? p.name + ' · ' : '') + 'Parfum Track';
-  requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ showTab('ventas'); updateStats(); }); });
+  // Deep-link via URL param (e.g. PWA shortcuts: ?tab=add)
+  let _startTab = 'ventas';
+  try {
+    const _urlTab = new URLSearchParams(location.search).get('tab');
+    const _validTabs = ['ventas','add','cuotas','ganancias','stock','clientes','caja'];
+    if (_urlTab && _validTabs.includes(_urlTab)) _startTab = _urlTab;
+  } catch(e) {}
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ showTab(_startTab); updateStats(); }); });
 }
 
 function abrirCrearPerfil(){

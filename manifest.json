@@ -23,6 +23,29 @@
       "purpose": "any maskable"
     }
   ],
+  "shortcuts": [
+    {
+      "name": "Nueva venta",
+      "short_name": "Nueva",
+      "description": "Registrar una nueva venta rápidamente",
+      "url": "/?tab=add",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ver cuotas",
+      "short_name": "Cuotas",
+      "description": "Ver cuotas pendientes de cobro",
+      "url": "/?tab=cuotas",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mis ventas",
+      "short_name": "Ventas",
+      "description": "Ver el historial de ventas",
+      "url": "/?tab=ventas",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
   "screenshots": [],
   "categories": ["productivity", "finance", "business"]
 }
