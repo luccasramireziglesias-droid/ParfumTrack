@@ -1889,6 +1889,10 @@ function verDetalleCliente(nombre) {
       <div style="font-size:14px;font-weight:700;color:${totDebe>0?'var(--warn)':'var(--success)'}">${totDebe>0?fmt(totDebe):'✓ Al día'}</div>
     </div>
   </div>`;
+  if (totDebe > 0) {
+    const msgWA = encodeURIComponent(`Hola ${nombre}! 👋 Te recuerdo que tenés una deuda pendiente de ${fmt(totDebe)}. Cuando puedas, avisame para coordinar el pago. ¡Gracias! 🍶${_waFirma()}`);
+    html += `<button class="btn-wa" style="width:100%;margin-bottom:14px;justify-content:center" onclick="window.open('https://wa.me/?text=${msgWA}','_blank')">📲 Recordar cobro (${fmt(totDebe)})</button>`;
+  }
   html += `<div style="font-size:12px;font-weight:600;color:var(--gold);margin-bottom:8px">HISTORIAL</div>`;
   html += ventasCliente.map(v => {
     const debe = calcDebe(v);
