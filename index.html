@@ -179,6 +179,15 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
 .badge-dias{background:rgba(224,112,112,0.1);color:var(--danger);border:0.5px solid rgba(224,112,112,0.25);font-size:9px}
 .badge-dias.warn{background:rgba(224,176,96,0.1);color:var(--warn);border-color:rgba(224,176,96,0.3)}
 .badges-row{display:flex;gap:4px;flex-wrap:wrap;padding:0 12px 7px}
+/* ── SWIPE TO REVEAL ── */
+.swipe-wrap{position:relative;overflow:hidden;border-radius:var(--radius);margin-bottom:9px}
+.swipe-wrap .venta-card{margin-bottom:0;border-radius:0}
+.swipe-inner{will-change:transform;transition:transform .25s ease}
+.swipe-reveal{position:absolute;right:0;top:0;bottom:0;width:140px;display:flex;pointer-events:none;opacity:0;transition:opacity .2s}
+.swipe-wrap.swiped .swipe-reveal{pointer-events:auto;opacity:1}
+.sw-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:600;cursor:pointer;border:none;color:#fff}
+.sw-cobrar{background:#00bb6e}
+.sw-del{background:#e07070}
 .cuotas-panel{border-top:0.5px solid var(--border);background:var(--bg3)}
 .cuotas-panel-header{padding:8px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
 .cuotas-panel-header span{font-size:12px;color:var(--gold);font-weight:500}
@@ -1849,6 +1858,59 @@ let _ventasFiltradas = [];
 let _ventasRendered = 0;
 let _ventasObserver = null;
 
+function _initSwipeVentas(container) {
+  if (!container || container._swipeInit) return;
+  container._swipeInit = true;
+  const REVEAL_W = 140, THRESHOLD = 55;
+  let sx, sy, activeWrap = null, activeInner = null, axisLocked = false;
+
+  function _resetWrap(w, animate) {
+    if (!w) return;
+    const inner = w.querySelector('.swipe-inner');
+    if (inner) { if(animate)inner.style.transition='transform .25s ease'; inner.style.transform=''; }
+    w.classList.remove('swiped');
+  }
+  function _closeOthers(except) {
+    container.querySelectorAll('.swipe-wrap.swiped').forEach(w => { if(w!==except) _resetWrap(w, true); });
+  }
+
+  container.addEventListener('touchstart', e => {
+    const wrap = e.target.closest('.swipe-wrap');
+    _closeOthers(wrap); // close others but keep current open so its buttons are tappable
+    if (!wrap) return;
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    activeWrap = wrap; activeInner = wrap.querySelector('.swipe-inner');
+    axisLocked = false;
+  }, { passive: true });
+
+  container.addEventListener('touchmove', e => {
+    if (!activeInner) return;
+    const dx = e.touches[0].clientX - sx;
+    const dy = e.touches[0].clientY - sy;
+    if (!axisLocked) {
+      if (Math.abs(dy) > Math.abs(dx) + 4) { activeInner = null; return; } // scroll vertical
+      axisLocked = true;
+    }
+    const clamped = Math.max(-REVEAL_W, Math.min(0, dx));
+    activeInner.style.transition = 'none';
+    activeInner.style.transform = `translateX(${clamped}px)`;
+  }, { passive: true });
+
+  container.addEventListener('touchend', e => {
+    if (!activeInner || !activeWrap) return;
+    const dx = e.changedTouches[0].clientX - sx;
+    activeInner.style.transition = 'transform .25s ease';
+    if (dx < -THRESHOLD) {
+      activeInner.style.transform = `translateX(-${REVEAL_W}px)`;
+      activeWrap.classList.add('swiped');
+      haptic('light');
+    } else {
+      _resetWrap(activeWrap, true);
+    }
+    activeInner = null; activeWrap = null;
+  }, { passive: true });
+}
+
 function renderVentas(){
   const q=(document.getElementById('search-ventas').value||'').toLowerCase();
   let filtered=activeMesVentas==='todos'?ventas:ventas.filter(v=>mesKey(v.fecha)===activeMesVentas);
@@ -1866,6 +1928,7 @@ function renderVentas(){
   }
   el.innerHTML = '';
   _renderVentasLote(el);
+  _initSwipeVentas(el);
 }
 
 function _getVentasMesBloques(list) {
@@ -1944,7 +2007,7 @@ const _renderVentasD = debounce(()=>{renderVentas();actualizarBtnLimpiarFiltros(
 function renderVentaCard(v){const debe=calcDebe(v);const comp=ventaCompletada(v);const dias=diasDesdeUltimoPago(v);const badges=[];if(v.esCuotas){const totalC=v.cuotasTotal||1,pagadas=(v.cuotasPagos||[]).length;badges.push(`<span class="badge badge-cuota">📆 ${pagadas}/${totalC} cuotas</span>`);if(!comp){badges.push(`<span class="badge badge-debe">Debe ${fmt(debe)}</span>`);if(dias>=0)badges.push(`<span class="badge badge-dias ${dias>14?'':'warn'}">${dias===0?'Hoy':dias===1?'Ayer':`Hace ${dias}d`}</span>`);}else badges.push(`<span class="badge badge-ok">✅ Pagado</span>`);}if(v.descuento)badges.push(`<span class="badge" style="background:rgba(201,168,76,0.1);color:var(--gold);border:0.5px solid var(--border)">%${v.descuento} dto</span>`);if(v.vendedor)badges.push(`<span class="badge" style="background:var(--card2);color:var(--text2);border:0.5px solid var(--border)">${v.vendedor}</span>`);let cuotasPanel='';if(v.esCuotas){const pagos=v.cuotasPagos||[],totalC=v.cuotasTotal||2;let items='';for(let i=0;i<totalC;i++){const p=pagos[i];if(p){items+=`<div class="cuota-item"><div><div class="cuota-num">Cuota ${i+1}/${totalC}</div><div class="cuota-fecha">${p.fecha}</div></div><div style="text-align:right"><div class="cuota-monto cuota-ok">${fmt(p.monto)}</div><div style="font-size:10px;color:var(--success)">✓ Pagado</div></div></div>`;}else{const m=Math.ceil(debe/Math.max(1,totalC-pagos.length));items+=`<div class="cuota-item"><div><div class="cuota-num">Cuota ${i+1}/${totalC}</div><div class="cuota-fecha cuota-pend">Pendiente</div></div><div style="text-align:right"><div class="cuota-monto cuota-pend">~${fmt(m)}</div><button class="btn-pagar-cuota" onclick="abrirModalCuota(${v.id},${i})">Cobrar</button></div></div>`;}}for(let i=totalC;i<pagos.length;i++){const p=pagos[i];items+=`<div class="cuota-item"><div><div class="cuota-num">Pago extra</div><div class="cuota-fecha">${p.fecha}</div></div><div class="cuota-monto cuota-ok">${fmt(p.monto)}</div></div>`;}cuotasPanel=`<div class="cuotas-panel"><div class="cuotas-panel-header" onclick="toggleCuotasPanel(${v.id})"><span>📆 Ver cuotas y pagos</span><span id="caret-${v.id}" style="color:var(--text3);font-size:12px">▼</span></div><div class="cuotas-panel-body" id="cpanel-${v.id}">${items}${!comp?`<div class="add-cuota-form"><input type="number" id="extra-monto-${v.id}" placeholder="Monto pago extra" inputmode="numeric"><button class="btn-add-cuota" onclick="registrarPagoExtra(${v.id})">+ Pago</button></div>`:''}</div></div>`;}
 // botón WhatsApp cobro
 const waBtn=v.esCuotas&&!comp?`<button class="btn-wa" onclick="whatsappCobro(${v.id})">📲 WhatsApp cobro</button>`:'';
-return `<div class="venta-card ${v.esCuotas?(comp?'completada':'pendiente'):''}"><div class="vc-header"><div class="vc-name">${v.nVenta?`<span style="font-size:11px;color:var(--text3)">#${v.nVenta} · </span>`:''}${escapeHTML(v.perfume)}</div><div class="vc-meta"><div class="vc-date">📅 ${escapeHTML(v.fecha)}</div><div style="display:flex;gap:5px"><button class="btn-icon" onclick="abrirModalPago(${v.id})" title="Cobrar" style="color:#00bb6e;border-color:rgba(0,187,110,.3)">💳</button><button class="btn-icon" onclick="whatsappComprobante(${v.id})" title="Enviar comprobante WA">📲</button><button class="btn-icon" onclick="abrirModalPDF(${v.id})" title="Recibo PDF">🧾</button><button class="btn-icon" onclick="abrirEditarVenta(${v.id})" title="Editar venta" style="color:var(--gold);border-color:rgba(201,168,76,.3)">✏️</button><button class="btn-icon" onclick="openDeleteModal(${v.id})">🗑</button></div></div></div>${badges.length?`<div class="badges-row">${badges.join('')}</div>`:''}<div class="vc-body"><div class="vc-row"><span>Precio venta</span><span>${fmt(v.precioVenta)}</span></div><div class="vc-row"><span>Precio compra</span><span>${fmt(v.precioCompra)}</span></div><div class="vc-row"><span>Ganancia</span><span class="${(v.ganancia||0)>=0?'pos':'neg'}">${fmt(v.ganancia)}</span></div>${v.esCuotas?`<div class="vc-row"><span>Total cobrado</span><span class="pos">${fmt((v.cuotasPagos||[]).reduce((s,p)=>s+p.monto,0))}</span></div>`:''}${v.proveedor?`<div class="vc-row"><span>Proveedor</span><span>${escapeHTML(v.proveedor)}</span></div>`:''}${v.cliente?`<div class="vc-row"><span>Cliente</span><span>${escapeHTML(v.cliente)}</span></div>`:''}</div>${v.nota?`<div class="vc-nota">💬 ${escapeHTML(v.nota)}</div>`:''}${cuotasPanel}${waBtn?`<div style="padding:8px 11px;border-top:0.5px solid var(--border)">${waBtn}</div>`:''}</div>`;}
+return `<div class="swipe-wrap"><div class="swipe-reveal"><button class="sw-btn sw-cobrar" onclick="abrirModalPago(${v.id})">💳<span>Cobrar</span></button><button class="sw-btn sw-del" onclick="openDeleteModal(${v.id})">🗑<span>Borrar</span></button></div><div class="swipe-inner"><div class="venta-card ${v.esCuotas?(comp?'completada':'pendiente'):''}"><div class="vc-header"><div class="vc-name">${v.nVenta?`<span style="font-size:11px;color:var(--text3)">#${v.nVenta} · </span>`:''}${escapeHTML(v.perfume)}</div><div class="vc-meta"><div class="vc-date">📅 ${escapeHTML(v.fecha)}</div><div style="display:flex;gap:5px"><button class="btn-icon" onclick="abrirModalPago(${v.id})" title="Cobrar" style="color:#00bb6e;border-color:rgba(0,187,110,.3)">💳</button><button class="btn-icon" onclick="whatsappComprobante(${v.id})" title="Enviar comprobante WA">📲</button><button class="btn-icon" onclick="abrirModalPDF(${v.id})" title="Recibo PDF">🧾</button><button class="btn-icon" onclick="abrirEditarVenta(${v.id})" title="Editar venta" style="color:var(--gold);border-color:rgba(201,168,76,.3)">✏️</button><button class="btn-icon" onclick="openDeleteModal(${v.id})">🗑</button></div></div></div>${badges.length?`<div class="badges-row">${badges.join('')}</div>`:''}<div class="vc-body"><div class="vc-row"><span>Precio venta</span><span>${fmt(v.precioVenta)}</span></div><div class="vc-row"><span>Precio compra</span><span>${fmt(v.precioCompra)}</span></div><div class="vc-row"><span>Ganancia</span><span class="${(v.ganancia||0)>=0?'pos':'neg'}">${fmt(v.ganancia)}</span></div>${v.esCuotas?`<div class="vc-row"><span>Total cobrado</span><span class="pos">${fmt((v.cuotasPagos||[]).reduce((s,p)=>s+p.monto,0))}</span></div>`:''}${v.proveedor?`<div class="vc-row"><span>Proveedor</span><span>${escapeHTML(v.proveedor)}</span></div>`:''}${v.cliente?`<div class="vc-row"><span>Cliente</span><span>${escapeHTML(v.cliente)}</span></div>`:''}</div>${v.nota?`<div class="vc-nota">💬 ${escapeHTML(v.nota)}</div>`:''}${cuotasPanel}${waBtn?`<div style="padding:8px 11px;border-top:0.5px solid var(--border)">${waBtn}</div>`:''}</div></div></div>`;}
 // ── WHATSAPP ──────────────────────────────────────────────────
 function whatsappComprobante(id){const v=ventas.find(x=>x.id===id);if(!v)return;const debe=calcDebe(v);const pagado=(v.cuotasPagos||[]).reduce((s,p)=>s+p.monto,0);const perfil=getProfileName(activeProfile)||'Parfum Track';let msg=`🍶 *${perfil}* — Comprobante de venta\n\n`;msg+=`*Perfume:* ${v.perfume}\n`;msg+=`*Fecha:* ${v.fecha}\n`;msg+=`*Precio:* ${fmt(v.precioVenta)}\n`;if(v.esCuotas){msg+=`*Cuotas:* ${(v.cuotasPagos||[]).length}/${v.cuotasTotal}\n`;msg+=`*Cobrado:* ${fmt(pagado)}\n`;if(debe>0)msg+=`*Saldo pendiente:* ${fmt(debe)}\n`;}if(v.cliente)msg+=`\n_Para: ${v.cliente}_`;msg+=`\n\n_${perfil}_ 🍶`;const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;window.open(url,'_blank');}
 function whatsappCobro(id){const v=ventas.find(x=>x.id===id);if(!v)return;const debe=calcDebe(v);const pagadas=(v.cuotasPagos||[]).length;const total=v.cuotasTotal||2;let msg=`Hola${v.cliente?' '+v.cliente:''}! 👋\n\nTe recuerdo que tenés una cuota pendiente de tu perfume *${v.perfume}*:\n\n`;msg+=`📆 Cuota ${pagadas+1} de ${total}\n`;msg+=`💰 Monto: ${fmt(Math.ceil(debe/(total-pagadas)))}\n`;msg+=`📊 Total adeudado: ${fmt(debe)}\n\n`;msg+=`_${getProfileName(activeProfile)||'Parfum Track'}_ 🍶`;window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');}
