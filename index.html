@@ -1637,6 +1637,39 @@ function trackEvent(name, props){
   } catch(e) {}
 }
 
+// ── Email helper ───────────────────────────────────────────────
+// Envía emails de trial vía /send-email (Brevo). Silencioso si falla.
+// Solo se envía una vez por tipo usando localStorage como dedup.
+function sendTrialEmail(template, extraData = {}) {
+  const dedupKey = 'pt_email_sent_' + template;
+  if (localStorage.getItem(dedupKey)) return; // ya enviado
+  const email = localStorage.getItem('pt_user_email') || localStorage.getItem('pt_backup_email');
+  if (!email || !email.includes('@')) return; // sin email registrado
+  const name = (getActiveProfile()?.name || email.split('@')[0]).split(' ')[0];
+  const waNum = getWANumber();
+  const waUrl = waNum ? `https://wa.me/${waNum}?text=${encodeURIComponent('Hola! Quiero activar mi licencia de Parfum Track 🌸')}` : null;
+  const data = {
+    name,
+    appUrl: window.location.origin || 'https://parfumtrack.pages.dev',
+    ...(waUrl ? { waUrl } : {}),
+    ...extraData,
+  };
+  // Fire-and-forget — no bloqueamos la UI
+  fetch('/send-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to: email, toName: name, template, data }),
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.ok) {
+      localStorage.setItem(dedupKey, Date.now().toString());
+      console.log('[email] Sent:', template);
+    }
+  })
+  .catch(() => {}); // silencioso
+}
+
 function toast(msg,ms=2800,type=''){
   const el=document.getElementById('toast');
   el.classList.remove('has-undo','t-success','t-error','t-warning','t-info');
@@ -3033,16 +3066,25 @@ function checkTrial() {
     }
     trackEvent('trial_iniciado');
     setTimeout(() => mostrarBienvenidaTrial(), 1200);
+    // Email de bienvenida (fire-and-forget, deduplicado)
+    setTimeout(() => sendTrialEmail('trial_welcome'), 3000);
     return;
   }
 
   const msLeft = getTrialTimeLeft(trialStart);
+  const daysLeft = Math.ceil(msLeft / 86400000);
 
   if (msLeft <= 0) {
     window._trialLimitado = true;
     const restantes = getTrialVentasRestantes();
     mostrarBannerTrialVencido(restantes);
+    // Email de trial vencido (una sola vez)
+    setTimeout(() => sendTrialEmail('trial_expired'), 2000);
   } else {
+    // Email de recordatorio cuando quedan ≤ 2 días (una sola vez)
+    if (daysLeft <= 2) {
+      setTimeout(() => sendTrialEmail('trial_reminder', { daysLeft, ventas: ventas.length }), 2000);
+    }
     mostrarBannerTrial(formatTrialTimeLeft(msLeft));
     // Si estamos en modo minutos, actualizar el banner cada segundo
     if (LICENSE.trialMinutes) {

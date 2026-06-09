@@ -5,6 +5,9 @@
 
 import { onRequestPost as sendNotification } from './functions/send-notification.js';
 import { onRequestPost as validateLicense } from './functions/validate-license.js';
+import { onRequestPost as sendEmail } from './functions/send-email.js';
+
+const API_ROUTES = ['/send-notification', '/validate-license', '/send-email'];
 
 export default {
   async fetch(request, env, ctx) {
@@ -12,7 +15,7 @@ export default {
     const path = url.pathname;
 
     // Rutas de API
-    if (path === '/send-notification' || path === '/validate-license') {
+    if (API_ROUTES.includes(path)) {
       const context = { request, env, ctx };
 
       if (request.method === 'OPTIONS') {
@@ -32,7 +35,8 @@ export default {
       }
 
       if (path === '/send-notification') return sendNotification(context);
-      if (path === '/validate-license') return validateLicense(context);
+      if (path === '/validate-license')  return validateLicense(context);
+      if (path === '/send-email')        return sendEmail(context);
     }
 
     // Todo lo demás → servir assets estáticos (index.html, sw.js, etc.)
