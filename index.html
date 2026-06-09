@@ -2907,9 +2907,8 @@ async function activarLicencia() {
   if (btn) { btn.disabled = false; btn.textContent = '🔑 Activar'; }
 
   if (valid && serverToken) {
-    {
-      localStorage.setItem('pt_activated_code', serverToken);
-      localStorage.setItem('pt_activation_mode', 'server');
+    localStorage.setItem('pt_activated_code', serverToken);
+    localStorage.setItem('pt_activation_mode', 'server');
     localStorage.setItem('pt_activated_at', Date.now().toString());
     const banner = document.getElementById('trial-banner');
     if (banner) banner.remove();
