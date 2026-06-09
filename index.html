@@ -4637,6 +4637,15 @@ if (_origSave) {
 setTimeout(updateCuotasBadge, 800);
 
 // ── Atajos de teclado globales (solo desktop, sin input activo) ──
+// Resize: actualiza el panel lateral de ventas al cambiar a vista desktop
+(function(){
+  let _rsTimer;
+  window.addEventListener('resize', function(){
+    clearTimeout(_rsTimer);
+    _rsTimer = setTimeout(function(){ if(typeof updateVentasQuickPanel==='function') updateVentasQuickPanel(); }, 200);
+  });
+})();
+
 document.addEventListener('keydown', function(e) {
   // No activar si hay un input/textarea/select enfocado o si hay modal abierta
   const tag = document.activeElement && document.activeElement.tagName;
