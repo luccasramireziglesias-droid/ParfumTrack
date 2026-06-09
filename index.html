@@ -2852,30 +2852,8 @@ const LICENSE = {
 
 // ══════════════════════════════════════════════
 // SISTEMA DE ACTIVACIÓN POR CÓDIGO
-// ══════════════════════════════════════════════
-
-// Genera el hash simple de un código candidato para validación local
-// ══════════════════════════════════════════════════════════════
-// SISTEMA DE LICENCIAS — HMAC-SHA256 (Web Crypto API)
-// Los códigos en texto plano NUNCA aparecen en el fuente.
-// Solo se almacenan sus HMAC-SHA256. Nadie puede revertirlos.
-//
-// ¿Cómo generar el hash de un código nuevo para agregar acá?
-//   1. Abrí la consola del navegador (F12) en CUALQUIER página
-//   2. Pegá esto (reemplazando el código y la clave):
-//
-//   (async()=>{
-//     const key = await crypto.subtle.importKey(
-//       'raw', new TextEncoder().encode('PT_LICENSE_SECRET_K3Y_2026'),
-//       {name:'HMAC',hash:'SHA-256'}, false, ['sign']
-//     );
-//     const sig = await crypto.subtle.sign('HMAC', key,
-//       new TextEncoder().encode('PT-XXXX-YYYY')
-//     );
-//     console.log([...new Uint8Array(sig)].map(b=>b.toString(16).padStart(2,'0')).join(''));
-//   })();
-//
-//   3. Copiá el resultado (64 chars hex) y agregalo a VALID_CODE_HMACS abajo.
+// Validación 100% server-side vía Cloudflare Worker /validate-license
+// Los códigos y su validación se gestionan en el servidor.
 // ══════════════════════════════════════════════════════════════
 
 // ── Número de WhatsApp del negocio (con código de país, sin + ni espacios) ──
@@ -2886,35 +2864,8 @@ function getWANumber(){
   return null;
 }
 
-// Clave interna de HMAC — no es el código de activación, es la sal criptográfica.
-// Podés cambiarla en una nueva versión; los hashes viejos dejarán de funcionar.
-const _LK = 'PT_LICENSE_SECRET_K3Y_2026';
-
-// Tabla de HMAC-SHA256 de cada código válido emitido.
-// Agregar una línea por cada cliente nuevo.
-// Los códigos originales (PT-XXXX-YYYY) NUNCA aparecen acá.
-const VALID_CODE_HMACS = [
-  'a965f90ba8f0efcb4788a3860767b938f0d45f7103604e051ae7ed382164ed8b',
-  '398e625634016797a130c4ea1144399aec8aa736542fcddacb4bf88a9adb5970',
-  'dbdc9e45c615e623045b598a2b3e43c635eef6c515522abaddd831ad04dbb334', // PT-LUCCAS-2026
-];
-
-// Computa HMAC-SHA256 del código ingresado y lo compara contra la tabla
-async function isValidActivationCode(code) {
-  try {
-    const enc = new TextEncoder();
-    const keyMaterial = await crypto.subtle.importKey(
-      'raw', enc.encode(_LK),
-      { name: 'HMAC', hash: 'SHA-256' },
-      false, ['sign']
-    );
-    const sig = await crypto.subtle.sign('HMAC', keyMaterial, enc.encode(code));
-    const hex = [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2,'0')).join('');
-    return VALID_CODE_HMACS.includes(hex);
-  } catch(e) {
-    return false;
-  }
-}
+// Token format: 64-char lowercase hex, emitted by the Cloudflare Worker
+// after server-side HMAC verification. Never stored in client code.
 
 async function activarLicencia() {
   const input = document.getElementById('activation-code-input');
@@ -2941,29 +2892,24 @@ async function activarLicencia() {
       valid = data.valid === true;
       if (valid) serverToken = data.token || null;
     } else {
-      // Servidor con error (500, etc.) → fallback a HMAC client-side
-      valid = await isValidActivationCode(code);
+      // Error 5xx del servidor — mostrar error
+      if (btn) { btn.disabled = false; btn.textContent = '🔑 Activar'; }
+      toast('⚠ Error al contactar el servidor. Intentá de nuevo.', 3500, 'warning');
+      return;
     }
   } catch(e) {
-    // Sin internet o función no disponible → fallback a HMAC client-side
-    valid = await isValidActivationCode(code);
+    // Sin internet — mostrar mensaje apropiado
+    if (btn) { btn.disabled = false; btn.textContent = '🔑 Activar'; }
+    toast('📶 Se requiere conexión para activar. Revisá tu internet.', 3500, 'warning');
+    return;
   }
 
   if (btn) { btn.disabled = false; btn.textContent = '🔑 Activar'; }
 
-  if (valid) {
-    // Guardar token del servidor (si existe) o HMAC local como prueba de activación
-    if (serverToken) {
+  if (valid && serverToken) {
+    {
       localStorage.setItem('pt_activated_code', serverToken);
       localStorage.setItem('pt_activation_mode', 'server');
-    } else {
-      const enc2 = new TextEncoder();
-      const km2 = await crypto.subtle.importKey('raw', enc2.encode(_LK), {name:'HMAC',hash:'SHA-256'}, false, ['sign']);
-      const sig2 = await crypto.subtle.sign('HMAC', km2, enc2.encode(code));
-      const hmacHex = [...new Uint8Array(sig2)].map(b=>b.toString(16).padStart(2,'0')).join('');
-      localStorage.setItem('pt_activated_code', hmacHex);
-      localStorage.setItem('pt_activation_mode', 'offline');
-    }
     localStorage.setItem('pt_activated_at', Date.now().toString());
     const banner = document.getElementById('trial-banner');
     if (banner) banner.remove();
@@ -2971,7 +2917,7 @@ async function activarLicencia() {
     closeModal('modal-activacion');
     window._trialLimitado = false;
     toast('🎉 ¡Licencia activada! Parfum Track está completamente desbloqueado.', 4000);
-    trackEvent('licencia_activada', { mode: serverToken ? 'server' : 'offline' });
+    trackEvent('licencia_activada', { mode: 'server' });
     renderAjustes();
   } else {
     shakeInput(input);
@@ -3029,10 +2975,10 @@ function abrirModalActivacion() {
 function isActivated() {
   const mode = localStorage.getItem('pt_activation_mode');
   const stored = localStorage.getItem('pt_activated_code') || '';
-  // Server-activated users store a server token (not a HMAC) — only check it's non-empty
-  if (mode === 'server') return stored.length > 0;
-  // Offline activation: verify HMAC is in the valid list
-  return stored.length === 64 && /^[0-9a-f]+$/.test(stored) && VALID_CODE_HMACS.includes(stored);
+  // Server token must be exactly 64 lowercase hex chars (format emitted by /validate-license)
+  if (mode === 'server') return /^[0-9a-f]{64}$/.test(stored);
+  // Legacy offline activations are no longer accepted — must re-activate via server
+  return false;
 }
 
 // ══════════════════════════════════════════════

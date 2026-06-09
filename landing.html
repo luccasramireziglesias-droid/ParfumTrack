@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Parfum Track — Gestioná tu negocio de perfumes</title>
+<meta name="description" content="La app PWA para revendedores de perfumes. Registrá ventas, gastos, cuotas y estadísticas desde el celular. Sin suscripción mensual.">
+<meta property="og:title" content="Parfum Track — Tu negocio de perfumes bajo control">
+<meta property="og:description" content="Registrá ventas, gastos y cobros en segundos. App web progresiva — funciona offline, sin descargar nada.">
+<meta property="og:image" content="/icon-512.png">
+<meta property="og:type" content="website">
+<link rel="icon" href="/icon-192.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<script defer data-domain="parfumtrack.pages.dev" src="https://plausible.io/js/script.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d1a;
+  --bg2:#13132a;
+  --bg3:#1a1a33;
+  --card:#1e1e35;
+  --border:rgba(255,255,255,0.08);
+  --border2:rgba(255,255,255,0.14);
+  --gold:#c9a84c;
+  --gold2:#e8cc7a;
+  --gold3:rgba(201,168,76,0.15);
+  --text:#f0eee8;
+  --text2:#b8b4a8;
+  --text3:#7a7870;
+  --radius:16px;
+  --radius2:12px;
+  --shadow:0 8px 40px rgba(0,0,0,0.5);
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── NAV ── */
+.nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;
+  background:rgba(13,13,26,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{
+  display:flex;align-items:center;gap:10px;
+  font-size:18px;font-weight:700;color:var(--gold2);text-decoration:none;
+}
+.nav-logo img{width:32px;height:32px;border-radius:8px}
+.nav-cta{
+  display:flex;align-items:center;gap:12px;
+}
+.btn-nav{
+  padding:9px 20px;border-radius:50px;border:none;
+  font-size:14px;font-weight:600;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  text-decoration:none;transition:all .2s;
+}
+.btn-nav.outline{
+  background:transparent;border:1.5px solid var(--border2);color:var(--text2);
+}
+.btn-nav.outline:hover{border-color:var(--gold);color:var(--gold2);}
+.btn-nav.gold{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#1a1a2e;
+}
+.btn-nav.gold:hover{filter:brightness(1.08);transform:translateY(-1px);}
+
+/* ── HERO ── */
+.hero{
+  position:relative;overflow:hidden;
+  padding:100px 24px 80px;
+  text-align:center;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(201,168,76,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 14px;border-radius:50px;
+  background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);
+  font-size:12px;font-weight:600;color:var(--gold2);
+  margin-bottom:24px;letter-spacing:.5px;text-transform:uppercase;
+}
+.hero h1{
+  font-size:clamp(32px,6vw,64px);font-weight:800;line-height:1.1;
+  margin-bottom:20px;
+  background:linear-gradient(135deg,#fff 30%,var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero h1 em{font-style:normal;color:var(--gold2);-webkit-text-fill-color:var(--gold2);}
+.hero-sub{
+  font-size:clamp(16px,2vw,20px);color:var(--text2);
+  max-width:580px;margin:0 auto 36px;
+}
+.hero-btns{
+  display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+  margin-bottom:64px;
+}
+.btn-hero-primary{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:15px 32px;border-radius:50px;border:none;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#1a1a2e;font-size:16px;font-weight:700;cursor:pointer;
+  font-family:'DM Sans',sans-serif;text-decoration:none;
+  transition:all .2s;box-shadow:0 4px 24px rgba(201,168,76,0.35);
+}
+.btn-hero-primary:hover{filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,168,76,0.45);}
+.btn-hero-secondary{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:15px 28px;border-radius:50px;
+  background:transparent;border:1.5px solid var(--border2);
+  color:var(--text2);font-size:15px;font-weight:600;cursor:pointer;
+  font-family:'DM Sans',sans-serif;text-decoration:none;
+  transition:all .2s;
+}
+.btn-hero-secondary:hover{border-color:var(--gold);color:var(--gold2);}
+.hero-trust{
+  font-size:13px;color:var(--text3);
+  display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;
+}
+.hero-trust span{display:flex;align-items:center;gap:5px;}
+
+/* ── APP MOCKUP ── */
+.mockup-wrap{
+  max-width:900px;margin:0 auto;
+  position:relative;
+}
+.mockup-glow{
+  position:absolute;inset:-40px;
+  background:radial-gradient(ellipse 60% 40% at 50% 50%,rgba(201,168,76,0.1),transparent 70%);
+  pointer-events:none;
+}
+.mockup-screen{
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:24px;
+  overflow:hidden;
+  box-shadow:0 40px 80px rgba(0,0,0,0.7),0 0 0 1px var(--border);
+}
+.mockup-bar{
+  background:var(--bg3);padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.mockup-dots{display:flex;gap:6px;}
+.mockup-dots span{width:10px;height:10px;border-radius:50%;background:var(--border2);}
+.mockup-url{
+  flex:1;background:var(--card);border-radius:6px;padding:5px 12px;
+  font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;
+}
+.mockup-content{padding:20px;}
+/* Simulated app cards inside mockup */
+.mc-header{
+  background:linear-gradient(135deg,var(--bg3),#1e1e40);
+  border-radius:16px;padding:18px;margin-bottom:12px;
+  border:1px solid var(--border);
+}
+.mc-header-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.mc-header-amount{font-size:28px;font-weight:800;color:var(--gold2);}
+.mc-header-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.mc-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.mc-card{
+  background:var(--card);border-radius:12px;padding:14px;
+  border:1px solid var(--border);
+}
+.mc-card-label{font-size:10px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.mc-card-value{font-size:18px;font-weight:700;color:var(--text);}
+.mc-card-delta{font-size:11px;color:#6bcf8a;margin-top:2px;}
+.mc-venta{
+  background:var(--card);border-radius:12px;padding:14px;
+  border:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.mc-venta-icon{width:36px;height:36px;border-radius:10px;background:var(--gold3);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.mc-venta-info{flex:1;}
+.mc-venta-name{font-size:13px;font-weight:600;color:var(--text);}
+.mc-venta-sub{font-size:11px;color:var(--text3);}
+.mc-venta-amount{font-size:14px;font-weight:700;color:var(--gold2);}
+
+/* ── SECTION COMMONS ── */
+section{padding:80px 24px;}
+.section-label{
+  display:inline-block;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;
+  color:var(--gold);margin-bottom:12px;
+}
+.section-title{
+  font-size:clamp(26px,4vw,42px);font-weight:800;line-height:1.15;
+  margin-bottom:14px;
+}
+.section-sub{font-size:17px;color:var(--text2);max-width:560px;}
+.centered{text-align:center;margin:0 auto;}
+.centered .section-sub{margin:0 auto;}
+
+/* ── FEATURES ── */
+.features-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:18px;
+  max-width:1100px;margin:60px auto 0;
+}
+.feature-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px 24px;transition:all .25s;
+  position:relative;overflow:hidden;
+}
+.feature-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  opacity:0;transition:.25s;
+}
+.feature-card:hover{border-color:rgba(201,168,76,0.3);transform:translateY(-3px);}
+.feature-card:hover::before{opacity:1;}
+.feature-icon{
+  width:48px;height:48px;border-radius:14px;
+  background:var(--gold3);border:1px solid rgba(201,168,76,0.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;margin-bottom:18px;
+}
+.feature-title{font-size:16px;font-weight:700;margin-bottom:8px;}
+.feature-desc{font-size:14px;color:var(--text2);line-height:1.6;}
+.feature-tag{
+  display:inline-block;margin-top:12px;
+  padding:3px 10px;border-radius:50px;
+  font-size:11px;font-weight:600;color:var(--gold);
+  background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);
+}
+
+/* ── HOW IT WORKS ── */
+.how-bg{background:var(--bg2);}
+.steps{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:0;max-width:900px;margin:60px auto 0;
+  position:relative;
+}
+.steps::before{
+  content:'';position:absolute;top:28px;left:10%;right:10%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--border2),var(--border2),transparent);
+}
+.step{text-align:center;padding:0 20px;}
+.step-num{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--bg3);border:2px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:800;color:var(--gold2);
+  margin:0 auto 20px;position:relative;z-index:1;
+}
+.step-title{font-size:15px;font-weight:700;margin-bottom:8px;}
+.step-desc{font-size:13px;color:var(--text2);}
+
+/* ── SOCIAL PROOF ── */
+.testimonials{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:18px;max-width:1000px;margin:60px auto 0;
+}
+.testi-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:24px;
+}
+.testi-stars{color:var(--gold);font-size:14px;margin-bottom:12px;letter-spacing:2px;}
+.testi-text{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:16px;}
+.testi-author{
+  display:flex;align-items:center;gap:10px;
+}
+.testi-avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;color:#1a1a2e;
+  flex-shrink:0;
+}
+.testi-name{font-size:13px;font-weight:600;}
+.testi-role{font-size:12px;color:var(--text3);}
+
+/* ── STATS ── */
+.stats-row{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:48px;
+  max-width:800px;margin:0 auto;padding:60px 24px;
+  text-align:center;
+}
+.stat-item{}
+.stat-num{
+  font-size:42px;font-weight:800;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.stat-label{font-size:14px;color:var(--text2);margin-top:4px;}
+
+/* ── PRICING ── */
+.pricing-bg{background:var(--bg2);}
+.pricing-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:18px;max-width:920px;margin:60px auto 0;
+}
+.price-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:28px 24px;
+  position:relative;transition:all .25s;
+}
+.price-card.featured{
+  border-color:var(--gold);
+  background:linear-gradient(135deg,rgba(201,168,76,0.08),var(--card));
+  transform:scale(1.02);
+}
+.price-badge{
+  position:absolute;top:-1px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(90deg,var(--gold),var(--gold2));
+  color:#1a1a2e;font-size:11px;font-weight:700;
+  padding:4px 14px;border-radius:0 0 10px 10px;
+  white-space:nowrap;
+}
+.price-name{font-size:14px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;}
+.price-amount{
+  font-size:38px;font-weight:800;color:var(--text);
+  display:flex;align-items:baseline;gap:4px;
+  margin-bottom:4px;
+}
+.price-amount span{font-size:18px;color:var(--text2);font-weight:500;}
+.price-period{font-size:13px;color:var(--text3);margin-bottom:20px;}
+.price-features{list-style:none;margin-bottom:24px;}
+.price-features li{
+  padding:7px 0;font-size:14px;color:var(--text2);
+  display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid var(--border);
+}
+.price-features li:last-child{border-bottom:none;}
+.price-features li::before{content:'✓';color:var(--gold);font-weight:700;flex-shrink:0;}
+.price-features li.no::before{content:'–';color:var(--text3);}
+.price-features li.no{color:var(--text3);}
+.btn-price{
+  width:100%;padding:12px;border-radius:50px;border:none;
+  font-size:14px;font-weight:700;cursor:pointer;
+  font-family:'DM Sans',sans-serif;text-decoration:none;
+  display:block;text-align:center;transition:all .2s;
+}
+.btn-price.primary{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;
+}
+.btn-price.primary:hover{filter:brightness(1.08);}
+.btn-price.outline{
+  background:transparent;border:1.5px solid var(--border2);color:var(--text2);
+}
+.btn-price.outline:hover{border-color:var(--gold);color:var(--gold2);}
+.pricing-note{
+  text-align:center;margin-top:28px;font-size:13px;color:var(--text3);
+}
+
+/* ── FAQ ── */
+.faq-list{max-width:700px;margin:48px auto 0;}
+.faq-item{
+  border-bottom:1px solid var(--border);
+}
+.faq-q{
+  padding:18px 0;font-size:15px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  user-select:none;transition:color .2s;
+}
+.faq-q:hover{color:var(--gold2);}
+.faq-q::after{content:'＋';font-size:18px;color:var(--text3);flex-shrink:0;transition:.2s;}
+.faq-item.open .faq-q{color:var(--gold2);}
+.faq-item.open .faq-q::after{content:'−';color:var(--gold);}
+.faq-a{
+  display:none;padding:0 0 18px;font-size:14px;color:var(--text2);line-height:1.7;
+}
+.faq-item.open .faq-a{display:block;}
+
+/* ── CTA SECTION ── */
+.cta-section{
+  text-align:center;padding:100px 24px;
+  position:relative;overflow:hidden;
+}
+.cta-section::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 70% at 50% 50%,rgba(201,168,76,0.08),transparent 70%);
+  pointer-events:none;
+}
+.cta-section h2{
+  font-size:clamp(28px,4vw,48px);font-weight:800;margin-bottom:16px;
+}
+.cta-section p{font-size:17px;color:var(--text2);max-width:500px;margin:0 auto 36px;}
+.cta-trust{
+  margin-top:20px;font-size:13px;color:var(--text3);
+  display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;
+}
+
+/* ── FOOTER ── */
+footer{
+  background:var(--bg2);border-top:1px solid var(--border);
+  padding:48px 24px 32px;
+}
+.footer-inner{
+  max-width:1100px;margin:0 auto;
+  display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;
+}
+.footer-brand{}
+.footer-logo{
+  display:flex;align-items:center;gap:10px;
+  font-size:17px;font-weight:700;color:var(--gold2);
+  text-decoration:none;margin-bottom:12px;
+}
+.footer-logo img{width:28px;height:28px;border-radius:7px;}
+.footer-tagline{font-size:13px;color:var(--text3);line-height:1.6;max-width:220px;}
+.footer-col h4{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;}
+.footer-col a{
+  display:block;font-size:14px;color:var(--text3);text-decoration:none;
+  margin-bottom:9px;transition:color .2s;
+}
+.footer-col a:hover{color:var(--gold2);}
+.footer-bottom{
+  max-width:1100px;margin:32px auto 0;
+  padding-top:20px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  font-size:12px;color:var(--text3);
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .nav-cta .btn-nav.outline{display:none;}
+  .hero{padding:80px 20px 60px;}
+  .steps::before{display:none;}
+  .steps{gap:32px;}
+  .footer-inner{grid-template-columns:1fr;gap:28px;}
+  .footer-bottom{flex-direction:column;text-align:center;}
+  .price-card.featured{transform:none;}
+  .stats-row{gap:32px;}
+}
+@media(max-width:480px){
+  .mockup-cards{grid-template-columns:1fr;}
+  .pricing-grid{grid-template-columns:1fr;}
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.fade-up{animation:fadeUp .6s ease both}
+.fade-up-d1{animation-delay:.1s}
+.fade-up-d2{animation-delay:.2s}
+.fade-up-d3{animation-delay:.3s}
+.fade-up-d4{animation-delay:.4s}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     NAV
+══════════════════════════════════════ -->
+<nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/icon-192.png" alt="Parfum Track">
+    Parfum Track
+  </a>
+  <div class="nav-cta">
+    <a href="#pricing" class="btn-nav outline">Precios</a>
+    <a href="/index.html" class="btn-nav gold" onclick="if(window.plausible)plausible('landing_cta_nav')">
+      Probar gratis →
+    </a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════
+     HERO
+══════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-badge">✨ App web progresiva — sin instalación</div>
+  <h1 class="fade-up">Gestioná tu negocio<br>de <em>perfumes</em> desde<br>el celular</h1>
+  <p class="hero-sub fade-up fade-up-d1">
+    Registrá ventas, gastos y cobros en segundos.
+    Estadísticas automáticas. Cobros en cuotas. WhatsApp integrado.
+  </p>
+  <div class="hero-btns fade-up fade-up-d2">
+    <a href="/index.html" class="btn-hero-primary" onclick="if(window.plausible)plausible('landing_cta_hero')">
+      🚀 Empezar gratis — 7 días
+    </a>
+    <a href="#features" class="btn-hero-secondary">Ver funciones ↓</a>
+  </div>
+  <div class="hero-trust fade-up fade-up-d3">
+    <span>✅ Sin tarjeta de crédito</span>
+    <span>✅ Sin instalación</span>
+    <span>✅ Funciona offline</span>
+    <span>✅ Datos en tu dispositivo</span>
+  </div>
+
+  <!-- App Mockup -->
+  <div class="mockup-wrap fade-up fade-up-d4" style="margin-top:64px;">
+    <div class="mockup-glow"></div>
+    <div class="mockup-screen">
+      <div class="mockup-bar">
+        <div class="mockup-dots"><span></span><span></span><span></span></div>
+        <div class="mockup-url">parfumtrack.pages.dev</div>
+      </div>
+      <div class="mockup-content">
+        <div class="mc-header">
+          <div class="mc-header-title">💰 Ingresos del mes</div>
+          <div class="mc-header-amount">$284.500</div>
+          <div class="mc-header-sub">↑ 23% respecto al mes anterior</div>
+        </div>
+        <div class="mc-cards">
+          <div class="mc-card">
+            <div class="mc-card-label">Ventas</div>
+            <div class="mc-card-value">47</div>
+            <div class="mc-card-delta">+8 vs mes ant.</div>
+          </div>
+          <div class="mc-card">
+            <div class="mc-card-label">Ganancia</div>
+            <div class="mc-card-value">$91.200</div>
+            <div class="mc-card-delta">Margen 32%</div>
+          </div>
+        </div>
+        <div class="mc-venta" style="margin-bottom:8px">
+          <div class="mc-venta-icon">🌸</div>
+          <div class="mc-venta-info">
+            <div class="mc-venta-name">Lancôme La Vie Est Belle</div>
+            <div class="mc-venta-sub">Hoy 14:32 · Laura M.</div>
+          </div>
+          <div class="mc-venta-amount">$18.500</div>
+        </div>
+        <div class="mc-venta">
+          <div class="mc-venta-icon">🌊</div>
+          <div class="mc-venta-info">
+            <div class="mc-venta-name">Dior Sauvage EDP 100ml</div>
+            <div class="mc-venta-sub">Hoy 11:15 · 3 cuotas</div>
+          </div>
+          <div class="mc-venta-amount">$24.000</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     STATS
+══════════════════════════════════════ -->
+<div class="stats-row" style="background:var(--bg2);width:100%;max-width:100%;">
+  <div class="stat-item">
+    <div class="stat-num">7 días</div>
+    <div class="stat-label">Trial completo gratis</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">100%</div>
+    <div class="stat-label">Datos en tu dispositivo</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">Offline</div>
+    <div class="stat-label">Funciona sin internet</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">0$</div>
+    <div class="stat-label">Para empezar</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     FEATURES
+══════════════════════════════════════ -->
+<section id="features">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="centered">
+      <span class="section-label">Funciones</span>
+      <h2 class="section-title">Todo lo que necesitás<br>en un solo lugar</h2>
+      <p class="section-sub">Diseñado específicamente para revendedoras de perfumes. Sin funciones innecesarias, sin complicaciones.</p>
+    </div>
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon">💵</div>
+        <div class="feature-title">Registro de ventas</div>
+        <p class="feature-desc">Guardá cada venta con perfume, monto, cliente y fecha. Búsqueda instantánea y filtros por mes.</p>
+        <span class="feature-tag">✓ Incluido en todos</span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🗓️</div>
+        <div class="feature-title">Cobros en cuotas</div>
+        <p class="feature-desc">Registrá ventas en cuotas con seguimiento automático. Alertas de cobros pendientes vía WhatsApp.</p>
+        <span class="feature-tag">✓ Incluido en todos</span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Estadísticas avanzadas</div>
+        <p class="feature-desc">Ingresos, gastos y ganancias por mes. Perfumes más vendidos, margen real y tendencias de crecimiento.</p>
+        <span class="feature-tag">✓ Pro y Business</span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">💸</div>
+        <div class="feature-title">Control de gastos</div>
+        <p class="feature-desc">Registrá compras de stock, envíos y otros gastos. Calculá tu ganancia real automáticamente.</p>
+        <span class="feature-tag">✓ Incluido en todos</span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📲</div>
+        <div class="feature-title">WhatsApp integrado</div>
+        <p class="feature-desc">Mandá recordatorios de cobro con un toque. Mensajes prediseñados listos para copiar o enviar.</p>
+        <span class="feature-tag">✓ Incluido en todos</span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <div class="feature-title">Múltiples perfiles</div>
+        <p class="feature-desc">Manejá varios negocios o personas desde la misma app. Datos completamente separados por perfil.</p>
+        <span class="feature-tag">✓ Business</span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📤</div>
+        <div class="feature-title">Exportar a Excel</div>
+        <p class="feature-desc">Exportá todas tus ventas, gastos e historial de caja en un archivo Excel listo para compartir.</p>
+        <span class="feature-tag">✓ Pro y Business</span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <div class="feature-title">Notificaciones push</div>
+        <p class="feature-desc">Recordatorios automáticos de cobros vencidos y seguimiento de cuotas sin entrar a la app.</p>
+        <span class="feature-tag">✓ Pro y Business</span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🌐</div>
+        <div class="feature-title">Funciona offline</div>
+        <p class="feature-desc">PWA instalable en cualquier celular. Tus datos se guardan localmente — sin internet, sin problema.</p>
+        <span class="feature-tag">✓ Incluido en todos</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     HOW IT WORKS
+══════════════════════════════════════ -->
+<section class="how-bg">
+  <div style="max-width:1100px;margin:0 auto;text-align:center;">
+    <span class="section-label">¿Cómo funciona?</span>
+    <h2 class="section-title">En marcha en menos de 2 minutos</h2>
+    <p class="section-sub centered">Sin crear cuenta, sin contraseñas. Solo abrís la app y empezás.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">Abrís el link</div>
+        <p class="step-desc">Desde cualquier celular, sin descargar nada. Podés instalarlo en tu pantalla de inicio.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">Configurás tu negocio</div>
+        <p class="step-desc">Nombre, número de WhatsApp y perfil listo en 30 segundos.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">Registrás ventas</div>
+        <p class="step-desc">Cada venta en 10 segundos: perfume, monto, cuotas. Así de simple.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-title">Ves tus números</div>
+        <p class="step-desc">Estadísticas automáticas del mes, ganancia real y los perfumes más vendidos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     TESTIMONIALS
+══════════════════════════════════════ -->
+<section>
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="centered">
+      <span class="section-label">Testimonios</span>
+      <h2 class="section-title">Revendedoras que ya<br>usan Parfum Track</h2>
+    </div>
+    <div class="testimonials">
+
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Antes anotaba todo en el cuaderno y siempre se me iba algo. Con Parfum Track tengo todo en el celu y los cobros pendientes me aparecen solos. Increíble."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">L</div>
+          <div>
+            <div class="testi-name">Laura M.</div>
+            <div class="testi-role">Revendedora — Buenos Aires</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Lo que más me gusta es que funciona sin internet. En el mercado no tengo señal y igual puedo registrar todo. Los meses cierran solos con las estadísticas."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">V</div>
+          <div>
+            <div class="testi-name">Valeria C.</div>
+            <div class="testi-role">Distribuidora — Córdoba</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Manejo 3 perfiles distintos — el mío, el de mi mamá y un grupo de revendedoras. Todo separado. El Excel que exporta me lo pide el contador directo."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">M</div>
+          <div>
+            <div class="testi-name">Micaela R.</div>
+            <div class="testi-role">Distribuidora mayorista — Rosario</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     PRICING
+══════════════════════════════════════ -->
+<section id="pricing" class="pricing-bg">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="centered">
+      <span class="section-label">Precios</span>
+      <h2 class="section-title">Un pago único.<br>Sin suscripciones.</h2>
+      <p class="section-sub centered">Pagás una sola vez y la app es tuya para siempre. Sin renovaciones mensuales, sin sorpresas.</p>
+    </div>
+    <div class="pricing-grid">
+
+      <!-- Starter -->
+      <div class="price-card">
+        <div class="price-name">Starter</div>
+        <div class="price-amount">$15.000<span>ARS</span></div>
+        <div class="price-period">pago único · 1 perfil</div>
+        <ul class="price-features">
+          <li>Registro ilimitado de ventas</li>
+          <li>Control de gastos</li>
+          <li>Cobros en cuotas</li>
+          <li>Notificaciones push</li>
+          <li>WhatsApp integrado</li>
+          <li class="no">Estadísticas avanzadas</li>
+          <li class="no">Exportar a Excel</li>
+          <li class="no">Múltiples perfiles</li>
+        </ul>
+        <a href="/index.html" class="btn-price outline" onclick="if(window.plausible)plausible('pricing_cta',{props:{tier:'starter'}})">
+          Consultar por WhatsApp
+        </a>
+      </div>
+
+      <!-- Pro (featured) -->
+      <div class="price-card featured">
+        <div class="price-badge">⭐ MÁS POPULAR</div>
+        <div class="price-name">Pro</div>
+        <div class="price-amount">$28.000<span>ARS</span></div>
+        <div class="price-period">pago único · 1 perfil</div>
+        <ul class="price-features">
+          <li>Todo lo de Starter</li>
+          <li>Estadísticas avanzadas</li>
+          <li>Exportar a Excel</li>
+          <li>Resumen diario</li>
+          <li>Historial completo</li>
+          <li>Soporte prioritario</li>
+          <li class="no">Múltiples perfiles</li>
+          <li class="no">Onboarding personalizado</li>
+        </ul>
+        <a href="/index.html" class="btn-price primary" onclick="if(window.plausible)plausible('pricing_cta',{props:{tier:'pro'}})">
+          Consultar por WhatsApp →
+        </a>
+      </div>
+
+      <!-- Business -->
+      <div class="price-card">
+        <div class="price-name">Business</div>
+        <div class="price-amount">$45.000<span>ARS</span></div>
+        <div class="price-period">pago único · perfiles ilimitados</div>
+        <ul class="price-features">
+          <li>Todo lo de Pro</li>
+          <li>Perfiles ilimitados</li>
+          <li>Backup en la nube</li>
+          <li>Dashboard compartido</li>
+          <li>Onboarding personalizado</li>
+          <li>Soporte VIP por WhatsApp</li>
+          <li>Actualizaciones de por vida</li>
+          <li>Personalización de marca</li>
+        </ul>
+        <a href="/index.html" class="btn-price outline" onclick="if(window.plausible)plausible('pricing_cta',{props:{tier:'business'}})">
+          Consultar por WhatsApp
+        </a>
+      </div>
+
+    </div>
+    <p class="pricing-note">
+      💬 Todos los planes se activan vía WhatsApp · 🔒 Pago seguro · 🔄 7 días de prueba gratis incluidos
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     FAQ
+══════════════════════════════════════ -->
+<section>
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="centered">
+      <span class="section-label">FAQ</span>
+      <h2 class="section-title">Preguntas frecuentes</h2>
+    </div>
+    <div class="faq-list">
+
+      <div class="faq-item">
+        <div class="faq-q">¿Necesito descargar algo?</div>
+        <div class="faq-a">No. Parfum Track es una aplicación web progresiva (PWA). Abrís el link desde el navegador de tu celular y funciona al instante. Opcionalmente podés "Agregar a la pantalla de inicio" para tenerla como una app nativa.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">¿Mis datos están seguros? ¿Los ve alguien más?</div>
+        <div class="faq-a">Tus datos se guardan exclusivamente en tu dispositivo (IndexedDB del navegador). Nadie tiene acceso a ellos, ni siquiera nosotros. Si exportás a Excel, ese archivo también es solo tuyo.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">¿Funciona sin conexión a internet?</div>
+        <div class="faq-a">Sí. Parfum Track funciona completamente offline gracias a la tecnología de Service Worker. Registrás ventas, consultás estadísticas y gestionás cobros sin necesitar señal.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">¿Qué pasa cuando vence el trial de 7 días?</div>
+        <div class="faq-a">Después de los 7 días gratuitos la app pasa a modo limitado: podés seguir viendo tus datos y registrar hasta 5 ventas nuevas por mes. Para volver al modo completo activás tu licencia con el código que te enviamos por WhatsApp.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">¿La licencia tiene vencimiento?</div>
+        <div class="faq-a">No. Todos los planes son de pago único y sin vencimiento. Una vez que activás tu licencia, la app es tuya para siempre, incluyendo las actualizaciones futuras.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">¿Puedo usar la app en más de un celular?</div>
+        <div class="faq-a">El plan Starter y Pro incluyen 1 perfil para uso personal. El plan Business permite perfiles ilimitados, ideal si querés usar la app en distintos dispositivos o compartirla con tu equipo.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">¿Cómo se hace el pago?</div>
+        <div class="faq-a">El proceso es simple: escribís por WhatsApp, elegís tu plan, realizás el pago por el medio que prefieras (transferencia, Mercado Pago, efectivo) y en minutos recibís tu código de activación.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     CTA FINAL
+══════════════════════════════════════ -->
+<section class="cta-section">
+  <span class="section-label">Empezá hoy</span>
+  <h2>Tu negocio merece<br>estar organizado</h2>
+  <p>7 días gratis, sin tarjeta, sin instalación. Solo abrís el link y empezás a registrar ventas ahora mismo.</p>
+  <a href="/index.html" class="btn-hero-primary" style="font-size:17px;padding:16px 36px;" onclick="if(window.plausible)plausible('landing_cta_footer')">
+    🚀 Empezar gratis ahora
+  </a>
+  <div class="cta-trust">
+    <span>✅ 7 días gratis completos</span>
+    <span>✅ Sin datos personales</span>
+    <span>✅ Funciona en cualquier celular</span>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     FOOTER
+══════════════════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="/" class="footer-logo">
+        <img src="/icon-192.png" alt="Parfum Track">
+        Parfum Track
+      </a>
+      <p class="footer-tagline">La app para revendedoras de perfumes. Ventas, cuotas y estadísticas en el celular.</p>
+    </div>
+    <div class="footer-col">
+      <h4>App</h4>
+      <a href="/index.html">Abrir la app</a>
+      <a href="#features">Funciones</a>
+      <a href="#pricing">Precios</a>
+    </div>
+    <div class="footer-col">
+      <h4>Soporte</h4>
+      <a href="#faq">Preguntas frecuentes</a>
+      <a href="#" onclick="event.preventDefault()">Contacto por WhatsApp</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Parfum Track. Todos los derechos reservados.</span>
+    <span>Hecho con 🌸 para revendedoras argentinas</span>
+  </div>
+</footer>
+
+<script>
+// FAQ accordion
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.parentElement;
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  });
+});
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
+});
+
+// Intersection Observer for fade-up (on elements that aren't in view initially)
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.style.animationPlayState = 'running'; io.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.feature-card, .step, .testi-card, .price-card').forEach(el => {
+  el.style.opacity = '0';
+  el.style.animation = 'fadeUp .5s ease both paused';
+  io.observe(el);
+});
+</script>
+
+</body>
+</html>
