@@ -12,5 +12,9 @@
   },
   "compatibility_flags": [
     "nodejs_compat"
-  ]
+  ],
+  "vars": {
+    "FROM_EMAIL": "parfumtrack@gmail.com",
+    "FROM_NAME": "Parfum Track"
+  }
 }
