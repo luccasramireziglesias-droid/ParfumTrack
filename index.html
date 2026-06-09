@@ -1554,7 +1554,7 @@ function renderComprasPeriodo(){
   }
   const totalInv=compras.reduce((s,c)=>s+c.monto,0);
   el.innerHTML=`<div class="mes-total" style="margin-bottom:9px"><span>${compras.length} compra${compras.length!==1?'s':''} de stock</span><span style="color:var(--danger);font-weight:500">${fmt(totalInv)} invertidos</span></div>`
-  +compras.map(c=>`<div class="venta-card"><div class="vc-header"><div class="vc-name" style="font-size:14px">${c.desc.replace('📦 Compra stock: ','')}</div><div class="vc-meta"><div class="vc-date">📅 ${c.fecha}</div></div></div><div class="vc-body"><div class="vc-row"><span>Invertido</span><span style="color:var(--danger)">${fmt(c.monto)}</span></div></div></div>`).join('');
+  +compras.map(c=>`<div class="venta-card"><div class="vc-header"><div class="vc-name" style="font-size:14px">${escapeHTML(c.desc.replace('📦 Compra stock: ',''))}</div><div class="vc-meta"><div class="vc-date">📅 ${c.fecha}</div></div></div><div class="vc-body"><div class="vc-row"><span>Invertido</span><span style="color:var(--danger)">${fmt(c.monto)}</span></div></div></div>`).join('');
 }
 
 function showTab(t){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));const activeTabBtn=document.getElementById('tabbtn-'+t);if(activeTabBtn)activeTabBtn.classList.add('active');document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));const tabEl=document.getElementById('tab-'+t);if(tabEl)tabEl.classList.add('active');if(t==='ventas'){renderMesFilter('mes-filter-ventas','ventas');renderVentas();}if(t==='cuotas')renderCuotasPendientes();if(t==='gastos'){renderMesFilter('mes-filter-gastos','gastos');renderGastos();initFecha('g-fecha');fillSuggestionsGasto();}if(t==='ganancias'){renderMesFilter('mes-filter-gan','ganancias');renderGanancias();fillComparadores();renderMetaBar();}if(t==='caja'){renderMesFilter('mes-filter-caja','caja');renderCaja();initFecha('caja-fecha');}if(t==='catalogo')renderCatalogo();if(t==='stock')renderStock();if(t==='add')fillSuggestions();if(t==='stock')fillStockSuggestions();if(t==='ajustes')renderAjustes();if(t==='clientes')renderClientes();updateStats();}
@@ -3510,7 +3510,7 @@ function showProfileScreen(){
       <button class="profile-btn ${isActive?'active-profile':''}" onclick="selectProfile('${p.id}')" style="width:100%;padding-right:44px;">
         <div class="profile-btn-icon">${p.emoji||'👤'}</div>
         <div style="flex:1;text-align:left;">
-          <div class="profile-btn-name">${p.name}</div>
+          <div class="profile-btn-name">${escapeHTML(p.name)}</div>
         </div>
       </button>
       <button onclick="editarPerfil('${p.id}')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;padding:6px;font-size:16px;line-height:1;">✏️</button>
@@ -3620,8 +3620,8 @@ function abrirModalPago(ventaId){
   const debe = calcDebe(v);
   const monto = debe > 0 ? debe : v.precioVenta;
   document.getElementById('modal-pago-info').innerHTML =
-    `<strong style="color:var(--text);">${v.perfume}</strong><br>` +
-    `${v.cliente ? `Cliente: ${v.cliente}<br>` : ''}` +
+    `<strong style="color:var(--text);">${escapeHTML(v.perfume)}</strong><br>` +
+    `${v.cliente ? `Cliente: ${escapeHTML(v.cliente)}<br>` : ''}` +
     `Monto a cobrar: <strong style="color:var(--gold2);">${fmt(monto)}</strong>` +
     (v.esCuotas && debe > 0 ? `<br><span style="color:var(--warn);font-size:11px;">Saldo pendiente</span>` : '');
   document.getElementById('modal-pago').classList.add('open');
@@ -4552,7 +4552,7 @@ function renderCatalogo() {
         <div class="cat-sel-check">${isSel ? '✓' : ''}</div>
       </div>
       <div class="cat-card-info-v2">
-        <div class="cat-card-name-v2">${p.nombre}</div>
+        <div class="cat-card-name-v2">${escapeHTML(p.nombre)}</div>
         <div class="cat-card-price-v2">${p.pVenta ? fmt(p.pVenta) : (p.precio ? fmt(p.precio) : '—')}</div>
         ${p.ml ? `<div class="cat-card-ml-v2">${p.ml} ml</div>` : ''}
       </div>
