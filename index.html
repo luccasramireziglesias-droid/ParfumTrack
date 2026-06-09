@@ -377,6 +377,12 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
 .btn-primary:active{opacity:.85}
 .btn-outline{width:100%;padding:11px;background:none;border:0.5px solid var(--gold);color:var(--gold2);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;margin-top:9px;display:flex;align-items:center;justify-content:center;gap:5px}
 .btn-outline:active{background:var(--gold-dim)}
+/* ── Touch targets mínimos 44px (Apple HIG / Material Design) ── */
+/* Solo aplicamos a las clases de acción principales — no a chips ni qty-btns */
+.btn-primary,.btn-outline,.btn-wa,.icon-btn,
+select,input[type="checkbox"],input[type="radio"]{min-height:44px}
+/* Botones de acción standalone (del y edit) que son pequeños */
+.perf-card button,.venta-card>button,.gasto-card button{min-height:44px;min-width:44px}
 .btn-icon{background:none;border:none;cursor:pointer;padding:3px;color:var(--text3);font-size:13px;line-height:1}
 .btn-wa{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;background:rgba(37,211,102,0.15);border:0.5px solid rgba(37,211,102,0.4);color:#25d366;border-radius:var(--radius-sm);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
 .btn-wa:active{opacity:.8}
@@ -391,6 +397,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
 .toast.has-undo{pointer-events:all;display:flex;align-items:center;gap:12px;border-radius:14px;padding:10px 14px 10px 18px}
 .toast-undo-btn{background:var(--gold);color:#1a1a2e;border:none;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.t-success{background:rgba(35,100,65,0.95);border-color:rgba(112,201,160,0.5);color:#d4f5e4}
+.toast.t-error{background:rgba(100,30,30,0.95);border-color:rgba(224,112,112,0.5);color:#ffd4d4}
+.toast.t-warning{background:rgba(90,65,10,0.95);border-color:rgba(224,176,96,0.5);color:#ffefc0}
+.toast.t-info{background:rgba(20,50,90,0.95);border-color:rgba(112,168,224,0.5);color:#d4e8ff}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;display:none;align-items:flex-end;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
 .modal-overlay.open{display:flex}
 .modal{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:20px 17px 32px;width:100%;max-width:480px;max-height:90dvh;max-height:90vh;overflow-y:auto}
@@ -1616,7 +1626,15 @@ const _HAPTIC = { light:[30], success:[40,60,40], warning:[60,40,60,40,60], erro
 function haptic(type='light'){
   try{ if(navigator.vibrate) navigator.vibrate(_HAPTIC[type]||_HAPTIC.light); }catch(e){}
 }
-function toast(msg,ms=2800){const el=document.getElementById('toast');el.classList.remove('has-undo');el.innerHTML=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),ms);}
+function toast(msg,ms=2800,type=''){
+  const el=document.getElementById('toast');
+  el.classList.remove('has-undo','t-success','t-error','t-warning','t-info');
+  if(type)el.classList.add('t-'+type);
+  el.innerHTML=msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.classList.remove('t-success','t-error','t-warning','t-info'),300);},ms);
+}
 
 // ── UNDO SYSTEM ──
 let _undoBuffer = null;
@@ -1645,6 +1663,26 @@ function closeModal(id){
   el.classList.remove('open');
   // Force repaint to unblock desktop render after modal close
   void document.body.offsetHeight;
+}
+
+// ── Modal de confirmación custom (reemplaza confirm() nativo) ──
+function showConfirm(title, desc, onConfirm, opts={}){
+  const dangerous = opts.dangerous !== false; // default destructivo
+  const icon = opts.icon || (dangerous ? '⚠️' : '❓');
+  const label = opts.label || (dangerous ? 'Confirmar' : 'Aceptar');
+  const el = document.getElementById('modal-confirm');
+  if (!el) { if (confirm(desc)) onConfirm(); return; } // fallback
+  document.getElementById('confirm-icon').textContent = icon;
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-desc').textContent = desc;
+  const btn = document.getElementById('confirm-ok');
+  btn.textContent = label;
+  btn.style.background = dangerous
+    ? 'linear-gradient(135deg,#c04040,#a03030)'
+    : 'linear-gradient(135deg,var(--gold),var(--gold2))';
+  btn.style.color = dangerous ? '#fff' : '#1a1a2e';
+  btn.onclick = () => { closeModal('modal-confirm'); onConfirm(); };
+  el.classList.add('open');
 }
 function hoy(){return new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});}
 function todayISO(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
@@ -1701,26 +1739,32 @@ function restoreBackup(e) {
       const schemaError = _validarSchemaBackup(data);
       if (schemaError) { toast(schemaError, 4000); e.target.value = ''; return; }
       // Mostrar preview y pedir confirmación
-      const resumen = `¿Restaurar backup?\n\n📦 ${(data.ventas||[]).length} ventas\n🍶 ${(data.perfumes||[]).length} perfumes\n💸 ${(data.gastos||[]).length} gastos\n🏦 ${(data.caja||[]).length} movimientos de caja\n\nEsto reemplazará todos tus datos actuales (${ventas.length} ventas existentes).`;
-      if (!confirm(resumen)) { e.target.value = ''; return; }
-      // Safety backup automático antes de sobrescribir
-      try {
-        const safetyData = {ventas, perfumes, gastos, caja, meta: metaMensual, fecha: hoy(), version: 'vip_v2'};
-        const blob = new Blob([JSON.stringify(safetyData)], {type: 'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `safety_backup_antes_restaurar_${hoy().replace(/\//g,'-')}.json`;
-        a.click();
-      } catch(_) {}
-      // Restaurar
-      ventas = data.ventas || [];
-      perfumes = data.perfumes || [];
-      gastos = data.gastos || [];
-      caja = data.caja || [];
-      if (data.meta) metaMensual = data.meta;
-      save();
-      updateStats();
-      toast(`✓ Backup restaurado · ${ventas.length} ventas, ${perfumes.length} perfumes`, 3500);
+      const _doRestore = () => {
+        // Safety backup automático antes de sobrescribir
+        try {
+          const safetyData = {ventas, perfumes, gastos, caja, meta: metaMensual, fecha: hoy(), version: 'vip_v2'};
+          const blob = new Blob([JSON.stringify(safetyData)], {type: 'application/json'});
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `safety_backup_antes_restaurar_${hoy().replace(/\//g,'-')}.json`;
+          a.click();
+        } catch(_) {}
+        // Restaurar
+        ventas = data.ventas || [];
+        perfumes = data.perfumes || [];
+        gastos = data.gastos || [];
+        caja = data.caja || [];
+        if (data.meta) metaMensual = data.meta;
+        save();
+        updateStats();
+        toast(`✅ Backup restaurado · ${ventas.length} ventas, ${perfumes.length} perfumes`, 3500, 'success');
+      };
+      showConfirm(
+        'Restaurar backup',
+        `Esto reemplazará tus ${ventas.length} ventas actuales por las ${(data.ventas||[]).length} del backup. Se descargará un respaldo de seguridad automáticamente.`,
+        _doRestore,
+        { icon: '💾', label: 'Sí, restaurar' }
+      );
     } catch(err) {
       toast('⚠ Error al leer el archivo — ¿es un JSON válido?', 4000);
     }
@@ -3850,8 +3894,22 @@ function comprimirFotoBase64(dataUrl, maxSize, calidad) {
 }
 
 async function resetApp() {
-  if (!confirm('⚠ ¿Estás seguro? Se borrarán TODAS las ventas, perfumes, gastos y caja. Esta acción no se puede deshacer.')) return;
-  if (!confirm('¿Confirmar? Último aviso — se borrará todo.')) return;
+  showConfirm(
+    'Borrar todos los datos',
+    `Se eliminarán permanentemente ${ventas.length} ventas, ${perfumes.length} perfumes, ${gastos.length} gastos y ${caja.length} movimientos de caja. Esta acción NO se puede deshacer.`,
+    async () => {
+      showConfirm(
+        '¿Último aviso?',
+        'Confirmá que querés borrar TODO. No habrá forma de recuperar los datos.',
+        async () => { await _doResetApp(); },
+        { icon: '🗑', label: 'Sí, borrar todo' }
+      );
+    },
+    { icon: '⚠️', label: 'Continuar →' }
+  );
+  return; // la lógica sigue en _doResetApp
+}
+async function _doResetApp() {
   await PTDB.clear();
   // Preservar: PIN, licencia, activación, trial y perfiles
   const preserve = [
@@ -4060,7 +4118,15 @@ function guardarPerfil(){
 }
 
 function eliminarPerfil(pid){
-  if(!confirm('¿Eliminar este perfil y TODOS sus datos? No se puede deshacer.')) return;
+  const pName = (getProfiles().find(p=>p.id===pid)||{}).name || 'este perfil';
+  showConfirm(
+    'Eliminar perfil',
+    `Se eliminará "${pName}" y TODOS sus datos (ventas, stock, gastos). Esta acción no se puede deshacer.`,
+    () => _doEliminarPerfil(pid),
+    { icon: '👤', label: 'Eliminar perfil' }
+  );
+}
+function _doEliminarPerfil(pid){
   const profiles = getProfiles().filter(x=>x.id!==pid);
   saveProfiles(profiles);
   // Remove all data for this profile from IndexedDB (data is NOT in localStorage)
@@ -4510,12 +4576,18 @@ function checkOnboarding() {
 
 function _obLimpiarDemo(){
   if(!(ventas.length||perfumes.length||gastos.length||caja.length))return;
-  if(!confirm('¿Borrar todos los datos de prueba? Esta acción no se puede deshacer.'))return;
-  ventas=[];perfumes=[];gastos=[];caja=[];
-  save();updateStats();
-  var wrap=document.getElementById('ob-reset-wrap');
-  if(wrap) wrap.style.display='none';
-  toast('🗑 Datos eliminados. ¡Ahora la app es tuya!',3000);
+  showConfirm(
+    'Limpiar datos de prueba',
+    `Se borrarán ${ventas.length} ventas, ${perfumes.length} perfumes y todos los gastos de prueba. La app quedará vacía para que empieces desde cero.`,
+    ()=>{
+      ventas=[];perfumes=[];gastos=[];caja=[];
+      save();updateStats();
+      var wrap=document.getElementById('ob-reset-wrap');
+      if(wrap) wrap.style.display='none';
+      toast('🗑 Datos de prueba eliminados. ¡La app es tuya!',3000);
+    },
+    { icon:'🗑', label:'Sí, limpiar todo' }
+  );
 }
 
 function obPaso1() {
@@ -6528,5 +6600,19 @@ async function descargarPDFCatalogo() {
     }, 3000);
   });
   </script>
+
+<!-- ═══════ MODAL CONFIRMACIÓN CUSTOM ═══════ -->
+<div id="modal-confirm" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-title" style="z-index:10050;">
+  <div class="modal" style="max-width:360px;padding:24px 20px 20px;border-radius:var(--radius);">
+    <div id="confirm-icon" style="font-size:36px;text-align:center;margin-bottom:10px;">⚠️</div>
+    <h3 id="confirm-title" style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text);margin-bottom:8px;text-align:center;"></h3>
+    <p id="confirm-desc" style="font-size:13px;color:var(--text3);text-align:center;line-height:1.6;margin-bottom:22px;"></p>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <button id="confirm-ok" style="width:100%;padding:13px;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .15s;"></button>
+      <button onclick="closeModal('modal-confirm')" style="width:100%;padding:11px;background:none;border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text3);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
