@@ -4194,9 +4194,14 @@ var bottomNavMap = {
   ganancias: 'bn-ganancias',
 };
 
-// Sobrescribir showTab para actualizar el bottom nav y sync status
+// Sobrescribir showTab para actualizar el bottom nav, sync status y limpiar observers
 var _origShowTab = showTab;
 showTab = function(t) {
+  // Limpiar IntersectionObserver del virtual scroll de ventas al salir del tab
+  if (t !== 'ventas' && typeof _ventasObserver !== 'undefined' && _ventasObserver) {
+    _ventasObserver.disconnect();
+    _ventasObserver = null;
+  }
   _origShowTab(t);
   updateBottomNav(t);
   if (t === 'ajustes') updateSyncStatus();
