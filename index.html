@@ -897,7 +897,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
     <div class="tabs">
       <div class="sidebar-section-lbl" style="padding-top:16px;">NAVEGACIÓN</div>
       <button class="tab active" id="tabbtn-ventas" onclick="showTab('ventas')"><span class="tab-icon">🛍️</span><span class="tab-lbl">Ventas</span></button>
-      <button class="tab" id="tabbtn-cuotas" onclick="showTab('cuotas')"><span class="tab-icon">📋</span><span class="tab-lbl">Cuotas</span></button>
+      <button class="tab" id="tabbtn-cuotas" onclick="showTab('cuotas')"><span class="tab-icon">📋</span><span class="tab-lbl">Cuotas</span><span class="bn-badge" id="sidebar-badge-cuotas" style="margin-left:auto;position:static;"></span></button>
       <button class="tab" id="tabbtn-clientes" onclick="showTab('clientes')"><span class="tab-icon">👥</span><span class="tab-lbl">Clientes</span></button>
       <div class="sidebar-section-lbl">FINANZAS</div>
       <button class="tab" id="tabbtn-gastos" onclick="showTab('gastos')"><span class="tab-icon">💸</span><span class="tab-lbl">Gastos</span></button>
@@ -4562,6 +4562,12 @@ function updateCuotasBadge() {
     badge.textContent = pendientes > 0 ? (pendientes > 9 ? '9+' : pendientes) : '';
     badge.classList.toggle('show', pendientes > 0);
   }
+  // También actualizar badge en sidebar desktop
+  var sbadge = document.getElementById('sidebar-badge-cuotas');
+  if (sbadge) {
+    sbadge.textContent = pendientes > 0 ? (pendientes > 9 ? '9+' : pendientes) : '';
+    sbadge.classList.toggle('show', pendientes > 0);
+  }
 }
 
 function abrirMas() {
@@ -5938,19 +5944,32 @@ async function descargarPDFCatalogo() {
 
 <!-- ═══════ MODAL BIENVENIDA TRIAL ═══════ -->
 <div id="modal-trial-bienvenida" class="modal-overlay" style="z-index:10000;">
-  <div class="modal" style="text-align:center;max-width:360px;">
+  <div class="modal" style="text-align:center;max-width:360px;padding:24px 20px 28px;">
     <div style="font-size:44px;margin-bottom:8px;">🍶</div>
-    <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold2);margin-bottom:6px;">¡Bienvenido a Parfum Track!</h3>
-    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:14px;">
-      Tenés <strong style="color:var(--gold2);">7 días de prueba gratuita</strong> con todas las funciones habilitadas.
-    </p>
-    <div style="font-size:12px;color:var(--text3);line-height:1.7;margin-bottom:16px;padding:0 4px;">
-      Cargamos ventas y stock de ejemplo para que puedas explorar la app. Podés borrarlos desde <strong style="color:var(--text2)">Ajustes → Zona peligrosa</strong>.
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold2);margin-bottom:4px;">¡Bienvenida a Parfum Track!</h3>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:18px;">7 días de prueba gratuita · Todas las funciones</p>
+
+    <!-- 3 features clave -->
+    <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:18px;text-align:left;">
+      <div style="display:flex;align-items:center;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;">
+        <span style="font-size:24px;flex-shrink:0;">💰</span>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">Registrá ventas en segundos</div><div style="font-size:11px;color:var(--text3);">Contado o en cuotas, con ganancia automática</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;">
+        <span style="font-size:24px;flex-shrink:0;">📲</span>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">Cobrá cuotas por WhatsApp</div><div style="font-size:11px;color:var(--text3);">Recordatorios automáticos para tus clientes</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;">
+        <span style="font-size:24px;flex-shrink:0;">📊</span>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">Mirá tus ganancias en tiempo real</div><div style="font-size:11px;color:var(--text3);">Gráficos, metas y análisis por período</div></div>
+      </div>
     </div>
+
     <button
       onclick="closeModal('modal-trial-bienvenida')"
-      style="width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.3px;"
-    >¡Empezar a explorar!</button>
+      style="width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.3px;margin-bottom:8px;"
+    >✦ Empezar ahora</button>
+    <div style="font-size:11px;color:var(--text3);">Los datos de ejemplo pueden borrarse desde Ajustes → Zona peligrosa</div>
   </div>
 </div>
 
