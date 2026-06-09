@@ -60,6 +60,29 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
 /* resumen diario */
 .daily-banner{margin-top:9px;background:rgba(112,201,160,0.1);border:0.5px solid rgba(112,201,160,0.3);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;color:var(--success);display:none}
 .daily-banner.show{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* ── ONBOARDING ── */
+#modal-onboarding .modal { animation: ob-entry .4s cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes ob-entry { from { opacity:0; transform:translateY(24px) scale(.96); } to { opacity:1; transform:none; } }
+#ob-nombre:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,168,76,.15); }
+/* Tooltip de primera venta */
+.ob-tooltip {
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+  background:var(--gold); color:#1a1a2e;
+  padding:10px 18px; border-radius:20px;
+  font-size:13px; font-weight:600;
+  box-shadow:0 4px 20px rgba(201,168,76,.4);
+  z-index:9000; white-space:nowrap;
+  animation: ob-bounce 1.2s ease infinite;
+  pointer-events:none;
+}
+.ob-tooltip::after {
+  content:''; position:absolute; bottom:-8px; left:50%; transform:translateX(-50%);
+  border:8px solid transparent; border-top-color:var(--gold); border-bottom:none;
+}
+@keyframes ob-bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-6px)} }
+/* Confetti particle */
+.ob-confetti { position:fixed; pointer-events:none; z-index:99998; border-radius:2px; animation:ob-fall linear forwards; }
+@keyframes ob-fall { 0%{opacity:1;transform:translateY(0) rotate(0deg)} 100%{opacity:0;transform:translateY(100vh) rotate(720deg)} }
 /* ── BOTTOM NAV ── */
 .tabs{display:none} /* ocultar tabs originales — reemplazadas por bottom nav */
 .bottom-nav{
@@ -2037,7 +2060,9 @@ function addVenta(){
   if(pc > pvFinal){toast('⚠ El precio de compra es mayor al precio de venta. La ganancia será negativa.',4000);}
   const fecha=hoy();const mesFecha=mesKey(fecha);const esMesNuevo=!mesesDeVentas().includes(mesFecha);const nVenta=ventas.filter(v=>mesKey(v.fecha)===mesFecha).length+1;const esCuotas=tipo==='cuotas';let cuotasTotal=1,primeraCuota=0,cuotasPagos=[];if(esCuotas){cuotasTotal=parseInt(document.getElementById('f-num-cuotas').value)||2;primeraCuota=parseFloat(document.getElementById('f-primera-cuota').value)||0;if(primeraCuota>0)cuotasPagos=[{monto:primeraCuota,fecha,numCuota:0}];}else cuotasPagos=[{monto:pvFinal,fecha,numCuota:0}];const _btnGuardar = document.getElementById('btn-guardar-venta');
   if(_btnGuardar){_btnGuardar.disabled=true;_btnGuardar.textContent='Guardando...';}
-  ventas.unshift({id:Date.now(),createdAt:Date.now(),nVenta,perfume,precioVenta:pvFinal,precioCompra:pc,ganancia:pvFinal-pc,descuento:dto||0,esCuotas,cuotasTotal,primeraCuota,cuotasPagos,proveedor,vendedor,cliente,nota,fecha});let sp=perfumes.find(p=>p.nombre.toLowerCase()===perfume.toLowerCase());if(!sp){sp={nombre:perfume,precio:pc,stock:0,proveedor,foto:null,historialPrecios:[{precio:pc,fecha}]};perfumes.push(sp);}if(sp.stock>0)sp.stock--;save();updateStats();['f-perfume','f-pventa','f-pcompra','f-descuento','f-proveedor','f-vendedor','f-cliente','f-nota'].forEach(id=>document.getElementById(id).value='');document.getElementById('f-tipo-cuota').value='contado';document.getElementById('cuotas-form-extra').style.display='none';document.getElementById('cuotas-preview').innerHTML='';document.getElementById('precio-sugerido').style.display='none';document.getElementById('ganancia-preview').textContent='';const debe=calcDebe(ventas[0]);toast((esCuotas?`✓ Venta en ${cuotasTotal} cuotas${primeraCuota?' · 1ra cobrada':''}${debe>0?' · Resta: '+fmt(debe):''}`:` ✓ Venta registrada · Ganancia: ${fmt(pvFinal-pc)}`)+(dto>0?` · Descuento: ${dto}%`:'')+(esMesNuevo?`\n📅 Nueva sección ${mesLabel(mesFecha)} creada`:''),3200);if(esMesNuevo)activeMesVentas=mesFecha;
+  const _esPrimeraVenta = ventas.length === 0;
+  ventas.unshift({id:Date.now(),createdAt:Date.now(),nVenta,perfume,precioVenta:pvFinal,precioCompra:pc,ganancia:pvFinal-pc,descuento:dto||0,esCuotas,cuotasTotal,primeraCuota,cuotasPagos,proveedor,vendedor,cliente,nota,fecha});
+  if (_esPrimeraVenta && typeof _obConfetti === 'function') setTimeout(_obConfetti, 800);let sp=perfumes.find(p=>p.nombre.toLowerCase()===perfume.toLowerCase());if(!sp){sp={nombre:perfume,precio:pc,stock:0,proveedor,foto:null,historialPrecios:[{precio:pc,fecha}]};perfumes.push(sp);}if(sp.stock>0)sp.stock--;save();updateStats();['f-perfume','f-pventa','f-pcompra','f-descuento','f-proveedor','f-vendedor','f-cliente','f-nota'].forEach(id=>document.getElementById(id).value='');document.getElementById('f-tipo-cuota').value='contado';document.getElementById('cuotas-form-extra').style.display='none';document.getElementById('cuotas-preview').innerHTML='';document.getElementById('precio-sugerido').style.display='none';document.getElementById('ganancia-preview').textContent='';const debe=calcDebe(ventas[0]);toast((esCuotas?`✓ Venta en ${cuotasTotal} cuotas${primeraCuota?' · 1ra cobrada':''}${debe>0?' · Resta: '+fmt(debe):''}`:` ✓ Venta registrada · Ganancia: ${fmt(pvFinal-pc)}`)+(dto>0?` · Descuento: ${dto}%`:'')+(esMesNuevo?`\n📅 Nueva sección ${mesLabel(mesFecha)} creada`:''),3200);if(esMesNuevo)activeMesVentas=mesFecha;
   // Rehabilitar botón guardar
   const _bg=document.getElementById('btn-guardar-venta');if(_bg){_bg.disabled=false;_bg.textContent='Guardar venta';}
   // Aviso si queda poco margen de trial limitado
@@ -4094,9 +4119,76 @@ function checkOnboarding() {
   if (localStorage.getItem('pt_onboarding_done')) return;
   // Pequeño delay para que la app termine de renderizar
   setTimeout(function(){
-    var el = document.getElementById('ob-welcome-screen');
-    if (el) el.classList.add('show');
-  }, 600);
+    var el = document.getElementById('modal-onboarding');
+    if (el) el.classList.add('open');
+    // Focus en el campo nombre
+    var inp = document.getElementById('ob-nombre');
+    if (inp) setTimeout(function(){ inp.focus(); }, 200);
+  }, 800);
+}
+
+function obPaso1() {
+  var nombre = (document.getElementById('ob-nombre').value || '').trim();
+  if (!nombre) { document.getElementById('ob-nombre').focus(); return; }
+  // Guardar nombre en el perfil activo
+  var profiles = getProfiles();
+  var p = profiles.find(function(x){ return x.id === activeProfile; });
+  if (p) {
+    p.name = nombre;
+    saveProfiles(profiles);
+  }
+  // Actualizar badge del header
+  var badge = document.getElementById('profile-badge');
+  if (badge) badge.textContent = '🍶 ' + (nombre.length > 8 ? nombre.slice(0,8)+'…' : nombre);
+  // Mostrar paso 2
+  document.getElementById('ob-step-1').style.display = 'none';
+  document.getElementById('ob-step-2').style.display = 'block';
+  var saludo = document.getElementById('ob-saludo');
+  if (saludo) saludo.textContent = '¡Hola, ' + nombre + '!';
+}
+
+function obSaltar() {
+  localStorage.setItem('pt_onboarding_done', '1');
+  var el = document.getElementById('modal-onboarding');
+  if (el) el.classList.remove('open');
+}
+
+function obTerminar() {
+  localStorage.setItem('pt_onboarding_done', '1');
+  var el = document.getElementById('modal-onboarding');
+  if (el) el.classList.remove('open');
+  showTab('add');
+  // Tooltip flotante para guiar al usuario
+  setTimeout(_obShowTooltip, 400);
+}
+
+function _obShowTooltip() {
+  var t = document.createElement('div');
+  t.className = 'ob-tooltip';
+  t.textContent = '👆 Completá tu primera venta aquí';
+  document.body.appendChild(t);
+  setTimeout(function(){ if (t.parentNode) t.parentNode.removeChild(t); }, 5000);
+}
+
+function _obConfetti() {
+  var colors = ['#c9a84c','#f5dfa0','#e8c97e','#fff','#f0b429'];
+  for (var i = 0; i < 48; i++) {
+    (function(){
+      var el = document.createElement('div');
+      el.className = 'ob-confetti';
+      el.style.cssText = [
+        'left:' + (Math.random()*100) + 'vw',
+        'top:-10px',
+        'width:' + (6+Math.random()*8) + 'px',
+        'height:' + (6+Math.random()*8) + 'px',
+        'background:' + colors[Math.floor(Math.random()*colors.length)],
+        'animation-duration:' + (1.2+Math.random()*1.6) + 's',
+        'animation-delay:' + (Math.random()*0.6) + 's'
+      ].join(';');
+      document.body.appendChild(el);
+      el.addEventListener('animationend', function(){ if (el.parentNode) el.parentNode.removeChild(el); });
+    })();
+  }
 }
 
 function cerrarOnboarding() {
@@ -5488,6 +5580,45 @@ async function descargarPDFCatalogo() {
     </div>
 
     <button onclick="closeModal('modal-pin-setup')" style="width:100%;padding:10px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══════ MODAL ONBOARDING ═══════ -->
+<div id="modal-onboarding" class="modal-overlay" style="z-index:10001;backdrop-filter:blur(8px)">
+  <div class="modal" style="max-width:340px;text-align:center;padding:28px 24px;">
+
+    <!-- Paso 1 -->
+    <div id="ob-step-1">
+      <div style="font-size:48px;margin-bottom:4px;">🍶</div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--gold2);margin-bottom:6px;">¡Bienvenida!</h2>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px;">
+        Parfum Track te ayuda a registrar ventas, controlar stock y ver tus ganancias en segundos.<br><br>
+        ¿Cómo querés que te llamemos?
+      </p>
+      <input id="ob-nombre" type="text" maxlength="30"
+        placeholder="Tu nombre o el de tu negocio"
+        style="width:100%;padding:12px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;text-align:center;margin-bottom:16px;"
+        onkeydown="if(event.key==='Enter')obPaso1()">
+      <button onclick="obPaso1()" class="btn-primary" style="width:100%;padding:13px;">
+        Empezar →
+      </button>
+      <button onclick="obSaltar()" style="margin-top:10px;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;text-decoration:underline;">
+        Saltar
+      </button>
+    </div>
+
+    <!-- Paso 2 -->
+    <div id="ob-step-2" style="display:none;">
+      <div style="font-size:48px;margin-bottom:4px;">✦</div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--gold2);margin-bottom:8px;" id="ob-saludo">¡Listo!</h2>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:22px;">
+        Todo listo para empezar. Registrá tu primera venta y vas a ver tus ganancias en tiempo real. 💰
+      </p>
+      <button onclick="obTerminar()" class="btn-primary" style="width:100%;padding:13px;">
+        Registrar mi primera venta →
+      </button>
+    </div>
+
   </div>
 </div>
 
