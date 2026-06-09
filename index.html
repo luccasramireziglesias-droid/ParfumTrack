@@ -1800,7 +1800,7 @@ function _renderVentasLote(el) {
   const yaRenderizados = new Set([...el.querySelectorAll('[data-mes]')].map(e=>e.dataset.mes));
   mesesEnLote.forEach(mes => {
     const mesId = mes.replace(/\//g, '-'); // '06/2026' → '06-2026' (válido en selectores CSS)
-    let mesEl = el.querySelector(`[data-mes="${mes}"]`);
+    let mesEl = el.querySelector(`[data-mes="${CSS.escape(mes)}"]`);
     if (!mesEl) {
       const vs = porMes[mes];
       const totGan=vs.reduce((s,v)=>s+(v.ganancia||0),0);
@@ -1948,7 +1948,12 @@ function calcGananciaPreview(){const pv=parseFloat(document.getElementById('f-pv
 function toggleCuotasForm(){const t=document.getElementById('f-tipo-cuota').value;document.getElementById('cuotas-form-extra').style.display=t==='cuotas'?'block':'none';recalcCuotas();}
 function recalcCuotas(){const pv=parseFloat(document.getElementById('f-pventa').value)||0;const dto=parseFloat(document.getElementById('f-descuento').value)||0;const pvFinal=pv*(1-dto/100);const n=parseInt(document.getElementById('f-num-cuotas').value)||2;const primera=parseFloat(document.getElementById('f-primera-cuota').value)||0;if(!pvFinal||!n){document.getElementById('cuotas-preview').innerHTML='';return;}const rpc=primera&&n>1?Math.ceil((pvFinal-primera)/(n-1)):Math.ceil(pvFinal/n);let h=`<strong style="color:var(--gold2)">Plan de cuotas</strong><br>`;for(let i=0;i<n;i++){const m=i===0&&primera?primera:rpc;h+=`Cuota ${i+1}: <strong>${fmt(m)}</strong>${i===0?' (hoy)':''}<br>`;}h+=`Total: <strong>${fmt(pvFinal)}</strong>`;document.getElementById('cuotas-preview').innerHTML=h;}
 function fillSuggestions(){const fields={perfume:'perfume',proveedor:'proveedor',vendedor:'vendedor',cliente:'cliente'};Object.entries(fields).forEach(([id,key])=>{const vals=[...new Set(ventas.map(v=>v[key]).filter(Boolean))];document.getElementById('sug-'+id).innerHTML=vals.map(n=>`<option value="${n}">`).join('');});}
+let _addVentaEnProceso = false;
 function addVenta(){
+  if (_addVentaEnProceso) return;
+  _addVentaEnProceso = true;
+  // Liberar el guard siempre — cubre tanto errores de validación como éxito
+  setTimeout(() => { _addVentaEnProceso = false; }, 800);
   // ── TRIAL LIMIT CHECK ──
   if (window._trialLimitado && !isActivated()) {
     const restantes = getTrialVentasRestantes();
