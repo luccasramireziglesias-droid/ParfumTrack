@@ -1519,7 +1519,55 @@ function backupData(){
   if(typeof updateSyncStatus==='function') updateSyncStatus();
   toast('💾 Backup descargado');
 }
-function restoreBackup(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(!data.version||!data.ventas){toast('⚠ Archivo inválido');return;}ventas=data.ventas||[];perfumes=data.perfumes||[];gastos=data.gastos||[];caja=data.caja||[];if(data.meta)metaMensual=data.meta;save();updateStats();toast(`✓ Backup restaurado · ${ventas.length} ventas, ${perfumes.length} perfumes`);}catch(err){toast('⚠ Error al leer el backup');}};r.readAsText(file);e.target.value='';}
+function _validarSchemaBackup(data) {
+  if (!data || typeof data !== 'object') return '⚠ El archivo no es un backup válido.';
+  if (!data.version) return '⚠ El archivo no tiene versión — no es un backup de Parfum Track.';
+  if (data.ventas !== undefined && !Array.isArray(data.ventas)) return '⚠ El campo "ventas" está corrupto.';
+  if (data.perfumes !== undefined && !Array.isArray(data.perfumes)) return '⚠ El campo "perfumes" está corrupto.';
+  if (data.gastos !== undefined && !Array.isArray(data.gastos)) return '⚠ El campo "gastos" está corrupto.';
+  if (data.caja !== undefined && !Array.isArray(data.caja)) return '⚠ El campo "caja" está corrupto.';
+  if (!data.ventas || data.ventas.length === 0) return '⚠ El backup no contiene ventas. ¿Es el archivo correcto?';
+  return null; // null = válido
+}
+
+function restoreBackup(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      // Validar schema antes de tocar nada
+      const schemaError = _validarSchemaBackup(data);
+      if (schemaError) { toast(schemaError, 4000); e.target.value = ''; return; }
+      // Mostrar preview y pedir confirmación
+      const resumen = `¿Restaurar backup?\n\n📦 ${(data.ventas||[]).length} ventas\n🍶 ${(data.perfumes||[]).length} perfumes\n💸 ${(data.gastos||[]).length} gastos\n🏦 ${(data.caja||[]).length} movimientos de caja\n\nEsto reemplazará todos tus datos actuales (${ventas.length} ventas existentes).`;
+      if (!confirm(resumen)) { e.target.value = ''; return; }
+      // Safety backup automático antes de sobrescribir
+      try {
+        const safetyData = {ventas, perfumes, gastos, caja, meta: metaMensual, fecha: hoy(), version: 'vip_v2'};
+        const blob = new Blob([JSON.stringify(safetyData)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `safety_backup_antes_restaurar_${hoy().replace(/\//g,'-')}.json`;
+        a.click();
+      } catch(_) {}
+      // Restaurar
+      ventas = data.ventas || [];
+      perfumes = data.perfumes || [];
+      gastos = data.gastos || [];
+      caja = data.caja || [];
+      if (data.meta) metaMensual = data.meta;
+      save();
+      updateStats();
+      toast(`✓ Backup restaurado · ${ventas.length} ventas, ${perfumes.length} perfumes`, 3500);
+    } catch(err) {
+      toast('⚠ Error al leer el archivo — ¿es un JSON válido?', 4000);
+    }
+    e.target.value = '';
+  };
+  r.readAsText(file);
+}
 
 function confirmarBorrarStock(){if(!perfumes.length)return;document.getElementById('del-stock-msg').textContent=`¿Borrar los ${perfumes.length} perfumes del stock? Las ventas registradas no se tocan.`;document.getElementById('del-stock-btn').onclick=()=>{perfumes=[];save();closeModal('del-stock-modal');const op=document.getElementById('stock-opciones');if(op)op.style.display='none';renderStock();updateStats();toast('Stock borrado');};document.getElementById('del-stock-modal').classList.add('open');}
 
