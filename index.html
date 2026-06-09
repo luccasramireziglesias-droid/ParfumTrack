@@ -2,7 +2,7 @@
 <html lang="es" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Gestión de ventas para revendedoras de perfumes — registrá ventas, stock, cuotas y ganancias desde el celular.">
 <meta name="theme-color" content="#1a1a2e">
 <!-- iOS PWA -->
@@ -37,7 +37,7 @@
 html,body{height:100%;overflow:hidden;background:var(--bg)}
 body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direction:column;transition:background .25s,color .25s}
 .app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;width:100%}
-.header{padding:44px 18px 12px;background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%);flex-shrink:0;position:relative;overflow:hidden}
+.header{padding:calc(44px + env(safe-area-inset-top)) 18px 12px;background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%);flex-shrink:0;position:relative;overflow:hidden}
 .header::before{content:'';position:absolute;top:-80px;right:-50px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.09) 0%,transparent 70%);pointer-events:none}
 .brand-row{display:flex;align-items:center;justify-content:space-between}
 .brand-left{display:flex;align-items:center;gap:12px}
@@ -387,13 +387,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
 .empty-cta:hover{background:rgba(201,168,76,.25);transform:translateY(-1px)}
 .alert-banner{background:rgba(224,176,96,0.1);border:0.5px solid rgba(224,176,96,0.3);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;color:var(--warn);margin-bottom:11px;display:none;align-items:center;gap:7px}
 .alert-banner.show{display:flex}
-.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--card2);border:0.5px solid var(--border);color:var(--text);padding:9px 18px;border-radius:30px;font-size:13px;opacity:0;transition:opacity .25s,transform .25s;z-index:999;pointer-events:none;max-width:90vw;text-align:center;line-height:1.4}
+.toast{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(10px);background:var(--card2);border:0.5px solid var(--border);color:var(--text);padding:9px 18px;border-radius:30px;font-size:13px;opacity:0;transition:opacity .25s,transform .25s;z-index:999;pointer-events:none;max-width:90vw;text-align:center;line-height:1.4}
 .toast.has-undo{pointer-events:all;display:flex;align-items:center;gap:12px;border-radius:14px;padding:10px 14px 10px 18px}
 .toast-undo-btn{background:var(--gold);color:#1a1a2e;border:none;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;display:none;align-items:flex-end;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
 .modal-overlay.open{display:flex}
-.modal{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:20px 17px 32px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:20px 17px 32px;width:100%;max-width:480px;max-height:90dvh;max-height:90vh;overflow-y:auto}
 .modal h3{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--gold2);margin-bottom:5px}
 .modal p{font-size:14px;color:var(--text2);margin-bottom:16px;line-height:1.5}
 .modal-btns{display:flex;gap:9px;margin-top:10px}
@@ -1273,6 +1273,18 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
         </div>
 
         <!-- NOTIFICACIONES -->
+        <!-- WHATSAPP DEL NEGOCIO -->
+        <div class="card" style="padding:20px;" id="card-wa-negocio">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">📲 WhatsApp del negocio</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Tu número con código de país para recibir consultas y enviar comprobantes. Ej: <span style="color:var(--text2)">5491112345678</span> (Argentina) o <span style="color:var(--text2)">59899123456</span> (Uruguay).</div>
+          <div id="wa-config-banner" style="display:none;background:rgba(224,176,96,0.12);border:0.5px solid rgba(224,176,96,0.4);border-radius:var(--radius-sm);padding:9px 12px;font-size:12px;color:var(--warn);margin-bottom:10px;">⚠ Configurá tu número para habilitar el envío de comprobantes por WhatsApp.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <input type="tel" id="cfg-wa-number" placeholder="5491112345678" inputmode="numeric" maxlength="20"
+              style="flex:1;min-width:160px;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;">
+            <button class="btn-outline" onclick="guardarWANumber()" style="margin-top:0;">Guardar</button>
+          </div>
+        </div>
+
         <div class="card" style="padding:20px;" id="card-notificaciones">
           <!-- FIRMA WHATSAPP -->
           <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">📲 Firma en WhatsApp</div>
@@ -1375,6 +1387,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
       </div>
       <div class="form-group"><label class="form-label">Cliente</label><input type="text" id="f-cliente" maxlength="80" placeholder="Nombre del cliente" list="sug-cliente" oninput="onClienteInput()"><datalist id="sug-cliente"></datalist></div>
       <div class="form-group"><label class="form-label">Nota interna</label><textarea id="f-nota" maxlength="400" rows="3" placeholder="Ej: paga a fin de mes, por encargo..." style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical;min-height:70px"></textarea></div>
+      <div class="form-group"><label class="form-label">Fecha de la venta</label><input type="date" id="f-fecha" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;"></div>
       <button class="btn-primary" id="btn-guardar-venta" onclick="addVenta()">Guardar venta</button>
     </div>
 
@@ -1752,7 +1765,7 @@ function renderComprasPeriodo(){
   +compras.map(c=>`<div class="venta-card"><div class="vc-header"><div class="vc-name" style="font-size:14px">${escapeHTML(c.desc.replace('📦 Compra stock: ',''))}</div><div class="vc-meta"><div class="vc-date">📅 ${c.fecha}</div></div></div><div class="vc-body"><div class="vc-row"><span>Invertido</span><span style="color:var(--danger)">${fmt(c.monto)}</span></div></div></div>`).join('');
 }
 
-function showTab(t){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));const activeTabBtn=document.getElementById('tabbtn-'+t);if(activeTabBtn)activeTabBtn.classList.add('active');document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));const tabEl=document.getElementById('tab-'+t);if(tabEl)tabEl.classList.add('active');if(t==='ventas'){renderMesFilter('mes-filter-ventas','ventas');renderVentas();}if(t==='cuotas')renderCuotasPendientes();if(t==='gastos'){renderMesFilter('mes-filter-gastos','gastos');renderGastos();initFecha('g-fecha');fillSuggestionsGasto();}if(t==='ganancias'){renderMesFilter('mes-filter-gan','ganancias');renderGanancias();fillComparadores();renderMetaBar();}if(t==='caja'){renderMesFilter('mes-filter-caja','caja');renderCaja();initFecha('caja-fecha');}if(t==='catalogo')renderCatalogo();if(t==='stock')renderStock();if(t==='add')fillSuggestions();if(t==='stock')fillStockSuggestions();if(t==='ajustes')renderAjustes();if(t==='clientes')renderClientes();updateStats();}
+function showTab(t){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));const activeTabBtn=document.getElementById('tabbtn-'+t);if(activeTabBtn)activeTabBtn.classList.add('active');document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));const tabEl=document.getElementById('tab-'+t);if(tabEl)tabEl.classList.add('active');if(t==='ventas'){renderMesFilter('mes-filter-ventas','ventas');renderVentas();}if(t==='cuotas')renderCuotasPendientes();if(t==='gastos'){renderMesFilter('mes-filter-gastos','gastos');renderGastos();initFecha('g-fecha');fillSuggestionsGasto();}if(t==='ganancias'){renderMesFilter('mes-filter-gan','ganancias');renderGanancias();fillComparadores();renderMetaBar();}if(t==='caja'){renderMesFilter('mes-filter-caja','caja');renderCaja();initFecha('caja-fecha');}if(t==='catalogo')renderCatalogo();if(t==='stock')renderStock();if(t==='add'){fillSuggestions();const _ff=document.getElementById('f-fecha');if(_ff){const _hh=new Date().toISOString().slice(0,10);_ff.max=_hh;if(!_ff.value)_ff.value=_hh;}}if(t==='stock')fillStockSuggestions();if(t==='ajustes')renderAjustes();if(t==='clientes')renderClientes();updateStats();}
 function renderMesFilter(cId,tab){const meses=tab==='gastos'?mesesDeGastos():tab==='caja'?mesesDeCaja():mesesDeVentas();const active=tab==='ventas'?activeMesVentas:tab==='gastos'?activeMesGastos:tab==='caja'?activeMesCaja:activeMesGan;const el=document.getElementById(cId);if(!meses.length){el.innerHTML='';return;}el.innerHTML=[`<button class="mes-chip ${active==='todos'?'active':''}" onclick="setMes('todos','${tab}')">Todos</button>`,...meses.map(m=>`<button class="mes-chip ${active===m?'active':''}" onclick="setMes('${m}','${tab}')">${mesLabel(m)}</button>`)].join('');}
 function setMes(mes,tab){if(tab==='ventas'){activeMesVentas=mes;renderMesFilter('mes-filter-ventas','ventas');renderVentas();}else if(tab==='gastos'){activeMesGastos=mes;renderMesFilter('mes-filter-gastos','gastos');renderGastos();}else if(tab==='caja'){activeMesCaja=mes;renderMesFilter('mes-filter-caja','caja');renderCaja();}else{activeMesGan=mes;renderMesFilter('mes-filter-gan','ganancias');renderGanancias();renderMetaBar();}}
 function setFiltroEstado(estado){filtroEstado=estado;['todas','hoy','pendiente','completada'].forEach(e=>document.getElementById('fchip-'+e)?.classList.toggle('active',e===estado));renderVentas();actualizarBtnLimpiarFiltros();}
@@ -2154,6 +2167,16 @@ return `<div class="swipe-wrap"><div class="swipe-reveal"><button class="sw-btn 
 // ── WHATSAPP ──────────────────────────────────────────────────
 function _waFirma(){return localStorage.getItem('pt_wa_firma')==='0'?'':'\n\n_Gestionado con Parfum Track 🍶_';}
 function toggleWaFirma(checked){localStorage.setItem('pt_wa_firma',checked?'1':'0');toast(checked?'✅ Firma activada en WhatsApp':'Firma desactivada');}
+function guardarWANumber(){
+  const input = document.getElementById('cfg-wa-number');
+  if (!input) return;
+  const val = input.value.replace(/\D/g,'').trim();
+  if (!val || val.length < 8) { toast('⚠ Ingresá un número válido (con código de país)',3500); return; }
+  localStorage.setItem('pt_wa_number', val);
+  const banner = document.getElementById('wa-config-banner');
+  if (banner) banner.style.display = 'none';
+  toast('✅ Número de WhatsApp guardado');
+}
 function whatsappComprobante(id){const v=ventas.find(x=>x.id===id);if(!v)return;const debe=calcDebe(v);const pagado=(v.cuotasPagos||[]).reduce((s,p)=>s+p.monto,0);const perfil=getProfileName(activeProfile)||'Parfum Track';let msg=`🍶 *${perfil}* — Comprobante de venta\n\n`;msg+=`*Perfume:* ${v.perfume}\n`;msg+=`*Fecha:* ${v.fecha}\n`;msg+=`*Precio:* ${fmt(v.precioVenta)}\n`;if(v.esCuotas){msg+=`*Cuotas:* ${(v.cuotasPagos||[]).length}/${v.cuotasTotal}\n`;msg+=`*Cobrado:* ${fmt(pagado)}\n`;if(debe>0)msg+=`*Saldo pendiente:* ${fmt(debe)}\n`;}if(v.cliente)msg+=`\n_Para: ${v.cliente}_`;msg+=`\n\n_${perfil}_ 🍶`+_waFirma();const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;window.open(url,'_blank');}
 function whatsappCobro(id){const v=ventas.find(x=>x.id===id);if(!v)return;const debe=calcDebe(v);const pagadas=(v.cuotasPagos||[]).length;const total=v.cuotasTotal||2;let msg=`Hola${v.cliente?' '+v.cliente:''}! 👋\n\nTe recuerdo que tenés una cuota pendiente de tu perfume *${v.perfume}*:\n\n`;msg+=`📆 Cuota ${pagadas+1} de ${total}\n`;msg+=`💰 Monto: ${fmt(Math.ceil(debe/(total-pagadas)))}\n`;msg+=`📊 Total adeudado: ${fmt(debe)}\n\n`;msg+=`_${getProfileName(activeProfile)||'Parfum Track'}_ 🍶`+_waFirma();window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');}
 
@@ -2301,13 +2324,21 @@ function addVenta(){
     _negGainPending=false;
     clearTimeout(_negGainTimer);
   }
-  const fecha=hoy();const mesFecha=mesKey(fecha);const esMesNuevo=!mesesDeVentas().includes(mesFecha);const nVenta=ventas.filter(v=>mesKey(v.fecha)===mesFecha).length+1;const esCuotas=tipo==='cuotas';let cuotasTotal=1,primeraCuota=0,cuotasPagos=[];if(esCuotas){cuotasTotal=parseInt(document.getElementById('f-num-cuotas').value)||2;primeraCuota=parseFloat(document.getElementById('f-primera-cuota').value)||0;if(primeraCuota>0)cuotasPagos=[{monto:primeraCuota,fecha,numCuota:0}];}else cuotasPagos=[{monto:pvFinal,fecha,numCuota:0}];const _btnGuardar = document.getElementById('btn-guardar-venta');
+  // Fecha editable — default hoy, máximo hoy (no se pueden registrar ventas futuras)
+  const _fechaInput=document.getElementById('f-fecha');
+  let fecha=hoy();
+  if(_fechaInput&&_fechaInput.value){
+    const[aa,mm,dd]=_fechaInput.value.split('-');
+    const _fTest=new Date(_fechaInput.value);
+    if(!isNaN(_fTest.getTime())&&_fTest<=new Date()){fecha=`${dd}/${mm}/${aa}`;}
+  }
+  const mesFecha=mesKey(fecha);const esMesNuevo=!mesesDeVentas().includes(mesFecha);const nVenta=ventas.filter(v=>mesKey(v.fecha)===mesFecha).length+1;const esCuotas=tipo==='cuotas';let cuotasTotal=1,primeraCuota=0,cuotasPagos=[];if(esCuotas){cuotasTotal=parseInt(document.getElementById('f-num-cuotas').value)||2;primeraCuota=parseFloat(document.getElementById('f-primera-cuota').value)||0;if(primeraCuota>0)cuotasPagos=[{monto:primeraCuota,fecha,numCuota:0}];}else cuotasPagos=[{monto:pvFinal,fecha,numCuota:0}];const _btnGuardar = document.getElementById('btn-guardar-venta');
   if(_btnGuardar){_btnGuardar.disabled=true;_btnGuardar.textContent='Guardando...';}
   const _esPrimeraVenta = ventas.length === 0;
   ventas.unshift({id:Date.now(),createdAt:Date.now(),nVenta,perfume,precioVenta:pvFinal,precioCompra:pc,ganancia:pvFinal-pc,descuento:dto||0,esCuotas,cuotasTotal,primeraCuota,cuotasPagos,proveedor,vendedor,cliente,nota,fecha});
   if (_esPrimeraVenta && typeof _obConfetti === 'function') setTimeout(_obConfetti, 800);let sp=perfumes.find(p=>p.nombre.toLowerCase()===perfume.toLowerCase());const _eraNuevo=!sp;if(!sp){sp={nombre:perfume,precio:pc,stock:0,proveedor,foto:null,historialPrecios:[{precio:pc,fecha}]};perfumes.push(sp);}const _stockAntes=sp.stock||0;if(sp.stock>0)sp.stock--;haptic('success');save();
   // BUG-05: avisar cuando el stock llega a 0
-  if(!_eraNuevo&&_stockAntes===1)setTimeout(()=>toast(`⚠ Sin stock: "${perfume}" llegó a 0 unidades. Acordate de reponer.`,4500),3400);updateStats();['f-perfume','f-pventa','f-pcompra','f-descuento','f-proveedor','f-vendedor','f-cliente','f-nota'].forEach(id=>document.getElementById(id).value='');document.getElementById('f-tipo-cuota').value='contado';document.getElementById('cuotas-form-extra').style.display='none';document.getElementById('cuotas-preview').innerHTML='';document.getElementById('precio-sugerido').style.display='none';document.getElementById('ganancia-preview').textContent='';const debe=calcDebe(ventas[0]);toast((esCuotas?`✓ Venta en ${cuotasTotal} cuotas${primeraCuota?' · 1ra cobrada':''}${debe>0?' · Resta: '+fmt(debe):''}`:` ✓ Venta registrada · Ganancia: ${fmt(pvFinal-pc)}`)+(dto>0?` · Descuento: ${dto}%`:'')+(esMesNuevo?`\n📅 Nueva sección ${mesLabel(mesFecha)} creada`:''),3200);if(esMesNuevo)activeMesVentas=mesFecha;
+  if(!_eraNuevo&&_stockAntes===1)setTimeout(()=>toast(`⚠ Sin stock: "${perfume}" llegó a 0 unidades. Acordate de reponer.`,4500),3400);updateStats();['f-perfume','f-pventa','f-pcompra','f-descuento','f-proveedor','f-vendedor','f-cliente','f-nota'].forEach(id=>document.getElementById(id).value='');const _fFecha=document.getElementById('f-fecha');if(_fFecha){const _hoy=new Date().toISOString().slice(0,10);_fFecha.max=_hoy;_fFecha.value=_hoy;}document.getElementById('f-tipo-cuota').value='contado';document.getElementById('cuotas-form-extra').style.display='none';document.getElementById('cuotas-preview').innerHTML='';document.getElementById('precio-sugerido').style.display='none';document.getElementById('ganancia-preview').textContent='';const debe=calcDebe(ventas[0]);toast((esCuotas?`✓ Venta en ${cuotasTotal} cuotas${primeraCuota?' · 1ra cobrada':''}${debe>0?' · Resta: '+fmt(debe):''}`:` ✓ Venta registrada · Ganancia: ${fmt(pvFinal-pc)}`)+(dto>0?` · Descuento: ${dto}%`:'')+(esMesNuevo?`\n📅 Nueva sección ${mesLabel(mesFecha)} creada`:''),3200);if(esMesNuevo)activeMesVentas=mesFecha;
   // Rehabilitar botón guardar
   const _bg=document.getElementById('btn-guardar-venta');if(_bg){_bg.disabled=false;_bg.textContent='Guardar venta';}
   // Aviso si queda poco margen de trial limitado
@@ -2602,6 +2633,7 @@ function confirmImport(){
 // drag-drop listeners moved to DOMContentLoaded
 // ── EXPORTAR EXCEL ────────────────────────────────────────────
 async function exportExcel(){
+  if(!ventas.length&&!gastos.length&&!caja.length){toast('⚠ No hay datos para exportar',3000);return;}
   if(!(await ensureXLSX())){return;}const wb2=XLSX.utils.book_new();const porMes={};ventas.forEach(v=>{const k=mesKey(v.fecha)||'SIN MES';if(!porMes[k])porMes[k]=[];porMes[k].push(v);});Object.entries(porMes).sort(([a],[b])=>_cmpMesKey(a,b)).forEach(([k,vs])=>{const nombre=mesLabel(k).toUpperCase();const rows=[[`VIP PARFUMS ${nombre}`,'','','','','','','','','','','',''],['º VENTAS','FECHA','PERFUME','PRECIO VENTA','CUOTAS','DEBE DE CUOTA','PAGO','COMPRA','GANANCIA','PROVEEDOR','VENDEDOR','CLIENTE','']];let tV=0,tD=0,tP=0,tC=0,tG=0;vs.forEach((v,i)=>{const pagado=(v.cuotasPagos||[]).reduce((s,p)=>s+p.monto,0);const debe=calcDebe(v);const cStr=v.esCuotas?`${(v.cuotasPagos||[]).length}/${v.cuotasTotal}`:'1';rows.push([i+1,v.fecha,v.perfume,v.precioVenta,cStr,debe,pagado,v.precioCompra||0,v.ganancia||0,v.proveedor||'',v.vendedor||'',v.cliente||'','']);tV+=v.precioVenta||0;tD+=debe;tP+=pagado;tC+=v.precioCompra||0;tG+=v.ganancia||0;});rows.push(['','','',tV,'',tD,tP,tC,tG,'','','','']);rows.push(['','','','','','','','',tG,'','','','']);const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:10},{wch:12},{wch:24},{wch:14},{wch:8},{wch:14},{wch:12},{wch:12},{wch:12},{wch:12},{wch:12},{wch:16},{wch:4}];XLSX.utils.book_append_sheet(wb2,ws,nombre.substring(0,31));});const resRows=[['RESUMEN VIP PARFUMS'],[''],['Mes','Ventas','Ganancia','Cobrado','Por cobrar','Gastos','Ganancia Real']];Object.entries(porMes).sort(([a],[b])=>_cmpMesKey(a,b)).forEach(([k,vs])=>{const gs=gastos.filter(g=>mesKey(g.fecha)===k);resRows.push([mesLabel(k),vs.length,vs.reduce((s,v)=>s+(v.ganancia||0),0),vs.reduce((s,v)=>s+(v.cuotasPagos||[]).reduce((a,p)=>a+p.monto,0),0),vs.reduce((s,v)=>s+calcDebe(v),0),gs.reduce((s,g)=>s+g.monto,0),vs.reduce((s,v)=>s+(v.ganancia||0),0)-gs.reduce((s,g)=>s+g.monto,0)]);});resRows.push([]);resRows.push(['TOTAL',ventas.length,ventas.reduce((s,v)=>s+(v.ganancia||0),0),ventas.reduce((s,v)=>s+(v.cuotasPagos||[]).reduce((a,p)=>a+p.monto,0),0),ventas.reduce((s,v)=>s+calcDebe(v),0),gastos.reduce((s,g)=>s+g.monto,0),ventas.reduce((s,v)=>s+(v.ganancia||0),0)-gastos.reduce((s,g)=>s+g.monto,0)]);const wsRes=XLSX.utils.aoa_to_sheet(resRows);wsRes['!cols']=[{wch:16},{wch:10},{wch:14},{wch:14},{wch:14},{wch:12},{wch:14}];XLSX.utils.book_append_sheet(wb2,wsRes,'RESUMEN');const gRows=[['FECHA','CATEGORÍA','DESCRIPCIÓN','MONTO','PERFUMES','COSTO X PERF']];gastos.forEach(g=>{const p=g.perfumesEnvio?.length>0?g.monto/g.perfumesEnvio.length:0;gRows.push([g.fecha,CAT_LABELS[g.categoria]||g.categoria,g.nombreOtro||g.descripcion||'',g.monto,(g.perfumesEnvio||[]).join(', '),p||'']);});const wsG=XLSX.utils.aoa_to_sheet(gRows);wsG['!cols']=[{wch:12},{wch:20},{wch:22},{wch:12},{wch:26},{wch:12}];XLSX.utils.book_append_sheet(wb2,wsG,'GASTOS');const cajRows=[['FECHA','TIPO','DESCRIPCIÓN','MONTO']];caja.forEach(m=>cajRows.push([m.fecha,m.tipo==='entrada'?'ENTRADA':'SALIDA',m.desc,m.monto]));const wsCaj=XLSX.utils.aoa_to_sheet(cajRows);wsCaj['!cols']=[{wch:12},{wch:10},{wch:28},{wch:12}];XLSX.utils.book_append_sheet(wb2,wsCaj,'CAJA');XLSX.writeFile(wb2,`VIP_Parfums_${hoy().replace(/\//g,'-')}.xlsx`);toast('📥 Excel exportado en formato VIP');}
 // Modal close on backdrop click + initial tab — moved to DOMContentLoaded
 // (see DOMContentLoaded handler below)
@@ -2786,8 +2818,13 @@ const LICENSE = {
 //   3. Copiá el resultado (64 chars hex) y agregalo a VALID_CODE_HMACS abajo.
 // ══════════════════════════════════════════════════════════════
 
-// ── Número de WhatsApp del desarrollador (con código de país, sin + ni espacios) ──
-const DEV_WA_NUMBER = '5491100000000'; // ← cambiá esto por tu número real
+// ── Número de WhatsApp del negocio (con código de país, sin + ni espacios) ──
+// Configuralo en Ajustes → WhatsApp del negocio
+function getWANumber(){
+  const stored = localStorage.getItem('pt_wa_number');
+  if (stored && stored.length >= 8 && stored !== '5491100000000') return stored;
+  return null;
+}
 
 // Clave interna de HMAC — no es el código de activación, es la sal criptográfica.
 // Podés cambiarla en una nueva versión; los hashes viejos dejarán de funcionar.
@@ -3582,6 +3619,13 @@ function renderAjustes() {
       el.innerHTML = `<span style="color:${color};">${d.toLocaleDateString('es-UY')} (hace ${days === 0 ? 'hoy' : days + ' día' + (days !== 1 ? 's' : '')})</span>`;
     }
   }
+
+  // WA number
+  const waNumInput = document.getElementById('cfg-wa-number');
+  const waNumBanner = document.getElementById('wa-config-banner');
+  const waNumStored = localStorage.getItem('pt_wa_number');
+  if (waNumInput) waNumInput.value = waNumStored || '';
+  if (waNumBanner) waNumBanner.style.display = (!waNumStored || waNumStored === '5491100000000') ? 'block' : 'none';
 
   // Firma WhatsApp toggle
   const firmaChk = document.getElementById('toggle-wa-firma');
@@ -4477,6 +4521,13 @@ function _obLimpiarDemo(){
 function obPaso1() {
   var nombre = (document.getElementById('ob-nombre').value || '').trim();
   if (!nombre) { document.getElementById('ob-nombre').focus(); return; }
+  // Guardar email si se ingresó
+  var email = (document.getElementById('ob-email')?.value || '').trim().toLowerCase();
+  if (email && email.includes('@')) {
+    localStorage.setItem('pt_user_email', email);
+    // Pre-cargar en campo de backup email
+    if (!localStorage.getItem('pt_backup_email')) localStorage.setItem('pt_backup_email', email);
+  }
   // Guardar nombre en el perfil activo
   var profiles = getProfiles();
   var p = profiles.find(function(x){ return x.id === activeProfile; });
@@ -5988,7 +6039,11 @@ async function descargarPDFCatalogo() {
       </p>
       <input id="ob-nombre" type="text" maxlength="30"
         placeholder="Tu nombre o el de tu negocio"
-        style="width:100%;padding:12px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;text-align:center;margin-bottom:16px;"
+        style="width:100%;padding:12px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;text-align:center;margin-bottom:10px;"
+        onkeydown="if(event.key==='Enter')document.getElementById('ob-email').focus()">
+      <input id="ob-email" type="email" maxlength="80" autocomplete="email"
+        placeholder="tu@email.com (para recuperar tu cuenta)"
+        style="width:100%;padding:11px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;text-align:center;margin-bottom:16px;color:var(--text2);"
         onkeydown="if(event.key==='Enter')obPaso1()">
       <button onclick="obPaso1()" class="btn-primary" style="width:100%;padding:13px;">
         Empezar →
@@ -6064,7 +6119,7 @@ async function descargarPDFCatalogo() {
 
     <!-- Botón contacto WA -->
     <button
-      onclick="window.open('https://wa.me/'+DEV_WA_NUMBER+'?text='+encodeURIComponent(document.getElementById('tier-wa-msg').textContent),'_blank')"
+      onclick="(function(){const n=getWANumber();if(!n){toast('⚠ Configurá tu número de WhatsApp en Ajustes',3500,'warning');return;}window.open('https://wa.me/'+n+'?text='+encodeURIComponent(document.getElementById('tier-wa-msg').textContent),'_blank');})()"
       style="width:100%;padding:13px;background:linear-gradient(135deg,#25d366,#1da851);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;"
     >📲 Consultar por WhatsApp</button>
     <span id="tier-wa-msg" style="display:none">Hola! Quiero el plan Pro de Parfum Track 🍶</span>
