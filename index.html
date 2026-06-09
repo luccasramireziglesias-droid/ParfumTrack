@@ -4595,6 +4595,38 @@ if (_origSave) {
 
 // Init badge al cargar
 setTimeout(updateCuotasBadge, 800);
+
+// ── Atajos de teclado globales (solo desktop, sin input activo) ──
+document.addEventListener('keydown', function(e) {
+  // No activar si hay un input/textarea/select enfocado o si hay modal abierta
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  const hayModalAbierta = document.querySelector('.modal-overlay.open');
+
+  if (e.key === 'Escape') {
+    // Cerrar la primera modal abierta
+    const abierta = document.querySelector('.modal-overlay.open');
+    if (abierta) { abierta.classList.remove('open'); e.preventDefault(); }
+    return;
+  }
+  if (hayModalAbierta) return; // otros atajos desactivados con modal abierta
+
+  if (e.key === 'n' || e.key === 'N') {
+    e.preventDefault();
+    showTab('add');
+    setTimeout(function(){ var f = document.getElementById('f-perfume'); if(f) f.focus(); }, 150);
+  } else if (e.key === '/') {
+    e.preventDefault();
+    showTab('ventas');
+    setTimeout(function(){ var s = document.getElementById('search-ventas'); if(s) s.focus(); }, 150);
+  } else if (e.key === 'v' || e.key === 'V') {
+    e.preventDefault(); showTab('ventas');
+  } else if (e.key === 'g' || e.key === 'G') {
+    e.preventDefault(); showTab('ganancias');
+  } else if (e.key === 'c' || e.key === 'C') {
+    e.preventDefault(); showTab('cuotas');
+  }
+});
 </script>
 
 <!-- ═══════ BACKUP PROACTIVO BANNER ═══════ -->
