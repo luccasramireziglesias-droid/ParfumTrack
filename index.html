@@ -730,14 +730,24 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
   </div>
 </div>
 
-<div id="app-loading" style="position:fixed;inset:0;background:#07070f;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;">
+<div id="app-loading" style="position:fixed;inset:0;background:rgba(7,7,15,.82);backdrop-filter:blur(4px);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .3s;">
   <div style="font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--gold2);letter-spacing:2px;"><svg viewBox="0 0 100 100" width="24" height="24" style="vertical-align:middle;display:inline-block;"><defs><linearGradient id="dhead" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f5dfa0"/><stop offset="50%" stop-color="#e8c97e"/><stop offset="100%" stop-color="#c9a84c"/></linearGradient></defs><path d="M50 8 L74 52 a26 26 0 1 1 -48 0 Z" fill="url(#dhead)"/><ellipse cx="40" cy="62" rx="8" ry="12" fill="#ffffff" opacity="0.4"/></svg></div>
   <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold2);letter-spacing:2px;">Parfum Track</div>
   <div style="width:40px;height:2px;background:var(--gold-dim);border-radius:2px;overflow:hidden;margin-top:8px;">
     <div style="width:100%;height:100%;background:var(--gold);animation:loadbar 1s ease-in-out infinite;"></div>
   </div>
 </div>
-<style>@keyframes loadbar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}</style>
+<style>
+@keyframes loadbar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes sk-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+.sk-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:9px;padding:13px 13px 12px;overflow:hidden}
+.sk-line{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--card2) 25%,rgba(201,168,76,.07) 50%,var(--card2) 75%);background-size:400px 100%;animation:sk-shimmer 1.4s ease infinite;margin-bottom:9px}
+.sk-line:last-child{margin-bottom:0}
+.sk-line.wide{width:60%}.sk-line.mid{width:40%}.sk-line.short{width:25%}.sk-line.full{width:100%}
+.sk-row{display:flex;justify-content:space-between;gap:10px;margin-bottom:9px}
+.sk-row .sk-line{margin-bottom:0;flex:1}
+.sk-row .sk-line.short{flex:0 0 25%}
+</style>
 <div class="app">
   <div class="header">
     <div class="brand-row">
@@ -860,7 +870,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
         <button class="filter-chip" id="fchip-completada" onclick="setFiltroEstado('completada')">✅ Completadas</button>
         <button id="btn-limpiar-filtros" onclick="limpiarFiltrosVentas()" style="display:none;margin-left:auto;padding:5px 12px;background:rgba(224,112,112,0.12);border:0.5px solid rgba(224,112,112,0.35);color:var(--danger);border-radius:20px;font-size:11px;cursor:pointer;font-weight:600;white-space:nowrap;">✕ Limpiar filtros</button>
       </div>
-      <div id="ventas-list"></div>
+      <div id="ventas-list">
+        <!-- skeleton cards — reemplazados por renderVentas() al cargar -->
+        <div class="sk-card"><div class="sk-row"><div class="sk-line wide"></div><div class="sk-line short"></div></div><div class="sk-row"><div class="sk-line mid"></div><div class="sk-line short"></div></div><div class="sk-row"><div class="sk-line full"></div><div class="sk-line short"></div></div></div>
+        <div class="sk-card"><div class="sk-row"><div class="sk-line wide"></div><div class="sk-line short"></div></div><div class="sk-row"><div class="sk-line mid"></div><div class="sk-line short"></div></div></div>
+        <div class="sk-card"><div class="sk-row"><div class="sk-line wide"></div><div class="sk-line short"></div></div><div class="sk-row"><div class="sk-line mid"></div><div class="sk-line short"></div></div><div class="sk-row"><div class="sk-line full"></div><div class="sk-line short"></div></div></div>
+        <div class="sk-card"><div class="sk-row"><div class="sk-line wide"></div><div class="sk-line short"></div></div><div class="sk-row"><div class="sk-line mid"></div><div class="sk-line short"></div></div></div>
+      </div>
       <div style="margin-top:14px;text-align:center;">
         <button onclick="exportarVentasCSV()" style="padding:9px 20px;background:rgba(61,191,138,.1);border:0.5px solid rgba(61,191,138,.35);color:var(--success);border-radius:20px;font-size:12px;cursor:pointer;font-weight:600;">📊 Exportar CSV</button>
       </div>
@@ -3690,9 +3706,9 @@ async function selectProfile(pid){
   ventas = []; perfumes = []; gastos = []; caja = []; metaMensual = 0;
   // Mostrar loader mientras carga el nuevo perfil
   const loader = document.getElementById('app-loading');
-  if (loader) loader.style.display = 'flex';
+  if (loader) { loader.style.opacity='1'; loader.style.display = 'flex'; }
   await loadProfile(pid);
-  if (loader) loader.style.display = 'none';
+  if (loader) { loader.style.opacity='0'; setTimeout(function(){ loader.style.display='none'; },320); }
   document.getElementById('profile-screen').style.display = 'none';
   enterApp();
 }
@@ -3866,9 +3882,12 @@ function cobrarEfectivo(){
 document.addEventListener('DOMContentLoaded', function() {
   // Esperar IndexedDB antes de arrancar la app
   _appDataReady.then(function() {
-  // Hide loading screen
+  // Fade out loading screen → reveal app with skeleton → real content
   const loader = document.getElementById('app-loading');
-  if (loader) loader.style.display = 'none';
+  if (loader) {
+    loader.style.opacity = '0';
+    setTimeout(function(){ loader.style.display = 'none'; }, 320);
+  }
   // Disparar evento para que OneSignal chequee cobros pendientes
   window.dispatchEvent(new Event('pt-app-ready'));
   // Attach modal backdrop close listeners
