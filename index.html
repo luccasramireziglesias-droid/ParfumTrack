@@ -24,8 +24,7 @@
   #app-splash img{width:96px;height:96px;border-radius:22px;box-shadow:0 0 40px rgba(201,168,76,.3)}
   #app-splash p{color:#c9a84c;font-family:sans-serif;font-size:13px;letter-spacing:1px;opacity:.7}
 </style>
-<!-- OneSignal Web Push SDK -->
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<!-- OneSignal Web Push SDK: cargado bajo demanda para mejorar performance inicial -->
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"></noscript>
 
@@ -622,6 +621,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
   /* ── Modales centrados ── */
   .venta-card { border-radius: 10px; }
   .modal-overlay { align-items: center; }
+  .modal { border-radius: var(--radius); max-width: 520px; }
   .modal-box { max-width: 560px; border-radius: 16px; }
   .modal-box.modal-box-lg { max-width: 720px; }
 
@@ -1410,15 +1410,15 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
     <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-del-mes')">Cancelar</button><button class="btn-confirm-del" onclick="confirmarEliminarMes()">Sí, eliminar mes</button></div>
   </div>
 </div>
-<div class="modal-overlay" role="dialog" aria-modal="true" id="del-modal">
-  <div class="modal"><h3>Eliminar venta</h3><p id="del-modal-msg">¿Eliminar esta venta?</p>
+<div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="del-modal-title" id="del-modal">
+  <div class="modal"><h3 id="del-modal-title">Eliminar venta</h3><p id="del-modal-msg">¿Eliminar esta venta?</p>
   <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('del-modal')">Cancelar</button><button class="btn-confirm-del" id="del-confirm-btn">Eliminar</button></div></div>
 </div>
 
 <!-- MODAL EDITAR VENTA -->
-<div class="modal-overlay" role="dialog" aria-modal="true" id="modal-editar-venta">
+<div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-editar-venta-title" id="modal-editar-venta">
   <div class="modal" style="max-width:420px;">
-    <h3 style="margin-bottom:16px">✏️ Editar venta</h3>
+    <h3 id="modal-editar-venta-title" style="margin-bottom:16px">✏️ Editar venta</h3>
     <div class="form-group"><label class="form-label">Perfume</label><input type="text" id="ev-perfume" maxlength="80" placeholder="Nombre del perfume" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="form-group"><label class="form-label">Precio venta</label><input type="number" id="ev-pventa" placeholder="0" inputmode="numeric" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
@@ -1430,7 +1430,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
     <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-editar-venta')">Cancelar</button><button class="btn-confirm-ok" onclick="guardarEditarVenta()">Guardar cambios</button></div>
   </div>
 </div>
-<div class="modal-overlay" role="dialog" aria-modal="true" id="modal-cuota">
+<div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-cuota-title" id="modal-cuota">
   <div class="modal"><h3 id="modal-cuota-title">Registrar pago</h3><p id="modal-cuota-desc"></p>
   <div class="form-group"><label class="form-label">Monto recibido</label><input type="number" id="modal-cuota-monto" placeholder="0" inputmode="numeric" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
   <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-cuota')">Cancelar</button><button class="btn-confirm-ok" id="modal-cuota-ok">Registrar pago</button></div></div>
@@ -2168,7 +2168,7 @@ function renderComparacion(){const m1=document.getElementById('cmp-mes1').value,
 function renderGanancias(){const filtered=activeMesGan==='todos'?ventas:ventas.filter(v=>mesKey(v.fecha)===activeMesGan);const gastFilt=activeMesGan==='todos'?gastos:gastos.filter(g=>mesKey(g.fecha)===activeMesGan);const totGan=filtered.reduce((s,v)=>s+(v.ganancia||0),0);const totGast=gastFilt.reduce((s,g)=>s+g.monto,0);const totCob=filtered.reduce((s,v)=>s+(v.esCuotas?(v.cuotasPagos||[]).reduce((a,p)=>a+p.monto,0):v.precioVenta||0),0);const totDebe=filtered.reduce((s,v)=>s+calcDebe(v),0);document.getElementById('g-totalv').textContent=filtered.length;document.getElementById('g-neta').textContent=fmt(totGan);document.getElementById('g-neta').className='g-card-val '+(totGan>=0?'green':'red');document.getElementById('g-gastos-periodo').textContent=fmt(totGast);document.getElementById('g-real').textContent=fmt(totGan-totGast);document.getElementById('g-real').className='g-card-val '+((totGan-totGast)>=0?'green':'red');document.getElementById('g-cobrado').textContent=fmt(totCob);document.getElementById('g-debe').textContent=fmt(totDebe);renderChartMeses();renderStatsAvanzadas(filtered);renderChartDias(filtered);renderStatsMes(filtered,gastFilt);renderComprasPeriodo();const byP={};filtered.forEach(v=>{const k=v.perfume||'?';if(!byP[k])byP[k]={nombre:k,ventas:0,gan:0};byP[k].ventas++;byP[k].gan+=(v.ganancia||0);});document.getElementById('gan-list').innerHTML=Object.values(byP).sort((a,b)=>b.gan-a.gan).map((g,i)=>`<div class="venta-card"><div class="vc-header"><div class="vc-name">${i===0?'🥇 ':''}${escapeHTML(g.nombre)}</div><div class="vc-date">${g.ventas} venta${g.ventas!==1?'s':''}</div></div><div class="vc-body"><div class="vc-row"><span>Ganancia total</span><span class="pos">${fmt(g.gan)}</span></div><div class="vc-row"><span>Promedio</span><span>${fmt(g.gan/g.ventas)}</span></div></div></div>`).join('')||'<div class="empty"><span class="empty-icon">📊</span><p>Sin datos en este período.</p></div>';const byV={};filtered.forEach(v=>{const k=v.vendedor||'Sin vendedor';if(!byV[k])byV[k]={nombre:k,ventas:0,gan:0};byV[k].ventas++;byV[k].gan+=(v.ganancia||0);});document.getElementById('gan-vendedor').innerHTML=Object.values(byV).sort((a,b)=>b.gan-a.gan).map((v,i)=>`<div class="venta-card"><div class="vc-header"><div class="vc-name">${i===0?'⭐ ':''}${escapeHTML(v.nombre)}</div><div class="vc-date">${v.ventas} venta${v.ventas!==1?'s':''}</div></div><div class="vc-body"><div class="vc-row"><span>Ganancia</span><span class="pos">${fmt(v.gan)}</span></div></div></div>`).join('');}
 // ── CAJA ──────────────────────────────────────────────────────
 function initFecha(id){const el=document.getElementById(id);if(el&&!el.value){const d=new Date();el.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}}
-function addMovCaja(){const tipo=document.getElementById('caja-tipo').value;const desc=document.getElementById('caja-desc').value.trim();const monto=parseFloat(document.getElementById('caja-monto').value)||0;const fechaRaw=document.getElementById('caja-fecha').value;if(!desc){toast('⚠ Agregá una descripción');return;}if(!monto){toast('⚠ Ingresá el monto');return;}if(!fechaRaw){toast('⚠ Seleccioná la fecha');return;}const[aa,mm,dd]=fechaRaw.split('-');const fechaTest=new Date(fechaRaw);if(isNaN(fechaTest.getTime())){toast('⚠ La fecha ingresada no es válida');return;}caja.unshift({id:Date.now(),tipo,desc,monto,fecha:`${dd}/${mm}/${aa}`});haptic('light');save();document.getElementById('caja-desc').value='';document.getElementById('caja-monto').value='';toast(`✓ ${tipo==='entrada'?'Entrada':'Salida'} de ${fmt(monto)} registrada`);renderCaja();renderMesFilter('mes-filter-caja','caja');}
+function addMovCaja(){const tipo=document.getElementById('caja-tipo').value;const desc=document.getElementById('caja-desc').value.trim();const monto=parseFloat(document.getElementById('caja-monto').value)||0;const fechaRaw=document.getElementById('caja-fecha').value;if(!desc){toast('⚠ Agregá una descripción');return;}if(!monto||monto<=0){toast('⚠ Ingresá un monto mayor a cero');return;}if(!fechaRaw){toast('⚠ Seleccioná la fecha');return;}const[aa,mm,dd]=fechaRaw.split('-');const fechaTest=new Date(fechaRaw);if(isNaN(fechaTest.getTime())){toast('⚠ La fecha ingresada no es válida');return;}caja.unshift({id:Date.now(),tipo,desc,monto,fecha:`${dd}/${mm}/${aa}`});haptic('light');save();document.getElementById('caja-desc').value='';document.getElementById('caja-monto').value='';toast(`✓ ${tipo==='entrada'?'Entrada':'Salida'} de ${fmt(monto)} registrada`);renderCaja();renderMesFilter('mes-filter-caja','caja');}
 function delMovCaja(id){
   const mov=caja.find(m=>m.id===id);
   caja=caja.filter(m=>m.id!==id);
@@ -2261,6 +2261,8 @@ function onClienteInput(){
   }
 }
 let _addVentaEnProceso = false;
+let _negGainPending = false; // flag doble-tap para ganancia negativa
+let _negGainTimer = null;
 function addVenta(){
   if (_addVentaEnProceso) return;
   _addVentaEnProceso = true;
@@ -2281,8 +2283,20 @@ function addVenta(){
   // Fix: advertencia no bloqueante si precio de compra es $0
   if(pc === 0){toast('💡 El precio de compra es $0 — la ganancia podría estar inflada', 3500);}
   const pvFinal=dto>0?pv*(1-dto/100):pv;
-  // Advertir si ganancia negativa (precio compra mayor al precio final de venta)
-  if(pc > pvFinal){toast('⚠ El precio de compra es mayor al precio de venta. La ganancia será negativa.',4000);}
+  // Advertir si ganancia negativa — requiere segundo tap para confirmar
+  if(pc > pvFinal){
+    if(!_negGainPending){
+      _negGainPending=true;
+      clearTimeout(_negGainTimer);
+      _negGainTimer=setTimeout(()=>{ _negGainPending=false; },5000);
+      const btn=document.getElementById('btn-guardar-venta');
+      if(btn){ btn.textContent='⚠ Ganancia negativa — tocá de nuevo para confirmar'; btn.style.background='rgba(224,144,96,0.2)'; btn.style.borderColor='var(--warn)'; setTimeout(()=>{ btn.textContent='Guardar venta'; btn.style.background=''; btn.style.borderColor=''; },5000); }
+      _addVentaEnProceso=false;
+      return;
+    }
+    _negGainPending=false;
+    clearTimeout(_negGainTimer);
+  }
   const fecha=hoy();const mesFecha=mesKey(fecha);const esMesNuevo=!mesesDeVentas().includes(mesFecha);const nVenta=ventas.filter(v=>mesKey(v.fecha)===mesFecha).length+1;const esCuotas=tipo==='cuotas';let cuotasTotal=1,primeraCuota=0,cuotasPagos=[];if(esCuotas){cuotasTotal=parseInt(document.getElementById('f-num-cuotas').value)||2;primeraCuota=parseFloat(document.getElementById('f-primera-cuota').value)||0;if(primeraCuota>0)cuotasPagos=[{monto:primeraCuota,fecha,numCuota:0}];}else cuotasPagos=[{monto:pvFinal,fecha,numCuota:0}];const _btnGuardar = document.getElementById('btn-guardar-venta');
   if(_btnGuardar){_btnGuardar.disabled=true;_btnGuardar.textContent='Guardando...';}
   const _esPrimeraVenta = ventas.length === 0;
@@ -2507,7 +2521,7 @@ function openDeleteGastoModal(id){
   const g=gastos.find(x=>x.id===id);
   if(!g)return;
   const titulo=g.categoria==='otro'&&g.nombreOtro?g.nombreOtro:(CAT_LABELS[g.categoria]||g.categoria);
-  document.querySelector('#del-modal h3').textContent='Eliminar gasto';
+  document.getElementById('del-modal-title').textContent='Eliminar gasto';
   document.getElementById('del-modal-msg').textContent=`¿Eliminar "${titulo}" (${fmt(g.monto)})?`;
   document.getElementById('del-confirm-btn').onclick=()=>{
     const gastoEliminado=gastos.find(x=>x.id===id);
@@ -2520,7 +2534,7 @@ function openDeleteGastoModal(id){
   };
   document.getElementById('del-modal').classList.add('open');
 }
-function openDeleteModal(id){const v=ventas.find(x=>x.id===id);if(!v)return;pendingDeleteId=id;document.querySelector('#del-modal h3').textContent='Eliminar venta';const pc=v.precioCompra||0;document.getElementById('del-modal-msg').textContent=`¿Eliminar la venta de "${v.perfume}"?${pc>0?' Se devolverán '+fmt(pc)+' a la caja (precio de compra).':''}${v.esCuotas?' Las cuotas también se eliminan.':''}`;document.getElementById('del-confirm-btn').onclick=()=>{
+function openDeleteModal(id){const v=ventas.find(x=>x.id===id);if(!v)return;pendingDeleteId=id;document.getElementById('del-modal-title').textContent='Eliminar venta';const pc=v.precioCompra||0;document.getElementById('del-modal-msg').textContent=`¿Eliminar la venta de "${v.perfume}"?${pc>0?' Se devolverán '+fmt(pc)+' a la caja (precio de compra).':''}${v.esCuotas?' Las cuotas también se eliminan.':''}`;document.getElementById('del-confirm-btn').onclick=()=>{
     const vx=ventas.find(x=>x.id===pendingDeleteId);
     // Capturar el ID ANTES de insertarlo para que el undo pueda encontrarlo
     const cajaEntradaId = (vx&&vx.precioCompra>0) ? Date.now() : null;
@@ -2597,7 +2611,7 @@ async function exportExcel(){
 </div>
 
 <!-- ═══════ MODAL CREAR/EDITAR PERFIL ═══════ -->
-<div id="modal-perfil" class="modal-overlay" role="dialog" aria-modal="true" style="z-index:9999;">
+<div id="modal-perfil" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-perfil-title" style="z-index:9999;">
   <div class="modal">
     <h3 id="modal-perfil-title">Nuevo perfil</h3>
     <div class="form-group">
@@ -3916,6 +3930,45 @@ function enterApp(){
     if (_urlTab && _validTabs.includes(_urlTab)) _startTab = _urlTab;
   } catch(e) {}
   requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ showTab(_startTab); updateStats(); }); });
+
+  // ── Focus trap para modales (accesibilidad) ──
+  _initFocusTrap();
+}
+
+// Instala un MutationObserver que atrapa el foco dentro de cualquier .modal-overlay.open
+function _initFocusTrap(){
+  const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+  let _trapped = null;
+  function _trapHandler(e){
+    if(e.key!=='Tab') return;
+    const el = _trapped;
+    if(!el) return;
+    const nodes = Array.from(el.querySelectorAll(FOCUSABLE)).filter(n=>n.offsetParent!==null);
+    if(!nodes.length) return;
+    const first = nodes[0], last = nodes[nodes.length-1];
+    if(e.shiftKey){ if(document.activeElement===first){ e.preventDefault(); last.focus(); } }
+    else { if(document.activeElement===last){ e.preventDefault(); first.focus(); } }
+  }
+  const obs = new MutationObserver(function(mutations){
+    mutations.forEach(function(m){
+      const ov = m.target;
+      if(ov.classList.contains('open')){
+        _trapped = ov;
+        document.addEventListener('keydown', _trapHandler);
+        // Mover foco al primer elemento enfocable del modal
+        requestAnimationFrame(function(){
+          const first = ov.querySelector(FOCUSABLE);
+          if(first) first.focus();
+        });
+      } else if(_trapped === ov){
+        _trapped = null;
+        document.removeEventListener('keydown', _trapHandler);
+      }
+    });
+  });
+  document.querySelectorAll('.modal-overlay').forEach(function(ov){
+    obs.observe(ov, { attributes: true, attributeFilter: ['class'] });
+  });
 }
 
 function abrirCrearPerfil(){
@@ -4398,7 +4451,20 @@ function checkOnboarding() {
     // Focus en el campo nombre
     var inp = document.getElementById('ob-nombre');
     if (inp) setTimeout(function(){ inp.focus(); }, 200);
+    // Mostrar botón de limpiar demo si hay datos existentes
+    var wrap = document.getElementById('ob-reset-wrap');
+    if (wrap && (ventas.length > 0 || perfumes.length > 0)) wrap.style.display = 'block';
   }, 800);
+}
+
+function _obLimpiarDemo(){
+  if(!(ventas.length||perfumes.length||gastos.length||caja.length))return;
+  if(!confirm('¿Borrar todos los datos de prueba? Esta acción no se puede deshacer.'))return;
+  ventas=[];perfumes=[];gastos=[];caja=[];
+  save();updateStats();
+  var wrap=document.getElementById('ob-reset-wrap');
+  if(wrap) wrap.style.display='none';
+  toast('🗑 Datos eliminados. ¡Ahora la app es tuya!',3000);
 }
 
 function obPaso1() {
@@ -5923,6 +5989,12 @@ async function descargarPDFCatalogo() {
       <button onclick="obSaltar()" style="margin-top:10px;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;text-decoration:underline;">
         Saltar
       </button>
+      <div id="ob-reset-wrap" style="display:none;margin-top:14px;padding-top:14px;border-top:0.5px solid var(--border);">
+        <p style="font-size:11px;color:var(--text3);margin-bottom:8px;">¿Hay datos de prueba? Borrá todo y empezá desde cero.</p>
+        <button onclick="_obLimpiarDemo()" style="background:rgba(224,112,112,0.08);border:0.5px solid rgba(224,112,112,0.3);color:var(--danger);border-radius:var(--radius-sm);padding:7px 16px;font-size:12px;cursor:pointer;width:100%;">
+          🗑 Limpiar datos de prueba
+        </button>
+      </div>
     </div>
 
     <!-- Paso 2 -->
@@ -6126,6 +6198,22 @@ async function descargarPDFCatalogo() {
   // ══════════════════════════════════════════════
   const ONESIGNAL_APP_ID = '4b037409-ce19-48b9-932c-3021b31b2a33';
 
+  // ── Carga OneSignal SDK bajo demanda (lazy) ──
+  let _oneSignalLoading = null;
+  function _ensureOneSignal() {
+    if (window.OneSignal && window.OneSignal.initialized) return Promise.resolve();
+    if (_oneSignalLoading) return _oneSignalLoading;
+    _oneSignalLoading = new Promise(function(resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+      s.async = true;
+      s.onload = function() { setTimeout(resolve, 500); }; // pequeño delay para que SDK se inicialice
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+    return _oneSignalLoading;
+  }
+
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
@@ -6176,14 +6264,18 @@ async function descargarPDFCatalogo() {
     toast('🔔 ¡Notificaciones activadas!');
     if (typeof renderAjustes === 'function') renderAjustes();
 
-    // Intentar suscribir via OneSignal en segundo plano (no bloquea)
-    if (window.OneSignal) {
-      OneSignal.User.PushSubscription.optIn().catch(() => {});
-    }
+    // Cargar OneSignal bajo demanda e intentar suscribir en segundo plano (no bloquea)
+    _ensureOneSignal().then(function(){
+      if (window.OneSignal) OneSignal.User.PushSubscription.optIn().catch(() => {});
+    }).catch(() => {});
   }
 
   async function desactivarNotificaciones() {
-    if (!window.OneSignal) return;
+    if (!window.OneSignal) {
+      // Intentar cargar SDK si no está disponible
+      try { await _ensureOneSignal(); } catch(e) { toast('⚠ No se pudo cargar el servicio'); return; }
+      if (!window.OneSignal) { toast('⚠ Servicio de notificaciones no disponible'); return; }
+    }
     try {
       await OneSignal.User.PushSubscription.optOut();
       localStorage.setItem('pt_notif_subscribed', '0');
