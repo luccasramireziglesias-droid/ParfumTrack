@@ -4550,7 +4550,7 @@ function renderCatalogo() {
     const isSel = catSeleccionados.has(p.nombre);
     const sinStockCls = stockN === 0 ? ' sin-stock' : '';
     const selCls = isSel ? ' seleccionado' : '';
-    return `<div class="cat-card-v2${selCls}${sinStockCls}" onclick="toggleSeleccionPerfume('${p.nombre.replace(/'/g,"\\'")}')">
+    return `<div class="cat-card-v2${selCls}${sinStockCls}" data-cat-nombre="${escapeHTML(p.nombre)}">
       <div class="cat-card-img-v2">
         ${thumb}
         ${stockBadge}
@@ -4563,6 +4563,13 @@ function renderCatalogo() {
       </div>
     </div>`;
   }).join('');
+
+  // Event delegation — evita onclick inline con nombres que pueden tener comillas o caracteres especiales
+  el.onclick = function(e) {
+    const card = e.target.closest('[data-cat-nombre]');
+    if (!card) return;
+    toggleSeleccionPerfume(card.dataset.catNombre);
+  };
 
   actualizarSelCount();
 }
