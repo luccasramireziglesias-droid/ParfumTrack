@@ -1381,13 +1381,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
   </div>
 </div>
 
-<div class="modal-overlay" id="del-stock-modal">
+<div class="modal-overlay" role="dialog" aria-modal="true" id="del-stock-modal">
   <div class="modal"><h3>Eliminar perfume</h3><p id="del-stock-msg">¿Eliminar este perfume del stock?</p>
   <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('del-stock-modal')">Cancelar</button><button class="btn-confirm-del" id="del-stock-btn">Eliminar</button></div></div>
 </div>
 
 <!-- Modal detalle cliente -->
-<div class="modal-overlay" id="modal-detalle-cliente">
+<div class="modal-overlay" role="dialog" aria-modal="true" id="modal-detalle-cliente">
   <div class="modal" style="max-height:80vh;overflow-y:auto;padding:20px">
     <div id="detalle-cliente-body"></div>
     <div style="margin-top:14px">
@@ -1398,7 +1398,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
 
 
 <!-- MODALES -->
-<div class="modal-overlay" id="modal-del-mes">
+<div class="modal-overlay" role="dialog" aria-modal="true" id="modal-del-mes">
   <div class="modal">
     <h3>⚠ Eliminar mes</h3>
     <p>Vas a eliminar todas las ventas de <strong id="del-mes-label" style="color:var(--gold2)"></strong>.</p>
@@ -1410,13 +1410,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
     <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-del-mes')">Cancelar</button><button class="btn-confirm-del" onclick="confirmarEliminarMes()">Sí, eliminar mes</button></div>
   </div>
 </div>
-<div class="modal-overlay" id="del-modal">
+<div class="modal-overlay" role="dialog" aria-modal="true" id="del-modal">
   <div class="modal"><h3>Eliminar venta</h3><p id="del-modal-msg">¿Eliminar esta venta?</p>
   <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('del-modal')">Cancelar</button><button class="btn-confirm-del" id="del-confirm-btn">Eliminar</button></div></div>
 </div>
 
 <!-- MODAL EDITAR VENTA -->
-<div class="modal-overlay" id="modal-editar-venta">
+<div class="modal-overlay" role="dialog" aria-modal="true" id="modal-editar-venta">
   <div class="modal" style="max-width:420px;">
     <h3 style="margin-bottom:16px">✏️ Editar venta</h3>
     <div class="form-group"><label class="form-label">Perfume</label><input type="text" id="ev-perfume" maxlength="80" placeholder="Nombre del perfume" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
@@ -1430,17 +1430,17 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direct
     <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-editar-venta')">Cancelar</button><button class="btn-confirm-ok" onclick="guardarEditarVenta()">Guardar cambios</button></div>
   </div>
 </div>
-<div class="modal-overlay" id="modal-cuota">
+<div class="modal-overlay" role="dialog" aria-modal="true" id="modal-cuota">
   <div class="modal"><h3 id="modal-cuota-title">Registrar pago</h3><p id="modal-cuota-desc"></p>
   <div class="form-group"><label class="form-label">Monto recibido</label><input type="number" id="modal-cuota-monto" placeholder="0" inputmode="numeric" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
   <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-cuota')">Cancelar</button><button class="btn-confirm-ok" id="modal-cuota-ok">Registrar pago</button></div></div>
 </div>
-<div class="modal-overlay" id="modal-meta">
+<div class="modal-overlay" role="dialog" aria-modal="true" id="modal-meta">
   <div class="modal"><h3>🎯 Meta mensual</h3><p>Definí cuánto querés ganar este mes para ver tu progreso.</p>
   <div class="form-group"><label class="form-label">Meta de ganancia ($)</label><input type="number" id="meta-input" placeholder="0" min="0" inputmode="numeric" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px"></div>
   <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-meta')">Cancelar</button><button class="btn-confirm-ok" onclick="guardarMeta()">Guardar meta</button></div></div>
 </div>
-<div class="modal-overlay" id="modal-editar">
+<div class="modal-overlay" role="dialog" aria-modal="true" id="modal-editar">
   <div class="modal"><h3>Editar perfume</h3>
     <div style="margin-bottom:13px">
       <div class="form-label" style="margin-bottom:7px">Foto del perfume</div>
@@ -2237,7 +2237,7 @@ function renderPerfumesEnvio(){
 }
 function addGasto(){const cat=document.getElementById('g-categoria').value;const monto=parseFloat(document.getElementById('g-monto').value)||0;const fechaRaw=document.getElementById('g-fecha').value;const desc=document.getElementById('g-descripcion').value.trim();const otroNombre=cat==='otro'?document.getElementById('g-otro-nombre').value.trim():'';if(!monto){toast('⚠ Ingresá el monto');return;}if(!fechaRaw){toast('⚠ Seleccioná la fecha');return;}if(cat==='otro'&&!otroNombre){toast('⚠ Poné un nombre para el gasto');return;}const[aa,mm,dd]=fechaRaw.split('-');gastos.unshift({id:Date.now(),categoria:cat,nombreOtro:otroNombre,monto,fecha:`${dd}/${mm}/${aa}`,descripcion:desc,perfumesEnvio:cat==='envio_compra'?[...perfumesEnvioTemp]:[]});perfumesEnvioTemp=[];save();updateStats();document.getElementById('g-monto').value='';document.getElementById('g-descripcion').value='';document.getElementById('g-otro-nombre').value='';document.getElementById('g-categoria').value='envio_compra';document.getElementById('g-envio-compra-extra').style.display='none';document.getElementById('g-otro-extra').style.display='none';renderPerfumesEnvio();toggleGastoCat();toast(`✓ Gasto "${otroNombre||CAT_LABELS[cat]}" ${fmt(monto)} registrado`,2800);renderGastos();}
 function deleteGasto(id){gastos=gastos.filter(g=>g.id!==id);save();updateStats();renderGastos();renderMesFilter('mes-filter-gastos','gastos');}
-function renderGastos(){const filtered=activeMesGastos==='todos'?gastos:gastos.filter(g=>mesKey(g.fecha)===activeMesGastos);const mesCur=mesKey(hoy());document.getElementById('gs-total').textContent=fmt(gastos.reduce((s,g)=>s+g.monto,0));document.getElementById('gs-mes').textContent=fmt(gastos.filter(g=>mesKey(g.fecha)===mesCur).reduce((s,g)=>s+g.monto,0));const el=document.getElementById('gastos-list');if(!filtered.length){el.innerHTML='<div class="empty"><span class="empty-icon">💸</span><p>No hay gastos registrados aún.</p><button class="empty-cta" onclick="document.getElementById(\'g-monto\').focus();document.getElementById(\'g-monto\').scrollIntoView({behavior:\'smooth\'})">✦ Registrar un gasto</button></div>';return;}const porCat={};filtered.forEach(g=>{if(!porCat[g.categoria])porCat[g.categoria]=0;porCat[g.categoria]+=g.monto;});const totFilt=filtered.reduce((s,g)=>s+g.monto,0);let html=`<div class="gastos-resumen-cat"><div style="font-size:11px;color:var(--gold);margin-bottom:5px">RESUMEN · ${fmt(totFilt)}</div>`;Object.entries(porCat).sort(([,a],[,b])=>b-a).forEach(([cat,tot])=>{const pct=totFilt>0?Math.round(tot/totFilt*100):0;html+=`<div class="gastos-resumen-cat-row"><span>${CAT_LABELS[cat]||cat}</span><span>${fmt(tot)} <span style="color:var(--text3);font-weight:400">(${pct}%)</span></span></div>`;});html+='</div>';const porMes={};filtered.forEach(g=>{const k=mesKey(g.fecha)||'Sin fecha';if(!porMes[k])porMes[k]=[];porMes[k].push(g);});Object.keys(porMes).sort().reverse().forEach(mes=>{const gs=porMes[mes];html+=`<div class="mes-sep"><div class="mes-sep-line"></div><div class="mes-sep-label">${mesLabel(mes)}</div><div class="mes-sep-line"></div></div><div class="mes-total"><span>${gs.length} gasto${gs.length!==1?'s':''}</span><span style="color:var(--danger);font-weight:500">${fmt(gs.reduce((s,g)=>s+g.monto,0))}</span></div>`;gs.forEach(g=>{const titulo=g.categoria==='otro'&&g.nombreOtro?`📋 ${escapeHTML(g.nombreOtro)}`:CAT_LABELS[g.categoria]||g.categoria;const cxp=g.categoria==='envio_compra'&&g.perfumesEnvio?.length>0?`<div class="gc-row"><span>Costo por perfume</span><span>${fmt(g.monto/g.perfumesEnvio.length)}</span></div>`:'';const perf=g.perfumesEnvio?.length?`<div class="gc-row"><span>Perfumes</span><span style="text-align:right;max-width:55%">${g.perfumesEnvio.map(escapeHTML).join(', ')}</span></div>`:'';html+=`<div class="gasto-card ${g.categoria}"><div class="gc-header"><div><div class="gc-cat">${titulo}</div>${g.descripcion?`<div style="font-size:11px;color:var(--text2);margin-top:1px">${escapeHTML(g.descripcion)}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><div class="gc-monto">${fmt(g.monto)}</div><div style="font-size:11px;color:var(--text2)">📅 ${g.fecha}</div><button onclick="deleteGasto(${g.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">🗑</button></div></div>${cxp||perf?`<div class="gc-body">${cxp}${perf}</div>`:''}</div>`;});});el.innerHTML=html;}
+function renderGastos(){const filtered=activeMesGastos==='todos'?gastos:gastos.filter(g=>mesKey(g.fecha)===activeMesGastos);const mesCur=mesKey(hoy());document.getElementById('gs-total').textContent=fmt(gastos.reduce((s,g)=>s+g.monto,0));document.getElementById('gs-mes').textContent=fmt(gastos.filter(g=>mesKey(g.fecha)===mesCur).reduce((s,g)=>s+g.monto,0));const el=document.getElementById('gastos-list');if(!filtered.length){el.innerHTML='<div class="empty"><span class="empty-icon">💸</span><p>No hay gastos registrados aún.</p><button class="empty-cta" onclick="document.getElementById(\'g-monto\').focus();document.getElementById(\'g-monto\').scrollIntoView({behavior:\'smooth\'})">✦ Registrar un gasto</button></div>';return;}const porCat={};filtered.forEach(g=>{if(!porCat[g.categoria])porCat[g.categoria]=0;porCat[g.categoria]+=g.monto;});const totFilt=filtered.reduce((s,g)=>s+g.monto,0);let html=`<div class="gastos-resumen-cat"><div style="font-size:11px;color:var(--gold);margin-bottom:5px">RESUMEN · ${fmt(totFilt)}</div>`;Object.entries(porCat).sort(([,a],[,b])=>b-a).forEach(([cat,tot])=>{const pct=totFilt>0?Math.round(tot/totFilt*100):0;html+=`<div class="gastos-resumen-cat-row"><span>${CAT_LABELS[cat]||cat}</span><span>${fmt(tot)} <span style="color:var(--text3);font-weight:400">(${pct}%)</span></span></div>`;});html+='</div>';const porMes={};filtered.forEach(g=>{const k=mesKey(g.fecha)||'Sin fecha';if(!porMes[k])porMes[k]=[];porMes[k].push(g);});Object.keys(porMes).sort().reverse().forEach(mes=>{const gs=porMes[mes];html+=`<div class="mes-sep"><div class="mes-sep-line"></div><div class="mes-sep-label">${mesLabel(mes)}</div><div class="mes-sep-line"></div></div><div class="mes-total"><span>${gs.length} gasto${gs.length!==1?'s':''}</span><span style="color:var(--danger);font-weight:500">${fmt(gs.reduce((s,g)=>s+g.monto,0))}</span></div>`;gs.forEach(g=>{const titulo=g.categoria==='otro'&&g.nombreOtro?`📋 ${escapeHTML(g.nombreOtro)}`:CAT_LABELS[g.categoria]||g.categoria;const cxp=g.categoria==='envio_compra'&&g.perfumesEnvio?.length>0?`<div class="gc-row"><span>Costo por perfume</span><span>${fmt(g.monto/g.perfumesEnvio.length)}</span></div>`:'';const perf=g.perfumesEnvio?.length?`<div class="gc-row"><span>Perfumes</span><span style="text-align:right;max-width:55%">${g.perfumesEnvio.map(escapeHTML).join(', ')}</span></div>`:'';html+=`<div class="gasto-card ${g.categoria}"><div class="gc-header"><div><div class="gc-cat">${titulo}</div>${g.descripcion?`<div style="font-size:11px;color:var(--text2);margin-top:1px">${escapeHTML(g.descripcion)}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><div class="gc-monto">${fmt(g.monto)}</div><div style="font-size:11px;color:var(--text2)">📅 ${g.fecha}</div><button onclick="openDeleteGastoModal(${g.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px" aria-label="Eliminar gasto">🗑</button></div></div>${cxp||perf?`<div class="gc-body">${cxp}${perf}</div>`:''}</div>`;});});el.innerHTML=html;}
 // ── NUEVA VENTA ───────────────────────────────────────────────
 function onPerfumeInput(){const nombre=document.getElementById('f-perfume').value.trim();const p=perfumes.find(x=>x.nombre.toLowerCase()===nombre.toLowerCase());const el=document.getElementById('precio-sugerido');if(p&&p.pVenta){el.textContent=`💡 Precio habitual: ${fmt(p.pVenta)}`;el.style.display='block';if(!document.getElementById('f-pventa').value)document.getElementById('f-pventa').value=p.pVenta;}else{el.style.display='none';}if(p&&p.precio&&!document.getElementById('f-pcompra').value)document.getElementById('f-pcompra').value=p.precio;calcGananciaPreview();}
 function calcGananciaPreview(){const pv=parseFloat(document.getElementById('f-pventa').value)||0;const pc=parseFloat(document.getElementById('f-pcompra').value)||0;const dto=parseFloat(document.getElementById('f-descuento').value)||0;const el=document.getElementById('ganancia-preview');if(!pv){el.textContent='';return;}const pvFinal=pv*(1-dto/100);const gan=pvFinal-pc;el.textContent=`Ganancia: ${fmt(gan)}${dto>0?` (venta: ${fmt(pvFinal)})`:''}`;el.style.color=gan>=0?'var(--success)':'var(--danger)';}
@@ -2499,7 +2499,24 @@ function guardarEditarVenta() {
   toast('✅ Venta actualizada');
 }
 
-function openDeleteModal(id){const v=ventas.find(x=>x.id===id);if(!v)return;pendingDeleteId=id;const pc=v.precioCompra||0;document.getElementById('del-modal-msg').textContent=`¿Eliminar la venta de "${v.perfume}"?${pc>0?' Se devolverán '+fmt(pc)+' a la caja (precio de compra).':''}${v.esCuotas?' Las cuotas también se eliminan.':''}`;document.getElementById('del-confirm-btn').onclick=()=>{
+function openDeleteGastoModal(id){
+  const g=gastos.find(x=>x.id===id);
+  if(!g)return;
+  const titulo=g.categoria==='otro'&&g.nombreOtro?g.nombreOtro:(CAT_LABELS[g.categoria]||g.categoria);
+  document.querySelector('#del-modal h3').textContent='Eliminar gasto';
+  document.getElementById('del-modal-msg').textContent=`¿Eliminar "${titulo}" (${fmt(g.monto)})?`;
+  document.getElementById('del-confirm-btn').onclick=()=>{
+    const gastoEliminado=gastos.find(x=>x.id===id);
+    deleteGasto(id);
+    closeModal('del-modal');
+    haptic('warning');
+    toastUndo('🗑 Gasto eliminado',()=>{
+      if(gastoEliminado){gastos.unshift(gastoEliminado);save();updateStats();renderGastos();renderMesFilter('mes-filter-gastos','gastos');}
+    });
+  };
+  document.getElementById('del-modal').classList.add('open');
+}
+function openDeleteModal(id){const v=ventas.find(x=>x.id===id);if(!v)return;pendingDeleteId=id;document.querySelector('#del-modal h3').textContent='Eliminar venta';const pc=v.precioCompra||0;document.getElementById('del-modal-msg').textContent=`¿Eliminar la venta de "${v.perfume}"?${pc>0?' Se devolverán '+fmt(pc)+' a la caja (precio de compra).':''}${v.esCuotas?' Las cuotas también se eliminan.':''}`;document.getElementById('del-confirm-btn').onclick=()=>{
     const vx=ventas.find(x=>x.id===pendingDeleteId);
     // Capturar el ID ANTES de insertarlo para que el undo pueda encontrarlo
     const cajaEntradaId = (vx&&vx.precioCompra>0) ? Date.now() : null;
@@ -2576,7 +2593,7 @@ async function exportExcel(){
 </div>
 
 <!-- ═══════ MODAL CREAR/EDITAR PERFIL ═══════ -->
-<div id="modal-perfil" class="modal-overlay" style="z-index:9999;">
+<div id="modal-perfil" class="modal-overlay" role="dialog" aria-modal="true" style="z-index:9999;">
   <div class="modal">
     <h3 id="modal-perfil-title">Nuevo perfil</h3>
     <div class="form-group">
@@ -2598,7 +2615,7 @@ async function exportExcel(){
 </div>
 
 <!-- ═══════ MODAL PAGO ═══════ -->
-<div id="modal-pago" class="modal-overlay">
+<div id="modal-pago" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal">
     <h3>💳 Cobrar venta</h3>
     <div id="modal-pago-info" style="background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.7;"></div>
@@ -2661,7 +2678,7 @@ async function exportExcel(){
 </style>
 
 <!-- ═══════ LICENSE MODAL ═══════ -->
-<div id="license-modal" class="modal-overlay" style="z-index:10000;">
+<div id="license-modal" class="modal-overlay" role="dialog" aria-modal="true" style="z-index:10000;">
   <div class="modal" style="text-align:center;">
     <div style="font-size:32px;margin-bottom:12px;">⚠️</div>
     <h3 id="license-title">Licencia</h3>
@@ -2671,7 +2688,7 @@ async function exportExcel(){
 </div>
 
 <!-- ═══════ BACKUP REMINDER MODAL ═══════ -->
-<div id="backup-modal" class="modal-overlay">
+<div id="backup-modal" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal" style="text-align:center;">
     <div style="font-size:36px;margin-bottom:12px;">💾</div>
     <h3>¡Hacé un backup!</h3>
@@ -2683,7 +2700,7 @@ async function exportExcel(){
 </div>
 
 <!-- ═══════ PDF RECEIPT MODAL ═══════ -->
-<div id="pdf-modal" class="modal-overlay">
+<div id="pdf-modal" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal">
     <h3>🧾 Recibo de venta</h3>
     <p id="pdf-modal-desc" style="margin-bottom:16px;font-size:13px;"></p>
@@ -4770,7 +4787,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <!-- ═══════ MODAL PREVIEW CATÁLOGO ═══════ -->
-<div id="modal-catalogo-preview" class="modal-overlay" style="z-index:10000;">
+<div id="modal-catalogo-preview" class="modal-overlay" role="dialog" aria-modal="true" style="z-index:10000;">
   <div class="modal" style="max-width:420px;padding:0;overflow:hidden;border-radius:var(--radius);display:flex;flex-direction:column;max-height:92vh;">
     <!-- Header del modal (fijo arriba) -->
     <div style="padding:16px 18px 12px;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
@@ -5838,7 +5855,7 @@ async function descargarPDFCatalogo() {
 </script>
 
 <!-- ═══════ MODAL CONFIGURAR PIN ═══════ -->
-<div id="modal-pin-setup" class="modal-overlay" style="z-index:10001;">
+<div id="modal-pin-setup" class="modal-overlay" role="dialog" aria-modal="true" style="z-index:10001;">
   <div class="modal" style="text-align:center;max-width:340px;">
     <div style="font-size:36px;margin-bottom:8px;" id="pin-setup-emoji">🔑</div>
     <h3 id="pin-setup-title" style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold2);margin-bottom:6px;">Configurar PIN</h3>
@@ -5865,7 +5882,7 @@ async function descargarPDFCatalogo() {
 </div>
 
 <!-- ═══════ MODAL ONBOARDING ═══════ -->
-<div id="modal-onboarding" class="modal-overlay" style="z-index:10001;backdrop-filter:blur(8px)">
+<div id="modal-onboarding" class="modal-overlay" role="dialog" aria-modal="true" style="z-index:10001;backdrop-filter:blur(8px)">
   <div class="modal" style="max-width:340px;text-align:center;padding:28px 24px;">
 
     <!-- Paso 1 -->
@@ -5904,7 +5921,7 @@ async function descargarPDFCatalogo() {
 </div>
 
 <!-- ═══════ MODAL ACTIVACIÓN DE LICENCIA ═══════ -->
-<div id="modal-activacion" class="modal-overlay" style="z-index:10000;">
+<div id="modal-activacion" class="modal-overlay" role="dialog" aria-modal="true" style="z-index:10000;">
   <div class="modal" style="max-width:420px;padding:24px 20px 28px;">
 
     <!-- Header -->
@@ -5987,7 +6004,7 @@ async function descargarPDFCatalogo() {
 </div>
 
 <!-- ═══════ MODAL BIENVENIDA TRIAL ═══════ -->
-<div id="modal-trial-bienvenida" class="modal-overlay" style="z-index:10000;">
+<div id="modal-trial-bienvenida" class="modal-overlay" role="dialog" aria-modal="true" style="z-index:10000;">
   <div class="modal" style="text-align:center;max-width:360px;padding:24px 20px 28px;">
     <div style="font-size:44px;margin-bottom:8px;">🍶</div>
     <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold2);margin-bottom:4px;">¡Bienvenida a Parfum Track!</h3>
