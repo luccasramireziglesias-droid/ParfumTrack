@@ -24,6 +24,9 @@
   #app-splash img{width:96px;height:96px;border-radius:22px;box-shadow:0 0 40px rgba(201,168,76,.3)}
   #app-splash p{color:#c9a84c;font-family:sans-serif;font-size:13px;letter-spacing:1px;opacity:.7}
 </style>
+<!-- Analytics: Plausible (privacidad-friendly, sin cookies, GDPR compliant) -->
+<!-- Reemplazá "parfumtrack.com" con tu dominio real en Cloudflare Pages -->
+<script defer data-domain="parfumtrack.pages.dev" src="https://plausible.io/js/script.js"></script>
 <!-- OneSignal Web Push SDK: cargado bajo demanda para mejorar performance inicial -->
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"></noscript>
@@ -1626,6 +1629,14 @@ const _HAPTIC = { light:[30], success:[40,60,40], warning:[60,40,60,40,60], erro
 function haptic(type='light'){
   try{ if(navigator.vibrate) navigator.vibrate(_HAPTIC[type]||_HAPTIC.light); }catch(e){}
 }
+// ── Analytics helper ──────────────────────────────────────────
+// Usa Plausible si está cargado; silencioso en caso contrario.
+function trackEvent(name, props){
+  try {
+    if (window.plausible) window.plausible(name, props ? { props } : undefined);
+  } catch(e) {}
+}
+
 function toast(msg,ms=2800,type=''){
   const el=document.getElementById('toast');
   el.classList.remove('has-undo','t-success','t-error','t-warning','t-info');
@@ -2337,21 +2348,24 @@ let _negGainTimer = null;
 function addVenta(){
   if (_addVentaEnProceso) return;
   _addVentaEnProceso = true;
-  // Liberar el guard siempre — cubre tanto errores de validación como éxito
-  setTimeout(() => { _addVentaEnProceso = false; }, 800);
+  // Helper: libera el guard y sale. Usar en todos los early returns.
+  const _abort = (msg, ms) => { _addVentaEnProceso = false; if(msg) toast(msg, ms||2800); };
+
   // ── TRIAL LIMIT CHECK ──
   if (window._trialLimitado && !isActivated()) {
     const restantes = getTrialVentasRestantes();
     if (restantes <= 0) {
       abrirModalActivacion();
-      toast('🔒 Límite alcanzado. Activá tu licencia para seguir registrando ventas.');
+      _abort('🔒 Límite alcanzado. Activá tu licencia para seguir registrando ventas.');
       return;
     }
   }
-  const perfume=document.getElementById('f-perfume').value.trim();const pv=parseFloat(document.getElementById('f-pventa').value)||0;const pc=parseFloat(document.getElementById('f-pcompra').value)||0;const dto=parseFloat(document.getElementById('f-descuento').value)||0;const tipo=document.getElementById('f-tipo-cuota').value;const proveedor=document.getElementById('f-proveedor').value.trim();const vendedor=document.getElementById('f-vendedor').value.trim();const cliente=document.getElementById('f-cliente').value.trim();const nota=document.getElementById('f-nota').value.trim();if(!perfume){toast('⚠ Ingresá el nombre del perfume');return;}if(!pv||pv<=0){toast('⚠ Ingresá un precio de venta válido (mayor a 0)');return;}if(pc<0){toast('⚠ El precio de compra no puede ser negativo');return;}if(pv>10000000){toast('⚠ El precio parece muy alto. Verificá los datos');return;}
-  // Fix: validar rango de descuento
-  if(dto < 0 || dto > 100){toast('⚠ El descuento debe estar entre 0 y 100%');return;}
-  // Fix: advertencia no bloqueante si precio de compra es $0
+  const perfume=document.getElementById('f-perfume').value.trim();const pv=parseFloat(document.getElementById('f-pventa').value)||0;const pc=parseFloat(document.getElementById('f-pcompra').value)||0;const dto=parseFloat(document.getElementById('f-descuento').value)||0;const tipo=document.getElementById('f-tipo-cuota').value;const proveedor=document.getElementById('f-proveedor').value.trim();const vendedor=document.getElementById('f-vendedor').value.trim();const cliente=document.getElementById('f-cliente').value.trim();const nota=document.getElementById('f-nota').value.trim();
+  if(!perfume){_abort('⚠ Ingresá el nombre del perfume');return;}
+  if(!pv||pv<=0){_abort('⚠ Ingresá un precio de venta válido (mayor a 0)');return;}
+  if(pc<0){_abort('⚠ El precio de compra no puede ser negativo');return;}
+  if(pv>10000000){_abort('⚠ El precio parece muy alto. Verificá los datos');return;}
+  if(dto < 0 || dto > 100){_abort('⚠ El descuento debe estar entre 0 y 100%');return;}
   if(pc === 0){toast('💡 El precio de compra es $0 — la ganancia podría estar inflada', 3500);}
   const pvFinal=dto>0?pv*(1-dto/100):pv;
   // Advertir si ganancia negativa — requiere segundo tap para confirmar
@@ -2383,10 +2397,12 @@ function addVenta(){
   if (_esPrimeraVenta && typeof _obConfetti === 'function') setTimeout(_obConfetti, 800);let sp=perfumes.find(p=>p.nombre.toLowerCase()===perfume.toLowerCase());const _eraNuevo=!sp;if(!sp){sp={nombre:perfume,precio:pc,stock:0,proveedor,foto:null,historialPrecios:[{precio:pc,fecha}]};perfumes.push(sp);}const _stockAntes=sp.stock||0;if(sp.stock>0)sp.stock--;haptic('success');save();
   // BUG-05: avisar cuando el stock llega a 0
   if(!_eraNuevo&&_stockAntes===1)setTimeout(()=>toast(`⚠ Sin stock: "${perfume}" llegó a 0 unidades. Acordate de reponer.`,4500),3400);updateStats();['f-perfume','f-pventa','f-pcompra','f-descuento','f-proveedor','f-vendedor','f-cliente','f-nota'].forEach(id=>document.getElementById(id).value='');const _fFecha=document.getElementById('f-fecha');if(_fFecha){const _hoy=new Date().toISOString().slice(0,10);_fFecha.max=_hoy;_fFecha.value=_hoy;}document.getElementById('f-tipo-cuota').value='contado';document.getElementById('cuotas-form-extra').style.display='none';document.getElementById('cuotas-preview').innerHTML='';document.getElementById('precio-sugerido').style.display='none';document.getElementById('ganancia-preview').textContent='';const debe=calcDebe(ventas[0]);toast((esCuotas?`✓ Venta en ${cuotasTotal} cuotas${primeraCuota?' · 1ra cobrada':''}${debe>0?' · Resta: '+fmt(debe):''}`:` ✓ Venta registrada · Ganancia: ${fmt(pvFinal-pc)}`)+(dto>0?` · Descuento: ${dto}%`:'')+(esMesNuevo?`\n📅 Nueva sección ${mesLabel(mesFecha)} creada`:''),3200);if(esMesNuevo)activeMesVentas=mesFecha;
-  // Rehabilitar botón guardar
+  // Rehabilitar botón guardar y liberar guard
   const _bg=document.getElementById('btn-guardar-venta');if(_bg){_bg.disabled=false;_bg.textContent='Guardar venta';}
+  _addVentaEnProceso = false;
   // Aviso si queda poco margen de trial limitado
   if(window._trialLimitado && !isActivated()){const r=getTrialVentasRestantes();if(r===1)setTimeout(()=>toast('⚠ Esta fue tu penúltima venta en modo limitado. Activá la licencia para seguir.',4000),3400);else if(r===0)setTimeout(()=>{mostrarBannerTrialVencido(0);},3400);}
+  trackEvent('venta_guardada',{perfume,esCuotas:esCuotas?1:0});
 }
 function renderMetaBar(){
   const el=document.getElementById('meta-bar-fill');
@@ -2955,9 +2971,11 @@ async function activarLicencia() {
     closeModal('modal-activacion');
     window._trialLimitado = false;
     toast('🎉 ¡Licencia activada! Parfum Track está completamente desbloqueado.', 4000);
+    trackEvent('licencia_activada', { mode: serverToken ? 'server' : 'offline' });
     renderAjustes();
   } else {
     shakeInput(input);
+    trackEvent('licencia_fallida');
     const err = document.getElementById('activation-error');
     if (err) {
       err.textContent = '⚠ Código incorrecto. Verificá y volvé a intentar.';
@@ -2974,12 +2992,38 @@ function shakeInput(el) {
   setTimeout(() => { el.style.borderColor = ''; el.style.animation = ''; }, 600);
 }
 
+// ── Pricing tier selector ─────────────────────────────────────
+function _selectTier(el){
+  document.querySelectorAll('.pricing-tier').forEach(t=>{
+    t.classList.remove('tier-selected');
+    t.style.border='0.5px solid var(--border)';
+    t.style.background='var(--card)';
+  });
+  el.classList.add('tier-selected');
+  el.style.border='2px solid var(--gold)';
+  el.style.background='linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.05))';
+  const tierName = el.dataset.tier;
+  const labels = {starter:'Starter',pro:'Pro',business:'Business'};
+  document.getElementById('tier-wa-msg').textContent = el.dataset.msg;
+  const lbl = document.getElementById('tier-btn-label');
+  if(lbl) lbl.textContent = labels[tierName]||tierName;
+  trackEvent('pricing_tier_seleccionado',{tier:tierName});
+}
+function _consultarPlanSeleccionado(){
+  const n = getWANumber();
+  if(!n){ toast('⚠ Configurá tu número de WhatsApp en Ajustes',3500); return; }
+  const msg = document.getElementById('tier-wa-msg').textContent;
+  trackEvent('paywall_wa_click',{tier:document.querySelector('.pricing-tier.tier-selected')?.dataset?.tier||'pro'});
+  window.open('https://wa.me/'+n+'?text='+encodeURIComponent(msg),'_blank');
+}
+
 function abrirModalActivacion() {
   document.getElementById('modal-activacion').classList.add('open');
   setTimeout(() => {
     const inp = document.getElementById('activation-code-input');
     if (inp) inp.focus();
   }, 200);
+  trackEvent('paywall_visto');
 }
 
 function isActivated() {
@@ -3042,6 +3086,7 @@ function checkTrial() {
       cargarDatosDemo();
       localStorage.setItem('pt_trial_demo_loaded', '1');
     }
+    trackEvent('trial_iniciado');
     setTimeout(() => mostrarBienvenidaTrial(), 1200);
     return;
   }
@@ -3111,12 +3156,49 @@ function mostrarBannerTrial(label) {
     document.body.appendChild(banner);
     document.body.classList.add('has-top-banner');
   }
-  const urgente = typeof label === 'string' && (label.includes('s') && !label.includes('m') && !label.includes('día')) || label === '1m 0s' || label === '0m 30s';
-  const col = urgente ? '#e07070' : 'var(--gold2)';
-  const bg  = urgente ? 'linear-gradient(90deg,rgba(224,112,112,0.15),rgba(224,112,112,0.04))' : 'linear-gradient(90deg,var(--gold-dim),rgba(201,168,76,0.04))';
-  const bdr = urgente ? 'var(--danger)' : 'var(--gold)';
-  banner.style.cssText = `position:fixed;top:0;left:0;right:0;z-index:9000;background:${bg};border-bottom:1px solid ${bdr};padding:7px 14px;text-align:center;font-size:12px;color:${col};backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;`;
-  banner.innerHTML = `${urgente ? '⚠️' : '⏳'} Prueba gratuita: quedan <strong>${label}</strong> &nbsp;·&nbsp; <span onclick="abrirModalActivacion()" style="text-decoration:underline;cursor:pointer;">Activar licencia →</span>`;
+
+  // Calcular días restantes para urgencia (solo en modo días, no minutos)
+  const daysLeft = LICENSE.trialMinutes ? null : (() => {
+    const ts = localStorage.getItem('pt_trial_start');
+    if (!ts) return 99;
+    return Math.max(0, Math.floor(getTrialTimeLeft(ts) / 86400000));
+  })();
+
+  // Niveles de urgencia según días
+  let ico, col, bg, bdr, cta;
+  if (daysLeft === null) {
+    // Modo minutos (demo/testing)
+    const urgente = label.includes('s') && !label.includes('m') && !label.includes('día');
+    ico = urgente ? '⚠️' : '⏳';
+    col = urgente ? '#e07070' : 'var(--gold2)';
+    bg  = urgente ? 'linear-gradient(90deg,rgba(224,112,112,0.15),rgba(224,112,112,0.04))' : 'linear-gradient(90deg,var(--gold-dim),rgba(201,168,76,0.04))';
+    bdr = urgente ? 'var(--danger)' : 'var(--gold)';
+    cta = 'Activar →';
+  } else if (daysLeft <= 1) {
+    // Último día — rojo urgente
+    ico = '🔴'; col = '#f09090';
+    bg  = 'linear-gradient(90deg,rgba(224,80,80,0.22),rgba(224,80,80,0.06))';
+    bdr = '#c04040'; cta = '¡Activar ahora — oferta especial →';
+    trackEvent('trial_urgencia_1dia');
+  } else if (daysLeft <= 2) {
+    // 2 días — naranja
+    ico = '🟠'; col = '#f0b060';
+    bg  = 'linear-gradient(90deg,rgba(224,144,60,0.2),rgba(224,144,60,0.04))';
+    bdr = 'rgba(224,144,60,0.6)'; cta = 'Activar licencia →';
+  } else if (daysLeft <= 5) {
+    // 3–5 días — amarillo
+    ico = '⏳'; col = 'var(--warn)';
+    bg  = 'linear-gradient(90deg,rgba(224,176,60,0.15),rgba(201,168,76,0.03))';
+    bdr = 'rgba(224,176,60,0.5)'; cta = 'Activar licencia →';
+  } else {
+    // 6–7 días — neutro dorado
+    ico = '✨'; col = 'var(--gold2)';
+    bg  = 'linear-gradient(90deg,var(--gold-dim),rgba(201,168,76,0.04))';
+    bdr = 'var(--gold)'; cta = 'Activar licencia →';
+  }
+
+  banner.style.cssText = `position:fixed;top:calc(env(safe-area-inset-top));left:0;right:0;z-index:9000;background:${bg};border-bottom:1px solid ${bdr};padding:7px 14px;text-align:center;font-size:12px;color:${col};backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;`;
+  banner.innerHTML = `${ico} Prueba gratuita: quedan <strong>${label}</strong> &nbsp;·&nbsp; <span onclick="abrirModalActivacion();trackEvent('trial_banner_cta_click',{days:${daysLeft||0}})" style="text-decoration:underline;cursor:pointer;font-weight:600;">${cta}</span>`;
 }
 
 function mostrarCartelDemo() {
@@ -4627,6 +4709,7 @@ function obTerminar() {
   localStorage.setItem('pt_onboarding_done', '1');
   var el = document.getElementById('modal-onboarding');
   if (el) el.classList.remove('open');
+  trackEvent('onboarding_completado');
   showTab('add');
   // Tooltip flotante para guiar al usuario
   setTimeout(_obShowTooltip, 400);
@@ -6157,31 +6240,38 @@ async function descargarPDFCatalogo() {
       <p style="font-size:12px;color:var(--text3);line-height:1.5;">Elegí el plan que mejor se adapta a tu negocio</p>
     </div>
 
-    <!-- Tiers -->
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+    <!-- Tiers seleccionables -->
+    <div id="pricing-tiers" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
 
       <!-- STARTER -->
-      <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;" onclick="document.getElementById('tier-wa-msg').textContent='Hola! Quiero el plan Starter de Parfum Track 🍶'">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <div class="pricing-tier" data-tier="starter" data-msg="Hola! Quiero el plan Starter de Parfum Track 🍶" onclick="_selectTier(this)"
+        style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:border-color .2s,background .2s;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
           <div style="font-size:14px;font-weight:600;color:var(--text);">🌱 Starter</div>
           <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--gold2);">$5 <span style="font-size:11px;color:var(--text3);font-family:'DM Sans',sans-serif;">/mes</span></div>
         </div>
         <div style="font-size:11px;color:var(--text3);line-height:1.7;">✓ 1 perfil · ✓ Ventas ilimitadas · ✓ Stock básico<br>✓ Backup manual · ✓ Catálogo WhatsApp</div>
       </div>
 
-      <!-- PRO (destacado) -->
-      <div style="background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.04));border:1.5px solid rgba(201,168,76,.5);border-radius:var(--radius);padding:14px 16px;cursor:pointer;position:relative;" onclick="document.getElementById('tier-wa-msg').textContent='Hola! Quiero el plan Pro de Parfum Track 🍶'">
-        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--gold);color:#1a1a2e;font-size:9px;font-weight:700;padding:2px 10px;border-radius:20px;letter-spacing:.5px;white-space:nowrap;">MÁS POPULAR</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <!-- PRO (destacado — ancla psicológica) -->
+      <div class="pricing-tier tier-selected" data-tier="pro" data-msg="Hola! Quiero el plan Pro de Parfum Track 🍶" onclick="_selectTier(this)"
+        style="background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.05));border:2px solid var(--gold);border-radius:var(--radius);padding:14px 16px;cursor:pointer;position:relative;transition:border-color .2s,background .2s;">
+        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--gold);color:#1a1a2e;font-size:9px;font-weight:700;padding:2px 10px;border-radius:20px;letter-spacing:.5px;white-space:nowrap;">✦ MÁS POPULAR</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
           <div style="font-size:14px;font-weight:600;color:var(--gold2);">⭐ Pro</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--gold2);">$12 <span style="font-size:11px;color:var(--text3);font-family:'DM Sans',sans-serif;">/mes</span></div>
+          <div>
+            <span style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--gold2);">$12</span>
+            <span style="font-size:11px;color:var(--text3);"> /mes</span>
+            <span style="font-size:10px;background:rgba(112,201,160,0.18);color:var(--success);border-radius:10px;padding:1px 7px;margin-left:6px;font-weight:600;">Anual: $99 🔥</span>
+          </div>
         </div>
         <div style="font-size:11px;color:var(--text2);line-height:1.7;">✓ Todo Starter + ✓ 3 perfiles · ✓ Análisis avanzado<br>✓ Backup automático · ✓ PDF recibos · ✓ Notificaciones push</div>
       </div>
 
       <!-- BUSINESS -->
-      <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;" onclick="document.getElementById('tier-wa-msg').textContent='Hola! Quiero el plan Business de Parfum Track 🍶'">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <div class="pricing-tier" data-tier="business" data-msg="Hola! Quiero el plan Business de Parfum Track 🍶" onclick="_selectTier(this)"
+        style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:border-color .2s,background .2s;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
           <div style="font-size:14px;font-weight:600;color:var(--text);">🏆 Business</div>
           <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--gold2);">$25 <span style="font-size:11px;color:var(--text3);font-family:'DM Sans',sans-serif;">/mes</span></div>
         </div>
@@ -6189,11 +6279,10 @@ async function descargarPDFCatalogo() {
       </div>
     </div>
 
-    <!-- Botón contacto WA -->
-    <button
-      onclick="(function(){const n=getWANumber();if(!n){toast('⚠ Configurá tu número de WhatsApp en Ajustes',3500,'warning');return;}window.open('https://wa.me/'+n+'?text='+encodeURIComponent(document.getElementById('tier-wa-msg').textContent),'_blank');})()"
+    <!-- CTA: botón WA dinámico según tier seleccionado -->
+    <button id="tier-wa-btn" onclick="_consultarPlanSeleccionado()"
       style="width:100%;padding:13px;background:linear-gradient(135deg,#25d366,#1da851);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;"
-    >📲 Consultar por WhatsApp</button>
+    >📲 Quiero el plan <span id="tier-btn-label">Pro</span></button>
     <span id="tier-wa-msg" style="display:none">Hola! Quiero el plan Pro de Parfum Track 🍶</span>
 
     <!-- Separador con código -->
