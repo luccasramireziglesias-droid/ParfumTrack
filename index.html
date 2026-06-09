@@ -1683,7 +1683,7 @@ function renderClientes() {
     const perfumesUnicos = [...new Set(c.ventas.map(v => v.perfume).filter(Boolean))];
     const deudaColor = c.totalDebe > 0 ? 'var(--warn)' : 'var(--success)';
 
-    return `<div class="card" style="padding:16px;margin-bottom:10px;cursor:pointer" onclick="verDetalleCliente('${escapeHTML(c.nombre).replace(/'/g,"\\'")}')">
+    return `<div class="card" style="padding:16px;margin-bottom:10px;cursor:pointer" data-cliente-nombre="${escapeHTML(c.nombre)}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div>
           <div style="font-size:15px;font-weight:700;color:var(--text)">${escapeHTML(c.nombre)}</div>
@@ -1710,6 +1710,13 @@ function renderClientes() {
       </div>
     </div>`;
   }).join('');
+
+  // Event delegation — evita onclick inline con nombres de cliente que pueden tener caracteres especiales
+  el.onclick = function(e) {
+    const card = e.target.closest('[data-cliente-nombre]');
+    if (!card) return;
+    verDetalleCliente(card.dataset.clienteNombre);
+  };
 }
 
 function verDetalleCliente(nombre) {
@@ -1984,7 +1991,18 @@ function toggleGastoCat(){const cat=document.getElementById('g-categoria').value
 function fillSuggestionsGasto(){const n=[...new Set(ventas.map(v=>v.perfume).filter(Boolean))];document.getElementById('sug-perfume-gasto').innerHTML=n.map(x=>`<option value="${x}">`).join('');}
 function agregarPerfumeEnvio(){const inp=document.getElementById('g-perfume-envio-input');const n=inp.value.trim();if(!n)return;if(!perfumesEnvioTemp.includes(n))perfumesEnvioTemp.push(n);inp.value='';renderPerfumesEnvio();}
 function quitarPerfumeEnvio(n){perfumesEnvioTemp=perfumesEnvioTemp.filter(x=>x!==n);renderPerfumesEnvio();}
-function renderPerfumesEnvio(){const el=document.getElementById('g-perfumes-envio-list');el.innerHTML=perfumesEnvioTemp.length?perfumesEnvioTemp.map(n=>`<span class="perfume-envio-tag">${escapeHTML(n)}<button onclick="quitarPerfumeEnvio('${n.replace(/'/g,"\\'")}')">×</button></span>`).join(''):'<div style="font-size:11px;color:var(--text3);padding:3px 0">Ningún perfume agregado aún</div>';}
+function renderPerfumesEnvio(){
+  const el=document.getElementById('g-perfumes-envio-list');
+  el.innerHTML=perfumesEnvioTemp.length
+    ? perfumesEnvioTemp.map(n=>`<span class="perfume-envio-tag">${escapeHTML(n)}<button data-quitar-envio="${escapeHTML(n)}" aria-label="Quitar ${escapeHTML(n)}">×</button></span>`).join('')
+    : '<div style="font-size:11px;color:var(--text3);padding:3px 0">Ningún perfume agregado aún</div>';
+  // Event delegation — evita onclick inline con nombres que pueden tener comillas o caracteres especiales
+  el.onclick = function(e) {
+    const btn = e.target.closest('[data-quitar-envio]');
+    if (!btn) return;
+    quitarPerfumeEnvio(btn.dataset.quitarEnvio);
+  };
+}
 function addGasto(){const cat=document.getElementById('g-categoria').value;const monto=parseFloat(document.getElementById('g-monto').value)||0;const fechaRaw=document.getElementById('g-fecha').value;const desc=document.getElementById('g-descripcion').value.trim();const otroNombre=cat==='otro'?document.getElementById('g-otro-nombre').value.trim():'';if(!monto){toast('⚠ Ingresá el monto');return;}if(!fechaRaw){toast('⚠ Seleccioná la fecha');return;}if(cat==='otro'&&!otroNombre){toast('⚠ Poné un nombre para el gasto');return;}const[aa,mm,dd]=fechaRaw.split('-');gastos.unshift({id:Date.now(),categoria:cat,nombreOtro:otroNombre,monto,fecha:`${dd}/${mm}/${aa}`,descripcion:desc,perfumesEnvio:cat==='envio_compra'?[...perfumesEnvioTemp]:[]});perfumesEnvioTemp=[];save();updateStats();document.getElementById('g-monto').value='';document.getElementById('g-descripcion').value='';document.getElementById('g-otro-nombre').value='';document.getElementById('g-categoria').value='envio_compra';document.getElementById('g-envio-compra-extra').style.display='none';document.getElementById('g-otro-extra').style.display='none';renderPerfumesEnvio();toggleGastoCat();toast(`✓ Gasto "${otroNombre||CAT_LABELS[cat]}" ${fmt(monto)} registrado`,2800);renderGastos();}
 function deleteGasto(id){gastos=gastos.filter(g=>g.id!==id);save();updateStats();renderGastos();renderMesFilter('mes-filter-gastos','gastos');}
 function renderGastos(){const filtered=activeMesGastos==='todos'?gastos:gastos.filter(g=>mesKey(g.fecha)===activeMesGastos);const mesCur=mesKey(hoy());document.getElementById('gs-total').textContent=fmt(gastos.reduce((s,g)=>s+g.monto,0));document.getElementById('gs-mes').textContent=fmt(gastos.filter(g=>mesKey(g.fecha)===mesCur).reduce((s,g)=>s+g.monto,0));const el=document.getElementById('gastos-list');if(!filtered.length){el.innerHTML='<div class="empty"><div class="empty-icon">💸</div><p>No hay gastos registrados.</p></div>';return;}const porCat={};filtered.forEach(g=>{if(!porCat[g.categoria])porCat[g.categoria]=0;porCat[g.categoria]+=g.monto;});const totFilt=filtered.reduce((s,g)=>s+g.monto,0);let html=`<div class="gastos-resumen-cat"><div style="font-size:11px;color:var(--gold);margin-bottom:5px">RESUMEN · ${fmt(totFilt)}</div>`;Object.entries(porCat).sort(([,a],[,b])=>b-a).forEach(([cat,tot])=>{const pct=totFilt>0?Math.round(tot/totFilt*100):0;html+=`<div class="gastos-resumen-cat-row"><span>${CAT_LABELS[cat]||cat}</span><span>${fmt(tot)} <span style="color:var(--text3);font-weight:400">(${pct}%)</span></span></div>`;});html+='</div>';const porMes={};filtered.forEach(g=>{const k=mesKey(g.fecha)||'Sin fecha';if(!porMes[k])porMes[k]=[];porMes[k].push(g);});Object.keys(porMes).sort().reverse().forEach(mes=>{const gs=porMes[mes];html+=`<div class="mes-sep"><div class="mes-sep-line"></div><div class="mes-sep-label">${mesLabel(mes)}</div><div class="mes-sep-line"></div></div><div class="mes-total"><span>${gs.length} gasto${gs.length!==1?'s':''}</span><span style="color:var(--danger);font-weight:500">${fmt(gs.reduce((s,g)=>s+g.monto,0))}</span></div>`;gs.forEach(g=>{const titulo=g.categoria==='otro'&&g.nombreOtro?`📋 ${escapeHTML(g.nombreOtro)}`:CAT_LABELS[g.categoria]||g.categoria;const cxp=g.categoria==='envio_compra'&&g.perfumesEnvio?.length>0?`<div class="gc-row"><span>Costo por perfume</span><span>${fmt(g.monto/g.perfumesEnvio.length)}</span></div>`:'';const perf=g.perfumesEnvio?.length?`<div class="gc-row"><span>Perfumes</span><span style="text-align:right;max-width:55%">${g.perfumesEnvio.map(escapeHTML).join(', ')}</span></div>`:'';html+=`<div class="gasto-card ${g.categoria}"><div class="gc-header"><div><div class="gc-cat">${titulo}</div>${g.descripcion?`<div style="font-size:11px;color:var(--text2);margin-top:1px">${escapeHTML(g.descripcion)}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><div class="gc-monto">${fmt(g.monto)}</div><div style="font-size:11px;color:var(--text2)">📅 ${g.fecha}</div><button onclick="deleteGasto(${g.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">🗑</button></div></div>${cxp||perf?`<div class="gc-body">${cxp}${perf}</div>`:''}</div>`;});});el.innerHTML=html;}
