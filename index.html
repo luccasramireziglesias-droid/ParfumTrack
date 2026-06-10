@@ -3338,7 +3338,7 @@ function checkBackupReminder() {
   const lastBackup = localStorage.getItem('pt_last_backup');
   const snooze = localStorage.getItem('pt_backup_snooze');
   // Si hay snooze activo (menos de 24hs), no mostrar
-  if (snooze && Date.now() - parseInt(snooze) < 24 * 60 * 60 * 1000) return;
+  if (snooze && Date.now() - parseInt(snooze, 10) < 24 * 60 * 60 * 1000) return;
   if (!lastBackup) {
     // Nunca hizo backup
     document.getElementById('ultimo-backup-fecha').textContent = 'nunca';
@@ -5044,7 +5044,7 @@ function checkBackupProactiveBanner() {
   const snooze = localStorage.getItem('pt_backup_banner_snooze');
 
   // Verificar snooze (8 horas)
-  if (snooze && Date.now() - parseInt(snooze) < 8 * 60 * 60 * 1000) return;
+  if (snooze && Date.now() - parseInt(snooze, 10) < 8 * 60 * 60 * 1000) return;
 
   let showBanner = false;
   let title = '💾 Hacé un backup hoy';
