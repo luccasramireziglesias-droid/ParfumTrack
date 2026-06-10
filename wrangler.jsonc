@@ -19,11 +19,18 @@
   },
   // KV namespace para licencias.
   // Para obtener el ID: npx wrangler kv namespace create PT_LICENSES
-  // Reemplazá el valor de "id" con el que devuelva ese comando.
   "kv_namespaces": [
     {
       "binding": "PT_LICENSES",
       "id": "REEMPLAZAR_CON_ID_REAL"
+    }
+  ],
+  // R2 bucket para backups en la nube.
+  // Para crear el bucket: npx wrangler r2 bucket create parfumtrack-backups
+  "r2_buckets": [
+    {
+      "binding": "PT_BACKUP",
+      "bucket_name": "parfumtrack-backups"
     }
   ]
 }
