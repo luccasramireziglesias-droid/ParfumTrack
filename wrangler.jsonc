@@ -16,5 +16,14 @@
   "vars": {
     "FROM_EMAIL": "parfumtrack@gmail.com",
     "FROM_NAME": "Parfum Track"
-  }
+  },
+  // KV namespace para licencias.
+  // Para obtener el ID: npx wrangler kv namespace create PT_LICENSES
+  // Reemplazá el valor de "id" con el que devuelva ese comando.
+  "kv_namespaces": [
+    {
+      "binding": "PT_LICENSES",
+      "id": "REEMPLAZAR_CON_ID_REAL"
+    }
+  ]
 }

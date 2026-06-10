@@ -1,14 +1,19 @@
 // ══════════════════════════════════════════════════════════════
-// Parfum Track — Cloudflare Pages Function: validate-license
-// POST /validate-license
-// Body: { code: "PT-XXXX-YYYY" }
+// Parfum Track — Cloudflare Worker Function: /validate-license
+// POST /validate-license  →  { code: "PT-XXXXXX-YYYYYY" }
 //
-// Variables de entorno en Cloudflare Pages → Settings → Environment variables:
-//   VALID_LICENSE_CODES   = "PT-AAAA-1111,PT-BBBB-2222"
-//   LICENSE_SERVER_SECRET = "un-secreto-largo"
+// Variables de entorno (Cloudflare Dashboard → Workers → Settings):
+//   LICENSE_SERVER_SECRET  — string secreto largo y aleatorio (nunca publicar)
+//
+// KV Binding (wrangler.jsonc → kv_namespaces):
+//   binding: "PT_LICENSES"  — namespace donde se guardan los códigos
+//
+// Estructura de cada entrada en KV:
+//   key:   "license:PT-XXXXXX-YYYYYY"
+//   value: { clientName, expiresAt, maxUses, usedCount, createdAt, lastActivatedAt }
 // ══════════════════════════════════════════════════════════════
 
-const DELAY_ON_INVALID = 600;
+const DELAY_ON_INVALID = 600; // ms — frena brute-force
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -28,35 +33,65 @@ export async function onRequestPost(context) {
 
   const normalizedCode = code.trim().toUpperCase();
   const secret = env.LICENSE_SERVER_SECRET;
-  const rawCodes = env.VALID_LICENSE_CODES || '';
 
   if (!secret) {
     console.error('[validate-license] FATAL: LICENSE_SERVER_SECRET no configurada');
-    return new Response(JSON.stringify({ valid: false, error: 'Server configuration error' }), { status: 500, headers });
+    return new Response(JSON.stringify({ valid: false, error: 'Server misconfigured' }), { status: 500, headers });
   }
 
-  const validCodes = rawCodes.split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
+  if (!env.PT_LICENSES) {
+    console.error('[validate-license] FATAL: KV binding PT_LICENSES no encontrado');
+    return new Response(JSON.stringify({ valid: false, error: 'Server misconfigured' }), { status: 500, headers });
+  }
 
-  if (!validCodes.includes(normalizedCode)) {
+  // Buscar en KV
+  const licenseRaw = await env.PT_LICENSES.get(`license:${normalizedCode}`);
+
+  if (!licenseRaw) {
     await delay(DELAY_ON_INVALID);
-    return new Response(JSON.stringify({ valid: false }), { status: 200, headers });
+    return new Response(JSON.stringify({ valid: false }), { headers });
   }
 
-  // Generar token firmado con Web Crypto API (compatible con Cloudflare Workers)
-  const activatedAt = Date.now().toString();
-  const payload = `${normalizedCode}:${activatedAt}`;
-  const keyData = new TextEncoder().encode(secret);
-  const msgData = new TextEncoder().encode(payload);
+  let license;
+  try {
+    license = JSON.parse(licenseRaw);
+  } catch {
+    console.error(`[validate-license] JSON inválido para ${normalizedCode}`);
+    return new Response(JSON.stringify({ valid: false }), { status: 500, headers });
+  }
 
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  // Verificar vencimiento
+  if (license.expiresAt && new Date(license.expiresAt) < new Date()) {
+    await delay(200);
+    return new Response(JSON.stringify({ valid: false, reason: 'expired' }), { headers });
+  }
+
+  // Verificar límite de usos
+  if (license.maxUses !== null && (license.usedCount || 0) >= license.maxUses) {
+    await delay(200);
+    return new Response(JSON.stringify({ valid: false, reason: 'limit_reached' }), { headers });
+  }
+
+  // Actualizar contador de usos
+  license.usedCount = (license.usedCount || 0) + 1;
+  license.lastActivatedAt = new Date().toISOString();
+  await env.PT_LICENSES.put(`license:${normalizedCode}`, JSON.stringify(license));
+
+  // Generar token: HMAC-SHA256(code, secret) → 64 hex chars
+  // Determinístico: el mismo código siempre produce el mismo token con el mismo secret.
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
   );
-  const signature = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
-  const token = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
+  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(normalizedCode));
+  const token = Array.from(new Uint8Array(sig))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
 
-  console.log(`[validate-license] Licencia activada: ${normalizedCode.slice(0, 5)}...`);
+  console.log(`[validate-license] Activada: ${normalizedCode.slice(0, 7)}*** (uso ${license.usedCount}/${license.maxUses ?? '∞'}, cliente: ${license.clientName})`);
 
-  return new Response(JSON.stringify({ valid: true, token, activatedAt }), { status: 200, headers });
+  return new Response(JSON.stringify({ valid: true, token }), { headers });
 }
 
 export async function onRequestOptions(context) {
@@ -65,14 +100,14 @@ export async function onRequestOptions(context) {
 }
 
 function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(r => setTimeout(r, ms));
 }
 
 function corsHeaders(origin) {
-  const allowed = /^https?:\/\/(localhost|127\.0\.0\.1|.*\.netlify\.app|.*\.pages\.dev|.*\.workers\.dev)(:\d+)?$/.test(origin);
+  const ok = /^https?:\/\/(localhost|127\.0\.0\.1|.*\.netlify\.app|.*\.pages\.dev|.*\.workers\.dev)(:\d+)?$/.test(origin);
   return {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': allowed ? origin : 'null',
+    'Access-Control-Allow-Origin': ok ? origin : 'null',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
