@@ -1606,19 +1606,29 @@ async function loadProfile(pid){
 
 // save() con debounce para evitar escrituras repetitivas
 let _saveTimer = null;
+let _saveRunning = false;
+let _savePendingRetry = false;
 function save(immediate) {
   if (immediate) { _saveNow(); return; }
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(_saveNow, 500);
 }
 async function _saveNow(){
-  await Promise.all([
-    PTDB.set(profileKey('vip_ventas_v2'),  ventas),
-    PTDB.set(profileKey('vip_stock_v2'),   perfumes),
-    PTDB.set(profileKey('vip_gastos_v1'),  gastos),
-    PTDB.set(profileKey('vip_caja_v1'),    caja),
-    PTDB.set(profileKey('vip_meta_v1'),    metaMensual),
-  ]);
+  if (_saveRunning) { _savePendingRetry = true; return; }
+  _saveRunning = true;
+  _savePendingRetry = false;
+  try {
+    await Promise.all([
+      PTDB.set(profileKey('vip_ventas_v2'),  ventas),
+      PTDB.set(profileKey('vip_stock_v2'),   perfumes),
+      PTDB.set(profileKey('vip_gastos_v1'),  gastos),
+      PTDB.set(profileKey('vip_caja_v1'),    caja),
+      PTDB.set(profileKey('vip_meta_v1'),    metaMensual),
+    ]);
+  } finally {
+    _saveRunning = false;
+    if (_savePendingRetry) _saveNow();
+  }
 }
 
 function getProfiles(){
@@ -1759,7 +1769,7 @@ function mesesDeCaja(){return[...new Set(caja.map(m=>mesKey(m.fecha)).filter(Boo
 function calcDebe(v){if(!v.esCuotas)return 0;const p=(v.cuotasPagos||[]).reduce((s,p)=>s+p.monto,0);return Math.max(0,(v.precioVenta||0)-p);}
 function ventaCompletada(v){return!v.esCuotas||calcDebe(v)<=0;}
 function diasDesdeUltimoPago(v){if(!v.esCuotas||ventaCompletada(v))return -1;const pagos=v.cuotasPagos||[];const ref=pagos.length>0?pagos[pagos.length-1].fecha:v.fecha;if(!ref)return -1;const[d,m,a]=ref.split('/');return Math.floor((Date.now()-new Date(a,m-1,d).getTime())/86400000);}
-function _estimarFechaCuota(v,i){if(!v.fecha)return null;const[d,m,a]=v.fecha.split('/');const dt=new Date(parseInt(a),parseInt(m)-1,parseInt(d));dt.setMonth(dt.getMonth()+i);return`${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`;}
+function _estimarFechaCuota(v,i){if(!v.fecha)return null;const[d,m,a]=v.fecha.split('/');const dia=parseInt(d),mes=parseInt(m)-1,anio=parseInt(a);const target=new Date(anio,mes+i,1);const maxDia=new Date(target.getFullYear(),target.getMonth()+1,0).getDate();target.setDate(Math.min(dia,maxDia));return`${String(target.getDate()).padStart(2,'0')}/${String(target.getMonth()+1).padStart(2,'0')}/${target.getFullYear()}`;}
 function parseExcelDate(val){if(!val&&val!==0)return '';if(typeof val==='number'&&val>40000){const d=new Date(Math.round((val-25569)*86400*1000));return `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`;}const s=String(val).trim();if(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}$/.test(s))return s.replace(/-/g,'/');if(/^\d{4}-\d{2}-\d{2}/.test(s)){const[a,m,d]=s.split('T')[0].split('-');return `${d}/${m}/${a}`;}return s;}
 function toggleTheme(){const html=document.documentElement;const isDark=html.getAttribute('data-theme')==='dark';html.setAttribute('data-theme',isDark?'light':'dark');document.getElementById('theme-btn').textContent=isDark?'🌙':'☀️';localStorage.setItem('vip_theme',isDark?'light':'dark');if(chartMeses)renderChartMeses();}
 (function(){const t=localStorage.getItem('vip_theme')||'dark';document.documentElement.setAttribute('data-theme',t);const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='dark'?'🌙':'☀️';})();
@@ -1794,6 +1804,7 @@ function restoreBackup(e) {
   const file = e.target.files[0];
   if (!file) return;
   const r = new FileReader();
+  r.onerror = () => { toast('⚠ Error al leer el backup. El archivo puede estar dañado.', 4000); e.target.value = ''; };
   r.onload = ev => {
     try {
       const data = JSON.parse(ev.target.result);
@@ -2357,7 +2368,7 @@ function quitarFotoEdit(){editFotoTemporal='__quitar__';document.getElementById(
 function guardarEdicionPerfume(){if(!editandoPerfumeNombre)return;const p=perfumes.find(x=>x.nombre===editandoPerfumeNombre);if(!p)return;const nuevoNombre=document.getElementById('edit-nombre').value.trim();if(!nuevoNombre){toast('⚠ El nombre no puede estar vacío');return;}if(nuevoNombre!==p.nombre){ventas.forEach(v=>{if(v.perfume===p.nombre)v.perfume=nuevoNombre;});gastos.forEach(g=>{if(g.perfumesEnvio)g.perfumesEnvio=g.perfumesEnvio.map(n=>n===p.nombre?nuevoNombre:n);});}const nuevoPrecio=parseFloat(document.getElementById('edit-precio').value)||p.precio||0;if(nuevoPrecio!==p.precio){if(!p.historialPrecios)p.historialPrecios=[];p.historialPrecios.push({precio:nuevoPrecio,fecha:hoy()});}p.nombre=nuevoNombre;p.ml=parseInt(document.getElementById('edit-ml').value)||0;p.precio=nuevoPrecio;p.pVenta=parseFloat(document.getElementById('edit-pventa').value)||0;p.proveedor=document.getElementById('edit-proveedor').value.trim();p.stock=parseInt(document.getElementById('edit-stock').value)||0;p.stockMin=parseInt(document.getElementById('edit-stock-min').value)||3;p.notas=document.getElementById('edit-notas').value.trim();if(editFotoTemporal==='__quitar__')p.foto=null;else if(editFotoTemporal)p.foto=editFotoTemporal;else{const u=document.getElementById('edit-foto-url').value.trim();if(u)p.foto=u;}editandoPerfumeNombre=null;editFotoTemporal=null;save();closeModal('modal-editar');renderStock();renderCatalogo();toast(`✓ "${p.nombre}" actualizado`);}
 // ── GASTOS ────────────────────────────────────────────────────
 function toggleGastoCat(){const cat=document.getElementById('g-categoria').value;document.getElementById('g-envio-compra-extra').style.display=cat==='envio_compra'?'block':'none';document.getElementById('g-otro-extra').style.display=cat==='otro'?'block':'none';if(cat==='envio_compra'){perfumesEnvioTemp=[];renderPerfumesEnvio();}}
-function fillSuggestionsGasto(){const n=[...new Set(ventas.map(v=>v.perfume).filter(Boolean))];document.getElementById('sug-perfume-gasto').innerHTML=n.map(x=>`<option value="${x}">`).join('');}
+function fillSuggestionsGasto(){const n=[...new Set(ventas.map(v=>v.perfume).filter(Boolean))];document.getElementById('sug-perfume-gasto').innerHTML=n.map(x=>`<option value="${escapeHTML(x)}">`).join('');}
 function agregarPerfumeEnvio(){const inp=document.getElementById('g-perfume-envio-input');const n=inp.value.trim();if(!n)return;if(!perfumesEnvioTemp.includes(n))perfumesEnvioTemp.push(n);inp.value='';renderPerfumesEnvio();}
 function quitarPerfumeEnvio(n){perfumesEnvioTemp=perfumesEnvioTemp.filter(x=>x!==n);renderPerfumesEnvio();}
 function renderPerfumesEnvio(){
@@ -2380,7 +2391,7 @@ function onPerfumeInput(){const nombre=document.getElementById('f-perfume').valu
 function calcGananciaPreview(){const pv=parseFloat(document.getElementById('f-pventa').value)||0;const pc=parseFloat(document.getElementById('f-pcompra').value)||0;const dto=parseFloat(document.getElementById('f-descuento').value)||0;const el=document.getElementById('ganancia-preview');if(!pv){el.textContent='';return;}const pvFinal=pv*(1-dto/100);const gan=pvFinal-pc;el.textContent=`Ganancia: ${fmt(gan)}${dto>0?` (venta: ${fmt(pvFinal)})`:''}`;el.style.color=gan>=0?'var(--success)':'var(--danger)';}
 function toggleCuotasForm(){const t=document.getElementById('f-tipo-cuota').value;document.getElementById('cuotas-form-extra').style.display=t==='cuotas'?'block':'none';recalcCuotas();}
 function recalcCuotas(){const pv=parseFloat(document.getElementById('f-pventa').value)||0;const dto=parseFloat(document.getElementById('f-descuento').value)||0;const pvFinal=pv*(1-dto/100);const n=parseInt(document.getElementById('f-num-cuotas').value)||2;const primera=parseFloat(document.getElementById('f-primera-cuota').value)||0;if(!pvFinal||!n){document.getElementById('cuotas-preview').innerHTML='';return;}const rpc=primera&&n>1?Math.ceil((pvFinal-primera)/(n-1)):Math.ceil(pvFinal/n);let h=`<strong style="color:var(--gold2)">Plan de cuotas</strong><br>`;for(let i=0;i<n;i++){const m=i===0&&primera?primera:rpc;h+=`Cuota ${i+1}: <strong>${fmt(m)}</strong>${i===0?' (hoy)':''}<br>`;}h+=`Total: <strong>${fmt(pvFinal)}</strong>`;document.getElementById('cuotas-preview').innerHTML=h;}
-function fillSuggestions(){const fields={perfume:'perfume',proveedor:'proveedor',vendedor:'vendedor',cliente:'cliente'};Object.entries(fields).forEach(([id,key])=>{const vals=[...new Set(ventas.map(v=>v[key]).filter(Boolean))];document.getElementById('sug-'+id).innerHTML=vals.map(n=>`<option value="${n}">`).join('');});}
+function fillSuggestions(){const fields={perfume:'perfume',proveedor:'proveedor',vendedor:'vendedor',cliente:'cliente'};Object.entries(fields).forEach(([id,key])=>{const vals=[...new Set(ventas.map(v=>v[key]).filter(Boolean))];document.getElementById('sug-'+id).innerHTML=vals.map(n=>`<option value="${escapeHTML(n)}">`).join('');});}
 function onClienteInput(){
   const nombre = (document.getElementById('f-cliente').value||'').trim().toLowerCase();
   if (!nombre) return;
@@ -2533,9 +2544,9 @@ function calcTotalStock(){
 
 function fillStockSuggestions(){
   const nombres=[...new Set(perfumes.map(p=>p.nombre))];
-  document.getElementById('sug-as-perfume').innerHTML=nombres.map(n=>`<option value="${n}">`).join('');
+  document.getElementById('sug-as-perfume').innerHTML=nombres.map(n=>`<option value="${escapeHTML(n)}">`).join('');
   const provs=[...new Set([...ventas.map(v=>v.proveedor),...perfumes.map(p=>p.proveedor)].filter(Boolean))];
-  document.getElementById('sug-as-proveedor').innerHTML=provs.map(p=>`<option value="${p}">`).join('');
+  document.getElementById('sug-as-proveedor').innerHTML=provs.map(p=>`<option value="${escapeHTML(p)}">`).join('');
   // Si hay un perfume ya en stock, autocompletar precio
   document.getElementById('as-perfume').oninput=function(){
     const p=perfumes.find(x=>x.nombre.toLowerCase()===this.value.toLowerCase());
@@ -2714,7 +2725,7 @@ function normH(s){return String(s||'').trim().toUpperCase().replace(/\s+/g,' ');
 function findCol(headers,cands){for(const c of cands){const i=headers.findIndex(h=>normH(h)===c||normH(h).includes(c));if(i>=0)return i;}return -1;}
 function parseVentasSheet(ws){const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});if(raw.length<2)return[];let hIdx=-1,headers=[];for(let i=0;i<Math.min(raw.length,5);i++){const row=raw[i].map(c=>normH(String(c)));if(row.some(c=>c.includes('PERFUME')||c.includes('PRECIO VENTA'))){hIdx=i;headers=row;break;}}if(hIdx<0)return[];const iN=findCol(headers,['Nº VENTAS','º VENTAS','# VENTAS']),iF=findCol(headers,['FECHA']),iP=findCol(headers,['PERFUME']),iPV=findCol(headers,['PRECIO VENTA','VENTA']),iC=findCol(headers,['CUOTAS']),iD=findCol(headers,['DEBE DE CUOTA','DEBE']),iPago=findCol(headers,['PAGO']),iComp=findCol(headers,['COMPRA']),iG=findCol(headers,['GANANCIA']),iProv=findCol(headers,['PROVEEDOR']),iVend=findCol(headers,['VENDEDOR']),iCli=findCol(headers,['CLIENTE']);if(iP<0||iPV<0)return[];const res=[];for(let i=hIdx+1;i<raw.length;i++){const row=raw[i];const perfume=String(row[iP]||'').trim();const pv=parseFloat(row[iPV])||0;if(!perfume||!pv)continue;const cRaw=iC>=0?String(row[iC]||'1').trim():'1';const debe=iD>=0?parseFloat(row[iD])||0:0;const pago=iPago>=0?parseFloat(row[iPago])||0:pv;const compra=iComp>=0?parseFloat(row[iComp])||0:0;const gan=iG>=0?parseFloat(row[iG])||0:(pv-compra);const esCuotasRaw=cRaw.includes('/')||debe>0;let cuotasTotal=1;if(esCuotasRaw){const m=cRaw.match(/\/(\d+)/);cuotasTotal=m?parseInt(m[1]):2;}const cuotasPagos=pago>0?[{monto:pago,fecha:parseExcelDate(iF>=0?row[iF]:''),numCuota:0}]:[];res.push({nVenta:iN>=0?String(row[iN]||'').trim():'',fecha:parseExcelDate(iF>=0?row[iF]:''),perfume,precioVenta:pv,precioCompra:compra,ganancia:gan,esCuotas:esCuotasRaw,cuotasTotal,primeraCuota:pago,cuotasPagos,proveedor:iProv>=0?String(row[iProv]||'').trim():'',vendedor:iVend>=0?String(row[iVend]||'').trim():'',cliente:iCli>=0?String(row[iCli]||'').trim():''});}return res;}
 async function handleImportFile(e){const file=e.target.files[0];if(!file)return;if(file.size>10*1024*1024){toast('⚠ El archivo es muy grande ('+Math.round(file.size/1024/1024)+'MB). Máximo 10MB.');e.target.value='';return;}if(!(await ensureXLSX()))return;
-  const reader=new FileReader();reader.onload=ev=>{try{const wb=XLSX.read(ev.target.result,{type:'array'});let todas=[],hojas=[],errores=[];for(const sn of wb.SheetNames){if(!esMesSheet(sn))continue;const filas=parseVentasSheet(wb.Sheets[sn]);if(!filas.length){errores.push(`"${sn}": sin ventas válidas`);continue;}const anio=new Date().getFullYear();const miMap={ENERO:'01',FEBRERO:'02',MARZO:'03',ABRIL:'04',MAYO:'05',JUNIO:'06',JULIO:'07',AGOSTO:'08',SEPTIEMBRE:'09',OCTUBRE:'10',NOVIEMBRE:'11',DICIEMBRE:'12'};let mm='01';for(const[k,v] of Object.entries(miMap)){if(sn.toUpperCase().includes(k)){mm=v;break;}}filas.forEach((f,idx)=>{if(!f.fecha)f.fecha=`01/${mm}/${anio}`;f.id=Date.now()+todas.length+idx;todas.push(f);});hojas.push(`${sn} (${filas.length})`);}if(!todas.length){toast('⚠ No se encontraron ventas. Verificá los nombres de las hojas.');e.target.value='';return;}const existKeys=new Set(ventas.map(v=>`${v.fecha}|${v.perfume}|${v.precioVenta}|${v.ganancia}`));const nuevas=todas.filter(v=>!existKeys.has(`${v.fecha}|${v.perfume}|${v.precioVenta}|${v.ganancia}`));pendingImport={nuevas,hojas,dup:todas.length-nuevas.length,errores};document.getElementById('import-stats').innerHTML=[`<div class="import-stat"><span>Hojas leídas</span><span>${hojas.join(', ')}</span></div>`,`<div class="import-stat"><span>✨ Ventas nuevas</span><span>${nuevas.length}</span></div>`,nuevas.filter(v=>v.esCuotas).length?`<div class="import-stat"><span>📆 En cuotas</span><span>${nuevas.filter(v=>v.esCuotas).length}</span></div>`:'',pendingImport.dup?`<div class="import-stat"><span>⏭ Duplicadas</span><span>${pendingImport.dup}</span></div>`:''].join('');document.getElementById('import-preview').innerHTML=nuevas.slice(0,25).map(v=>`<div class="import-preview-item">📅 ${v.fecha} · <span>${v.perfume}</span> · ${fmt(v.precioVenta)}${v.esCuotas?` · <span style="color:var(--warn)">${v.cuotasTotal} cuotas</span>`:''}</div>`).join('')+(nuevas.length>25?`<div class="import-preview-item" style="color:var(--text3)">...y ${nuevas.length-25} más</div>`:'');const errEl=document.getElementById('import-errors');if(errores.length){errEl.innerHTML='⚠ '+errores.join('<br>');errEl.classList.add('show');}else errEl.classList.remove('show');document.getElementById('import-result').classList.add('show');document.getElementById('btn-import-confirm').classList.toggle('show',nuevas.length>0);}catch(err){toast('⚠ Error: '+err.message);}e.target.value='';};reader.readAsArrayBuffer(file);}
+  const reader=new FileReader();reader.onerror=()=>{toast('⚠ Error al leer el archivo');e.target.value='';};reader.onload=ev=>{try{const wb=XLSX.read(ev.target.result,{type:'array'});let todas=[],hojas=[],errores=[];for(const sn of wb.SheetNames){if(!esMesSheet(sn))continue;const filas=parseVentasSheet(wb.Sheets[sn]);if(!filas.length){errores.push(`"${sn}": sin ventas válidas`);continue;}const anio=new Date().getFullYear();const miMap={ENERO:'01',FEBRERO:'02',MARZO:'03',ABRIL:'04',MAYO:'05',JUNIO:'06',JULIO:'07',AGOSTO:'08',SEPTIEMBRE:'09',OCTUBRE:'10',NOVIEMBRE:'11',DICIEMBRE:'12'};let mm='01';for(const[k,v] of Object.entries(miMap)){if(sn.toUpperCase().includes(k)){mm=v;break;}}filas.forEach((f,idx)=>{if(!f.fecha)f.fecha=`01/${mm}/${anio}`;f.id=Date.now()+todas.length+idx;todas.push(f);});hojas.push(`${sn} (${filas.length})`);}if(!todas.length){toast('⚠ No se encontraron ventas. Verificá los nombres de las hojas.');e.target.value='';return;}const existKeys=new Set(ventas.map(v=>`${v.fecha}|${v.perfume}|${v.precioVenta}|${v.ganancia}`));const nuevas=todas.filter(v=>!existKeys.has(`${v.fecha}|${v.perfume}|${v.precioVenta}|${v.ganancia}`));pendingImport={nuevas,hojas,dup:todas.length-nuevas.length,errores};document.getElementById('import-stats').innerHTML=[`<div class="import-stat"><span>Hojas leídas</span><span>${hojas.join(', ')}</span></div>`,`<div class="import-stat"><span>✨ Ventas nuevas</span><span>${nuevas.length}</span></div>`,nuevas.filter(v=>v.esCuotas).length?`<div class="import-stat"><span>📆 En cuotas</span><span>${nuevas.filter(v=>v.esCuotas).length}</span></div>`:'',pendingImport.dup?`<div class="import-stat"><span>⏭ Duplicadas</span><span>${pendingImport.dup}</span></div>`:''].join('');document.getElementById('import-preview').innerHTML=nuevas.slice(0,25).map(v=>`<div class="import-preview-item">📅 ${escapeHTML(v.fecha||'')} · <span>${escapeHTML(v.perfume||'')}</span> · ${fmt(v.precioVenta)}${v.esCuotas?` · <span style="color:var(--warn)">${v.cuotasTotal} cuotas</span>`:''}</div>`).join('')+(nuevas.length>25?`<div class="import-preview-item" style="color:var(--text3)">...y ${nuevas.length-25} más</div>`:'');const errEl=document.getElementById('import-errors');if(errores.length){errEl.innerHTML='⚠ '+errores.join('<br>');errEl.classList.add('show');}else errEl.classList.remove('show');document.getElementById('import-result').classList.add('show');document.getElementById('btn-import-confirm').classList.toggle('show',nuevas.length>0);}catch(err){toast('⚠ Error: '+err.message);}e.target.value='';};reader.readAsArrayBuffer(file);}
 function confirmImport(){
   if(!pendingImport)return;
   const{nuevas}=pendingImport;
@@ -3062,8 +3073,8 @@ function formatTrialTimeLeft(ms) {
 }
 function getTrialVentasRestantes() {
   const trialStart = parseInt(localStorage.getItem('pt_trial_start') || '0');
+  if (!trialStart) return LICENSE.trialLimitedVentas; // trial no iniciado aún
   const vencimiento = trialStart + getTrialDuration();
-  // Fix: usar createdAt explícito en lugar de id (que no siempre es timestamp)
   const ventasTrasVencer = ventas.filter(v => (v.createdAt || v.id) > vencimiento).length;
   return Math.max(0, LICENSE.trialLimitedVentas - ventasTrasVencer);
 }
