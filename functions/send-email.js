@@ -153,8 +153,8 @@ const TEMPLATES = {
       <!-- Pricing highlight -->
       <div style="background:linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.04));border:1px solid rgba(201,168,76,0.3);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
         <p style="color:#e8cc7a;font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin:0 0 6px;">Plan Pro — más popular</p>
-        <p style="color:#f0eee8;font-size:32px;font-weight:800;margin:0 0 4px;">$19 <span style="font-size:16px;color:#b8b4a8;font-weight:400;">USD</span></p>
-        <p style="color:#7a7870;font-size:13px;margin:0;">Pago único · Sin vencimiento · Sin suscripción</p>
+        <p style="color:#f0eee8;font-size:32px;font-weight:800;margin:0 0 4px;">$12 <span style="font-size:16px;color:#b8b4a8;font-weight:400;">USD/mes</span></p>
+        <p style="color:#7a7870;font-size:13px;margin:0;">Plan Pro · Cancelás cuando querés</p>
       </div>
 
       <a href="${data.waUrl || '#'}"
