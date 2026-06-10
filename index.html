@@ -813,6 +813,15 @@ select,input[type="checkbox"],input[type="radio"]{min-height:44px}
 .sk-line{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--card2) 25%,rgba(201,168,76,.07) 50%,var(--card2) 75%);background-size:400px 100%;animation:sk-shimmer 1.4s ease infinite;margin-bottom:9px}
 .sk-line:last-child{margin-bottom:0}
 .sk-line.wide{width:60%}.sk-line.mid{width:40%}.sk-line.short{width:25%}.sk-line.full{width:100%}
+/* UX: field errors */
+.field-error-msg{font-size:11px;color:var(--danger);margin-top:4px;display:none}
+.field-error-msg.show{display:block}
+input.field-error,select.field-error{border-color:var(--danger)!important;box-shadow:0 0 0 2px rgba(224,112,112,.12)}
+/* UX: currency hint */
+.currency-hint{font-size:11px;color:var(--text3);margin-top:2px;min-height:15px}
+/* UX: tab content fade-in */
+.section.active{animation:tabIn .16s ease both}
+@keyframes tabIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 .sk-row{display:flex;justify-content:space-between;gap:10px;margin-bottom:9px}
 .sk-row .sk-line{margin-bottom:0;flex:1}
 .sk-row .sk-line.short{flex:0 0 25%}
@@ -1381,11 +1390,11 @@ select,input[type="checkbox"],input[type="radio"]{min-height:44px}
 
     <!-- NUEVA VENTA -->
     <div id="tab-add" class="section">
-      <div class="form-group"><label class="form-label">Perfume</label><input type="text" id="f-perfume" maxlength="80" placeholder="Nombre del perfume" list="sug-perfume" oninput="onPerfumeInput()"><datalist id="sug-perfume"></datalist></div>
+      <div class="form-group"><label class="form-label">Perfume</label><input type="text" id="f-perfume" maxlength="80" placeholder="Nombre del perfume" list="sug-perfume" oninput="onPerfumeInput()"><datalist id="sug-perfume"></datalist><div class="field-error-msg" id="err-f-perfume"></div></div>
       <div class="precio-sugerido" id="precio-sugerido"></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Precio venta</label><input type="number" id="f-pventa" placeholder="0" min="0" inputmode="numeric" oninput="recalcCuotas();calcGananciaPreview()"></div>
-        <div class="form-group"><label class="form-label">Precio compra</label><input type="number" id="f-pcompra" placeholder="0" min="0" inputmode="numeric" oninput="calcGananciaPreview()"></div>
+        <div class="form-group"><label class="form-label">Precio venta</label><input type="number" id="f-pventa" placeholder="0" min="0" inputmode="numeric" oninput="recalcCuotas();calcGananciaPreview();updateCurrencyHint('f-pventa')"><div class="currency-hint" id="hint-f-pventa"></div><div class="field-error-msg" id="err-f-pventa"></div></div>
+        <div class="form-group"><label class="form-label">Precio compra</label><input type="number" id="f-pcompra" placeholder="0" min="0" inputmode="numeric" oninput="calcGananciaPreview();updateCurrencyHint('f-pcompra')"><div class="currency-hint" id="hint-f-pcompra"></div></div>
       </div>
       <!-- DESCUENTO -->
       <div class="descuento-row">
@@ -1522,7 +1531,7 @@ function saveCatCustom(arr){localStorage.setItem('pt_cat_custom',JSON.stringify(
 function getAllCatLabels(){const merged={...CAT_LABELS};getCatCustom().forEach(c=>{merged[c.id]=c.nombre;});return merged;}
 function fillCategoriesSelect(){const sel=document.getElementById('g-categoria');if(!sel)return;const prev=sel.value;const custom=getCatCustom();sel.innerHTML=`<option value="envio_compra">📦 Envío de compra</option><option value="envio_venta">🚚 Envío de venta</option><option value="bolsas">🛍 Bolsas y packaging</option><option value="otro">📋 Otro gasto</option>${custom.map(c=>`<option value="${c.id}">${escapeHTML(c.nombre)}</option>`).join('')}`;if(prev&&[...sel.options].some(o=>o.value===prev))sel.value=prev;}
 function addCustomCat(){const inp=document.getElementById('new-cat-nombre');if(!inp)return;const nombre=inp.value.trim();if(!nombre){toast('⚠ Ingresá un nombre para la categoría');return;}const arr=getCatCustom();if(arr.some(c=>c.nombre.toLowerCase()===nombre.toLowerCase())){toast('⚠ Ya existe esa categoría');return;}arr.push({id:'custom_'+Date.now(),nombre});saveCatCustom(arr);inp.value='';fillCategoriesSelect();renderCustomCatList();toast(`✓ Categoría "${escapeHTML(nombre)}" creada`);}
-function deleteCustomCat(id){saveCatCustom(getCatCustom().filter(c=>c.id!==id));fillCategoriesSelect();renderCustomCatList();toast('✓ Categoría eliminada');}
+function deleteCustomCat(id){const cat=getCatCustom().find(c=>c.id===id);showConfirm('Eliminar categoría',`¿Eliminar la categoría "${escapeHTML(cat?.nombre||'')}"?`,()=>{saveCatCustom(getCatCustom().filter(c=>c.id!==id));fillCategoriesSelect();renderCustomCatList();toast('✓ Categoría eliminada');},{dangerous:true,icon:'🗑',label:'Eliminar'});}
 function renderCustomCatList(){const el=document.getElementById('custom-cat-list');if(!el)return;const arr=getCatCustom();el.innerHTML=arr.length?arr.map(c=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid var(--border)"><span style="font-size:13px;color:var(--text)">${escapeHTML(c.nombre)}</span><button onclick="deleteCustomCat('${c.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px" aria-label="Eliminar categoría">🗑</button></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:5px 0">No hay categorías personalizadas.</div>';}
 function toggleCustomCatForm(){const el=document.getElementById('custom-cat-section');if(el)el.style.display=el.style.display==='none'?'block':'none';renderCustomCatList();}
 const DIAS_NOMBRES=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
@@ -1769,6 +1778,60 @@ function mesesDeCaja(){return[...new Set(caja.map(m=>mesKey(m.fecha)).filter(Boo
 function calcDebe(v){if(!v.esCuotas)return 0;const p=(v.cuotasPagos||[]).reduce((s,p)=>s+p.monto,0);return Math.max(0,(v.precioVenta||0)-p);}
 function ventaCompletada(v){return!v.esCuotas||calcDebe(v)<=0;}
 function diasDesdeUltimoPago(v){if(!v.esCuotas||ventaCompletada(v))return -1;const pagos=v.cuotasPagos||[];const ref=pagos.length>0?pagos[pagos.length-1].fecha:v.fecha;if(!ref)return -1;const[d,m,a]=ref.split('/');return Math.floor((Date.now()-new Date(a,m-1,d).getTime())/86400000);}
+// ── UX helpers ────────────────────────────────────────────────
+
+// 1. Borrador del formulario de venta
+const _DRAFT_IDS=['f-perfume','f-pventa','f-pcompra','f-descuento','f-proveedor','f-vendedor','f-cliente','f-nota','f-fecha'];
+let _draftListenerActive=false;
+function _saveDraft(){
+  const d={};
+  _DRAFT_IDS.forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.value;});
+  const tc=document.getElementById('f-tipo-cuota');if(tc)d['f-tipo-cuota']=tc.value;
+  if(Object.values(d).some(v=>v&&String(v).trim()))localStorage.setItem('pt_draft_venta',JSON.stringify(d));
+  else localStorage.removeItem('pt_draft_venta');
+}
+function _restoreDraft(){
+  const raw=localStorage.getItem('pt_draft_venta');
+  if(!raw)return false;
+  try{
+    const d=JSON.parse(raw);
+    _DRAFT_IDS.forEach(id=>{const el=document.getElementById(id);if(el&&d[id]!==undefined)el.value=d[id];});
+    const tc=document.getElementById('f-tipo-cuota');
+    if(tc&&d['f-tipo-cuota']){tc.value=d['f-tipo-cuota'];if(tc.value!=='contado'){const ex=document.getElementById('cuotas-form-extra');if(ex)ex.style.display='block';}}
+    return Object.values(d).some(v=>v&&String(v).trim());
+  }catch(e){return false;}
+}
+function _clearDraft(){localStorage.removeItem('pt_draft_venta');}
+
+// 2. Validación inline de campos
+function showFieldError(id,msg){
+  const el=document.getElementById(id);if(!el)return;
+  el.classList.add('field-error');
+  const errId='err-'+id;let e=document.getElementById(errId);
+  if(!e){e=document.createElement('div');e.id=errId;e.className='field-error-msg';el.parentElement.appendChild(e);}
+  e.textContent=msg;e.classList.add('show');
+  el.addEventListener('input',()=>{el.classList.remove('field-error');e.classList.remove('show');},{once:true});
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+  setTimeout(()=>el.focus(),50);
+}
+function clearFieldErrors(){
+  document.querySelectorAll('.field-error').forEach(el=>el.classList.remove('field-error'));
+  document.querySelectorAll('.field-error-msg.show').forEach(el=>el.classList.remove('show'));
+}
+
+// 3. Hint de moneda formateada debajo del campo de precio
+function updateCurrencyHint(id){
+  const el=document.getElementById(id);const hint=document.getElementById('hint-'+id);
+  if(!el||!hint)return;
+  const v=parseFloat(el.value);
+  hint.textContent=v>0?'= '+v.toLocaleString('es-AR',{maximumFractionDigits:0}):'';
+}
+
+// 4. Preservar scroll por tab
+const _tabScrollPos={};
+
+// ──────────────────────────────────────────────────────────────
+
 function _estimarFechaCuota(v,i){if(!v.fecha)return null;const[d,m,a]=v.fecha.split('/');const dia=parseInt(d),mes=parseInt(m)-1,anio=parseInt(a);const target=new Date(anio,mes+i,1);const maxDia=new Date(target.getFullYear(),target.getMonth()+1,0).getDate();target.setDate(Math.min(dia,maxDia));return`${String(target.getDate()).padStart(2,'0')}/${String(target.getMonth()+1).padStart(2,'0')}/${target.getFullYear()}`;}
 function parseExcelDate(val){if(!val&&val!==0)return '';if(typeof val==='number'&&val>40000){const d=new Date(Math.round((val-25569)*86400*1000));return `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`;}const s=String(val).trim();if(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}$/.test(s))return s.replace(/-/g,'/');if(/^\d{4}-\d{2}-\d{2}/.test(s)){const[a,m,d]=s.split('T')[0].split('-');return `${d}/${m}/${a}`;}return s;}
 function toggleTheme(){const html=document.documentElement;const isDark=html.getAttribute('data-theme')==='dark';html.setAttribute('data-theme',isDark?'light':'dark');document.getElementById('theme-btn').textContent=isDark?'🌙':'☀️';localStorage.setItem('vip_theme',isDark?'light':'dark');if(chartMeses)renderChartMeses();}
@@ -1882,7 +1945,7 @@ function renderComprasPeriodo(){
   +compras.map(c=>`<div class="venta-card"><div class="vc-header"><div class="vc-name" style="font-size:14px">${escapeHTML(c.desc.replace('📦 Compra stock: ',''))}</div><div class="vc-meta"><div class="vc-date">📅 ${c.fecha}</div></div></div><div class="vc-body"><div class="vc-row"><span>Invertido</span><span style="color:var(--danger)">${fmt(c.monto)}</span></div></div></div>`).join('');
 }
 
-function showTab(t){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));const activeTabBtn=document.getElementById('tabbtn-'+t);if(activeTabBtn)activeTabBtn.classList.add('active');document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));const tabEl=document.getElementById('tab-'+t);if(tabEl)tabEl.classList.add('active');if(t==='ventas'){renderMesFilter('mes-filter-ventas','ventas');renderVentas();}if(t==='cuotas')renderCuotasPendientes();if(t==='gastos'){renderMesFilter('mes-filter-gastos','gastos');renderGastos();initFecha('g-fecha');fillSuggestionsGasto();fillCategoriesSelect();renderCustomCatList();}if(t==='ganancias'){renderMesFilter('mes-filter-gan','ganancias');renderGanancias();fillComparadores();renderMetaBar();}if(t==='caja'){renderMesFilter('mes-filter-caja','caja');renderCaja();initFecha('caja-fecha');}if(t==='catalogo')renderCatalogo();if(t==='stock')renderStock();if(t==='add'){fillSuggestions();const _ff=document.getElementById('f-fecha');if(_ff){const _hh=new Date().toISOString().slice(0,10);_ff.max=_hh;if(!_ff.value)_ff.value=_hh;}}if(t==='stock')fillStockSuggestions();if(t==='ajustes')renderAjustes();if(t==='clientes')renderClientes();updateStats();}
+function showTab(t){const _curSec=document.querySelector('.section.active');if(_curSec)_tabScrollPos[_curSec.id.replace('tab-','')]=window.scrollY;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));const activeTabBtn=document.getElementById('tabbtn-'+t);if(activeTabBtn)activeTabBtn.classList.add('active');document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));const tabEl=document.getElementById('tab-'+t);if(tabEl)tabEl.classList.add('active');if(t==='ventas'){renderMesFilter('mes-filter-ventas','ventas');renderVentas();}if(t==='cuotas')renderCuotasPendientes();if(t==='gastos'){renderMesFilter('mes-filter-gastos','gastos');renderGastos();initFecha('g-fecha');fillSuggestionsGasto();fillCategoriesSelect();renderCustomCatList();}if(t==='ganancias'){renderMesFilter('mes-filter-gan','ganancias');renderGanancias();fillComparadores();renderMetaBar();}if(t==='caja'){renderMesFilter('mes-filter-caja','caja');renderCaja();initFecha('caja-fecha');}if(t==='catalogo')renderCatalogo();if(t==='stock')renderStock();if(t==='add'){fillSuggestions();const _ff=document.getElementById('f-fecha');if(_ff){const _hh=new Date().toISOString().slice(0,10);_ff.max=_hh;if(!_ff.value)_ff.value=_hh;}if(!_draftListenerActive){document.getElementById('tab-add')?.addEventListener('input',_saveDraft);_draftListenerActive=true;}const _hasD=_restoreDraft();if(_hasD){recalcCuotas();calcGananciaPreview();['f-pventa','f-pcompra'].forEach(updateCurrencyHint);toast('📝 Borrador restaurado',2000);}}if(t==='stock')fillStockSuggestions();if(t==='ajustes')renderAjustes();if(t==='clientes')renderClientes();updateStats();requestAnimationFrame(()=>window.scrollTo({top:_tabScrollPos[t]||0,behavior:'instant'}));}
 function renderMesFilter(cId,tab){const meses=tab==='gastos'?mesesDeGastos():tab==='caja'?mesesDeCaja():mesesDeVentas();const active=tab==='ventas'?activeMesVentas:tab==='gastos'?activeMesGastos:tab==='caja'?activeMesCaja:activeMesGan;const el=document.getElementById(cId);if(!meses.length){el.innerHTML='';return;}el.innerHTML=[`<button class="mes-chip ${active==='todos'?'active':''}" onclick="setMes('todos','${tab}')">Todos</button>`,...meses.map(m=>`<button class="mes-chip ${active===m?'active':''}" onclick="setMes('${m}','${tab}')">${mesLabel(m)}</button>`)].join('');}
 function setMes(mes,tab){if(tab==='ventas'){activeMesVentas=mes;renderMesFilter('mes-filter-ventas','ventas');renderVentas();}else if(tab==='gastos'){activeMesGastos=mes;renderMesFilter('mes-filter-gastos','gastos');renderGastos();}else if(tab==='caja'){activeMesCaja=mes;renderMesFilter('mes-filter-caja','caja');renderCaja();}else{activeMesGan=mes;renderMesFilter('mes-filter-gan','ganancias');renderGanancias();renderMetaBar();}}
 function setFiltroEstado(estado){filtroEstado=estado;['todas','hoy','pendiente','completada'].forEach(e=>document.getElementById('fchip-'+e)?.classList.toggle('active',e===estado));renderVentas();actualizarBtnLimpiarFiltros();}
@@ -2410,6 +2473,7 @@ let _negGainTimer = null;
 function addVenta(){
   if (_addVentaEnProceso) return;
   _addVentaEnProceso = true;
+  clearFieldErrors();
   // Helper: libera el guard y sale. Usar en todos los early returns.
   const _abort = (msg, ms) => { _addVentaEnProceso = false; if(msg) toast(msg, ms||2800); };
 
@@ -2423,8 +2487,8 @@ function addVenta(){
     }
   }
   const perfume=document.getElementById('f-perfume').value.trim();const pv=parseFloat(document.getElementById('f-pventa').value)||0;const pc=parseFloat(document.getElementById('f-pcompra').value)||0;const dto=parseFloat(document.getElementById('f-descuento').value)||0;const tipo=document.getElementById('f-tipo-cuota').value;const proveedor=document.getElementById('f-proveedor').value.trim();const vendedor=document.getElementById('f-vendedor').value.trim();const cliente=document.getElementById('f-cliente').value.trim();const nota=document.getElementById('f-nota').value.trim();
-  if(!perfume){_abort('⚠ Ingresá el nombre del perfume');return;}
-  if(!pv||pv<=0){_abort('⚠ Ingresá un precio de venta válido (mayor a 0)');return;}
+  if(!perfume){showFieldError('f-perfume','Ingresá el nombre del perfume');_abort();return;}
+  if(!pv||pv<=0){showFieldError('f-pventa','Precio de venta requerido (mayor a 0)');_abort();return;}
   if(pc<0){_abort('⚠ El precio de compra no puede ser negativo');return;}
   if(pv>10000000){_abort('⚠ El precio parece muy alto. Verificá los datos');return;}
   if(dto < 0 || dto > 100){_abort('⚠ El descuento debe estar entre 0 y 100%');return;}
@@ -2458,7 +2522,7 @@ function addVenta(){
   ventas.unshift({id:Date.now(),createdAt:Date.now(),nVenta,perfume,precioVenta:pvFinal,precioCompra:pc,ganancia:pvFinal-pc,descuento:dto||0,esCuotas,cuotasTotal,primeraCuota,cuotasPagos,proveedor,vendedor,cliente,nota,fecha});
   if (_esPrimeraVenta && typeof _obConfetti === 'function') setTimeout(_obConfetti, 800);let sp=perfumes.find(p=>p.nombre.toLowerCase()===perfume.toLowerCase());const _eraNuevo=!sp;if(!sp){sp={nombre:perfume,precio:pc,stock:0,proveedor,foto:null,historialPrecios:[{precio:pc,fecha}]};perfumes.push(sp);}const _stockAntes=sp.stock||0;if(sp.stock>0)sp.stock--;haptic('success');save();
   // BUG-05: avisar cuando el stock llega a 0
-  if(!_eraNuevo&&_stockAntes===1)setTimeout(()=>toast(`⚠ Sin stock: "${perfume}" llegó a 0 unidades. Acordate de reponer.`,4500),3400);updateStats();['f-perfume','f-pventa','f-pcompra','f-descuento','f-proveedor','f-vendedor','f-cliente','f-nota'].forEach(id=>document.getElementById(id).value='');const _fFecha=document.getElementById('f-fecha');if(_fFecha){const _hoy=new Date().toISOString().slice(0,10);_fFecha.max=_hoy;_fFecha.value=_hoy;}document.getElementById('f-tipo-cuota').value='contado';document.getElementById('cuotas-form-extra').style.display='none';document.getElementById('cuotas-preview').innerHTML='';document.getElementById('precio-sugerido').style.display='none';document.getElementById('ganancia-preview').textContent='';const debe=calcDebe(ventas[0]);toast((esCuotas?`✓ Venta en ${cuotasTotal} cuotas${primeraCuota?' · 1ra cobrada':''}${debe>0?' · Resta: '+fmt(debe):''}`:` ✓ Venta registrada · Ganancia: ${fmt(pvFinal-pc)}`)+(dto>0?` · Descuento: ${dto}%`:'')+(esMesNuevo?`\n📅 Nueva sección ${mesLabel(mesFecha)} creada`:''),3200);if(esMesNuevo)activeMesVentas=mesFecha;
+  if(!_eraNuevo&&_stockAntes===1)setTimeout(()=>toast(`⚠ Sin stock: "${perfume}" llegó a 0 unidades. Acordate de reponer.`,4500),3400);_clearDraft();updateStats();['f-perfume','f-pventa','f-pcompra','f-descuento','f-proveedor','f-vendedor','f-cliente','f-nota'].forEach(id=>document.getElementById(id).value='');['f-pventa','f-pcompra'].forEach(id=>{const h=document.getElementById('hint-'+id);if(h)h.textContent='';});const _fFecha=document.getElementById('f-fecha');if(_fFecha){const _hoy=new Date().toISOString().slice(0,10);_fFecha.max=_hoy;_fFecha.value=_hoy;}document.getElementById('f-tipo-cuota').value='contado';document.getElementById('cuotas-form-extra').style.display='none';document.getElementById('cuotas-preview').innerHTML='';document.getElementById('precio-sugerido').style.display='none';document.getElementById('ganancia-preview').textContent='';const debe=calcDebe(ventas[0]);toast((esCuotas?`✓ Venta en ${cuotasTotal} cuotas${primeraCuota?' · 1ra cobrada':''}${debe>0?' · Resta: '+fmt(debe):''}`:` ✓ Venta registrada · Ganancia: ${fmt(pvFinal-pc)}`)+(dto>0?` · Descuento: ${dto}%`:'')+(esMesNuevo?`\n📅 Nueva sección ${mesLabel(mesFecha)} creada`:''),3200);if(esMesNuevo)activeMesVentas=mesFecha;
   // Rehabilitar botón guardar y liberar guard
   const _bg=document.getElementById('btn-guardar-venta');if(_bg){_bg.disabled=false;_bg.textContent='Guardar venta';}
   _addVentaEnProceso = false;
