@@ -4321,14 +4321,20 @@ function cobrarEfectivo(){
 // INIT — override unlockApp to show profile screen
 // ══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
+  // Fail-safe: never let the loading screen block the app forever
+  var _loaderHidden = false;
+  function _hideLoader() {
+    if (_loaderHidden) return;
+    _loaderHidden = true;
+    var loader = document.getElementById('app-loading');
+    if (loader) { loader.style.opacity = '0'; setTimeout(function(){ loader.style.display = 'none'; }, 320); }
+  }
+  setTimeout(_hideLoader, 5000); // hard cap: hide after 5s no matter what
+
   // Esperar IndexedDB antes de arrancar la app
   _appDataReady.then(function() {
   // Fade out loading screen → reveal app with skeleton → real content
-  const loader = document.getElementById('app-loading');
-  if (loader) {
-    loader.style.opacity = '0';
-    setTimeout(function(){ loader.style.display = 'none'; }, 320);
-  }
+  _hideLoader();
   // Disparar evento para que OneSignal chequee cobros pendientes
   window.dispatchEvent(new Event('pt-app-ready'));
   // Attach modal backdrop close listeners
@@ -4613,7 +4619,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Compatibilidad: exponer cambiarPin por si algún otro código lo llama
     window.cambiarPin = window.abrirSetupPin;
   })();
-  }); // fin _appDataReady.then
+  }).catch(function(err) {
+    console.error('[PT] _appDataReady rejected:', err);
+    _hideLoader();
+  });
 });
 
 async function enterAppAfterPin() {
