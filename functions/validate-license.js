@@ -15,6 +15,9 @@
 
 const DELAY_ON_INVALID = 600; // ms — frena brute-force
 
+// Código permanente del dueño — siempre válido, sin KV ni límites.
+const OWNER_CODE = 'PT-B3FF19-C75C55';
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   const origin = request.headers.get('Origin') || '';
@@ -39,46 +42,49 @@ export async function onRequestPost(context) {
     return new Response(JSON.stringify({ valid: false, error: 'Server misconfigured' }), { status: 500, headers });
   }
 
-  if (!env.PT_LICENSES) {
-    console.error('[validate-license] FATAL: KV binding PT_LICENSES no encontrado');
-    return new Response(JSON.stringify({ valid: false, error: 'Server misconfigured' }), { status: 500, headers });
+  const isOwner = normalizedCode === OWNER_CODE;
+
+  if (!isOwner) {
+    // Validación normal vía KV
+    if (!env.PT_LICENSES) {
+      console.error('[validate-license] FATAL: KV binding PT_LICENSES no encontrado');
+      return new Response(JSON.stringify({ valid: false, error: 'Server misconfigured' }), { status: 500, headers });
+    }
+
+    const licenseRaw = await env.PT_LICENSES.get(`license:${normalizedCode}`);
+    if (!licenseRaw) {
+      await delay(DELAY_ON_INVALID);
+      return new Response(JSON.stringify({ valid: false }), { headers });
+    }
+
+    let license;
+    try {
+      license = JSON.parse(licenseRaw);
+    } catch {
+      console.error(`[validate-license] JSON inválido para ${normalizedCode}`);
+      return new Response(JSON.stringify({ valid: false }), { status: 500, headers });
+    }
+
+    if (license.expiresAt && new Date(license.expiresAt) < new Date()) {
+      await delay(200);
+      return new Response(JSON.stringify({ valid: false, reason: 'expired' }), { headers });
+    }
+
+    if (license.maxUses !== null && (license.usedCount || 0) >= license.maxUses) {
+      await delay(200);
+      return new Response(JSON.stringify({ valid: false, reason: 'limit_reached' }), { headers });
+    }
+
+    license.usedCount = (license.usedCount || 0) + 1;
+    license.lastActivatedAt = new Date().toISOString();
+    await env.PT_LICENSES.put(`license:${normalizedCode}`, JSON.stringify(license));
+
+    console.log(`[validate-license] Activada: ${normalizedCode.slice(0, 7)}*** (uso ${license.usedCount}/${license.maxUses ?? '∞'}, cliente: ${license.clientName})`);
+  } else {
+    console.log('[validate-license] Activada: código del dueño');
   }
-
-  // Buscar en KV
-  const licenseRaw = await env.PT_LICENSES.get(`license:${normalizedCode}`);
-
-  if (!licenseRaw) {
-    await delay(DELAY_ON_INVALID);
-    return new Response(JSON.stringify({ valid: false }), { headers });
-  }
-
-  let license;
-  try {
-    license = JSON.parse(licenseRaw);
-  } catch {
-    console.error(`[validate-license] JSON inválido para ${normalizedCode}`);
-    return new Response(JSON.stringify({ valid: false }), { status: 500, headers });
-  }
-
-  // Verificar vencimiento
-  if (license.expiresAt && new Date(license.expiresAt) < new Date()) {
-    await delay(200);
-    return new Response(JSON.stringify({ valid: false, reason: 'expired' }), { headers });
-  }
-
-  // Verificar límite de usos
-  if (license.maxUses !== null && (license.usedCount || 0) >= license.maxUses) {
-    await delay(200);
-    return new Response(JSON.stringify({ valid: false, reason: 'limit_reached' }), { headers });
-  }
-
-  // Actualizar contador de usos
-  license.usedCount = (license.usedCount || 0) + 1;
-  license.lastActivatedAt = new Date().toISOString();
-  await env.PT_LICENSES.put(`license:${normalizedCode}`, JSON.stringify(license));
 
   // Generar token: HMAC-SHA256(code, secret) → 64 hex chars
-  // Determinístico: el mismo código siempre produce el mismo token con el mismo secret.
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
     'raw', encoder.encode(secret),
@@ -88,8 +94,6 @@ export async function onRequestPost(context) {
   const token = Array.from(new Uint8Array(sig))
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
-
-  console.log(`[validate-license] Activada: ${normalizedCode.slice(0, 7)}*** (uso ${license.usedCount}/${license.maxUses ?? '∞'}, cliente: ${license.clientName})`);
 
   return new Response(JSON.stringify({ valid: true, token }), { headers });
 }
