@@ -2920,10 +2920,11 @@ const LICENSE = {
 
 // ── Número de WhatsApp del negocio (con código de país, sin + ni espacios) ──
 // Configuralo en Ajustes → WhatsApp del negocio
+const _DEFAULT_WA = '59894466577';
 function getWANumber(){
   const stored = localStorage.getItem('pt_wa_number');
   if (stored && stored.length >= 8 && stored !== '5491100000000') return stored;
-  return null;
+  return _DEFAULT_WA;
 }
 
 // Token format: 64-char lowercase hex, emitted by the Cloudflare Worker
@@ -3767,7 +3768,7 @@ function renderAjustes() {
   const waNumBanner = document.getElementById('wa-config-banner');
   const waNumStored = localStorage.getItem('pt_wa_number');
   if (waNumInput) waNumInput.value = waNumStored || '';
-  if (waNumBanner) waNumBanner.style.display = (!waNumStored || waNumStored === '5491100000000') ? 'block' : 'none';
+  if (waNumBanner) waNumBanner.style.display = (waNumStored === '5491100000000') ? 'block' : 'none';
 
   // Firma WhatsApp toggle
   const firmaChk = document.getElementById('toggle-wa-firma');
