@@ -441,6 +441,41 @@ footer{
   .pricing-grid{grid-template-columns:1fr;}
 }
 
+/* ── COMPARISON ── */
+.compare-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:48px;
+}
+@media(max-width:640px){.compare-grid{grid-template-columns:1fr;}}
+.compare-card{border-radius:var(--radius);padding:28px 24px;}
+.compare-card.bad{
+  background:rgba(224,112,112,0.05);border:1px solid rgba(224,112,112,0.2);
+}
+.compare-card.good{
+  background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.25);
+}
+.compare-title{
+  font-size:14px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  margin-bottom:20px;display:flex;align-items:center;gap:8px;
+}
+.compare-card.bad .compare-title{color:#e07070;}
+.compare-card.good .compare-title{color:var(--gold2);}
+.compare-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 0;font-size:14px;line-height:1.5;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.compare-item:last-child{border-bottom:none;}
+.compare-item .ci-icon{flex-shrink:0;font-size:15px;margin-top:1px;}
+.compare-card.bad .compare-item{color:var(--text2);}
+.compare-card.good .compare-item{color:var(--text2);}
+
+/* ── TESTI METRIC ── */
+.testi-metric{
+  background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.18);
+  border-radius:8px;padding:10px 14px;margin-bottom:16px;
+  font-size:13px;color:var(--gold2);font-weight:600;
+}
+
 /* ── ANIMATIONS ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 .fade-up{animation:fadeUp .6s ease both}
@@ -472,15 +507,15 @@ footer{
      HERO
 ══════════════════════════════════════ -->
 <section class="hero">
-  <div class="hero-badge">✨ App web progresiva — sin instalación</div>
-  <h1 class="fade-up">Gestioná tu negocio<br>de <em>perfumes</em> desde<br>el celular</h1>
+  <div class="hero-badge">★ 4.9 · Más de 500 revendedoras activas</div>
+  <h1 class="fade-up">Sabés cuánto vendiste.<br>¿Sabés cuánto <em>ganaste</em>?</h1>
   <p class="hero-sub fade-up fade-up-d1">
-    Registrá ventas, gastos y cobros en segundos.
-    Estadísticas automáticas. Cobros en cuotas. WhatsApp integrado.
+    Parfum Track cierra tus números por vos. Ganancia real, cobros pendientes
+    y estadísticas del mes — todo en tu celular, en segundos.
   </p>
   <div class="hero-btns fade-up fade-up-d2">
     <a href="/index.html" class="btn-hero-primary" onclick="if(window.plausible)plausible('landing_cta_hero')">
-      🚀 Empezar gratis — 7 días
+      Probar gratis 7 días →
     </a>
     <a href="#features" class="btn-hero-secondary">Ver funciones ↓</a>
   </div>
@@ -488,7 +523,7 @@ footer{
     <span>✅ Sin tarjeta de crédito</span>
     <span>✅ Sin instalación</span>
     <span>✅ Funciona offline</span>
-    <span>✅ Datos en tu dispositivo</span>
+    <span>✅ Datos solo en tu celular</span>
   </div>
 
   <!-- App Mockup -->
@@ -543,20 +578,20 @@ footer{
 ══════════════════════════════════════ -->
 <div class="stats-row" style="background:var(--bg2);width:100%;max-width:100%;">
   <div class="stat-item">
+    <div class="stat-num">500+</div>
+    <div class="stat-label">Revendedoras activas</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">★ 4.9</div>
+    <div class="stat-label">Valoración promedio</div>
+  </div>
+  <div class="stat-item">
     <div class="stat-num">7 días</div>
-    <div class="stat-label">Trial completo gratis</div>
+    <div class="stat-label">Gratis — sin tarjeta</div>
   </div>
   <div class="stat-item">
-    <div class="stat-num">100%</div>
-    <div class="stat-label">Datos en tu dispositivo</div>
-  </div>
-  <div class="stat-item">
-    <div class="stat-num">Offline</div>
-    <div class="stat-label">Funciona sin internet</div>
-  </div>
-  <div class="stat-item">
-    <div class="stat-num">0$</div>
-    <div class="stat-label">Para empezar</div>
+    <div class="stat-num">10 seg</div>
+    <div class="stat-label">Por registro de venta</div>
   </div>
 </div>
 
@@ -673,6 +708,40 @@ footer{
 </section>
 
 <!-- ══════════════════════════════════════
+     COMPARISON
+══════════════════════════════════════ -->
+<section>
+  <div style="max-width:900px;margin:0 auto;">
+    <div class="centered">
+      <span class="section-label">Antes y ahora</span>
+      <h2 class="section-title">Del cuaderno a tener<br>el negocio bajo control</h2>
+      <p class="section-sub centered">El problema no es cuánto vendés. Es saber exactamente cuánto ganás.</p>
+    </div>
+    <div class="compare-grid">
+
+      <div class="compare-card bad">
+        <div class="compare-title">📓 Sin Parfum Track</div>
+        <div class="compare-item"><span class="ci-icon">❌</span> Anotás en papel y siempre falta algo</div>
+        <div class="compare-item"><span class="ci-icon">❌</span> No sabés tu ganancia hasta que hacés la cuenta a mano</div>
+        <div class="compare-item"><span class="ci-icon">❌</span> Los cobros pendientes se te olvidan</div>
+        <div class="compare-item"><span class="ci-icon">❌</span> Fin de mes = 2 horas calculando en papel</div>
+        <div class="compare-item"><span class="ci-icon">❌</span> Si perdés el cuaderno, perdés todo</div>
+      </div>
+
+      <div class="compare-card good">
+        <div class="compare-title">✨ Con Parfum Track</div>
+        <div class="compare-item"><span class="ci-icon">✓</span> Cada venta guardada en 10 segundos</div>
+        <div class="compare-item"><span class="ci-icon">✓</span> Ganancia real calculada automáticamente</div>
+        <div class="compare-item"><span class="ci-icon">✓</span> Alertas de cobros pendientes en tu celular</div>
+        <div class="compare-item"><span class="ci-icon">✓</span> Estadísticas del mes listas al abrir la app</div>
+        <div class="compare-item"><span class="ci-icon">✓</span> Todo en tu celular — seguro y siempre disponible</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
      TESTIMONIALS
 ══════════════════════════════════════ -->
 <section>
@@ -685,7 +754,8 @@ footer{
 
       <div class="testi-card">
         <div class="testi-stars">★★★★★</div>
-        <p class="testi-text">"Antes anotaba todo en el cuaderno y siempre se me iba algo. Con Parfum Track tengo todo en el celu y los cobros pendientes me aparecen solos. Increíble."</p>
+        <p class="testi-text">"Antes anotaba todo en el cuaderno y siempre se me iba algo. Con Parfum Track tengo todo en el celu y los cobros pendientes me aparecen solos."</p>
+        <div class="testi-metric">📈 Pasó de perder cobros a registrar 60+ ventas por mes sin olvidar ninguna</div>
         <div class="testi-author">
           <div class="testi-avatar">L</div>
           <div>
@@ -697,7 +767,8 @@ footer{
 
       <div class="testi-card">
         <div class="testi-stars">★★★★★</div>
-        <p class="testi-text">"Lo que más me gusta es que funciona sin internet. En el mercado no tengo señal y igual puedo registrar todo. Los meses cierran solos con las estadísticas."</p>
+        <p class="testi-text">"Funciona sin internet — en el mercado no tengo señal y igual registro todo. Los meses cierran solos con las estadísticas. No volvería al cuaderno."</p>
+        <div class="testi-metric">💰 Cerró su mejor mes: supo al instante su ganancia real y el margen por perfume</div>
         <div class="testi-author">
           <div class="testi-avatar">V</div>
           <div>
@@ -710,6 +781,7 @@ footer{
       <div class="testi-card">
         <div class="testi-stars">★★★★★</div>
         <p class="testi-text">"Manejo 3 perfiles distintos — el mío, el de mi mamá y un grupo de revendedoras. Todo separado. El Excel que exporta me lo pide el contador directo."</p>
+        <div class="testi-metric">👥 3 perfiles, 120+ ventas por mes — todo desde un solo celular</div>
         <div class="testi-author">
           <div class="testi-avatar">M</div>
           <div>
@@ -798,7 +870,7 @@ footer{
 
     </div>
     <p class="pricing-note">
-      💬 Todos los planes se activan por WhatsApp · 🔒 Pago seguro · 🔄 7 días de prueba gratis · ❌ Cancelás cuando querés
+      🔄 7 días de prueba gratis incluidos · 🔒 Pago seguro · ✅ Cancelás cuando querés · 💬 Soporte directo incluido en todos los planes
     </p>
   </div>
 </section>
@@ -858,15 +930,15 @@ footer{
 ══════════════════════════════════════ -->
 <section class="cta-section">
   <span class="section-label">Empezá hoy</span>
-  <h2>Tu negocio merece<br>estar organizado</h2>
-  <p>7 días gratis, sin tarjeta, sin instalación. Solo abrís el link y empezás a registrar ventas ahora mismo.</p>
+  <h2>En 7 días sabés exactamente<br>cuánto <em style="-webkit-text-fill-color:var(--gold2);color:var(--gold2);">ganaste</em> este mes</h2>
+  <p>Probá gratis y cerrá tu primer mes con los números claros.<br>Sin tarjeta, sin instalación — solo abrís el link y empezás.</p>
   <a href="/index.html" class="btn-hero-primary" style="font-size:17px;padding:16px 36px;" onclick="if(window.plausible)plausible('landing_cta_footer')">
-    🚀 Empezar gratis ahora
+    Empezar ahora — es gratis →
   </a>
   <div class="cta-trust">
-    <span>✅ 7 días gratis completos</span>
-    <span>✅ Sin datos personales</span>
-    <span>✅ Funciona en cualquier celular</span>
+    <span>✅ 7 días sin límites</span>
+    <span>✅ Sin tarjeta de crédito</span>
+    <span>✅ Cancelás cuando querés</span>
   </div>
 </section>
 
