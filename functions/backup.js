@@ -10,14 +10,23 @@
 // R2 Binding (wrangler.jsonc):
 //   binding: "PT_BACKUP"  — bucket "parfumtrack-backups"
 //
+// KV Binding para rate limiting:
+//   binding: "PT_LICENSES"  — reutilizado para contadores
+//
 // Clave R2: backup/{NORMALIZED_CODE}
 // Auth: HMAC-SHA256(code, secret) debe coincidir con token enviado
+// Rate limit: 10 requests/hora por IP, 4 backups/día por código
 // ══════════════════════════════════════════════════════════════
 
 export async function onRequestPost(context) {
   const { request, env } = context;
   const origin = request.headers.get('Origin') || '';
   const headers = corsHeaders(origin);
+
+  // Rate limit by IP
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ipLimitError = await checkRateLimit(env, `rl_ip_${ip}`, 10, 3600);
+  if (ipLimitError) return json({ ok: false, error: ipLimitError }, 429, headers);
 
   let body;
   try { body = await request.json(); }
@@ -28,9 +37,18 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Missing fields' }, 400, headers);
   }
 
+  // Validate code length to prevent abuse
+  if (typeof code !== 'string' || code.length > 64) {
+    return json({ ok: false, error: 'Invalid code' }, 400, headers);
+  }
+
   const normalized = code.trim().toUpperCase();
   const authError = await verifyToken(normalized, token, env);
   if (authError) return json({ ok: false, error: authError }, 401, headers);
+
+  // Rate limit by code (4 saves per day)
+  const codeLimitError = await checkRateLimit(env, `rl_code_${normalized}`, 4, 86400);
+  if (codeLimitError) return json({ ok: false, error: 'Too many backups today, try again tomorrow' }, 429, headers);
 
   if (!env.PT_BACKUP) {
     console.error('[backup] PT_BACKUP R2 binding not configured');
@@ -45,9 +63,14 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Backup too large (max 5 MB)' }, 413, headers);
   }
 
-  await env.PT_BACKUP.put(`backup/${normalized}`, payload, {
-    httpMetadata: { contentType: 'application/json' }
-  });
+  try {
+    await env.PT_BACKUP.put(`backup/${normalized}`, payload, {
+      httpMetadata: { contentType: 'application/json' }
+    });
+  } catch (e) {
+    console.error('[backup] R2 write failed:', e.message);
+    return json({ ok: false, error: 'Storage write failed' }, 500, headers);
+  }
 
   console.log(`[backup] Saved: ${normalized.slice(0, 7)}*** (${(payload.length / 1024).toFixed(1)} KB)`);
   return json({ ok: true, savedAt }, 200, headers);
@@ -58,12 +81,21 @@ export async function onRequestGet(context) {
   const origin = request.headers.get('Origin') || '';
   const headers = corsHeaders(origin);
 
+  // Rate limit by IP
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ipLimitError = await checkRateLimit(env, `rl_ip_${ip}`, 10, 3600);
+  if (ipLimitError) return json({ ok: false, error: ipLimitError }, 429, headers);
+
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
   const token = url.searchParams.get('token');
 
   if (!code || !token) {
     return json({ ok: false, error: 'Missing params' }, 400, headers);
+  }
+
+  if (typeof code !== 'string' || code.length > 64) {
+    return json({ ok: false, error: 'Invalid code' }, 400, headers);
   }
 
   const normalized = code.trim().toUpperCase();
@@ -74,12 +106,26 @@ export async function onRequestGet(context) {
     return json({ ok: false, error: 'Storage not configured' }, 500, headers);
   }
 
-  const obj = await env.PT_BACKUP.get(`backup/${normalized}`);
+  let obj;
+  try {
+    obj = await env.PT_BACKUP.get(`backup/${normalized}`);
+  } catch (e) {
+    console.error('[backup] R2 read failed:', e.message);
+    return json({ ok: false, error: 'Storage read failed' }, 500, headers);
+  }
+
   if (!obj) {
     return json({ ok: false, error: 'No backup found' }, 404, headers);
   }
 
-  const { data, savedAt } = JSON.parse(await obj.text());
+  let parsed;
+  try {
+    parsed = JSON.parse(await obj.text());
+  } catch {
+    return json({ ok: false, error: 'Backup data corrupted' }, 500, headers);
+  }
+
+  const { data, savedAt } = parsed;
   console.log(`[backup] Restored: ${normalized.slice(0, 7)}*** saved ${savedAt}`);
   return json({ ok: true, data, savedAt }, 200, headers);
 }
@@ -90,6 +136,16 @@ export async function onRequestOptions(context) {
 }
 
 // ── Helpers ──────────────────────────────────────────────────
+
+// Constant-time string comparison to prevent timing attacks
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
 
 async function verifyToken(code, token, env) {
   const secret = env.LICENSE_SERVER_SECRET;
@@ -105,7 +161,29 @@ async function verifyToken(code, token, env) {
   const expected = Array.from(new Uint8Array(sig))
     .map(b => b.toString(16).padStart(2, '0')).join('');
 
-  if (token !== expected) return 'Invalid token';
+  if (!timingSafeEqual(token, expected)) return 'Invalid token';
+  return null;
+}
+
+// KV-based rate limiter: allows `max` requests per `windowSecs` seconds
+async function checkRateLimit(env, key, max, windowSecs) {
+  if (!env.PT_LICENSES) return null; // KV not configured, skip limiting
+
+  const now = Math.floor(Date.now() / 1000);
+  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
+
+  let count = 0;
+  try {
+    const stored = await env.PT_LICENSES.get(windowKey);
+    count = stored ? parseInt(stored, 10) : 0;
+  } catch { return null; }
+
+  if (count >= max) return 'Too many requests, please try again later';
+
+  try {
+    await env.PT_LICENSES.put(windowKey, String(count + 1), { expirationTtl: windowSecs * 2 });
+  } catch { /* non-blocking */ }
+
   return null;
 }
 
@@ -114,7 +192,7 @@ function json(body, status, headers) {
 }
 
 function corsHeaders(origin) {
-  const ok = /^https?:\/\/(localhost|127\.0\.0\.1|.*\.netlify\.app|.*\.pages\.dev|.*\.workers\.dev)(:\d+)?$/.test(origin);
+  const ok = /^https?:\/\/(localhost|127\.0\.0\.1|.*\.pages\.dev)(:\d+)?$/.test(origin);
   return {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': ok ? origin : 'null',
