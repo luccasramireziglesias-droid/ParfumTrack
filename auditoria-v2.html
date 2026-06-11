@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Parfum Track — Auditoría Integral 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080810;--bg2:#0f0f1e;--bg3:#141428;--card:#1a1a30;--card2:#20203a;
+  --gold:#c9a84c;--gold2:#e8cc7a;--gold3:rgba(201,168,76,0.12);
+  --red:#e05555;--red2:rgba(224,85,85,0.12);
+  --orange:#e08040;--orange2:rgba(224,128,64,0.12);
+  --yellow:#e0c040;--yellow2:rgba(224,192,64,0.12);
+  --green:#50c878;--green2:rgba(80,200,120,0.12);
+  --blue:#5090e0;--blue2:rgba(80,144,224,0.12);
+  --text:#f0ece4;--text2:#b0acbf;--text3:#6a677a;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --radius:12px;
+}
+body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;font-size:15px}
+
+/* ── LAYOUT ── */
+.page{max-width:1080px;margin:0 auto;padding:40px 24px 80px}
+
+/* ── COVER ── */
+.cover{
+  text-align:center;padding:80px 24px 60px;
+  background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(201,168,76,0.1),transparent 70%);
+  border-bottom:1px solid var(--border);margin-bottom:60px;
+}
+.cover-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 16px;border-radius:50px;
+  background:var(--gold3);border:1px solid rgba(201,168,76,0.3);
+  font-size:12px;font-weight:700;color:var(--gold2);letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:28px;
+}
+.cover h1{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:14px}
+.cover h1 span{color:var(--gold2)}
+.cover-meta{font-size:14px;color:var(--text3);margin-top:20px}
+.cover-scores{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:40px;
+}
+.score-pill{
+  padding:8px 18px;border-radius:50px;border:1px solid var(--border2);
+  background:var(--card);font-size:13px;font-weight:600;
+}
+.score-pill span{color:var(--gold2);margin-left:6px}
+
+/* ── PHASE HEADER ── */
+.phase{margin-bottom:64px}
+.phase-header{
+  display:flex;align-items:center;gap:16px;
+  padding:20px 24px;border-radius:var(--radius);
+  background:var(--card);border:1px solid var(--border);
+  margin-bottom:28px;
+}
+.phase-num{
+  width:48px;height:48px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:800;color:#1a1a2e;
+}
+.phase-title{font-size:20px;font-weight:700}
+.phase-subtitle{font-size:13px;color:var(--text3);margin-top:2px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
+.card+.card{margin-top:14px}
+.card-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:14px}
+.card h3{font-size:16px;font-weight:700;margin-bottom:10px}
+
+/* ── GRID ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+@media(max-width:640px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+
+/* ── SCORE CARD ── */
+.score-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;text-align:center;
+}
+.score-card .label{font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.score-card .value{font-size:38px;font-weight:800;line-height:1}
+.score-card .bar{height:6px;background:var(--bg3);border-radius:20px;margin-top:10px;overflow:hidden}
+.score-card .bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.score-red .value{color:var(--red)}
+.score-red .bar-fill{background:var(--red)}
+.score-orange .value{color:var(--orange)}
+.score-orange .bar-fill{background:var(--orange)}
+.score-yellow .value{color:var(--yellow)}
+.score-yellow .bar-fill{background:var(--yellow)}
+.score-green .value{color:var(--green)}
+.score-green .bar-fill{background:var(--green)}
+.score-gold .value{color:var(--gold2)}
+.score-gold .bar-fill{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+
+/* ── ITEM LISTS ── */
+.item-list{display:flex;flex-direction:column;gap:8px}
+.item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 14px;border-radius:10px;
+  background:var(--bg2);border:1px solid var(--border);
+  font-size:14px;line-height:1.5;
+}
+.item-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.item-body{flex:1}
+.item-body strong{display:block;font-weight:600;margin-bottom:2px}
+.item-body p{color:var(--text2);font-size:13px}
+
+.item.red{background:var(--red2);border-color:rgba(224,85,85,0.25)}
+.item.orange{background:var(--orange2);border-color:rgba(224,128,64,0.25)}
+.item.yellow{background:var(--yellow2);border-color:rgba(224,192,64,0.25)}
+.item.green{background:var(--green2);border-color:rgba(80,200,120,0.25)}
+.item.blue{background:var(--blue2);border-color:rgba(80,144,224,0.25)}
+.item.gold{background:var(--gold3);border-color:rgba(201,168,76,0.3)}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.tg{color:var(--green);font-weight:600}
+.tr{color:var(--red);font-weight:600}
+.ty{color:var(--yellow);font-weight:600}
+.to{color:var(--orange);font-weight:600}
+.tgold{color:var(--gold2);font-weight:600}
+
+/* ── PRIORITY BADGE ── */
+.pri{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.pri-red{background:var(--red2);color:var(--red);border:1px solid rgba(224,85,85,0.3)}
+.pri-orange{background:var(--orange2);color:var(--orange);border:1px solid rgba(224,128,64,0.3)}
+.pri-yellow{background:var(--yellow2);color:var(--yellow);border:1px solid rgba(224,192,64,0.3)}
+.pri-green{background:var(--green2);color:var(--green);border:1px solid rgba(80,200,120,0.3)}
+
+/* ── COMPARISON TABLE ── */
+.comp-table{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:14px}
+
+/* ── ROADMAP ── */
+.roadmap-phase{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px;border-left:4px solid var(--gold)}
+.roadmap-phase.p30{border-left-color:var(--green)}
+.roadmap-phase.p90{border-left-color:var(--blue)}
+.roadmap-phase.p12m{border-left-color:var(--orange)}
+.roadmap-phase-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.roadmap-tag{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+.tag-7d{background:var(--gold3);color:var(--gold2)}
+.tag-30d{background:var(--green2);color:var(--green)}
+.tag-90d{background:var(--blue2);color:var(--blue)}
+.tag-12m{background:var(--orange2);color:var(--orange)}
+.roadmap-phase h3{font-size:16px;font-weight:700}
+.checklist{display:flex;flex-direction:column;gap:6px}
+.check-item{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--text2);padding:6px 0;border-bottom:1px solid var(--border)}
+.check-item:last-child{border-bottom:none}
+.check-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;margin-top:7px}
+.check-item.high .check-dot{background:var(--red)}
+.check-item.med .check-dot{background:var(--yellow)}
+.check-item.low .check-dot{background:var(--green)}
+.check-item strong{color:var(--text);display:block;margin-bottom:2px}
+
+/* ── VERDICT ── */
+.verdict-card{
+  background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.04));
+  border:1px solid rgba(201,168,76,0.25);border-radius:var(--radius);padding:24px;
+  margin-bottom:14px;
+}
+.verdict-q{font-size:14px;color:var(--text3);margin-bottom:6px;font-weight:600}
+.verdict-a{font-size:15px;color:var(--text);line-height:1.6}
+.verdict-a.yes{color:var(--green)}
+.verdict-a.no{color:var(--red)}
+.verdict-a.cond{color:var(--yellow)}
+
+/* ── KPI ROW ── */
+.kpi-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;flex:1;min-width:140px;text-align:center}
+.kpi-val{font-size:26px;font-weight:800;color:var(--gold2);line-height:1}
+.kpi-lbl{font-size:11px;color:var(--text3);margin-top:5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── QUOTE ── */
+.quote{background:var(--gold3);border-left:3px solid var(--gold);border-radius:0 var(--radius) var(--radius) 0;padding:14px 18px;font-style:italic;font-size:14px;color:var(--text2);margin:14px 0}
+
+/* ── SECTION DIVIDER ── */
+.divider{border:none;border-top:1px solid var(--border);margin:28px 0}
+
+/* ── FUNNEL ── */
+.funnel{display:flex;flex-direction:column;gap:0;margin-top:14px}
+.funnel-step{
+  padding:14px 20px;font-size:14px;
+  border:1px solid var(--border);margin-bottom:-1px;
+  display:flex;align-items:center;gap:12px;
+}
+.funnel-step:first-child{border-radius:var(--radius) var(--radius) 0 0}
+.funnel-step:last-child{border-radius:0 0 var(--radius) var(--radius);margin-bottom:0}
+.funnel-step.friction{background:var(--red2);border-color:rgba(224,85,85,0.25)}
+.funnel-step.ok{background:var(--green2);border-color:rgba(80,200,120,0.25)}
+.funnel-step.warn{background:var(--yellow2);border-color:rgba(224,192,64,0.25)}
+.funnel-icon{font-size:18px;flex-shrink:0}
+.funnel-body{flex:1}
+.funnel-title{font-weight:600}
+.funnel-detail{font-size:13px;color:var(--text2);margin-top:2px}
+.funnel-tag{font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,0.08);font-weight:600;flex-shrink:0}
+
+/* ── FINAL SCORE TABLE ── */
+.final-score-row{
+  display:flex;align-items:center;gap:16px;
+  padding:14px 18px;border-bottom:1px solid var(--border);
+}
+.final-score-row:last-child{border-bottom:none}
+.final-score-name{flex:1;font-size:14px;font-weight:600}
+.final-score-bar{flex:2;height:8px;background:var(--bg3);border-radius:20px;overflow:hidden}
+.final-score-fill{height:100%;border-radius:20px}
+.final-score-num{font-size:16px;font-weight:800;min-width:40px;text-align:right}
+
+/* ── CALLOUT ── */
+.callout{border-radius:var(--radius);padding:16px 18px;margin:14px 0;display:flex;align-items:flex-start;gap:12px;font-size:14px}
+.callout-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.callout.danger{background:var(--red2);border:1px solid rgba(224,85,85,0.25);color:var(--text)}
+.callout.warn{background:var(--yellow2);border:1px solid rgba(224,192,64,0.25);color:var(--text)}
+.callout.info{background:var(--blue2);border:1px solid rgba(80,144,224,0.25);color:var(--text)}
+.callout.success{background:var(--green2);border:1px solid rgba(80,200,120,0.25);color:var(--text)}
+.callout.gold{background:var(--gold3);border:1px solid rgba(201,168,76,0.3);color:var(--text)}
+
+/* ── TOC ── */
+.toc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:48px}
+.toc h2{font-size:16px;font-weight:700;margin-bottom:16px;color:var(--gold2)}
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+@media(max-width:480px){.toc-grid{grid-template-columns:1fr}}
+.toc a{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;border-radius:8px;
+  text-decoration:none;color:var(--text2);
+  font-size:13px;transition:background .15s,color .15s;
+  border:1px solid transparent;
+}
+.toc a:hover{background:var(--gold3);color:var(--gold2);border-color:rgba(201,168,76,0.2)}
+.toc-num{font-size:10px;font-weight:700;color:var(--gold);min-width:20px}
+
+/* ── PRINT / misc ── */
+@media print{body{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════ COVER ══════════════════════════ -->
+<div class="cover">
+  <div class="cover-badge">🔍 Auditoría de Inversión · Comité Ejecutivo · 2026</div>
+  <h1>Parfum Track<br><span>Auditoría Integral</span></h1>
+  <p style="color:var(--text2);font-size:16px;max-width:560px;margin:16px auto 0">
+    Análisis de 12 fases por equipo multidisciplinario: CEO, CTO, PM, UX, Growth, VC, SaaS, QA.<br>
+    Evaluación como inversión de USD 1.000.000.
+  </p>
+  <div class="cover-meta">📅 Junio 2026 · Versión 2.0 · Basado en código real (index.html 7009 líneas, landing.html 920 líneas)</div>
+
+  <div class="cover-scores">
+    <div class="score-pill">Producto <span>7.2/10</span></div>
+    <div class="score-pill">UX/UI <span>7.8/10</span></div>
+    <div class="score-pill">Tecnología <span>6.5/10</span></div>
+    <div class="score-pill">Escalabilidad <span>5.0/10</span></div>
+    <div class="score-pill">Seguridad <span>7.5/10</span></div>
+    <div class="score-pill">Marketing <span>3.0/10</span></div>
+    <div class="score-pill">Monetización <span>5.5/10</span></div>
+    <div class="score-pill">Potencial de Mercado <span>8.5/10</span></div>
+    <div class="score-pill">Potencial de Crecimiento <span>7.5/10</span></div>
+    <div class="score-pill">Nivel Profesional <span>7.0/10</span></div>
+  </div>
+  <div style="margin-top:32px;font-size:28px;font-weight:800;color:var(--gold2)">Promedio: 6.6 / 10</div>
+  <p style="color:var(--text3);font-size:13px;margin-top:8px">Veredicto: Producto real con mercado real. Falta infraestructura de crecimiento.</p>
+</div>
+
+<div class="page">
+
+<!-- ══════════════════════════ TOC ══════════════════════════ -->
+<div class="toc">
+  <h2>Índice de Fases</h2>
+  <div class="toc-grid">
+    <a href="#f1"><span class="toc-num">01</span> Entendimiento del proyecto</a>
+    <a href="#f2"><span class="toc-num">02</span> Análisis del producto</a>
+    <a href="#f3"><span class="toc-num">03</span> Arquitectura técnica</a>
+    <a href="#f4"><span class="toc-num">04</span> Página web / Landing</a>
+    <a href="#f5"><span class="toc-num">05</span> Modelo de negocio</a>
+    <a href="#f6"><span class="toc-num">06</span> Análisis competitivo</a>
+    <a href="#f7"><span class="toc-num">07</span> Marketing y crecimiento</a>
+    <a href="#f8"><span class="toc-num">08</span> Experiencia del cliente</a>
+    <a href="#f9"><span class="toc-num">09</span> Oportunidades ocultas</a>
+    <a href="#f10"><span class="toc-num">10</span> Roadmap ejecutivo</a>
+    <a href="#f11"><span class="toc-num">11</span> Auditoría brutal</a>
+    <a href="#f12"><span class="toc-num">12</span> Veredicto final</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 1 — ENTENDIMIENTO DEL PROYECTO
+════════════════════════════════════════════════════════════ -->
+<div class="phase" id="f1">
+  <div class="phase-header">
+    <div class="phase-num">1</div>
+    <div>
+      <div class="phase-title">Entendimiento del Proyecto</div>
+      <div class="phase-subtitle">¿Qué es, para quién es, qué problema resuelve?</div>
+    </div>
+    <div style="margin-left:auto;text-align:right">
+      <div style="font-size:28px;font-weight:800;color:var(--green)">8.2</div>
+      <div style="font-size:11px;color:var(--text3)">/ 10</div>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-val">PWA</div><div class="kpi-lbl">Tipo de app</div></div>
+    <div class="kpi"><div class="kpi-val">LATAM</div><div class="kpi-lbl">Mercado objetivo</div></div>
+    <div class="kpi"><div class="kpi-val">$5-25</div><div class="kpi-lbl">Precio USD/mes</div></div>
+    <div class="kpi"><div class="kpi-val">0$</div><div class="kpi-lbl">Para empezar</div></div>
+    <div class="kpi"><div class="kpi-val">7 días</div><div class="kpi-lbl">Trial gratis</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Qué hace</div>
+      <div class="item-list">
+        <div class="item gold"><span class="item-icon">💵</span><div class="item-body"><strong>Registro de ventas</strong><p>Con perfume, monto, cliente, cuotas y fecha en &lt;10 segundos</p></div></div>
+        <div class="item gold"><span class="item-icon">📊</span><div class="item-body"><strong>Estadísticas automáticas</strong><p>Ganancia real, ingresos, top productos, comparativa mensual</p></div></div>
+        <div class="item gold"><span class="item-icon">🗓️</span><div class="item-body"><strong>Control de cobros en cuotas</strong><p>Seguimiento automático con alertas de vencimiento</p></div></div>
+        <div class="item gold"><span class="item-icon">📲</span><div class="item-body"><strong>WhatsApp integrado</strong><p>Recordatorios de cobro con un toque</p></div></div>
+        <div class="item gold"><span class="item-icon">📦</span><div class="item-body"><strong>Control de stock</strong><p>Alertas de stock bajo y gestión de inventario</p></div></div>
+        <div class="item gold"><span class="item-icon">🌐</span><div class="item-body"><strong>100% offline</strong><p>PWA con Service Worker — funciona sin internet</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Diagnóstico de mercado</div>
+      <div class="item-list">
+        <div class="item green"><span class="item-icon">✅</span><div class="item-body"><strong>Problema real y masivo</strong><p>Millones de revendedoras en LATAM usan cuadernos o Excel sin estructura</p></div></div>
+        <div class="item green"><span class="item-icon">✅</span><div class="item-body"><strong>Frecuencia alta</strong><p>Uso diario — cada venta necesita registro inmediato</p></div></div>
+        <div class="item green"><span class="item-icon">✅</span><div class="item-body"><strong>Urgencia real</strong><p>Sin registro correcto, las revendedoras pierden dinero sin saberlo</p></div></div>
+        <div class="item green"><span class="item-icon">✅</span><div class="item-body"><strong>Nicho específico = diferenciador</strong><p>No es una app genérica — es para perfumes. Eso importa.</p></div></div>
+        <div class="item yellow"><span class="item-icon">⚠️</span><div class="item-body"><strong>Mercado informal</strong><p>Alta resistencia a pagar por herramientas digitales en el segmento base</p></div></div>
+        <div class="item yellow"><span class="item-icon">⚠️</span><div class="item-body"><strong>Sin validación pública</strong><p>No hay datos públicos de usuarios activos ni NPS real</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout gold" style="margin-top:14px">
+    <span class="callout-icon">💡</span>
+    <div><strong>Conclusión Fase 1:</strong> Existe una necesidad de mercado real. El segmento de revendedoras informales de perfumes en LATAM es enorme (estimado 5-15 millones de personas) y está subservido digitalmente. El problema es cotidiano, frecuente y económicamente relevante. Calificación: <strong>8.2/10</strong>.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 2 — PRODUCTO
+════════════════════════════════════════════════════════════ -->
+<div class="phase" id="f2">
+  <div class="phase-header">
+    <div class="phase-num">2</div>
+    <div>
+      <div class="phase-title">Análisis del Producto</div>
+      <div class="phase-subtitle">Funcionalidades, UX, diferenciación, WOW factor</div>
+    </div>
+    <div style="margin-left:auto;text-align:right">
+      <div style="font-size:28px;font-weight:800;color:var(--gold2)">7.2</div>
+      <div style="font-size:11px;color:var(--text3)">/ 10</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">✅ Funcionalidades actuales (lo bueno)</div>
+      <div class="item-list">
+        <div class="item green"><span class="item-icon">💵</span><div class="item-body"><strong>Registro de ventas completo</strong><p>Cuotas, notas, búsqueda, filtros por mes</p></div></div>
+        <div class="item green"><span class="item-icon">📊</span><div class="item-body"><strong>Estadísticas reales</strong><p>Ganancia, margen, top perfumes, comparativa mensual</p></div></div>
+        <div class="item green"><span class="item-icon">🌐</span><div class="item-body"><strong>PWA offline-first</strong><p>Funciona sin internet — ventaja competitiva clave</p></div></div>
+        <div class="item green"><span class="item-icon">📲</span><div class="item-body"><strong>WhatsApp nativo</strong><p>Recordatorios preformateados en un toque</p></div></div>
+        <div class="item green"><span class="item-icon">📦</span><div class="item-body"><strong>Stock con alertas</strong><p>Umbral configurable, toast solo cuando cruza el mínimo</p></div></div>
+        <div class="item green"><span class="item-icon">🎨</span><div class="item-body"><strong>Modo claro/oscuro auto</strong><p>Detecta preferencia del sistema operativo</p></div></div>
+        <div class="item green"><span class="item-icon">💾</span><div class="item-body"><strong>Backup en la nube</strong><p>R2 + HMAC auth para plan Business</p></div></div>
+        <div class="item green"><span class="item-icon">📤</span><div class="item-body"><strong>Exportar a Excel</strong><p>Ventas, gastos e historial (plan Pro+)</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">❌ Funcionalidades faltantes (gaps críticos)</div>
+      <div class="item-list">
+        <div class="item red"><span class="item-icon">💳</span><div class="item-body"><strong>Sin pago self-service</strong><p>El usuario debe escribir por WhatsApp para pagar. Fricción enorme — mata la conversión.</p></div></div>
+        <div class="item red"><span class="item-icon">📸</span><div class="item-body"><strong>Sin catálogo fotográfico compartible</strong><p>No puede generar un link de catálogo para mostrar a clientes</p></div></div>
+        <div class="item orange"><span class="item-icon">📱</span><div class="item-body"><strong>Sin foto de perfume en ventas</strong><p>Las cards de ventas no tienen imagen del producto vendido</p></div></div>
+        <div class="item orange"><span class="item-icon">📋</span><div class="item-body"><strong>Sin resumen exportable por cliente</strong><p>No se puede ver todo lo que debe un cliente específico</p></div></div>
+        <div class="item orange"><span class="item-icon">🤖</span><div class="item-body"><strong>Sin IA / sugerencias inteligentes</strong><p>Podría sugerir precios, detectar patrones, predecir demanda</p></div></div>
+        <div class="item yellow"><span class="item-icon">🔗</span><div class="item-body"><strong>Sin integración MercadoPago / Stripe</strong><p>Las revendedoras cobran con MercadoPago — debería conectarse</p></div></div>
+        <div class="item yellow"><span class="item-icon">📣</span><div class="item-body"><strong>Sin programa de referidos en-app</strong><p>No hay mecanismo para que usuarias inviten y ganen</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">🤩 Qué haría que los usuarios dijeran "WOW"</div>
+    <div class="grid-3" style="margin-top:0">
+      <div class="item gold" style="flex-direction:column;padding:18px">
+        <div style="font-size:28px;margin-bottom:8px">🔗</div>
+        <strong style="margin-bottom:6px">Link de catálogo propio</strong>
+        <p style="color:var(--text2);font-size:13px">"Mi link de perfumes" que la revendedora comparte por WhatsApp y sus clientes ven el catálogo con precios y pueden hacer el pedido directo.</p>
+        <span class="pri pri-red" style="margin-top:10px">🔴 CRÍTICO</span>
+      </div>
+      <div class="item gold" style="flex-direction:column;padding:18px">
+        <div style="font-size:28px;margin-bottom:8px">🤖</div>
+        <strong style="margin-bottom:6px">IA de ganancia real</strong>
+        <p style="color:var(--text2);font-size:13px">"Este mes vendiste X pero perdiste dinero en cuotas impagas. Tu ganancia real es Y." — resumen automático inteligente cada lunes.</p>
+        <span class="pri pri-orange" style="margin-top:10px">🟠 ALTO</span>
+      </div>
+      <div class="item gold" style="flex-direction:column;padding:18px">
+        <div style="font-size:28px;margin-bottom:8px">📱</div>
+        <strong style="margin-bottom:6px">WhatsApp payment tracking</strong>
+        <p style="color:var(--text2);font-size:13px">Detectar automáticamente cuando un cliente paga por WhatsApp y marcar la cuota como cobrada sin que la usuaria toque nada.</p>
+        <span class="pri pri-orange" style="margin-top:10px">🟠 ALTO</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">Priorización de funcionalidades</div>
+    <table>
+      <thead><tr><th>Funcionalidad</th><th>Impacto</th><th>Dificultad</th><th>ROI</th><th>Prioridad</th></tr></thead>
+      <tbody>
+        <tr><td>Pago self-service (Stripe/MP)</td><td class="tg">Muy Alto</td><td class="ty">Media</td><td class="tg">★★★★★</td><td><span class="pri pri-red">🔴 Crítico</span></td></tr>
+        <tr><td>Link de catálogo compartible</td><td class="tg">Muy Alto</td><td class="ty">Media</td><td class="tg">★★★★★</td><td><span class="pri pri-red">🔴 Crítico</span></td></tr>
+        <tr><td>Programa de referidos in-app</td><td class="tg">Alto</td><td class="tg">Baja</td><td class="tg">★★★★</td><td><span class="pri pri-orange">🟠 Alto</span></td></tr>
+        <tr><td>Resumen por cliente (deuda total)</td><td class="to">Medio</td><td class="tg">Baja</td><td class="to">★★★</td><td><span class="pri pri-orange">🟠 Alto</span></td></tr>
+        <tr><td>IA de análisis semanal</td><td class="tg">Alto</td><td class="tr">Alta</td><td class="to">★★★</td><td><span class="pri pri-yellow">🟡 Medio</span></td></tr>
+        <tr><td>Fotos en ventas</td><td class="to">Medio</td><td class="gn">Baja</td><td class="to">★★</td><td><span class="pri pri-yellow">🟡 Medio</span></td></tr>
+        <tr><td>Múltiples monedas</td><td class="to">Medio</td><td class="ty">Media</td><td class="to">★★</td><td><span class="pri pri-green">🟢 Bajo</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 3 — APLICACIÓN / TECNOLOGÍA
+════════════════════════════════════════════════════════════ -->
+<div class="phase" id="f3">
+  <div class="phase-header">
+    <div class="phase-num">3</div>
+    <div>
+      <div class="phase-title">Arquitectura Técnica</div>
+      <div class="phase-subtitle">Código, escalabilidad, seguridad, deuda técnica</div>
+    </div>
+    <div style="margin-left:auto;text-align:right">
+      <div style="font-size:28px;font-weight:800;color:var(--yellow)">6.5</div>
+      <div style="font-size:11px;color:var(--text3)">/ 10</div>
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <span class="callout-icon">🚨</span>
+    <div><strong>Problema #1 en tecnología:</strong> index.html tiene <strong>7.009 líneas</strong> — HTML, CSS (2000+ líneas), JavaScript (4000+ líneas) y lógica de negocio todo en un único archivo. Esto es la mayor deuda técnica del proyecto. No es insostenible hoy, pero es el techo de crecimiento.</div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">✅ Fortalezas técnicas</div>
+      <div class="item-list">
+        <div class="item green"><span class="item-icon">🌐</span><div class="item-body"><strong>Cloudflare Pages</strong><p>Hosting gratuito, CDN global, edge functions — infraestructura enterprise sin costo</p></div></div>
+        <div class="item green"><span class="item-icon">🔐</span><div class="item-body"><strong>HMAC-SHA256 para licencias</strong><p>Token criptográfico server-side — no se puede falsificar en cliente</p></div></div>
+        <div class="item green"><span class="item-icon">⏱️</span><div class="item-body"><strong>Rate limiting via KV</strong><p>10 req/hr por IP, 4 backups/día por código — protección real</p></div></div>
+        <div class="item green"><span class="item-icon">🕵️</span><div class="item-body"><strong>Constant-time comparison</strong><p>timingSafeEqual() previene timing attacks en verificación de tokens</p></div></div>
+        <div class="item green"><span class="item-icon">📱</span><div class="item-body"><strong>PWA completa</strong><p>Service Worker, manifest, offline-first, instalable en iOS/Android</p></div></div>
+        <div class="item green"><span class="item-icon">🌙</span><div class="item-body"><strong>Auto dark/light mode</strong><p>Detecta prefers-color-scheme + listener para cambios en tiempo real</p></div></div>
+        <div class="item green"><span class="item-icon">🔒</span><div class="item-body"><strong>PIN con lockout en memoria</strong><p>_failsMem persiste aunque borren localStorage en la misma sesión</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">❌ Debilidades técnicas</div>
+      <div class="item-list">
+        <div class="item red"><span class="item-icon">📄</span><div class="item-body"><strong>Monolito de 7.009 líneas</strong><p>Imposible hacer code splitting, tree shaking, o testing unitario</p></div></div>
+        <div class="item red"><span class="item-icon">🗄️</span><div class="item-body"><strong>KV namespace sin configurar</strong><p>wrangler.jsonc tiene "REEMPLAZAR_CON_ID_REAL" — el rate limiting no funciona en producción</p></div></div>
+        <div class="item orange"><span class="item-icon">💾</span><div class="item-body"><strong>IndexedDB sin schema versioning</strong><p>Migraciones de datos futuras van a ser dolorosas</p></div></div>
+        <div class="item orange"><span class="item-icon">🧪</span><div class="item-body"><strong>Zero tests</strong><p>Sin unit tests, sin integration tests, sin E2E. Un bug puede romper todo silenciosamente</p></div></div>
+        <div class="item orange"><span class="item-icon">🔑</span><div class="item-body"><strong>LICENSE_SERVER_SECRET no documentado</strong><p>Si se pierde la variable de entorno, todas las licencias quedan inválidas</p></div></div>
+        <div class="item yellow"><span class="item-icon">📦</span><div class="item-body"><strong>app.js (218 KB) sin lazy loading</strong><p>Se carga completo al inicio aunque no todo se usa</p></div></div>
+        <div class="item yellow"><span class="item-icon">🌍</span><div class="item-body"><strong>Sin i18n</strong><p>Hardcodeado en español — expansión internacional requiere reescritura</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">Análisis de escalabilidad</div>
+    <table>
+      <thead><tr><th>Escenario</th><th>Qué rompería primero</th><th>Solución</th></tr></thead>
+      <tbody>
+        <tr><td><strong>100 usuarios</strong></td><td class="tg">Nada crítico — Cloudflare absorbe</td><td>—</td></tr>
+        <tr><td><strong>1.000 usuarios</strong></td><td class="ty">KV rate limiting (sin configurar hoy)</td><td>Crear KV namespace real urgente</td></tr>
+        <tr><td><strong>10.000 usuarios</strong></td><td class="to">R2 backup + KV limits de plan gratis</td><td>Upgradar plan Cloudflare a $5/mes</td></tr>
+        <tr><td><strong>100.000 usuarios</strong></td><td class="tr">El monolito de 7k líneas + falta de DB central</td><td>Refactor completo a módulos separados</td></tr>
+        <tr><td><strong>1.000.000 usuarios</strong></td><td class="tr">Arquitectura completa — necesita backend real</td><td>Reescritura con Hono/Workers + D1/Postgres</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">🔧 Qué refactorizar hoy (por ROI)</div>
+    <div class="item-list">
+      <div class="item red"><span class="item-icon">1️⃣</span><div class="item-body"><strong>Crear KV namespace real en Cloudflare</strong><p>El rate limiting está escrito pero no funciona en producción. 5 minutos de trabajo, protección real.</p></div></div>
+      <div class="item red"><span class="item-icon">2️⃣</span><div class="item-body"><strong>Separar JS del HTML en módulos</strong><p>Extraer el JavaScript a app.js con ES modules. Mejora el debugging, permite testing.</p></div></div>
+      <div class="item orange"><span class="item-icon">3️⃣</span><div class="item-body"><strong>Schema versioning en IndexedDB</strong><p>Agregar número de versión al schema para poder migrar datos en futuras actualizaciones.</p></div></div>
+      <div class="item orange"><span class="item-icon">4️⃣</span><div class="item-body"><strong>Tests de regresión básicos</strong><p>Al menos Playwright E2E para los flujos críticos: registrar venta, cobrar cuota, exportar.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 4 — LANDING PAGE
+════════════════════════════════════════════════════════════ -->
+<div class="phase" id="f4">
+  <div class="phase-header">
+    <div class="phase-num">4</div>
+    <div>
+      <div class="phase-title">Landing Page</div>
+      <div class="phase-subtitle">Conversión, UX, SEO, credibilidad</div>
+    </div>
+    <div style="margin-left:auto;text-align:right">
+      <div style="font-size:28px;font-weight:800;color:var(--gold2)">7.0</div>
+      <div style="font-size:11px;color:var(--text3)">/ 10</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">✅ Lo que funciona bien</div>
+      <div class="item-list">
+        <div class="item green"><span class="item-icon">🎨</span><div class="item-body"><strong>Diseño limpio y profesional</strong><p>Dark theme con gold — transmite premium. DM Sans + DM Mono bien elegidos.</p></div></div>
+        <div class="item green"><span class="item-icon">📸</span><div class="item-body"><strong>Screenshot real de la app</strong><p>app-screenshot.webp (18 KB, 97% compresión) — auténtico y rápido de cargar</p></div></div>
+        <div class="item green"><span class="item-icon">🔍</span><div class="item-body"><strong>SEO completo</strong><p>OG tags, Twitter card, JSON-LD SoftwareApplication, canonical, Plausible analytics</p></div></div>
+        <div class="item green"><span class="item-icon">📊</span><div class="item-body"><strong>Stats honestos</strong><p>$0 para empezar / 📱 Tus datos — no hay mentiras de "500 usuarios"</p></div></div>
+        <div class="item green"><span class="item-icon">💬</span><div class="item-body"><strong>FAQ con acordeón</strong><p>7 preguntas relevantes, bien respondidas, quitan objeciones reales</p></div></div>
+        <div class="item green"><span class="item-icon">⚡</span><div class="item-body"><strong>Comparación Antes/Después</strong><p>Sección "Del cuaderno al control" convierte bien — habla el idioma de la usuaria</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">❌ Por qué NO comprarían</div>
+      <div class="item-list">
+        <div class="item red"><span class="item-icon">💳</span><div class="item-body"><strong>CTA lleva a WhatsApp para pagar</strong><p>"Consultar por WhatsApp" es fricción máxima. Un porcentaje alto abandona aquí.</p></div></div>
+        <div class="item red"><span class="item-icon">👥</span><div class="item-body"><strong>Zero prueba social real</strong><p>Sin testimonios, sin número de usuarios, sin capturas de clientes reales. Desconfianza.</p></div></div>
+        <div class="item orange"><span class="item-icon">🎬</span><div class="item-body"><strong>Sin video de demo</strong><p>Una revendedora que no entiende "PWA" necesita ver el producto en 60 segundos</p></div></div>
+        <div class="item orange"><span class="item-icon">🎁</span><div class="item-body"><strong>El trial no está muy visible</strong><p>"7 días gratis" está en el hero pero no se refuerza en el pricing card de forma prominente</p></div></div>
+        <div class="item yellow"><span class="item-icon">🌐</span><div class="item-body"><strong>Solo español Argentina</strong><p>Frases como "Registrá", "hacés" limitan el alcance a Argentina/Uruguay. Colombia, México son mercados enormes.</p></div></div>
+        <div class="item yellow"><span class="item-icon">📧</span><div class="item-body"><strong>Sin captura de email</strong><p>Las visitas que no convierten se pierden para siempre — sin retargeting posible</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">📈 Cambios que aumentarían conversión inmediatamente</div>
+    <div class="item-list">
+      <div class="item red"><span class="item-icon">1</span><div class="item-body"><strong>Cambiar CTA de WhatsApp a pago directo</strong><p>Integrar Stripe o MercadoPago. El botón "Activar Pro por $12/mes" debe completarse sin salir de la página. Impacto estimado: +200% conversión.</p></div></div>
+      <div class="item red"><span class="item-icon">2</span><div class="item-body"><strong>Agregar video demo de 60 segundos</strong><p>Screen recording real de la app en un celular. Nada fancy. Solo mostrar registrar una venta en 10 segundos. Impacto: reducción del 40% en bounce rate.</p></div></div>
+      <div class="item orange"><span class="item-icon">3</span><div class="item-body"><strong>Testimonial de 1 sola usuaria real</strong><p>Mejor un testimonio verdadero con nombre real y número de ventas que ninguno. Pedir a la primera usuaria que escriba 2 líneas.</p></div></div>
+      <div class="item orange"><span class="item-icon">4</span><div class="item-body"><strong>Popup de exit intent con captura de email</strong><p>"Antes de irte, guardá tu acceso — te enviamos el link cuando estés lista para empezar." Construye lista para retargeting.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 5 — NEGOCIO Y MONETIZACIÓN
+════════════════════════════════════════════════════════════ -->
+<div class="phase" id="f5">
+  <div class="phase-header">
+    <div class="phase-num">5</div>
+    <div>
+      <div class="phase-title">Modelo de Negocio</div>
+      <div class="phase-subtitle">Pricing, monetización, LTV, churn, upsells</div>
+    </div>
+    <div style="margin-left:auto;text-align:right">
+      <div style="font-size:28px;font-weight:800;color:var(--orange)">5.5</div>
+      <div style="font-size:11px;color:var(--text3)">/ 10</div>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-val">$5</div><div class="kpi-lbl">Plan Starter/mes</div></div>
+    <div class="kpi"><div class="kpi-val">$12</div><div class="kpi-lbl">Plan Pro/mes</div></div>
+    <div class="kpi"><div class="kpi-val">$25</div><div class="kpi-lbl">Plan Business/mes</div></div>
+    <div class="kpi"><div class="kpi-val">$144</div><div class="kpi-lbl">LTV mínimo estimado (Pro 12m)</div></div>
+    <div class="kpi"><div class="kpi-val">WhatsApp</div><div class="kpi-lbl">Método de pago actual</div></div>
+  </div>
+
+  <div class="callout danger">
+    <span class="callout-icon">🚨</span>
+    <div><strong>El problema más crítico del negocio:</strong> El proceso de pago es completamente manual. El usuario visita la landing, hace click en "Consultar por WhatsApp", escribe un mensaje, espera respuesta, coordina el pago por otro medio, recibe el código. Cada conversión requiere tiempo humano. Esto mata la escalabilidad.</div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Análisis de pricing</div>
+      <div class="item-list">
+        <div class="item green"><span class="item-icon">✅</span><div class="item-body"><strong>Precio correcto para el mercado</strong><p>$5-12/mes es accesible para revendedoras con ingresos variables. No es la barrera.</p></div></div>
+        <div class="item green"><span class="item-icon">✅</span><div class="item-body"><strong>Precio anual con descuento</strong><p>$39/año (Starter) y $99/año (Pro) — el anual reduce churn significativamente</p></div></div>
+        <div class="item orange"><span class="item-icon">⚠️</span><div class="item-body"><strong>Starter demasiado barato</strong><p>$5/mes por ventas ilimitadas + cuotas + WhatsApp es mucho valor. Subir a $7-8 no mataría conversión.</p></div></div>
+        <div class="item orange"><span class="item-icon">⚠️</span><div class="item-body"><strong>Business plan débil</strong><p>$25 por "perfiles ilimitados" y backup — los features no justifican 2x el precio Pro</p></div></div>
+        <div class="item yellow"><span class="item-icon">💡</span><div class="item-body"><strong>Sin plan gratuito permanente</strong><p>Después del trial de 7 días, la app pasa a modo muy limitado. Un plan "Free" con 10 ventas/mes captaría más base.</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Dinero sobre la mesa</div>
+      <div class="item-list">
+        <div class="item red"><span class="item-icon">💸</span><div class="item-body"><strong>Sin programa de afiliados</strong><p>Una revendedora con 50 contactas podría traer 10 clientes por mes. Sin comisión, no hay incentivo.</p></div></div>
+        <div class="item red"><span class="item-icon">💸</span><div class="item-body"><strong>Sin upsell in-app</strong><p>Las usuarias Pro no ven ningún prompt para subir a Business dentro de la app</p></div></div>
+        <div class="item orange"><span class="item-icon">💰</span><div class="item-body"><strong>Sin one-time purchase</strong><p>Podría vender "Lifetime deal" por $99 para las primeras 100 usuarias — generación de caja rápida</p></div></div>
+        <div class="item orange"><span class="item-icon">💰</span><div class="item-body"><strong>Sin add-ons</strong><p>"Backup adicional", "dominio personalizado", "plantillas premium" como compras únicas</p></div></div>
+        <div class="item yellow"><span class="item-icon">💰</span><div class="item-body"><strong>Sin plan para distribuidoras</strong><p>Una distribuidora que maneja 10 revendedoras pagaría $50-100/mes fácil si la app soporta eso</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">Proyección de ingresos (escenarios)</div>
+    <table>
+      <thead><tr><th>Escenario</th><th>Usuarios Activos</th><th>ARPU/mes</th><th>MRR</th><th>ARR</th></tr></thead>
+      <tbody>
+        <tr><td>Hoy (estimado)</td><td>~10</td><td class="tgold">$10</td><td class="ty">$100</td><td class="ty">$1.200</td></tr>
+        <tr><td>3 meses (con pago self-service)</td><td>~100</td><td class="tgold">$11</td><td class="to">$1.100</td><td class="to">$13.200</td></tr>
+        <tr><td>12 meses (con growth activo)</td><td>~500</td><td class="tgold">$12</td><td class="tg">$6.000</td><td class="tg">$72.000</td></tr>
+        <tr><td>24 meses (con afiliados + B2B)</td><td>~2.000</td><td class="tgold">$15</td><td class="tg">$30.000</td><td class="tg">$360.000</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 6 — COMPETENCIA
+════════════════════════════════════════════════════════════ -->
+<div class="phase" id="f6">
+  <div class="phase-header">
+    <div class="phase-num">6</div>
+    <div>
+      <div class="phase-title">Análisis Competitivo</div>
+      <div class="phase-subtitle">Directos, indirectos, ventajas y debilidades</div>
+    </div>
+  </div>
+
+  <div class="comp-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Competidor</th>
+          <th>Tipo</th>
+          <th>Precio</th>
+          <th>Offline</th>
+          <th>Nicho perfumes</th>
+          <th>WhatsApp</th>
+          <th>Ventaja Parfum Track</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Cuaderno/papel</strong></td>
+          <td>Indirecto</td>
+          <td class="tg">$0</td>
+          <td class="tg">✅</td>
+          <td class="tg">✅</td>
+          <td class="tr">❌</td>
+          <td class="tgold">Estadísticas, no se pierde, alertas de cobro</td>
+        </tr>
+        <tr>
+          <td><strong>Excel/Google Sheets</strong></td>
+          <td>Indirecto</td>
+          <td class="tg">$0</td>
+          <td class="ty">Parcial</td>
+          <td class="tr">❌</td>
+          <td class="tr">❌</td>
+          <td class="tgold">Mobile-first, automático, sin fórmulas</td>
+        </tr>
+        <tr>
+          <td><strong>Tiendanube / Wix</strong></td>
+          <td>Indirecto</td>
+          <td class="tr">$30+/mes</td>
+          <td class="tr">❌</td>
+          <td class="tr">❌</td>
+          <td class="ty">Parcial</td>
+          <td class="tgold">Mucho más barato, offline, específico</td>
+        </tr>
+        <tr>
+          <td><strong>QuickBooks/Contabilidad</strong></td>
+          <td>Indirecto</td>
+          <td class="tr">$15+/mes</td>
+          <td class="tr">❌</td>
+          <td class="tr">❌</td>
+          <td class="tr">❌</td>
+          <td class="tgold">Simple, no requiere conocimiento contable</td>
+        </tr>
+        <tr>
+          <td><strong>Notas de iPhone</strong></td>
+          <td>Indirecto</td>
+          <td class="tg">$0</td>
+          <td class="tg">✅</td>
+          <td class="tr">❌</td>
+          <td class="tr">❌</td>
+          <td class="tgold">Estructura, estadísticas, cuotas automáticas</td>
+        </tr>
+        <tr>
+          <td><strong>App genérica de ventas</strong></td>
+          <td>Directo</td>
+          <td class="ty">$0-10/mes</td>
+          <td class="ty">Parcial</td>
+          <td class="tr">❌</td>
+          <td class="tr">❌</td>
+          <td class="tgold">Nicho específico = UX 10x mejor</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid-2" style="margin-top:14px">
+    <div class="card">
+      <div class="card-title">Ventaja competitiva real de Parfum Track</div>
+      <div class="item-list">
+        <div class="item green"><span class="item-icon">🎯</span><div class="item-body"><strong>Nicho ultra-específico</strong><p>Ninguna app está hecha para revendedoras de perfumes. Eso crea resonancia inmediata.</p></div></div>
+        <div class="item green"><span class="item-icon">🌐</span><div class="item-body"><strong>Offline-first real</strong><p>Las revendedoras venden en zonas con mala conectividad. Offline no es opcional — es la killer feature.</p></div></div>
+        <div class="item green"><span class="item-icon">💲</span><div class="item-body"><strong>Precio accesible</strong><p>$5/mes vs $30+ de alternativas enterprise. Está al alcance del mercado objetivo.</p></div></div>
+        <div class="item green"><span class="item-icon">📲</span><div class="item-body"><strong>WhatsApp-native</strong><p>El cliente vive en WhatsApp. La integración nativa es una ventaja que los competidores no tienen.</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Principal debilidad frente a competidores</div>
+      <div class="item-list">
+        <div class="item red"><span class="item-icon">⚠️</span><div class="item-body"><strong>Zero brand awareness</strong><p>Un Excel tiene décadas de confianza. Una app nueva sin usuarios visibles genera desconfianza.</p></div></div>
+        <div class="item red"><span class="item-icon">⚠️</span><div class="item-body"><strong>Sin social proof verificable</strong><p>Cualquier competidor con 10 reviews reales en App Store gana credibilidad instantánea.</p></div></div>
+        <div class="item orange"><span class="item-icon">⚠️</span><div class="item-body"><strong>Proceso de pago manual</strong><p>Una app de Play Store con pago en 1 click tiene ventaja de conversión enorme.</p></div></div>
+        <div class="item yellow"><span class="item-icon">⚠️</span><div class="item-body"><strong>Sin presencia en buscadores</strong><p>"App para revendedoras de perfumes" no encontraría Parfum Track hoy</p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 7 — MARKETING Y CRECIMIENTO
+════════════════════════════════════════════════════════════ -->
+<div class="phase" id="f7">
+  <div class="phase-header">
+    <div class="phase-num">7</div>
+    <div>
+      <div class="phase-title">Marketing y Crecimiento</div>
+      <div class="phase-subtitle">Canales, estrategias, escala 10x y 100x</div>
+    </div>
+    <div style="margin-left:auto;text-align:right">
+      <div style="font-size:28px;font-weight:800;color:var(--red)">3.0</div>
+      <div style="font-size:11px;color:var(--text3)">/ 10</div>
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <span class="callout-icon">🚨</span>
+    <div><strong>Marketing es la fase más crítica del proyecto.</strong> El producto existe. La tecnología funciona. Pero sin una estrategia de adquisición activa, el crecimiento será cero. Actualmente no hay evidencia de esfuerzo de marketing sistemático.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Canales por ROI esperado</div>
+    <table>
+      <thead><tr><th>Canal</th><th>Costo</th><th>ROI</th><th>Tiempo al resultado</th><th>Prioridad</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>TikTok orgánico</strong></td><td class="tg">$0</td><td class="tg">★★★★★</td><td class="ty">2-8 semanas</td>
+          <td><span class="pri pri-red">🔴 Crítico</span></td>
+        </tr>
+        <tr>
+          <td><strong>Grupos de WhatsApp de revendedoras</strong></td><td class="tg">$0</td><td class="tg">★★★★★</td><td class="tg">Inmediato</td>
+          <td><span class="pri pri-red">🔴 Crítico</span></td>
+        </tr>
+        <tr>
+          <td><strong>Instagram Reels</strong></td><td class="tg">$0</td><td class="tg">★★★★</td><td class="ty">4-12 semanas</td>
+          <td><span class="pri pri-orange">🟠 Alto</span></td>
+        </tr>
+        <tr>
+          <td><strong>SEO (blog + landing)</strong></td><td class="tg">$0</td><td class="to">★★★</td><td class="tr">3-12 meses</td>
+          <td><span class="pri pri-orange">🟠 Alto</span></td>
+        </tr>
+        <tr>
+          <td><strong>Programa de afiliados</strong></td><td class="tg">$0 fijo</td><td class="tg">★★★★★</td><td class="ty">1-3 meses</td>
+          <td><span class="pri pri-orange">🟠 Alto</span></td>
+        </tr>
+        <tr>
+          <td><strong>Influencers de perfumes (micro)</strong></td><td class="ty">$50-200</td><td class="to">★★★</td><td class="ty">1-4 semanas</td>
+          <td><span class="pri pri-yellow">🟡 Medio</span></td>
+        </tr>
+        <tr>
+          <td><strong>Google Ads</strong></td><td class="tr">$200+/mes</td><td class="to">★★</td><td class="tg">Inmediato</td>
+          <td><span class="pri pri-yellow">🟡 Medio</span></td>
+        </tr>
+        <tr>
+          <td><strong>Facebook Ads</strong></td><td class="tr">$200+/mes</td><td class="to">★★</td><td class="tg">Inmediato</td>
+          <td><span class="pri pri-green">🟢 Bajo</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid-2" style="margin-top:14px">
+    <div class="card">
+      <div class="card-title">🚀 Plan para crecer 10x</div>
+      <div class="item-list">
+        <div class="item blue"><span class="item-icon">📱</span><div class="item-body"><strong>TikTok — 3 videos por semana</strong><p>"Así manejo 63 ventas de perfumes desde el celular" — demo real, sin edición fancy. El nicho de revendedoras en TikTok es enorme y el contenido orgánico de negocios performa muy bien.</p></div></div>
+        <div class="item blue"><span class="item-icon">💬</span><div class="item-body"><strong>Infiltrar grupos de WhatsApp</strong><p>Entrar a grupos de revendedoras de perfumes (hay miles en LATAM) y compartir el link con un mensaje auténtico. No spam — una demo real de 30 segundos.</p></div></div>
+        <div class="item blue"><span class="item-icon">🤝</span><div class="item-body"><strong>Programa de afiliados 20%</strong><p>$2.40/mes por cada referida que traiga una usuaria Pro. Una revendedora con 20 contactas trae 4 clientes = $9.60/mes pasivos. Se viraliza solo.</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🚀 Plan para crecer 100x</div>
+      <div class="item-list">
+        <div class="item gold"><span class="item-icon">🏢</span><div class="item-body"><strong>Canal B2B — distribuidoras</strong><p>Vender a distribuidoras de perfumes que manejan 50-200 revendedoras. Una venta = $500/mes. 10 distribuidoras = $5.000/mes MRR en un solo canal.</p></div></div>
+        <div class="item gold"><span class="item-icon">🌎</span><div class="item-body"><strong>Expansión México/Colombia</strong><p>Mercados 10x más grandes que Uruguay. Colombiano/mexicano tienen dialecto distinto pero el problema es idéntico. Adaptar el copy es suficiente.</p></div></div>
+        <div class="item gold"><span class="item-icon">🤖</span><div class="item-body"><strong>Automatización con IA</strong><p>IA que analiza los datos de la revendedora y genera un reporte semanal en WhatsApp: "Esta semana ganaste $X, tu mejor perfume fue Y, tenés Z cobros pendientes."</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">🎯 Estrategia de contenido TikTok (canal #1)</div>
+    <div class="item-list">
+      <div class="item"><span class="item-icon">🎬</span><div class="item-body"><strong>Formato 1: "Así cerré mi mes de perfumes"</strong><p>Screen recording del dashboard mostrando ventas reales del mes. Sin cara. Solo datos. 30-60 segundos. Hashtags: #revendedora #perfumes #negocio #dinero</p></div></div>
+      <div class="item"><span class="item-icon">🎬</span><div class="item-body"><strong>Formato 2: "¿Cuánto gané vendiendo perfumes este mes?"</strong><p>Hook de curiosidad + reveal de estadísticas. El formato "reveal de ingresos" tiene millones de views en TikTok de negocios.</p></div></div>
+      <div class="item"><span class="item-icon">🎬</span><div class="item-body"><strong>Formato 3: Problema → Solución</strong><p>"¿Anotás tus ventas en papel?" → mostrar el caos → "Yo uso esto" → mostrar la app. 15 segundos. Convierte directo.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 8 — CUSTOMER JOURNEY
+════════════════════════════════════════════════════════════ -->
+<div class="phase" id="f8">
+  <div class="phase-header">
+    <div class="phase-num">8</div>
+    <div>
+      <div class="phase-title">Experiencia del Cliente</div>
+      <div class="phase-subtitle">Simulación completa del journey — fricciones y puntos de mejora</div>
+    </div>
+  </div>
+
+  <div class="funnel">
+    <div class="funnel-step ok">
+      <span class="funnel-icon">👀</span>
+      <div class="funnel-body">
+        <div class="funnel-title">1. Descubre el producto</div>
+        <div class="funnel-detail">Via TikTok / grupo WhatsApp / boca a boca. Ve "app para revendedoras de perfumes" y le llama la atención.</div>
+      </div>
+      <span class="funnel-tag">SIN FRICCIÓN</span>
+    </div>
+    <div class="funnel-step warn">
+      <span class="funnel-icon">🌐</span>
+      <div class="funnel-body">
+        <div class="funnel-title">2. Entra a la landing</div>
+        <div class="funnel-detail">Ve diseño profesional y screenshot real. Pero no hay video ni testimonios — la confianza es parcial. ¿Qué es una PWA? No lo entiende.</div>
+      </div>
+      <span class="funnel-tag">FRICCIÓN MEDIA</span>
+    </div>
+    <div class="funnel-step ok">
+      <span class="funnel-icon">📱</span>
+      <div class="funnel-body">
+        <div class="funnel-title">3. Prueba la app (trial 7 días)</div>
+        <div class="funnel-detail">Abre el link, onboarding claro, registra primera venta en &lt;2 min. Experiencia excelente — la app hace lo que promete.</div>
+      </div>
+      <span class="funnel-tag">EXCELENTE</span>
+    </div>
+    <div class="funnel-step friction">
+      <span class="funnel-icon">💳</span>
+      <div class="funnel-body">
+        <div class="funnel-title">4. Quiere pagar — BLOQUEO PRINCIPAL</div>
+        <div class="funnel-detail">Hace click en "Consultar por WhatsApp". Tiene que escribir, esperar respuesta, coordinar pago. Si es de noche o fin de semana, abandona. Estimado: 60-70% abandona aquí.</div>
+      </div>
+      <span class="funnel-tag">FRICCIÓN CRÍTICA</span>
+    </div>
+    <div class="funnel-step ok">
+      <span class="funnel-icon">✅</span>
+      <div class="funnel-body">
+        <div class="funnel-title">5. Usa el producto pagado</div>
+        <div class="funnel-detail">Las usuarias que llegan aquí están muy satisfechas — el producto cumple lo prometido. Churn bajo esperado si llegan a pagar.</div>
+      </div>
+      <span class="funnel-tag">MUY BUENO</span>
+    </div>
+    <div class="funnel-step friction">
+      <span class="funnel-icon">📣</span>
+      <div class="funnel-body">
+        <div class="funnel-title">6. Recomienda el producto</div>
+        <div class="funnel-detail">Sin mecanismo de referidos in-app. Si quiere recomendar, tiene que hacerlo de forma orgánica sin incentivo. Potencial virales perdidos.</div>
+      </div>
+      <span class="funnel-tag">OPORTUNIDAD PERDIDA</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 9 — OPORTUNIDADES OCULTAS
+════════════════════════════════════════════════════════════ -->
+<div class="phase" id="f9">
+  <div class="phase-header">
+    <div class="phase-num">9</div>
+    <div>
+      <div class="phase-title">Oportunidades Ocultas</div>
+      <div class="phase-subtitle">Nuevas líneas de negocio, integraciones estratégicas, expansión</div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="item gold" style="flex-direction:column;align-items:flex-start;padding:20px">
+      <div style="font-size:32px;margin-bottom:12px">🔗</div>
+      <strong style="font-size:15px;margin-bottom:8px">Marketplace B2B</strong>
+      <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Conectar distribuidoras con revendedoras. Parfum Track se convierte en el marketplace de perfumes de LATAM. Comisión del 3-5% en cada transacción. Potencial: $1M+ ARR.</p>
+      <span class="pri pri-orange">🟠 12 meses</span>
+    </div>
+    <div class="item gold" style="flex-direction:column;align-items:flex-start;padding:20px">
+      <div style="font-size:32px;margin-bottom:12px">🤖</div>
+      <strong style="font-size:15px;margin-bottom:8px">IA de negocio personalizada</strong>
+      <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Analizar los datos de la usuaria y enviar resumen semanal por WhatsApp: "Tu mejor mes fue marzo, el perfume X es tu más rentable, tenés $850 en cobros pendientes." Diferenciador brutal.</p>
+      <span class="pri pri-orange">🟠 6 meses</span>
+    </div>
+    <div class="item gold" style="flex-direction:column;align-items:flex-start;padding:20px">
+      <div style="font-size:32px;margin-bottom:12px">🏦</div>
+      <strong style="font-size:15px;margin-bottom:8px">Fintech layer</strong>
+      <p style="color:var(--text2);font-size:13px;margin-bottom:12px">"Tenés $2.000 en ventas verificadas este mes. Calificás para un adelanto de capital de trabajo." Asociarse con fintechs LATAM para ofrecer crédito basado en datos de ventas.</p>
+      <span class="pri pri-yellow">🟡 18 meses</span>
+    </div>
+    <div class="item gold" style="flex-direction:column;align-items:flex-start;padding:20px">
+      <div style="font-size:32px;margin-bottom:12px">📲</div>
+      <strong style="font-size:15px;margin-bottom:8px">WhatsApp Business API</strong>
+      <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Automatizar los recordatorios de cobro usando la API oficial de WhatsApp Business. Los mensajes actuales requieren acción manual — automatizarlos reduce el churn de cuotas impagas.</p>
+      <span class="pri pri-orange">🟠 6 meses</span>
+    </div>
+    <div class="item gold" style="flex-direction:column;align-items:flex-start;padding:20px">
+      <div style="font-size:32px;margin-bottom:12px">🌎</div>
+      <strong style="font-size:15px;margin-bottom:8px">Expansión regional</strong>
+      <p style="color:var(--text2);font-size:13px;margin-bottom:12px">México (130M hab), Colombia (52M), Argentina (45M) son mercados enormes. El problema de la revendedora informal es idéntico. Solo requiere adaptar el dialecto del copy.</p>
+      <span class="pri pri-orange">🟠 3 meses</span>
+    </div>
+    <div class="item gold" style="flex-direction:column;align-items:flex-start;padding:20px">
+      <div style="font-size:32px;margin-bottom:12px">🏭</div>
+      <strong style="font-size:15px;margin-bottom:8px">Versión para otras industrias</strong>
+      <p style="color:var(--text2);font-size:13px;margin-bottom:12px">El mismo producto funciona para revendedoras de ropa, cosméticos, suplementos, accesorios. "Revendedoras Track" como brand umbrella con apps específicas por nicho.</p>
+      <span class="pri pri-yellow">🟡 12 meses</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 10 — ROADMAP
+════════════════════════════════════════════════════════════ -->
+<div class="phase" id="f10">
+  <div class="phase-header">
+    <div class="phase-num">10</div>
+    <div>
+      <div class="phase-title">Roadmap Ejecutivo</div>
+      <div class="phase-subtitle">Plan detallado ordenado por impacto y ROI</div>
+    </div>
+  </div>
+
+  <div class="roadmap-phase">
+    <div class="roadmap-phase-header">
+      <span class="roadmap-tag tag-7d">✅ Próximos 7 días</span>
+      <h3>Infraestructura crítica</h3>
+    </div>
+    <div class="checklist">
+      <div class="check-item high"><div class="check-dot"></div><div><strong>Crear KV namespace real en Cloudflare</strong><p>wrangler.jsonc tiene "REEMPLAZAR_CON_ID_REAL" — el rate limiting no funciona. 5 minutos de trabajo.</p></div></div>
+      <div class="check-item high"><div class="check-dot"></div><div><strong>Crear bucket R2 parfumtrack-backups</strong><p>El backup en la nube está codificado pero el bucket no existe en producción.</p></div></div>
+      <div class="check-item high"><div class="check-dot"></div><div><strong>Configurar LICENSE_SERVER_SECRET en Cloudflare env vars</strong><p>Sin esto, la validación de licencias falla silenciosamente.</p></div></div>
+      <div class="check-item med"><div class="check-dot"></div><div><strong>Grabar video demo de 60 segundos</strong><p>Screen recording real. Sin edición. Subir a landing y YouTube.</p></div></div>
+      <div class="check-item med"><div class="check-dot"></div><div><strong>Primer post TikTok</strong><p>Mostrar los números reales de la app (63 ventas, $51.467 ganancia). El contenido auténtico convierte.</p></div></div>
+    </div>
+  </div>
+
+  <div class="roadmap-phase p30">
+    <div class="roadmap-phase-header">
+      <span class="roadmap-tag tag-30d">✅ Próximos 30 días</span>
+      <h3>Monetización y adquisición</h3>
+    </div>
+    <div class="checklist">
+      <div class="check-item high"><div class="check-dot"></div><div><strong>Integrar Stripe o MercadoPago para pago self-service</strong><p>El mayor cuello de botella del negocio. Sin esto, el crecimiento tiene techo manual.</p></div></div>
+      <div class="check-item high"><div class="check-dot"></div><div><strong>Lanzar programa de afiliados</strong><p>Código de referido en la app. 20% de comisión durante 6 meses por cada referida que pague.</p></div></div>
+      <div class="check-item high"><div class="check-dot"></div><div><strong>Conseguir 3 testimonios reales</strong><p>Pedir a usuarias actuales que escriban 2 líneas sobre su experiencia. Agregar a landing con foto real.</p></div></div>
+      <div class="check-item med"><div class="check-dot"></div><div><strong>Crear captura de email en landing (popup exit intent)</strong><p>Lista para retargeting futuro. Mailchimp free es suficiente al inicio.</p></div></div>
+      <div class="check-item med"><div class="check-dot"></div><div><strong>Publicar 12 posts TikTok/Instagram</strong><p>Uno cada 2-3 días. Diferentes formatos para ver qué performa mejor.</p></div></div>
+      <div class="check-item low"><div class="check-dot"></div><div><strong>Schema versioning en IndexedDB</strong><p>Agregar número de versión para soportar migraciones de datos futuras.</p></div></div>
+    </div>
+  </div>
+
+  <div class="roadmap-phase p90">
+    <div class="roadmap-phase-header">
+      <span class="roadmap-tag tag-90d">✅ Próximos 90 días</span>
+      <h3>Crecimiento y retención</h3>
+    </div>
+    <div class="checklist">
+      <div class="check-item high"><div class="check-dot"></div><div><strong>Link de catálogo compartible</strong><p>La killer feature que falta. URL única para cada usuaria que sus clientes pueden ver.</p></div></div>
+      <div class="check-item high"><div class="check-dot"></div><div><strong>Resumen semanal por WhatsApp</strong><p>Mensaje automático cada lunes: ventas, ganancia, cobros pendientes. Aumenta retención 40%.</p></div></div>
+      <div class="check-item high"><div class="check-dot"></div><div><strong>Separar JS de HTML (modularización)</strong><p>Extraer JavaScript a módulos ES. Permite testing, debugging, y colaboración.</p></div></div>
+      <div class="check-item med"><div class="check-dot"></div><div><strong>Primer canal B2B — contactar 5 distribuidoras</strong><p>Una distribuidora que paga $50/mes vale lo mismo que 10 usuarias Starter.</p></div></div>
+      <div class="check-item med"><div class="check-dot"></div><div><strong>Blog de SEO con 5 artículos</strong><p>"Cómo organizas tus ventas de perfumes", "Cuánto gana una revendedora de perfumes", etc.</p></div></div>
+      <div class="check-item low"><div class="check-dot"></div><div><strong>Tests E2E básicos con Playwright</strong><p>Flujos críticos: registrar venta, cobrar cuota, exportar Excel.</p></div></div>
+    </div>
+  </div>
+
+  <div class="roadmap-phase p12m">
+    <div class="roadmap-phase-header">
+      <span class="roadmap-tag tag-12m">✅ Próximos 12 meses</span>
+      <h3>Escalabilidad y expansión</h3>
+    </div>
+    <div class="checklist">
+      <div class="check-item high"><div class="check-dot"></div><div><strong>Expansión a México y Colombia</strong><p>Adaptar copy al dialecto local. Misma app. Marketing en esos mercados = 10x el TAM.</p></div></div>
+      <div class="check-item high"><div class="check-dot"></div><div><strong>IA de análisis de negocio</strong><p>Resumen semanal inteligente basado en patrones de ventas. Claude API como backend.</p></div></div>
+      <div class="check-item high"><div class="check-dot"></div><div><strong>Refactor arquitectural</strong><p>Separar en componentes. Backend real para features que requieren servidor.</p></div></div>
+      <div class="check-item med"><div class="check-dot"></div><div><strong>Versión para cosméticos / accesorios</strong><p>Segundo producto bajo la misma infraestructura técnica.</p></div></div>
+      <div class="check-item med"><div class="check-dot"></div><div><strong>Integración MercadoPago para tracking de cobros</strong><p>Detectar pagos automáticamente y marcar cuotas como cobradas.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 11 — AUDITORÍA BRUTAL
+════════════════════════════════════════════════════════════ -->
+<div class="phase" id="f11">
+  <div class="phase-header">
+    <div class="phase-num">11</div>
+    <div>
+      <div class="phase-title">Auditoría Brutal</div>
+      <div class="phase-subtitle">Sin suavizar. Los 10 errores, 10 mejoras, 10 oportunidades.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="color:var(--red)">🔴 Los 10 errores más graves</div>
+    <div class="item-list">
+      <div class="item red"><span class="item-icon">1</span><div class="item-body"><strong>Proceso de pago manual via WhatsApp</strong><p>Cada conversión requiere intervención humana. Imposible escalar. Cada cliente nocturno o de fin de semana se pierde. Esto solo puede eliminar el 60-70% de las conversiones potenciales.</p></div></div>
+      <div class="item red"><span class="item-icon">2</span><div class="item-body"><strong>KV namespace no configurado en producción</strong><p>"REEMPLAZAR_CON_ID_REAL" en wrangler.jsonc significa que el rate limiting no existe. Cualquiera puede hacer fuerza bruta contra la validación de licencias.</p></div></div>
+      <div class="item red"><span class="item-icon">3</span><div class="item-body"><strong>Zero marketing activo</strong><p>El producto existe pero nadie lo conoce. Sin adquisición sistemática, el MRR no crece. Un buen producto sin marketing muere igual.</p></div></div>
+      <div class="item red"><span class="item-icon">4</span><div class="item-body"><strong>Monolito de 7.009 líneas</strong><p>Un único archivo con HTML + CSS + JS + lógica de negocio. Imposible testear, difícil mantener, imposible colaborar. Es la bomba de tiempo técnica del proyecto.</p></div></div>
+      <div class="item red"><span class="item-icon">5</span><div class="item-body"><strong>Zero prueba social</strong><p>Sin testimonios reales, sin número de usuarios, sin capturas verificables. Un usuario nuevo no tiene razón para confiar. La única razón para pagar es la esperanza de que funcione.</p></div></div>
+      <div class="item red"><span class="item-icon">6</span><div class="item-body"><strong>Sin tests automatizados</strong><p>Cero tests. Un cambio inocente en el código podría romper el cálculo de ganancias o la exportación a Excel — y nadie lo sabría hasta que un usuario se queje.</p></div></div>
+      <div class="item orange"><span class="item-icon">7</span><div class="item-body"><strong>Sin captura de email en la landing</strong><p>Los visitantes que no convierten se pierden para siempre. Sin retargeting, sin nurturing, sin segunda oportunidad.</p></div></div>
+      <div class="item orange"><span class="item-icon">8</span><div class="item-body"><strong>Sin video de demo</strong><p>Una revendedora que no sabe qué es una PWA necesita ver el producto antes de confiar. El texto no es suficiente para este segmento.</p></div></div>
+      <div class="item orange"><span class="item-icon">9</span><div class="item-body"><strong>Sin programa de afiliados</strong><p>Las revendedoras son comunidad — se recomiendan constantemente. Sin un mecanismo de referidos con incentivo, el canal más barato y efectivo está cerrado.</p></div></div>
+      <div class="item orange"><span class="item-icon">10</span><div class="item-body"><strong>Datos locales = falta de analítica de producto</strong><p>Como los datos son solo en el dispositivo, no hay forma de saber qué features se usan más, dónde se abandona el onboarding, o qué genera churn.</p></div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-title" style="color:var(--orange)">🟠 Las 10 mejoras más importantes</div>
+    <div class="item-list">
+      <div class="item orange"><span class="item-icon">1</span><div class="item-body"><strong>Pago self-service con Stripe o MercadoPago</strong><p>Eliminar el cuello de botella más grande del funnel. ROI: multiplicar la tasa de conversión por 3-5x.</p></div></div>
+      <div class="item orange"><span class="item-icon">2</span><div class="item-body"><strong>Video demo de 60 segundos en la landing</strong><p>Screen recording real, sin edición. Mostrar la app funcionando convierte mejor que cualquier texto.</p></div></div>
+      <div class="item orange"><span class="item-icon">3</span><div class="item-body"><strong>3 testimonios reales con nombres y datos</strong><p>Mejor 1 real que 10 inventados. Pedir a las primeras usuarias hoy mismo.</p></div></div>
+      <div class="item orange"><span class="item-icon">4</span><div class="item-body"><strong>Programa de afiliados con código único en-app</strong><p>Cada usuaria recibe un link/código. 20% de comisión durante 6 meses. Se viraliza solo en grupos de WhatsApp.</p></div></div>
+      <div class="item orange"><span class="item-icon">5</span><div class="item-body"><strong>TikTok — 3 videos por semana durante 30 días</strong><p>Mostrar los números reales. El contenido de "negocios reales" performa extraordinariamente bien.</p></div></div>
+      <div class="item orange"><span class="item-icon">6</span><div class="item-body"><strong>Link de catálogo compartible</strong><p>La funcionalidad que haría que las usuarias digan "WOW" y conviertan a sus propias clientes en usuarios.</p></div></div>
+      <div class="item orange"><span class="item-icon">7</span><div class="item-body"><strong>Resumen semanal automático por WhatsApp</strong><p>Mensaje automático cada lunes con los números de la semana. Retención masiva, upsell natural.</p></div></div>
+      <div class="item orange"><span class="item-icon">8</span><div class="item-body"><strong>Configurar KV namespace en producción hoy</strong><p>5 minutos de trabajo. Activa la seguridad que ya está escrita en el código.</p></div></div>
+      <div class="item orange"><span class="item-icon">9</span><div class="item-body"><strong>Popup de captura de email en exit intent</strong><p>Retener el tráfico que llega y no convierte para nurturing futuro.</p></div></div>
+      <div class="item orange"><span class="item-icon">10</span><div class="item-body"><strong>Upsell in-app visible para usuarias Starter</strong><p>Banner sutil dentro de la app mostrando las features Pro que están perdiendo.</p></div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-title" style="color:var(--green)">🟢 Las 10 oportunidades más grandes</div>
+    <div class="item-list">
+      <div class="item green"><span class="item-icon">1</span><div class="item-body"><strong>Mercado LATAM de revendedoras</strong><p>50+ millones de revendedoras informales en LATAM. El 1% pagando $5/mes = $2.5M ARR. El mercado es enorme y sin solución específica.</p></div></div>
+      <div class="item green"><span class="item-icon">2</span><div class="item-body"><strong>TikTok orgánico — primera mover advantage</strong><p>Nadie está haciendo contenido de "app para revendedoras de perfumes" en TikTok. El primero que lo haga bien, gana el canal.</p></div></div>
+      <div class="item green"><span class="item-icon">3</span><div class="item-body"><strong>Canal B2B — distribuidoras y marcas</strong><p>Las distribuidoras pagan 10x más que las revendedoras individuales y tienen menor churn.</p></div></div>
+      <div class="item green"><span class="item-icon">4</span><div class="item-body"><strong>Virality via WhatsApp</strong><p>Las revendedoras viven en grupos de WhatsApp. Un mecanismo de referidos bien diseñado puede generar crecimiento exponencial orgánico.</p></div></div>
+      <div class="item green"><span class="item-icon">5</span><div class="item-body"><strong>Expansión a otros nichos de reventa</strong><p>Cosméticos, ropa, suplementos, accesorios — mismo problema, misma solución. "Revendedoras Track" como plataforma.</p></div></div>
+      <div class="item green"><span class="item-icon">6</span><div class="item-body"><strong>IA de análisis de negocio</strong><p>Datos propios de ventas + IA = asesor de negocio personalizado. Feature premium que justifica $25/mes fácil.</p></div></div>
+      <div class="item green"><span class="item-icon">7</span><div class="item-body"><strong>Fintech — adelantos de capital de trabajo</strong><p>Los datos de ventas verificados son colateral para microcréditos. Asociarse con una fintech LATAM.</p></div></div>
+      <div class="item green"><span class="item-icon">8</span><div class="item-body"><strong>Marketplace perfumes</strong><p>Conectar distribuidoras con revendedoras. La plataforma ya tiene los dos lados del mercado.</p></div></div>
+      <div class="item green"><span class="item-icon">9</span><div class="item-body"><strong>White label para distribuidoras</strong><p>Una distribuidora grande puede querer una app con su propia marca para sus revendedoras. $500-2.000/mes por cliente.</p></div></div>
+      <div class="item green"><span class="item-icon">10</span><div class="item-body"><strong>Lifetime deal — generación de caja rápida</strong><p>Vender 100 licencias de por vida a $99 cada una = $9.900 en caja. Comunidad de early adopters leales.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 12 — VEREDICTO FINAL
+════════════════════════════════════════════════════════════ -->
+<div class="phase" id="f12">
+  <div class="phase-header">
+    <div class="phase-num">12</div>
+    <div>
+      <div class="phase-title">Veredicto Final</div>
+      <div class="phase-subtitle">Puntuaciones, respuestas directas, diagnóstico ejecutivo</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title">Puntuaciones finales del comité</div>
+    <div style="background:var(--bg2);border-radius:var(--radius);overflow:hidden">
+      <div class="final-score-row">
+        <span class="final-score-name">Producto</span>
+        <div class="final-score-bar"><div class="final-score-fill" style="width:72%;background:linear-gradient(90deg,var(--gold),var(--gold2))"></div></div>
+        <span class="final-score-num" style="color:var(--gold2)">7.2</span>
+      </div>
+      <div class="final-score-row">
+        <span class="final-score-name">UX / UI</span>
+        <div class="final-score-bar"><div class="final-score-fill" style="width:78%;background:linear-gradient(90deg,var(--gold),var(--gold2))"></div></div>
+        <span class="final-score-num" style="color:var(--gold2)">7.8</span>
+      </div>
+      <div class="final-score-row">
+        <span class="final-score-name">Tecnología</span>
+        <div class="final-score-bar"><div class="final-score-fill" style="width:65%;background:var(--yellow)"></div></div>
+        <span class="final-score-num" style="color:var(--yellow)">6.5</span>
+      </div>
+      <div class="final-score-row">
+        <span class="final-score-name">Escalabilidad</span>
+        <div class="final-score-bar"><div class="final-score-fill" style="width:50%;background:var(--orange)"></div></div>
+        <span class="final-score-num" style="color:var(--orange)">5.0</span>
+      </div>
+      <div class="final-score-row">
+        <span class="final-score-name">Seguridad</span>
+        <div class="final-score-bar"><div class="final-score-fill" style="width:75%;background:linear-gradient(90deg,var(--gold),var(--gold2))"></div></div>
+        <span class="final-score-num" style="color:var(--gold2)">7.5</span>
+      </div>
+      <div class="final-score-row">
+        <span class="final-score-name">Marketing</span>
+        <div class="final-score-bar"><div class="final-score-fill" style="width:30%;background:var(--red)"></div></div>
+        <span class="final-score-num" style="color:var(--red)">3.0</span>
+      </div>
+      <div class="final-score-row">
+        <span class="final-score-name">Monetización</span>
+        <div class="final-score-bar"><div class="final-score-fill" style="width:55%;background:var(--orange)"></div></div>
+        <span class="final-score-num" style="color:var(--orange)">5.5</span>
+      </div>
+      <div class="final-score-row">
+        <span class="final-score-name">Potencial de mercado</span>
+        <div class="final-score-bar"><div class="final-score-fill" style="width:85%;background:var(--green)"></div></div>
+        <span class="final-score-num" style="color:var(--green)">8.5</span>
+      </div>
+      <div class="final-score-row">
+        <span class="final-score-name">Potencial de crecimiento</span>
+        <div class="final-score-bar"><div class="final-score-fill" style="width:75%;background:var(--green)"></div></div>
+        <span class="final-score-num" style="color:var(--green)">7.5</span>
+      </div>
+      <div class="final-score-row">
+        <span class="final-score-name">Nivel profesional</span>
+        <div class="final-score-bar"><div class="final-score-fill" style="width:70%;background:linear-gradient(90deg,var(--gold),var(--gold2))"></div></div>
+        <span class="final-score-num" style="color:var(--gold2)">7.0</span>
+      </div>
+      <div class="final-score-row" style="background:var(--gold3);border-top:2px solid var(--gold)">
+        <span class="final-score-name" style="font-size:16px;font-weight:800;color:var(--gold2)">PROMEDIO TOTAL</span>
+        <div class="final-score-bar"><div class="final-score-fill" style="width:66%;background:linear-gradient(90deg,var(--gold),var(--gold2))"></div></div>
+        <span class="final-score-num" style="color:var(--gold2);font-size:22px">6.6</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="verdict-card">
+      <div class="verdict-q">1. ¿Lanzarías este proyecto hoy?</div>
+      <div class="verdict-a yes">✅ SÍ — pero con pago self-service desde el día 1</div>
+      <p style="color:var(--text2);font-size:13px;margin-top:8px">El producto ya existe y funciona. El mercado es real. Lanzar sin self-service es como abrir un kiosco sin caja registradora.</p>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-q">2. ¿Pagarías por este producto?</div>
+      <div class="verdict-a yes">✅ SÍ — si fuera revendedora de perfumes, $5/mes es obvio</div>
+      <p style="color:var(--text2);font-size:13px;margin-top:8px">El producto resuelve un problema real, funciona offline, es simple y no requiere instalación. El precio es correcto para el segmento.</p>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-q">3. ¿Invertirías dinero en esta startup?</div>
+      <div class="verdict-a cond">⚡ CONDICIONAL — con 3 métricas demostradas</div>
+      <p style="color:var(--text2);font-size:13px;margin-top:8px">Invertiría con: (1) pago self-service funcionando, (2) 50+ usuarias pagando, (3) MRR creciendo &gt;10% mensual. Sin eso, es una idea con código — no una empresa.</p>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-q">4. ¿Qué debería hacerse inmediatamente?</div>
+      <div class="verdict-a" style="color:var(--text)">En este orden: (1) Configurar KV en producción, (2) Integrar pago self-service, (3) Grabar video demo, (4) Publicar en TikTok, (5) Lanzar programa de afiliados</div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-q">5. ¿Cuál es la principal debilidad?</div>
+      <div class="verdict-a no">🔴 El proceso de adquisición y pago es 100% manual</div>
+      <p style="color:var(--text2);font-size:13px;margin-top:8px">Sin self-service de pago, el crecimiento tiene techo humano. Cada conversión requiere tiempo del fundador. Es insostenible a escala.</p>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-q">6. ¿Cuál es la principal oportunidad?</div>
+      <div class="verdict-a yes">🟢 50M+ revendedoras en LATAM sin solución específica</div>
+      <p style="color:var(--text2);font-size:13px;margin-top:8px">Primer mover en un nicho enorme. La barrera de entrada es alta (especificidad del producto) y el mercado aún no está educado digitalmente.</p>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-q">7. ¿Qué le falta para convertirse en líder del mercado?</div>
+      <div class="verdict-a" style="color:var(--text)">Self-service de pago + marketing sistematizado + programa de afiliados + presencia en buscadores + 100 testimonios reales</div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-q">8. ¿Qué le falta para parecer una startup valuada en millones?</div>
+      <div class="verdict-a" style="color:var(--text)">Prueba social masiva, crecimiento MoM documentado, unit economics claros, equipo, y una narrativa de expansión a 5+ países con roadmap creíble</div>
+    </div>
+  </div>
+
+  <div class="callout gold" style="margin-top:28px;padding:28px">
+    <span class="callout-icon" style="font-size:32px">🏆</span>
+    <div>
+      <strong style="font-size:18px;display:block;margin-bottom:10px">Veredicto del Comité</strong>
+      <p style="font-size:15px;line-height:1.7;color:var(--text2)">
+        <strong style="color:var(--text)">Parfum Track es un producto real que resuelve un problema real en un mercado enorme.</strong> La tecnología es sólida para la etapa actual. El diseño es profesional. La propuesta de valor es clara y honesta.
+      </p>
+      <p style="font-size:15px;line-height:1.7;color:var(--text2);margin-top:10px">
+        El proyecto está en el punto de inflexión más crítico de cualquier startup: <strong style="color:var(--gold2)">tiene producto pero no tiene growth engine</strong>. Los siguientes 90 días son decisivos. Si se implementa el pago self-service y se activa un canal de adquisición (TikTok + afiliados), el potencial de llegar a $10.000/mes en 12 meses es real.
+      </p>
+      <p style="font-size:15px;line-height:1.7;color:var(--text2);margin-top:10px">
+        Si no se actúa ahora: el proyecto permanecerá como un producto excelente que nadie usa. El mercado no espera.
+      </p>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(201,168,76,0.2);font-size:24px;font-weight:800;color:var(--gold2)">
+        Puntuación general: 6.6/10 — <span style="color:var(--green)">Recomendado con condiciones</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<script>
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const el = document.getElementById(a.getAttribute('href').slice(1));
+    if(el){e.preventDefault();el.scrollIntoView({behavior:'smooth',block:'start'})}
+  });
+});
+</script>
+</body>
+</html>
