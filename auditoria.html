@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auditoría Tecnológica — Parfum Track</title>
+<style>
+  :root{
+    --bg:#0d0d14;--bg2:#13131e;--bg3:#1a1a28;--border:#2a2a3e;
+    --gold:#c9a84c;--gold2:#e0c060;--text:#f0f0f8;--text2:#b0b0c8;--text3:#6a6a88;
+    --red:#e05555;--orange:#e07a30;--yellow:#d4be45;--green:#4caf7a;--blue:#5580e0;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6;padding:24px 16px;}
+  .container{max-width:960px;margin:0 auto;}
+
+  /* HEADER */
+  .report-header{text-align:center;padding:48px 24px 40px;border-bottom:1px solid var(--border);margin-bottom:40px;}
+  .report-badge{display:inline-block;background:rgba(201,168,76,.12);color:var(--gold);font-size:11px;font-weight:700;letter-spacing:2px;padding:5px 14px;border-radius:20px;border:1px solid rgba(201,168,76,.3);margin-bottom:16px;}
+  .report-title{font-size:clamp(26px,4vw,40px);font-weight:800;margin-bottom:8px;color:var(--text);}
+  .report-title em{color:var(--gold);font-style:normal;}
+  .report-meta{font-size:13px;color:var(--text3);}
+  .report-meta span{margin:0 8px;}
+
+  /* SCORE OVERVIEW */
+  .score-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:40px;}
+  .score-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;}
+  .score-card .label{font-size:11px;color:var(--text3);margin-bottom:8px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+  .score-card .num{font-size:28px;font-weight:800;}
+  .score-10{color:#4caf7a}.score-8,.score-9{color:#7ecf4e}
+  .score-7{color:#d4be45}.score-6{color:#e09a30}
+  .score-5{color:#e07a30}.score-4,.score-3{color:#e05555}
+
+  /* SECTION */
+  .section{margin-bottom:48px;}
+  .section-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+  .section-num{background:var(--gold);color:#0d0d14;font-size:12px;font-weight:800;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .section-title-text{font-size:20px;font-weight:700;}
+  .section-score{margin-left:auto;font-size:22px;font-weight:800;color:var(--gold);}
+
+  /* CARDS */
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:12px;}
+  .card-title{font-size:14px;font-weight:700;margin-bottom:6px;color:var(--text);}
+  .card-body{font-size:13px;color:var(--text2);line-height:1.7;}
+  .card-body code{background:var(--bg3);padding:1px 5px;border-radius:4px;font-size:12px;color:var(--gold2);}
+
+  /* FINDINGS */
+  .finding{display:flex;gap:12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;}
+  .finding-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+  .dot-red{background:var(--red)}.dot-orange{background:var(--orange)}.dot-yellow{background:var(--yellow)}.dot-green{background:var(--green)}
+  .finding-content{}
+  .finding-title{font-size:13px;font-weight:700;margin-bottom:3px;}
+  .finding-desc{font-size:12px;color:var(--text2);line-height:1.6;}
+  .finding-loc{font-size:11px;color:var(--text3);margin-top:4px;font-family:monospace;}
+
+  /* PRIORITY LIST */
+  .priority-section{margin-bottom:24px;}
+  .priority-header{font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+  .priority-list{display:flex;flex-direction:column;gap:8px;}
+
+  /* COMPARISON TABLE */
+  .compare-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .compare-table th{background:var(--bg3);color:var(--text3);font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);}
+  .compare-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2);}
+  .compare-table tr:last-child td{border-bottom:none;}
+  .compare-table .app{font-weight:700;color:var(--text);}
+  .compare-table .gap{color:var(--red);font-size:12px;}
+  .compare-table .ok{color:var(--green);font-size:12px;}
+
+  /* VERDICT */
+  .verdict{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-top:24px;}
+  .verdict-title{font-size:16px;font-weight:700;margin-bottom:12px;color:var(--gold);}
+  .verdict-text{font-size:14px;color:var(--text2);line-height:1.8;}
+  .verdict-answer{font-size:20px;font-weight:800;color:var(--text);margin:16px 0 8px;}
+
+  /* PLAN TABLE */
+  .plan-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .plan-table th{background:var(--bg3);color:var(--text3);font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:10px 14px;text-align:left;}
+  .plan-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;}
+  .plan-table tr:last-child td{border-bottom:none;}
+  .tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.5px;text-transform:uppercase;}
+  .tag-red{background:rgba(224,85,85,.15);color:var(--red);border:1px solid rgba(224,85,85,.3)}
+  .tag-orange{background:rgba(224,122,48,.15);color:var(--orange);border:1px solid rgba(224,122,48,.3)}
+  .tag-yellow{background:rgba(212,190,69,.15);color:var(--yellow);border:1px solid rgba(212,190,69,.3)}
+  .tag-green{background:rgba(76,175,122,.15);color:var(--green);border:1px solid rgba(76,175,122,.3)}
+
+  /* QUOTE */
+  blockquote{border-left:3px solid var(--gold);padding:12px 16px;margin:16px 0;background:var(--bg3);border-radius:0 8px 8px 0;font-size:13px;color:var(--text2);font-style:italic;}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:600px){.two-col{grid-template-columns:1fr}.score-grid{grid-template-columns:repeat(2,1fr)}}
+
+  hr{border:none;border-top:1px solid var(--border);margin:32px 0;}
+  .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;margin:0 2px;}
+  .pill-red{background:rgba(224,85,85,.15);color:var(--red)}
+  .pill-green{background:rgba(76,175,122,.15);color:var(--green)}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="report-header">
+  <div class="report-badge">AUDITORÍA TECNOLÓGICA COMPLETA</div>
+  <h1 class="report-title">Parfum <em>Track</em></h1>
+  <p class="report-meta">
+    <span>📅 Junio 2026</span>
+    <span>·</span>
+    <span>🗂 index.html · landing.html · backup.js · wrangler.jsonc</span>
+    <span>·</span>
+    <span>12 especialistas</span>
+  </p>
+</div>
+
+<!-- SCORE OVERVIEW -->
+<div class="score-grid">
+  <div class="score-card"><div class="label">1ª Impresión</div><div class="num score-7">7.2</div></div>
+  <div class="score-card"><div class="label">UX / UI</div><div class="num score-7">6.8</div></div>
+  <div class="score-card"><div class="label">Experiencia</div><div class="num score-6">6.0</div></div>
+  <div class="score-card"><div class="label">Funcionalidad</div><div class="num score-7">7.1</div></div>
+  <div class="score-card"><div class="label">Código</div><div class="num score-5">4.5</div></div>
+  <div class="score-card"><div class="label">Rendimiento</div><div class="num score-6">6.2</div></div>
+  <div class="score-card"><div class="label">Seguridad</div><div class="num score-5">5.0</div></div>
+  <div class="score-card"><div class="label">Negocio</div><div class="num score-7">7.5</div></div>
+</div>
+
+<!-- ───────────────────────────────────── -->
+<!-- SECCIÓN 1 -->
+<!-- ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title-text">Primera impresión (5 segundos)</div>
+    <div class="section-score">7.2 / 10</div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title">✅ Lo que funciona</div>
+        <div class="card-body">
+          El tema oscuro con dorado comunica <em>premium</em> y seriedad. El logo de gota de perfume es reconocible. La headline "Sabés cuánto vendiste. ¿Sabés cuánto <em>ganaste</em>?" es un gancho directo al dolor del usuario. Los stats ($0, 7 días, 10 seg) generan confianza inmediata. La captura real de la app es honesta y efectiva.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚠️ Lo que falla</div>
+        <div class="card-body">
+          Sin testimonios ni logos de clientes, la credibilidad cae a <strong>cero social proof</strong>. El subtítulo es largo (3 líneas en móvil). En desktop el layout se ve desbalanceado sin el mockup HTML original — la imagen del screenshot queda flotando sin marco. El badge "💸 $0 para empezar · 📱 Sin app store" mezcla emojis con texto y pierde jerarquía visual.
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">Respuestas rápidas</div>
+        <div class="card-body">
+          <strong>¿Propósito claro?</strong> Sí, en menos de 3 segundos.<br><br>
+          <strong>¿Genera confianza?</strong> Parcialmente — falta social proof real.<br><br>
+          <strong>¿Parece profesional?</strong> Sí para un MVP / indie dev.<br><br>
+          <strong>¿Parece startup seria?</strong> No del todo — falta HTTPS explícito, ToS, Privacy.<br><br>
+          <strong>¿Emociones?</strong> Curioso + levemente escéptico. El diseño atrae pero la falta de prueba social genera duda.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────────────────────────── -->
+<!-- SECCIÓN 2 -->
+<!-- ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title-text">UX / UI Completa</div>
+    <div class="section-score">6.8 / 10</div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title">✅ Fortalezas visuales</div>
+        <div class="card-body">
+          • Paleta consistente (oscuro + dorado) en toda la app<br>
+          • Cards con jerarquía clara (nombre → precio → estado)<br>
+          • Micro-toasts informativos (✓ Venta guardada, ⚠ Stock bajo)<br>
+          • Navegación bottom-bar en móvil es el estándar correcto<br>
+          • Nuevo layout compacto de stock cards (edit/delete en barra inferior) es una mejora real<br>
+          • Cuotas urgentes agrupadas por color: excelente UX de prioridad<br>
+          • El "drawer" del menú Más funciona bien<br>
+          • Animaciones fade-up en landing son suaves y profesionales
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔴 Problemas críticos</div>
+        <div class="card-body">
+          • <strong>7 tabs en desktop sidebar</strong> más subniveles de "Más" — sobrecarga cognitiva masiva para usuarios nuevos<br>
+          • <strong>Gráficos sin acceso directo</strong> en mobile — requiere abrir "Más" → scroll → Gráficos (3 taps)<br>
+          • <strong>Botón "Nueva venta" no sticky</strong> en móvil mientras se hace scroll en ventas<br>
+          • <strong>Formulario de nueva venta</strong> tiene 9+ campos en pantalla — demasiado para mobile first<br>
+          • <strong>Sin dark/light modo automático</strong> — el toggle manual es fricción innecesaria
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">🟡 Problemas menores</div>
+        <div class="card-body">
+          • Algunas tablas de gastos y ganancias no tienen scroll horizontal en pantallas pequeñas<br>
+          • El buscador de ventas está muy arriba — en mobile requiere scroll para llegar a los filtros de mes<br>
+          • En la sección clientes, el summary header no tiene suficiente contraste visual<br>
+          • Las etiquetas del formulario son muy pequeñas (11-12px) para usuarios con baja visión<br>
+          • El onboarding tiene demasiados pasos (nombre → WA → bienvenida → tour) para ser truly frictionless
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Métricas UX estimadas</div>
+        <div class="card-body">
+          <strong>Tiempo de aprendizaje:</strong> ~15-20 min (alto para una app de venta rápida)<br>
+          <strong>Taps para registrar venta:</strong> 6-10 taps (benchmark: 3-4)<br>
+          <strong>Descubribilidad de features:</strong> Media — muchas funciones escondidas en modales<br>
+          <strong>Consistencia visual:</strong> 8/10 — minor inconsistencias en tamaños de texto
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────────────────────────── -->
+<!-- SECCIÓN 3 -->
+<!-- ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title-text">Experiencia real de usuario</div>
+    <div class="section-score">6.0 / 10</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">👤 Simulación: Usuario nuevo (Ana, revendedora, 34 años, smartphone Android)</div>
+    <div class="card-body">
+      <strong>Minuto 0-1:</strong> Abre la app → ve pantalla de bienvenida → escribe su nombre → escribe número de WhatsApp (opcional, pero no entiende por qué lo piden) → llega al paso 2 sin saber qué sigue.<br><br>
+      <strong>Minuto 1-3:</strong> Toca "Nueva venta" → ve 9+ campos → se confunde con "Precio compra" vs "Precio venta" → no entiende "Proveedor" → deja el campo vacío → guarda → ve la venta aparecer → 🎉 confetti → primer momento de deleite.<br><br>
+      <strong>Minuto 3-10:</strong> Intenta registrar 3 ventas → en la 3ra venta nota el autocompletado de perfumes → le encanta → empieza a ver el potencial.<br><br>
+      <strong>Minuto 10-20:</strong> Va a "Cuotas" → no entiende la diferencia con "Ventas" → vuelve → va a "Ganancias" → ve los números → realiza el valor. <strong>ACA RETIENE O ABANDONA.</strong><br><br>
+      <strong>Día 7:</strong> Sale el modal de "Tu prueba gratuita vence en X días" → no sabe cómo pagar → tiene que ir a WhatsApp → <strong>PUNTO DE ABANDONO MÁXIMO.</strong>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">😤 Principales frustraciones</div>
+      <div class="card-body">
+        1. "¿Para qué me piden el WhatsApp al inicio?"<br>
+        2. "No entiendo Precio de Compra vs Precio de Venta"<br>
+        3. "¿Qué es un proveedor aquí?"<br>
+        4. "No puedo pagar desde la app — tengo que ir a WhatsApp"<br>
+        5. "Perdí datos cuando limpié el caché del navegador"<br>
+        6. "No sé qué incluye mi plan exactamente"<br>
+        7. "El backup automático descarga un .json — ¿qué hago con esto?"
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">💡 Lo que más mejoraría retención</div>
+      <div class="card-body">
+        1. <strong>Quick-entry mode</strong>: Formulario de 3 campos (perfume, precio, cliente)<br>
+        2. <strong>Tutorial inline</strong> en cada pantalla nueva (tooltips contextual)<br>
+        3. <strong>Pago self-service</strong> desde la app (no WhatsApp)<br>
+        4. <strong>Backup automático silencioso</strong> a la nube sin que el usuario lo vea<br>
+        5. <strong>Explicación de ganancias</strong>: "Tu ganancia = precio venta − precio compra"
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────────────────────────── -->
+<!-- SECCIÓN 4 -->
+<!-- ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title-text">Funcionalidad</div>
+    <div class="section-score">7.1 / 10</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">✅ Bien implementado</div>
+    <div class="card-body">
+      CRUD completo para ventas, gastos, stock, clientes · Cuotas con seguimiento de pagos parciales · Exportación a Excel · Generación de PDF de recibos · Sistema de PIN con SHA-256 + lockout de 5 intentos · Undo en ventas · Autocompletado con IndexedDB · Backup por WhatsApp/email/cloud · Multi-perfil · Service Worker offline · Shortcut PWA
+    </div>
+  </div>
+
+  <div class="priority-section">
+    <div class="priority-header"><span style="color:var(--red)">🔴</span> Bugs confirmados</div>
+    <div class="priority-list">
+      <div class="finding">
+        <div class="finding-dot dot-red"></div>
+        <div class="finding-content">
+          <div class="finding-title">Toast de stock bajo se dispara en cada decremento</div>
+          <div class="finding-desc">Si el mínimo es 3 y el stock baja de 5→4→3→2→1, el usuario recibe 3 toasts molestos. Debería dispararse solo al cruzar el umbral por primera vez.</div>
+          <div class="finding-loc">index.html · línea ~2555</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-dot dot-red"></div>
+        <div class="finding-content">
+          <div class="finding-title">Trial ticker interval no se limpia al cambiar de perfil</div>
+          <div class="finding-desc">Cada cambio de perfil apila un nuevo <code>setInterval()</code> que corre cada segundo. Con 5 cambios de perfil hay 5 timers corriendo simultáneamente → degradación de rendimiento + lógica errática en el banner de trial.</div>
+          <div class="finding-loc">index.html · renderAjustes / showTab</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-dot dot-red"></div>
+        <div class="finding-content">
+          <div class="finding-title">JSON.parse sin try/catch en restore del backup cloud</div>
+          <div class="finding-desc">Si el objeto en R2 está corrupto o fue escrito parcialmente, <code>JSON.parse(await obj.text())</code> en backup.js línea 82 tira una excepción no capturada → HTTP 500 sin cuerpo → el cliente ve "Error desconocido" sin poder diagnósticar.</div>
+          <div class="finding-loc">functions/backup.js · línea 82</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-dot dot-red"></div>
+        <div class="finding-content">
+          <div class="finding-title">KV namespace ID es placeholder en producción</div>
+          <div class="finding-desc"><code>"id": "REEMPLAZAR_CON_ID_REAL"</code> en wrangler.jsonc hará que la validación de licencias falle silenciosamente en deploy. El sistema funcionará en trial para siempre o nunca activará licencias.</div>
+          <div class="finding-loc">wrangler.jsonc · línea 25</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="priority-section">
+    <div class="priority-header"><span style="color:var(--orange)">🟠</span> Casos límite sin manejo</div>
+    <div class="priority-list">
+      <div class="finding">
+        <div class="finding-dot dot-orange"></div>
+        <div class="finding-content">
+          <div class="finding-title">Excel export accesible para usuarios Starter</div>
+          <div class="finding-desc">La función <code>exportExcel()</code> existe sin gate de tier. La landing la vende como Pro+ pero cualquier Starter puede invocarla desde DevTools o si alguien comparte el link directo.</div>
+          <div class="finding-loc">index.html · ~línea 2514</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-dot dot-orange"></div>
+        <div class="finding-content">
+          <div class="finding-title">Venta con precio de compra mayor al de venta</div>
+          <div class="finding-desc">No hay validación que avise si precioCompra > precioVenta. Se puede guardar una venta con ganancia negativa silenciosamente, distorsionando todas las estadísticas de ganancias.</div>
+          <div class="finding-loc">index.html · formulario nueva venta</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-dot dot-orange"></div>
+        <div class="finding-content">
+          <div class="finding-title">Backup automático puede descargar múltiples archivos sin avisar</div>
+          <div class="finding-desc">Si el usuario tiene el backup automático en "diario" y abre la app varias veces al día, cada apertura verifica la fecha y si algo falla con el timestamp, descarga múltiples .json al celular sin confirmación.</div>
+          <div class="finding-loc">index.html · checkAutoBackup()</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────────────────────────── -->
+<!-- SECCIÓN 5 -->
+<!-- ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title-text">Código y Arquitectura</div>
+    <div class="section-score">4.5 / 10</div>
+  </div>
+
+  <div class="card" style="border-color:rgba(224,85,85,.4)">
+    <div class="card-title" style="color:var(--red)">🔴 El elefante en la sala: un archivo de 7.000 líneas</div>
+    <div class="card-body">
+      Todo — HTML, CSS, JS, lógica de negocio, vistas, modelos, controladores — está en un solo archivo de 7.005 líneas. Esto es técnicamente funcional hoy, pero es el mayor riesgo del proyecto a mediano plazo.
+      <br><br>
+      <strong>¿Qué rompería primero?</strong> La mantenibilidad. Agregar una feature nueva requiere encontrar el lugar correcto en 7.000 líneas. Un bug puede estar en cualquier parte. No se pueden hacer tests unitarios. Dos desarrolladores no pueden trabajar en paralelo sin conflictos de merge masivos.
+      <br><br>
+      <strong>¿Escalaría a miles de usuarios?</strong> El backend sí (Cloudflare Workers escala infinitamente). El frontend no — el archivo de 7K líneas se carga completo en cada usuario, sin code splitting, sin lazy loading de módulos, sin tree shaking.
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">✅ Lo bueno</div>
+      <div class="card-body">
+        • <code>escapeHTML()</code> usado consistentemente (protege de XSS)<br>
+        • <code>debounce()</code> para búsquedas<br>
+        • IndexedDB con abstracción PTDB<br>
+        • Service Worker bien estructurado<br>
+        • Modales con focus trap y ARIA<br>
+        • <code>crypto.subtle</code> para PIN (no MD5)<br>
+        • Constantes de licencia bien separadas<br>
+        • <code>escapeHTML</code> en innerHTML
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔴 Lo crítico</div>
+      <div class="card-body">
+        • 0% cobertura de tests<br>
+        • Sin bundler / build system (no minificación)<br>
+        • Sin módulos ES6 (todo en scope global)<br>
+        • Funciones de 200+ líneas inline (ej: <code>renderVentas</code>)<br>
+        • Estado global mutable compartido entre funciones (<code>ventas</code>, <code>perfumes</code>, <code>gastos</code>)<br>
+        • Sin separación de capas (UI + lógica + datos mezclados)<br>
+        • CSS inline en HTML (mantenimiento imposible a escala)
+      </div>
+    </div>
+  </div>
+
+  <blockquote>
+    "Este código funciona excelente para un MVP de un solo desarrollador. Pero si esta app crece, el primer contratado va a tardar 2 semanas solo en entender la estructura. Y el primer refactor va a ser reescribir todo desde cero."
+    <br><em>— Perspectiva Arquitecto de Software</em>
+  </blockquote>
+</div>
+
+<!-- ───────────────────────────────────── -->
+<!-- SECCIÓN 6 -->
+<!-- ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title-text">Rendimiento</div>
+    <div class="section-score">6.2 / 10</div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">📊 Estimados de carga</div>
+      <div class="card-body">
+        <strong>index.html:</strong> ~450-600 KB sin comprimir (7K líneas)<br>
+        <strong>Con gzip/brotli:</strong> ~120-180 KB (Cloudflare Pages comprime automáticamente)<br>
+        <strong>app-screenshot.jpg:</strong> 472 KB — <span class="pill pill-red">demasiado grande</span><br>
+        <strong>jsPDF (lazy):</strong> ~250 KB cargado solo cuando se genera PDF ✅<br><br>
+        <strong>Time to Interactive (3G):</strong> ~3-5 segundos estimado<br>
+        <strong>Time to Interactive (4G):</strong> ~1-2 segundos estimado<br>
+        <strong>En teléfono lento (Moto G4):</strong> ~4-6 seg render + JS parse
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚠️ Problemas de rendimiento</div>
+      <div class="card-body">
+        • <strong>app-screenshot.jpg = 472 KB</strong> — debería ser WebP, max 80 KB<br>
+        • <strong>index.html sin minificar</strong> — 450+ KB vs ~120 KB minificado<br>
+        • <strong>CSS no crítico no diferido</strong> — todo el CSS carga bloqueando render<br>
+        • <strong>OneSignal SDK externo</strong> carga en startup aunque solo Pro lo usa<br>
+        • <strong>renderVentas()</strong> re-renderiza todo el DOM en cada keystroke de búsqueda (aunque con debounce 280ms)<br>
+        • <strong>No hay virtualización de listas</strong> — con 500+ ventas, el DOM se infla masivamente
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🟢 Optimizaciones ya presentes</div>
+    <div class="card-body">
+      Service Worker con cache-first para assets estáticos · IndexedDB (no localStorage para datos pesados) · jsPDF lazy-loaded · Lazy loading de imágenes con IntersectionObserver en ventas · Debounce en búsquedas · Compresión de fotos via canvas API
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────────────────────────── -->
+<!-- SECCIÓN 7 -->
+<!-- ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title-text">Seguridad</div>
+    <div class="section-score">5.0 / 10</div>
+  </div>
+
+  <div class="priority-list" style="margin-bottom:16px">
+    <div class="finding">
+      <div class="finding-dot dot-red"></div>
+      <div class="finding-content">
+        <div class="finding-title">🔴 Sin rate limiting en /backup (CRÍTICO)</div>
+        <div class="finding-desc">El endpoint POST /backup no tiene ningún límite de solicitudes por IP o por código. Un atacante puede: (1) probar todos los códigos posibles por fuerza bruta, (2) inundar R2 con backups de 5MB en loop, (3) hacer DoS al servicio sin consecuencias. Costo estimado de ataque: $0. Daño: datos de todos los usuarios accesibles + costos de R2 desbordados.</div>
+        <div class="finding-loc">functions/backup.js — todo el archivo</div>
+      </div>
+    </div>
+    <div class="finding">
+      <div class="finding-dot dot-red"></div>
+      <div class="finding-content">
+        <div class="finding-title">🔴 Comparación de HMAC no es constant-time</div>
+        <div class="finding-desc"><code>if (token !== expected)</code> es vulnerable a timing attacks. Un atacante con suficientes solicitudes puede determinar el token correcto midiendo tiempos de respuesta. En JavaScript esto es difícil pero no imposible desde un cliente en la misma red. Solución: implementar <code>timingSafeEqual</code> manual.</div>
+        <div class="finding-loc">functions/backup.js · línea 108</div>
+      </div>
+    </div>
+    <div class="finding">
+      <div class="finding-dot dot-orange"></div>
+      <div class="finding-content">
+        <div class="finding-title">🟠 PIN lockout solo client-side</div>
+        <div class="finding-desc">El sistema de 5 intentos antes del bloqueo vive en localStorage. Cualquier usuario puede borrar <code>pt_pin_fails</code> y <code>pt_pin_locked_until</code> desde DevTools en 2 segundos y tener intentos infinitos. En apps de datos financieros esto es un riesgo real.</div>
+        <div class="finding-loc">index.html · recordFail() / isLockedOut()</div>
+      </div>
+    </div>
+    <div class="finding">
+      <div class="finding-dot dot-orange"></div>
+      <div class="finding-content">
+        <div class="finding-title">🟠 Todos los datos financieros en localStorage sin cifrar</div>
+        <div class="finding-desc">Ventas, gastos, precios de compra, nombres de clientes — todo en IndexedDB/localStorage en texto plano. Si el dispositivo es compartido o comprometido, otra app o persona puede leer todos los datos del negocio. En un contexto de revendedoras (muchos comparten teléfono familiar), esto es un riesgo real.</div>
+        <div class="finding-loc">index.html · save() / loadProfile()</div>
+      </div>
+    </div>
+    <div class="finding">
+      <div class="finding-dot dot-yellow"></div>
+      <div class="finding-content">
+        <div class="finding-title">🟡 CORS demasiado abierto en backup.js</div>
+        <div class="finding-desc">El allowlist incluye <code>*.pages.dev</code> y <code>*.workers.dev</code> — cualquier deploy de Cloudflare Pages puede hacer requests al endpoint de backup. Debería restringirse solo al dominio de producción real.</div>
+        <div class="finding-loc">functions/backup.js · corsHeaders()</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="border-color:rgba(76,175,122,.3)">
+    <div class="card-title" style="color:var(--green)">✅ Lo que está bien hecho</div>
+    <div class="card-body">
+      PIN hasheado con SHA-256 + salt (no MD5 ni bcrypt plaintext) · <code>escapeHTML()</code> en todos los innerHTML con datos de usuario · Sin <code>eval()</code> en todo el codebase · Secretos del servidor en env vars de Cloudflare (no en código) · HMAC-SHA256 para autenticación de backup (arquitectura correcta) · Validación de formato de token antes de comparar
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────────────────────────── -->
+<!-- SECCIÓN 8 -->
+<!-- ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title-text">Negocio y Monetización</div>
+    <div class="section-score">7.5 / 10</div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">💚 ¿Por qué la gente pagaría?</div>
+      <div class="card-body">
+        • El problema es real y doloroso: las revendedoras de perfumes son un mercado masivo en LATAM que literalmente usa cuadernos<br>
+        • La app resuelve el problema concreto de "¿cuánto gané este mes?" en 30 segundos vs 2 horas con papel<br>
+        • El precio ($5-12/mes) es accesible para alguien que vende $50K/mes<br>
+        • Funciona offline — el mercado al aire libre sin señal es un caso de uso real y diferenciador<br>
+        • PWA = no requiere app store = cero fricción para instalar
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">❌ ¿Por qué NO pagaría?</div>
+      <div class="card-body">
+        • "Gratis en Excel / Google Sheets" — la percepción de valor vs herramientas gratuitas es el obstáculo #1<br>
+        • Activación solo por WhatsApp — no hay self-service. Si estoy interesado a las 11pm del domingo, no puedo activar<br>
+        • Sin app nativa en stores — algunas usuarias no confían en "instalar desde el navegador"<br>
+        • Sin período de gracia visible — el usuario no sabe qué pasa cuando vence el trial<br>
+        • Sin prueba social (0 reviews, 0 testimonios visibles)
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📈 Potencial real y diferenciación</div>
+    <div class="card-body">
+      <strong>Mercado objetivo:</strong> ~2-5 millones de revendedoras de perfumes en Argentina, Uruguay, Paraguay, Bolivia. Si el 0.5% paga $7/mes → $70K-350K MRR posible.<br><br>
+      <strong>Diferenciación actual:</strong> Vertical muy específico (solo perfumes) + offline-first + precio accesible + WhatsApp integrado. Es una ventaja real vs soluciones genéricas.<br><br>
+      <strong>Riesgo principal:</strong> Excel + Google Sheets + apps gratuitas genéricas de inventario. El costo de cambio para el usuario es bajo porque sus datos están en su celular, no en un server propio.<br><br>
+      <strong>Oportunidad no explotada:</strong> WhatsApp Business API para cobros automatizados. Si la app pudiera enviar el mensaje de cobro automáticamente, el valor percibido se multiplica x3.
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────────────────────────── -->
+<!-- SECCIÓN 9 -->
+<!-- ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title-text">Comparación con grandes apps</div>
+  </div>
+
+  <div style="overflow-x:auto">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Dimensión</th>
+          <th>Parfum Track</th>
+          <th>Notion / Stripe / Shopify</th>
+          <th>Gap</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Onboarding</td>
+          <td class="app">4 pasos, demo data, tour</td>
+          <td>Interactivo, progresivo, sin fricción</td>
+          <td class="gap">Piden WA antes de que el usuario vea valor. Notion muestra valor en 60 seg.</td>
+        </tr>
+        <tr>
+          <td>Tiempo hasta "aha moment"</td>
+          <td class="app">~5-10 min</td>
+          <td>~60-90 segundos</td>
+          <td class="gap">Demasiados campos antes de ver la primera ganancia calculada.</td>
+        </tr>
+        <tr>
+          <td>Pago / activación</td>
+          <td class="app">Solo WhatsApp manual</td>
+          <td>Self-service 24/7, tarjeta, cripto</td>
+          <td class="gap">Fricción masiva. Stripe conectado en 1 hora eliminaría esta brecha.</td>
+        </tr>
+        <tr>
+          <td>Prueba social</td>
+          <td class="app">Cero testimonios, cero reviews</td>
+          <td>Miles de reviews, logos de clientes</td>
+          <td class="gap">Sin social proof el usuario no confía. Ni una captura de pantalla real de otra revendedora.</td>
+        </tr>
+        <tr>
+          <td>Mobile experience</td>
+          <td class="app">PWA bien hecha, bottom nav</td>
+          <td>App nativa en stores</td>
+          <td class="gap">Cerca, pero "instalar desde navegador" tiene resistencia cultural en LATAM.</td>
+        </tr>
+        <tr>
+          <td>Arquitectura de código</td>
+          <td class="app">1 archivo 7K líneas</td>
+          <td>Micro-frontends, módulos, CI/CD</td>
+          <td class="gap">No escalable. No testeable. Técnicamente funcional pero insostenible.</td>
+        </tr>
+        <tr>
+          <td>Seguridad backend</td>
+          <td class="app">HMAC, sin rate limiting</td>
+          <td>WAF, rate limiting, alertas anomalías</td>
+          <td class="gap">Rate limiting es la brecha más crítica y más fácil de cerrar.</td>
+        </tr>
+        <tr>
+          <td>Documentación / help</td>
+          <td class="app">Tour básico, sin docs</td>
+          <td>Docs exhaustivos, videos, community</td>
+          <td class="gap">Ni un video de 60 seg mostrando cómo registrar la primera venta.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ───────────────────────────────────── -->
+<!-- SECCIÓN 10 -->
+<!-- ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title-text">Problemas críticos consolidados</div>
+  </div>
+
+  <div class="priority-section">
+    <div class="priority-header"><span>🔴</span> Críticos — Bloquean el negocio o la seguridad</div>
+    <div class="priority-list">
+      <div class="finding"><div class="finding-dot dot-red"></div><div class="finding-content"><div class="finding-title">Sin rate limiting en /backup — vulnerabilidad de seguridad activa</div><div class="finding-desc">Cualquiera puede atacar el endpoint sin limitaciones.</div></div></div>
+      <div class="finding"><div class="finding-dot dot-red"></div><div class="finding-content"><div class="finding-title">KV namespace ID es "REEMPLAZAR_CON_ID_REAL" — licencias rotas en producción</div><div class="finding-desc">Si se deploya así, ninguna licencia se puede validar.</div></div></div>
+      <div class="finding"><div class="finding-dot dot-red"></div><div class="finding-content"><div class="finding-title">Activación solo por WhatsApp — abandono masivo en momento de compra</div><div class="finding-desc">El usuario interesado a las 11pm del domingo no puede activar. Se va.</div></div></div>
+      <div class="finding"><div class="finding-dot dot-red"></div><div class="finding-content"><div class="finding-title">Features Business inexistentes (Dashboard compartido, Personalización de marca)</div><div class="finding-desc">Usuario que paga $25/mes y pide estas features generará chargeback.</div></div></div>
+      <div class="finding"><div class="finding-dot dot-red"></div><div class="finding-content"><div class="finding-title">app-screenshot.jpg = 472 KB sin comprimir ni optimizar</div><div class="finding-desc">En red 3G es 15-30 segundos de carga solo para la imagen del hero.</div></div></div>
+    </div>
+  </div>
+
+  <div class="priority-section">
+    <div class="priority-header"><span>🟠</span> Importantes — Dañan retención y conversión</div>
+    <div class="priority-list">
+      <div class="finding"><div class="finding-dot dot-orange"></div><div class="finding-content"><div class="finding-title">Sin social proof — landing page con cero credibilidad</div><div class="finding-desc">Sin testimonios reales, la propuesta de valor no se sostiene.</div></div></div>
+      <div class="finding"><div class="finding-dot dot-orange"></div><div class="finding-content"><div class="finding-title">Contradicción de "Notificaciones push" entre features y pricing</div><div class="finding-desc">Starter la tiene según pricing, Pro+ según features. Confunde al usuario.</div></div></div>
+      <div class="finding"><div class="finding-dot dot-orange"></div><div class="finding-content"><div class="finding-title">PIN lockout client-side bypasseable en 5 segundos</div><div class="finding-desc">localStorage editable desde DevTools.</div></div></div>
+      <div class="finding"><div class="finding-dot dot-orange"></div><div class="finding-content"><div class="finding-title">Trial ticker interval leak en cambio de perfil</div><div class="finding-desc">Múltiples setInterval apilados degradan la app gradualmente.</div></div></div>
+      <div class="finding"><div class="finding-dot dot-orange"></div><div class="finding-content"><div class="finding-title">Sin advertencia de precio compra > precio venta</div><div class="finding-desc">El usuario puede registrar pérdidas sin saberlo.</div></div></div>
+    </div>
+  </div>
+
+  <div class="priority-section">
+    <div class="priority-header"><span>🟡</span> Menores — Fricción y pulido</div>
+    <div class="priority-list">
+      <div class="finding"><div class="finding-dot dot-yellow"></div><div class="finding-content"><div class="finding-title">Toast de stock bajo en cada decremento (ruidoso)</div><div class="finding-desc">Una sola notificación al cruzar el umbral es suficiente.</div></div></div>
+      <div class="finding"><div class="finding-dot dot-yellow"></div><div class="finding-content"><div class="finding-title">JSON.parse sin try/catch en restore cloud</div><div class="finding-desc">Error 500 sin mensaje si el backup está corrupto.</div></div></div>
+      <div class="finding"><div class="finding-dot dot-yellow"></div><div class="finding-content"><div class="finding-title">Sin ToS, Privacy Policy, ni legal en landing</div><div class="finding-desc">Riesgo regulatorio en expansión internacional.</div></div></div>
+      <div class="finding"><div class="finding-dot dot-yellow"></div><div class="finding-content"><div class="finding-title">Sin modo oscuro/claro automático (sigue OS)</div><div class="finding-desc">Toggle manual es fricción innecesaria.</div></div></div>
+      <div class="finding"><div class="finding-dot dot-yellow"></div><div class="finding-content"><div class="finding-title">SEO incompleto (sin canonical, twitter:card, JSON-LD)</div><div class="finding-desc">Ranking orgánico limitado.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────────────────────────── -->
+<!-- SECCIÓN 11 -->
+<!-- ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">11</div>
+    <div class="section-title-text">Plan de mejora</div>
+  </div>
+
+  <div style="overflow-x:auto">
+    <table class="plan-table">
+      <thead>
+        <tr>
+          <th>Prioridad</th>
+          <th>Mejora</th>
+          <th>Esfuerzo</th>
+          <th>Impacto</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag tag-red">CRÍTICO</span></td>
+          <td>Corregir KV namespace ID en wrangler.jsonc</td>
+          <td>5 min</td>
+          <td>Licencias rotas → funcionales</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-red">CRÍTICO</span></td>
+          <td>Comprimir app-screenshot.jpg a WebP (~80 KB)</td>
+          <td>15 min</td>
+          <td>Carga 3G: 30s → 3s</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-red">CRÍTICO</span></td>
+          <td>Sacar o marcar "próximamente" Dashboard compartido y Personalización de marca</td>
+          <td>10 min</td>
+          <td>Evita chargeback de Business</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-red">CRÍTICO</span></td>
+          <td>Corregir contradicción Notificaciones push (Starter vs Pro+)</td>
+          <td>5 min</td>
+          <td>Elimina confusión en pricing</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-orange">ALTO</span></td>
+          <td>Agregar rate limiting en /backup (Cloudflare Rate Limiting o KV counter)</td>
+          <td>2-3h</td>
+          <td>Cierra vulnerabilidad de seguridad activa</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-orange">ALTO</span></td>
+          <td>Implementar constant-time comparison en HMAC verify</td>
+          <td>30 min</td>
+          <td>Elimina timing attack vector</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-orange">ALTO</span></td>
+          <td>Fijar trial ticker interval leak (clearInterval al cambiar perfil)</td>
+          <td>30 min</td>
+          <td>Estabilidad de app en uso prolongado</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-orange">ALTO</span></td>
+          <td>Agregar try/catch en JSON.parse de backup restore</td>
+          <td>15 min</td>
+          <td>Error 500 → mensaje claro de "backup corrupto"</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-orange">ALTO</span></td>
+          <td>Toast de stock bajo: solo al cruzar el umbral (no en cada decremento)</td>
+          <td>20 min</td>
+          <td>UX menos ruidosa</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-orange">ALTO</span></td>
+          <td>Validación: avisar si precioCompra > precioVenta</td>
+          <td>20 min</td>
+          <td>Previene datos financieros erróneos</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-yellow">MEDIO</span></td>
+          <td>Integrar Stripe o MercadoPago para activación self-service</td>
+          <td>1-2 días</td>
+          <td>Conversión nocturna y de fin de semana</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-yellow">MEDIO</span></td>
+          <td>Agregar video de 60 seg en landing mostrando registro de venta</td>
+          <td>2-3h producción</td>
+          <td>Tasa de prueba +30-50% estimado</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-yellow">MEDIO</span></td>
+          <td>Recolectar y mostrar 3 testimonios reales con captura de app</td>
+          <td>1-2 días</td>
+          <td>Social proof → confianza → conversión</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-yellow">MEDIO</span></td>
+          <td>SEO: agregar canonical, twitter:card, JSON-LD schema de SoftwareApplication</td>
+          <td>1h</td>
+          <td>Ranking orgánico en Google</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-yellow">MEDIO</span></td>
+          <td>Modo automático dark/light según sistema operativo</td>
+          <td>1h</td>
+          <td>UX sin fricción en onboarding</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-green">BAJA</span></td>
+          <td>Agregar Privacy Policy y ToS mínimos</td>
+          <td>2-3h</td>
+          <td>Requisito legal para expansión</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-green">BAJA</span></td>
+          <td>Separar index.html en módulos JS (largo plazo)</td>
+          <td>2-4 semanas</td>
+          <td>Mantenibilidad y escala del equipo</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-green">BAJA</span></td>
+          <td>Tests E2E con Playwright para flujos críticos</td>
+          <td>1 semana</td>
+          <td>Previene regresiones en cada deploy</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ───────────────────────────────────── -->
+<!-- SECCIÓN 12 -->
+<!-- ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">12</div>
+    <div class="section-title-text">Veredicto final</div>
+  </div>
+
+  <div class="score-grid">
+    <div class="score-card"><div class="label">Diseño</div><div class="num score-7">7.5</div></div>
+    <div class="score-card"><div class="label">UX</div><div class="num score-7">6.8</div></div>
+    <div class="score-card"><div class="label">Funcionalidad</div><div class="num score-7">7.1</div></div>
+    <div class="score-card"><div class="label">Rendimiento</div><div class="num score-6">6.2</div></div>
+    <div class="score-card"><div class="label">Seguridad</div><div class="num score-5">5.0</div></div>
+    <div class="score-card"><div class="label">Escalabilidad</div><div class="num score-4">4.5</div></div>
+    <div class="score-card"><div class="label">Negocio</div><div class="num score-7">7.5</div></div>
+    <div class="score-card"><div class="label">Nivel Pro</div><div class="num score-6">6.0</div></div>
+  </div>
+
+  <div class="verdict">
+    <div class="verdict-title">¿Lanzarías esta app hoy?</div>
+    <div class="verdict-answer">⚠️ Sí, pero con 6 fixes antes del lanzamiento público.</div>
+    <div class="verdict-text">
+      <strong>La honestidad brutal:</strong> Esta app tiene un producto real para un mercado real con un dolor real. Eso es el 80% de lo que importa en un MVP. El diseño es profesional para ser indie. La funcionalidad core funciona bien.<br><br>
+      <strong>Lo que la frena:</strong> No es el código ni el diseño — es el go-to-market. Sin self-service de pago, sin social proof, con features Business que no existen, y con un agujero de seguridad en el backend, el riesgo de lanzar público es alto.<br><br>
+      <strong>El path correcto:</strong><br>
+      1. Arreglar los 6 issues críticos listados arriba (~2-3 horas de trabajo)<br>
+      2. Conseguir 5-10 usuarios beta que usen la app de verdad durante 2 semanas<br>
+      3. Tomar sus capturas de pantalla reales y sus palabras reales como testimonios<br>
+      4. Conectar MercadoPago para activación self-service<br>
+      5. Lanzar con precio Starter $5/mes y subir cuando haya 20+ usuarios activos<br><br>
+      <strong>El mayor riesgo no es técnico — es de distribución.</strong> Una revendedora de perfumes en Uruguay no va a encontrar esta app en Google. Necesita un canal (TikTok mostrando la app, grupos de WhatsApp de revendedoras, alianzas con mayoristas de perfumes) antes de que el producto importa.
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;border-color:rgba(201,168,76,.3);background:rgba(201,168,76,.05)">
+    <div class="card-title" style="color:var(--gold)">💛 El veredicto honesto del equipo</div>
+    <div class="card-body">
+      Con los 6 fixes críticos resueltos, esta app merece lanzarse. El código tiene deuda técnica importante, pero es el tipo de deuda técnica que se puede pagar después cuando hay usuarios que justifiquen la inversión. No al revés.
+      <br><br>
+      <strong>Score final del equipo: 6.4 / 10 — MVP sólido, listo para beta con fixes críticos.</strong>
+    </div>
+  </div>
+</div>
+
+<hr>
+<p style="text-align:center;font-size:12px;color:var(--text3);padding:24px 0">Auditoría generada por equipo de 12 especialistas · Parfum Track · Junio 2026</p>
+
+</div>
+</body>
+</html>
