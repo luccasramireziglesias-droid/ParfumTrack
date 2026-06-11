@@ -1877,7 +1877,7 @@ const _tabScrollPos={};
 function _estimarFechaCuota(v,i){if(!v.fecha)return null;const[d,m,a]=v.fecha.split('/');const dia=parseInt(d),mes=parseInt(m)-1,anio=parseInt(a);const target=new Date(anio,mes+i,1);const maxDia=new Date(target.getFullYear(),target.getMonth()+1,0).getDate();target.setDate(Math.min(dia,maxDia));return`${String(target.getDate()).padStart(2,'0')}/${String(target.getMonth()+1).padStart(2,'0')}/${target.getFullYear()}`;}
 function parseExcelDate(val){if(!val&&val!==0)return '';if(typeof val==='number'&&val>40000){const d=new Date(Math.round((val-25569)*86400*1000));return `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`;}const s=String(val).trim();if(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}$/.test(s))return s.replace(/-/g,'/');if(/^\d{4}-\d{2}-\d{2}/.test(s)){const[a,m,d]=s.split('T')[0].split('-');return `${d}/${m}/${a}`;}return s;}
 function toggleTheme(){const html=document.documentElement;const isDark=html.getAttribute('data-theme')==='dark';html.setAttribute('data-theme',isDark?'light':'dark');document.getElementById('theme-btn').textContent=isDark?'🌙':'☀️';localStorage.setItem('vip_theme',isDark?'light':'dark');if(chartMeses)renderChartMeses();}
-(function(){const t=localStorage.getItem('vip_theme')||'dark';document.documentElement.setAttribute('data-theme',t);const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='dark'?'🌙':'☀️';})();
+(function(){const stored=localStorage.getItem('vip_theme');const t=stored||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.setAttribute('data-theme',t);const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='dark'?'🌙':'☀️';if(!stored){window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(e){if(localStorage.getItem('vip_theme'))return;const nt=e.matches?'dark':'light';document.documentElement.setAttribute('data-theme',nt);const b=document.getElementById('theme-btn');if(b)b.textContent=nt==='dark'?'🌙':'☀️';if(typeof chartMeses!=='undefined'&&chartMeses)renderChartMeses();});}})();
 
 // ── CLOUD BACKUP ─────────────────────────────────────────────
 async function cloudBackupSave() {
@@ -2981,6 +2981,7 @@ function confirmImport(){
 // drag-drop listeners moved to DOMContentLoaded
 // ── EXPORTAR EXCEL ────────────────────────────────────────────
 async function exportExcel(){
+  if(!isActivated()){toast('⚠ Exportar a Excel requiere plan Pro o superior. Activá tu licencia en Ajustes.',3500);return;}
   if(!ventas.length&&!gastos.length&&!caja.length){toast('⚠ No hay datos para exportar',3000);return;}
   if(!(await ensureXLSX())){return;}const wb2=XLSX.utils.book_new();const porMes={};ventas.forEach(v=>{const k=mesKey(v.fecha)||'SIN MES';if(!porMes[k])porMes[k]=[];porMes[k].push(v);});Object.entries(porMes).sort(([a],[b])=>_cmpMesKey(a,b)).forEach(([k,vs])=>{const nombre=mesLabel(k).toUpperCase();const rows=[[`VIP PARFUMS ${nombre}`,'','','','','','','','','','','',''],['º VENTAS','FECHA','PERFUME','PRECIO VENTA','CUOTAS','DEBE DE CUOTA','PAGO','COMPRA','GANANCIA','PROVEEDOR','VENDEDOR','CLIENTE','']];let tV=0,tD=0,tP=0,tC=0,tG=0;vs.forEach((v,i)=>{const pagado=(v.cuotasPagos||[]).reduce((s,p)=>s+p.monto,0);const debe=calcDebe(v);const cStr=v.esCuotas?`${(v.cuotasPagos||[]).length}/${v.cuotasTotal}`:'1';rows.push([i+1,v.fecha,v.perfume,v.precioVenta,cStr,debe,pagado,v.precioCompra||0,v.ganancia||0,v.proveedor||'',v.vendedor||'',v.cliente||'','']);tV+=v.precioVenta||0;tD+=debe;tP+=pagado;tC+=v.precioCompra||0;tG+=v.ganancia||0;});rows.push(['','','',tV,'',tD,tP,tC,tG,'','','','']);rows.push(['','','','','','','','',tG,'','','','']);const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:10},{wch:12},{wch:24},{wch:14},{wch:8},{wch:14},{wch:12},{wch:12},{wch:12},{wch:12},{wch:12},{wch:16},{wch:4}];XLSX.utils.book_append_sheet(wb2,ws,nombre.substring(0,31));});const resRows=[['RESUMEN VIP PARFUMS'],[''],['Mes','Ventas','Ganancia','Cobrado','Por cobrar','Gastos','Ganancia Real']];Object.entries(porMes).sort(([a],[b])=>_cmpMesKey(a,b)).forEach(([k,vs])=>{const gs=gastos.filter(g=>mesKey(g.fecha)===k);resRows.push([mesLabel(k),vs.length,vs.reduce((s,v)=>s+(v.ganancia||0),0),vs.reduce((s,v)=>s+(v.cuotasPagos||[]).reduce((a,p)=>a+p.monto,0),0),vs.reduce((s,v)=>s+calcDebe(v),0),gs.reduce((s,g)=>s+g.monto,0),vs.reduce((s,v)=>s+(v.ganancia||0),0)-gs.reduce((s,g)=>s+g.monto,0)]);});resRows.push([]);resRows.push(['TOTAL',ventas.length,ventas.reduce((s,v)=>s+(v.ganancia||0),0),ventas.reduce((s,v)=>s+(v.cuotasPagos||[]).reduce((a,p)=>a+p.monto,0),0),ventas.reduce((s,v)=>s+calcDebe(v),0),gastos.reduce((s,g)=>s+g.monto,0),ventas.reduce((s,v)=>s+(v.ganancia||0),0)-gastos.reduce((s,g)=>s+g.monto,0)]);const wsRes=XLSX.utils.aoa_to_sheet(resRows);wsRes['!cols']=[{wch:16},{wch:10},{wch:14},{wch:14},{wch:14},{wch:12},{wch:14}];XLSX.utils.book_append_sheet(wb2,wsRes,'RESUMEN');const gRows=[['FECHA','CATEGORÍA','DESCRIPCIÓN','MONTO','PERFUMES','COSTO X PERF']];gastos.forEach(g=>{const p=g.perfumesEnvio?.length>0?g.monto/g.perfumesEnvio.length:0;gRows.push([g.fecha,getAllCatLabels()[g.categoria]||g.categoria,g.nombreOtro||g.descripcion||'',g.monto,(g.perfumesEnvio||[]).join(', '),p||'']);});const wsG=XLSX.utils.aoa_to_sheet(gRows);wsG['!cols']=[{wch:12},{wch:20},{wch:22},{wch:12},{wch:26},{wch:12}];XLSX.utils.book_append_sheet(wb2,wsG,'GASTOS');const cajRows=[['FECHA','TIPO','DESCRIPCIÓN','MONTO']];caja.forEach(m=>cajRows.push([m.fecha,m.tipo==='entrada'?'ENTRADA':'SALIDA',m.desc,m.monto]));const wsCaj=XLSX.utils.aoa_to_sheet(cajRows);wsCaj['!cols']=[{wch:12},{wch:10},{wch:28},{wch:12}];XLSX.utils.book_append_sheet(wb2,wsCaj,'CAJA');XLSX.writeFile(wb2,`VIP_Parfums_${hoy().replace(/\//g,'-')}.xlsx`);toast('📥 Excel exportado en formato VIP');}
 // Modal close on backdrop click + initial tab — moved to DOMContentLoaded
@@ -4604,6 +4605,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var PIN_FAILS_KEY = 'pt_pin_fails';
     var MAX_FAILS = 5;
     var LOCKOUT_MS = 5 * 60 * 1000; // 5 minutos
+    var _failsMem = 0; // contador en memoria — persiste aunque limpien localStorage
     var buf = '';
     var setupStep = 0;   // 0=ingresar nuevo, 1=confirmar
     var setupFirst = ''; // primer ingreso para confirmar
@@ -4621,6 +4623,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ── Lockout ──
     function isLockedOut() {
+      if (_failsMem >= MAX_FAILS) return true;
       var lockUntil = parseInt(localStorage.getItem(PIN_LOCK_KEY) || '0');
       return Date.now() < lockUntil;
     }
@@ -4629,7 +4632,8 @@ document.addEventListener('DOMContentLoaded', function() {
       return Math.max(0, Math.ceil((lockUntil - Date.now()) / 1000));
     }
     function recordFail() {
-      var fails = parseInt(localStorage.getItem(PIN_FAILS_KEY) || '0') + 1;
+      _failsMem++;
+      var fails = Math.max(_failsMem, parseInt(localStorage.getItem(PIN_FAILS_KEY) || '0') + 1);
       localStorage.setItem(PIN_FAILS_KEY, fails);
       if (fails >= MAX_FAILS) {
         localStorage.setItem(PIN_LOCK_KEY, (Date.now() + LOCKOUT_MS).toString());
