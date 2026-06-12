@@ -15,8 +15,7 @@
 
 const DELAY_ON_INVALID = 600; // ms — frena brute-force
 
-// Código permanente del dueño — siempre válido, sin KV ni límites.
-const OWNER_CODE = 'PT-B3FF19-C75C55';
+// Código del dueño leído desde env var LICENSE_OWNER_CODE (Cloudflare Dashboard → Workers → Settings)
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -42,7 +41,8 @@ export async function onRequestPost(context) {
     return new Response(JSON.stringify({ valid: false, error: 'Server misconfigured' }), { status: 500, headers });
   }
 
-  const isOwner = normalizedCode === OWNER_CODE;
+  const ownerCode = (env.LICENSE_OWNER_CODE || '').trim().toUpperCase();
+  const isOwner = ownerCode.length > 0 && normalizedCode === ownerCode;
 
   if (!isOwner) {
     // Validación normal vía KV
