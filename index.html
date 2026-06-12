@@ -3160,8 +3160,9 @@ function getWANumber(){
   return _DEFAULT_WA;
 }
 
-// Token format: 64-char lowercase hex, emitted by the Cloudflare Worker
-// after server-side HMAC verification. Never stored in client code.
+// ECDSA P-256 public key (DER, base64) for client-side signature verification.
+// Matching private key stored in Cloudflare as LICENSE_SIGNING_PRIVATE_KEY env var.
+const LICENSE_VERIFY_KEY_B64 = 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEV60aNhW2k6/n3bJnejjiDMZKS5SJM0dRj0RxOhYuq766eripSxYU3NzIdeZsHDmHGLC7mmSmHzFqV8m1hvj2NQ==';
 
 async function activarLicencia() {
   const input = document.getElementById('activation-code-input');
@@ -3174,6 +3175,7 @@ async function activarLicencia() {
 
   let valid = false;
   let serverToken = null;
+  let serverSig = null;
 
   // 1. Intentar validación serverless (más segura)
   try {
@@ -3186,7 +3188,7 @@ async function activarLicencia() {
     if (resp.ok) {
       const data = await resp.json();
       valid = data.valid === true;
-      if (valid) serverToken = data.token || null;
+      if (valid) { serverToken = data.token || null; serverSig = data.sig || null; }
     } else {
       // Error 5xx del servidor — mostrar error
       if (btn) { btn.disabled = false; btn.textContent = '🔑 Activar'; }
@@ -3202,11 +3204,13 @@ async function activarLicencia() {
 
   if (btn) { btn.disabled = false; btn.textContent = '🔑 Activar'; }
 
-  if (valid && serverToken) {
-    localStorage.setItem('pt_activated_code', serverToken);
+  if (valid && serverToken && serverSig) {
+    localStorage.setItem('pt_activated_code', serverToken);    // HMAC token (backup auth)
+    localStorage.setItem('pt_activated_sig', serverSig);       // ECDSA sig (client verification)
     localStorage.setItem('pt_activation_mode', 'server');
     localStorage.setItem('pt_activated_at', Date.now().toString());
     localStorage.setItem('pt_license_raw_code', code);
+    window._activationVerified = true;
     const banner = document.getElementById('trial-banner');
     if (banner) banner.remove();
     document.body.classList.remove('has-top-banner');
@@ -3268,13 +3272,43 @@ function abrirModalActivacion() {
   trackEvent('paywall_visto');
 }
 
+// ── License state (set by initLicenseVerification at startup) ──
+window._activationVerified = false;
+
 function isActivated() {
-  const mode = localStorage.getItem('pt_activation_mode');
-  const stored = localStorage.getItem('pt_activated_code') || '';
-  // Server token must be exactly 64 lowercase hex chars (format emitted by /validate-license)
-  if (mode === 'server') return /^[0-9a-f]{64}$/.test(stored);
-  // Legacy offline activations are no longer accepted — must re-activate via server
-  return false;
+  return window._activationVerified === true;
+}
+
+async function verifyStoredLicense() {
+  if (localStorage.getItem('pt_activation_mode') !== 'server') return false;
+  const code = localStorage.getItem('pt_license_raw_code') || '';
+  const sigB64 = localStorage.getItem('pt_activated_sig') || '';
+  if (!code || !sigB64) return false;
+  try {
+    const pubKeyDer = Uint8Array.from(atob(LICENSE_VERIFY_KEY_B64), c => c.charCodeAt(0));
+    const pubKey = await crypto.subtle.importKey(
+      'spki', pubKeyDer, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']
+    );
+    const sig = Uint8Array.from(atob(sigB64), c => c.charCodeAt(0));
+    const data = new TextEncoder().encode(code.trim().toUpperCase());
+    return await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, pubKey, sig, data);
+  } catch { return false; }
+}
+
+async function initLicenseVerification() {
+  const valid = await verifyStoredLicense();
+  if (valid === true) {
+    window._activationVerified = true;
+  } else {
+    window._activationVerified = false;
+    if (localStorage.getItem('pt_activation_mode') === 'server') {
+      // Had activation data but failed ECDSA check — clear tampered state
+      ['pt_activated_sig','pt_activated_code','pt_activation_mode',
+       'pt_license_raw_code','pt_activated_at'].forEach(k => localStorage.removeItem(k));
+      setTimeout(() => toast('🔑 Por seguridad, re-activá tu licencia en Ajustes.', 5000, 'warning'), 800);
+    }
+  }
+  checkTrial();
 }
 
 // ══════════════════════════════════════════════
@@ -3322,17 +3356,28 @@ function checkTrial() {
 
   let trialStart = localStorage.getItem('pt_trial_start');
   if (!trialStart) {
-    trialStart = Date.now().toString();
+    // Anchor to oldest venta to prevent reset-and-restart bypass
+    const oldestVenta = ventas.reduce((min, v) => Math.min(min, v.createdAt || v.id || Infinity), Infinity);
+    trialStart = (oldestVenta !== Infinity ? Math.min(oldestVenta, Date.now()) : Date.now()).toString();
     localStorage.setItem('pt_trial_start', trialStart);
     if (ventas.length === 0 && perfumes.length === 0) {
       cargarDatosDemo();
       localStorage.setItem('pt_trial_demo_loaded', '1');
     }
     trackEvent('trial_iniciado');
-    setTimeout(() => mostrarBienvenidaTrial(), 1200);
-    // Email de bienvenida (fire-and-forget, deduplicado)
-    setTimeout(() => sendTrialEmail('trial_welcome'), 3000);
+    if (parseInt(trialStart) >= Date.now() - 5000) {
+      // Truly new user (no existing ventas anchor)
+      setTimeout(() => mostrarBienvenidaTrial(), 1200);
+      setTimeout(() => sendTrialEmail('trial_welcome'), 3000);
+    }
     return;
+  }
+
+  // Validate: trial start cannot be newer than the oldest venta (detects reset bypass)
+  const oldestVentaTs = ventas.reduce((min, v) => Math.min(min, v.createdAt || v.id || Infinity), Infinity);
+  if (oldestVentaTs !== Infinity && parseInt(trialStart) > oldestVentaTs) {
+    trialStart = oldestVentaTs.toString();
+    localStorage.setItem('pt_trial_start', trialStart);
   }
 
   const msLeft = getTrialTimeLeft(trialStart);
@@ -4049,16 +4094,16 @@ function renderAjustes() {
 
     if (isActivated()) {
       // ACTIVADA
-      const code = localStorage.getItem('pt_activated_code') || '';
+      const code = localStorage.getItem('pt_license_raw_code') || '';
       const activatedAt = localStorage.getItem('pt_activated_at');
       const fecha = activatedAt ? new Date(parseInt(activatedAt)).toLocaleDateString('es-UY') : '';
       html += `<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;padding:9px 12px;background:rgba(112,201,160,0.1);border:0.5px solid rgba(112,201,160,0.3);border-radius:10px;">
         <span style="font-size:22px;">✅</span>
         <div><div style="font-size:13px;font-weight:600;color:var(--success);">Licencia activa</div>
-        <div style="font-size:11px;color:var(--text3);">Activada el ${fecha}</div></div>
+        <div style="font-size:11px;color:var(--text3);">Activada el ${escapeHTML(fecha)}</div></div>
       </div>`;
-      html += `<div>🔑 Código: <span style="color:var(--gold2);font-size:11px;letter-spacing:1px;">${code}</span></div>`;
-      html += `<div>👤 Perfil: <strong style="color:var(--text);">${LICENSE.clientName}</strong></div>`;
+      html += `<div>🔑 Código: <span style="color:var(--gold2);font-size:11px;letter-spacing:1px;">${escapeHTML(code)}</span></div>`;
+      html += `<div>👤 Perfil: <strong style="color:var(--text);">${escapeHTML(LICENSE.clientName)}</strong></div>`;
       html += `<div style="margin-top:8px;"><span style="font-size:11px;color:var(--text3);">Parfum Track desbloqueado sin restricciones ✓</span></div>`;
     } else {
       // TRIAL o VENCIDO
@@ -4257,6 +4302,9 @@ async function _doResetApp() {
     'pt_license_key',
     'pt_license_first_use',
     'pt_activated_code',
+    'pt_activated_sig',
+    'pt_activation_mode',
+    'pt_license_raw_code',
     'pt_activated_at',
     'pt_trial_start',
     'pt_profiles',
@@ -4891,7 +4939,7 @@ async function enterAppAfterPin() {
   checkBackupReminder();
   checkLicense();
   checkAutoBackup();
-  checkTrial();
+  await initLicenseVerification();
   checkOnboarding();
 }
 

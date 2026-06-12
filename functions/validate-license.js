@@ -84,18 +84,37 @@ export async function onRequestPost(context) {
     console.log('[validate-license] Activada: código del dueño');
   }
 
-  // Generar token: HMAC-SHA256(code, secret) → 64 hex chars
   const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
+
+  // HMAC-SHA256 token (for backup.js authentication — server-side only)
+  const hmacKey = await crypto.subtle.importKey(
     'raw', encoder.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
   );
-  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(normalizedCode));
-  const token = Array.from(new Uint8Array(sig))
+  const hmacBytes = await crypto.subtle.sign('HMAC', hmacKey, encoder.encode(normalizedCode));
+  const token = Array.from(new Uint8Array(hmacBytes))
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
 
-  return new Response(JSON.stringify({ valid: true, token }), { headers });
+  // ECDSA P-256 signature (for client-side verification via embedded public key)
+  const signingKeyRaw = env.LICENSE_SIGNING_PRIVATE_KEY;
+  if (!signingKeyRaw) {
+    console.error('[validate-license] FATAL: LICENSE_SIGNING_PRIVATE_KEY no configurada');
+    return new Response(JSON.stringify({ valid: false, error: 'Server misconfigured' }), { status: 500, headers });
+  }
+  const signingKeyDer = Uint8Array.from(atob(signingKeyRaw), c => c.charCodeAt(0));
+  const ecdsaKey = await crypto.subtle.importKey(
+    'pkcs8', signingKeyDer,
+    { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']
+  );
+  const ecdsaBytes = await crypto.subtle.sign(
+    { name: 'ECDSA', hash: 'SHA-256' },
+    ecdsaKey,
+    encoder.encode(normalizedCode)
+  );
+  const sig = btoa(String.fromCharCode(...new Uint8Array(ecdsaBytes)));
+
+  return new Response(JSON.stringify({ valid: true, token, sig }), { headers });
 }
 
 export async function onRequestOptions(context) {
