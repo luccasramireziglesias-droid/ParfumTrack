@@ -1542,18 +1542,18 @@ input.field-error,select.field-error{border-color:var(--danger)!important;box-sh
       <button id="edit-foto-quitar" onclick="quitarFotoEdit()" style="width:100%;padding:6px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;margin-top:7px;display:none">× Quitar foto</button>
       <input type="file" id="edit-foto-input" accept="image/*" style="display:none" onchange="previewFotoEdit(event)">
     </div>
-    <div class="form-group"><label class="form-label">Nombre</label><input type="text" id="edit-nombre" placeholder="Nombre del perfume"></div>
+    <div class="form-group"><label class="form-label">Nombre</label><input type="text" id="edit-nombre" maxlength="80" placeholder="Nombre del perfume"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Mililitros (ml)</label><input type="number" id="edit-ml" placeholder="Ej: 100" min="0" inputmode="numeric"></div>
       <div class="form-group"><label class="form-label">Precio compra</label><input type="number" id="edit-precio" placeholder="0" min="0" inputmode="numeric"></div>
     </div>
     <div class="form-group"><label class="form-label">Precio venta habitual</label><input type="number" id="edit-pventa" placeholder="0" min="0" inputmode="numeric"></div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Proveedor</label><input type="text" id="edit-proveedor" placeholder="SCENTA..."></div>
+      <div class="form-group"><label class="form-label">Proveedor</label><input type="text" id="edit-proveedor" maxlength="60" placeholder="SCENTA..."></div>
       <div class="form-group"><label class="form-label">Stock actual</label><input type="number" id="edit-stock" placeholder="0" min="0" inputmode="numeric"></div>
     </div>
     <div class="form-group"><label class="form-label">Stock mínimo (alerta)</label><input type="number" id="edit-stock-min" placeholder="3" min="0" inputmode="numeric"></div>
-    <div class="form-group"><label class="form-label">Notas</label><input type="text" id="edit-notas" placeholder="Observaciones opcionales"></div>
+    <div class="form-group"><label class="form-label">Notas</label><input type="text" id="edit-notas" maxlength="300" placeholder="Observaciones opcionales"></div>
     <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('modal-editar')">Cancelar</button><button class="btn-confirm-ok" onclick="guardarEdicionPerfume()">Guardar cambios</button></div>
   </div>
 </div>
@@ -1588,7 +1588,7 @@ const PTDB = {
         if (!db.objectStoreNames.contains('data')) db.createObjectStore('data');
       };
       req.onsuccess = e => { this.db = e.target.result; resolve(); };
-      req.onerror = () => resolve(); // fallback: sigue sin IDB
+      req.onerror = () => { setTimeout(()=>toast('⚠ Error al iniciar el almacenamiento. Los datos no se guardarán en este dispositivo.',5000,'error'),500); resolve(); };
     });
   },
   async get(key) {
@@ -1989,7 +1989,7 @@ function _validarSchemaBackup(data) {
   if (data.perfumes !== undefined && !Array.isArray(data.perfumes)) return '⚠ El campo "perfumes" está corrupto.';
   if (data.gastos !== undefined && !Array.isArray(data.gastos)) return '⚠ El campo "gastos" está corrupto.';
   if (data.caja !== undefined && !Array.isArray(data.caja)) return '⚠ El campo "caja" está corrupto.';
-  if (!data.ventas || data.ventas.length === 0) return '⚠ El backup no contiene ventas. ¿Es el archivo correcto?';
+  if (data.ventas !== undefined && data.ventas.length === 0 && !data.perfumes?.length && !data.gastos?.length) return '⚠ El backup parece estar vacío. ¿Es el archivo correcto?';
   return null; // null = válido
 }
 
@@ -2096,7 +2096,7 @@ function exportarVentasCSV(){
       csvEsc(fecha),
       csvEsc(v.perfume||v.nombre||''),
       v.cantidad||1,
-      (v.precio||0).toFixed(2),
+      (v.precioVenta||0).toFixed(2),
       (v.ganancia||0).toFixed(2),
       csvEsc(v.cliente||''),
       csvEsc(v.vendedor||''),
@@ -2586,10 +2586,10 @@ function previewFotoEdit(e){
   };
   r.readAsDataURL(f);
 }
-function previewFotoUrl(forzar=false){const url=document.getElementById('edit-foto-url').value.trim();if(!url)return;const img=new Image();img.onload=()=>{editFotoTemporal=url;document.getElementById('edit-foto-preview').innerHTML=`<img src="${escapeHTML(url)}" style="width:100%;height:100%;object-fit:cover">`;document.getElementById('edit-foto-quitar').style.display='block';if(forzar)toast('✓ Imagen cargada');};img.onerror=()=>{if(forzar)toast('⚠ No se pudo cargar esa URL');};img.src=url;}
+function previewFotoUrl(forzar=false){const url=document.getElementById('edit-foto-url').value.trim();if(!url)return;if(!url.startsWith('https://')){if(forzar)toast('⚠ Solo se permiten URLs que empiecen con https://');return;}const img=new Image();img.onload=()=>{editFotoTemporal=url;document.getElementById('edit-foto-preview').innerHTML=`<img src="${escapeHTML(url)}" style="width:100%;height:100%;object-fit:cover">`;document.getElementById('edit-foto-quitar').style.display='block';if(forzar)toast('✓ Imagen cargada');};img.onerror=()=>{if(forzar)toast('⚠ No se pudo cargar esa URL');};img.src=url;}
 function buscarEnPinterest(){const nombre=document.getElementById('edit-nombre').value.trim()||editandoPerfumeNombre||'perfume';window.open(`https://pinterest.com/search/pins/?q=${encodeURIComponent(nombre+' perfume')}`,'_blank');toast('💡 Encontrá la imagen → mantené presionada → Copiar enlace → pegalo en la app',5000);}
 function quitarFotoEdit(){editFotoTemporal='__quitar__';document.getElementById('edit-foto-preview').innerHTML='🍶';document.getElementById('edit-foto-quitar').style.display='none';document.getElementById('edit-foto-url').value='';}
-function guardarEdicionPerfume(){if(!editandoPerfumeNombre)return;const p=perfumes.find(x=>x.nombre===editandoPerfumeNombre);if(!p)return;const nuevoNombre=document.getElementById('edit-nombre').value.trim();if(!nuevoNombre){toast('⚠ El nombre no puede estar vacío');return;}if(nuevoNombre!==p.nombre){ventas.forEach(v=>{if(v.perfume===p.nombre)v.perfume=nuevoNombre;});gastos.forEach(g=>{if(g.perfumesEnvio)g.perfumesEnvio=g.perfumesEnvio.map(n=>n===p.nombre?nuevoNombre:n);});}const nuevoPrecio=parseFloat(document.getElementById('edit-precio').value)||p.precio||0;if(nuevoPrecio!==p.precio){if(!p.historialPrecios)p.historialPrecios=[];p.historialPrecios.push({precio:nuevoPrecio,fecha:hoy()});}p.nombre=nuevoNombre;p.ml=parseInt(document.getElementById('edit-ml').value)||0;p.precio=nuevoPrecio;p.pVenta=parseFloat(document.getElementById('edit-pventa').value)||0;p.proveedor=document.getElementById('edit-proveedor').value.trim();p.stock=parseInt(document.getElementById('edit-stock').value)||0;p.stockMin=parseInt(document.getElementById('edit-stock-min').value)||3;p.notas=document.getElementById('edit-notas').value.trim();if(editFotoTemporal==='__quitar__')p.foto=null;else if(editFotoTemporal)p.foto=editFotoTemporal;else{const u=document.getElementById('edit-foto-url').value.trim();if(u)p.foto=u;}editandoPerfumeNombre=null;editFotoTemporal=null;save();closeModal('modal-editar');renderStock();renderCatalogo();toast(`✓ "${p.nombre}" actualizado`);}
+function guardarEdicionPerfume(){if(!editandoPerfumeNombre)return;const p=perfumes.find(x=>x.nombre===editandoPerfumeNombre);if(!p)return;const nuevoNombre=document.getElementById('edit-nombre').value.trim();if(!nuevoNombre){toast('⚠ El nombre no puede estar vacío');return;}if(nuevoNombre!==p.nombre){ventas.forEach(v=>{if(v.perfume===p.nombre)v.perfume=nuevoNombre;});gastos.forEach(g=>{if(g.perfumesEnvio)g.perfumesEnvio=g.perfumesEnvio.map(n=>n===p.nombre?nuevoNombre:n);});}const nuevoPrecio=parseFloat(document.getElementById('edit-precio').value)||p.precio||0;if(nuevoPrecio!==p.precio){if(!p.historialPrecios)p.historialPrecios=[];p.historialPrecios.push({precio:nuevoPrecio,fecha:hoy()});}p.nombre=nuevoNombre;p.ml=parseInt(document.getElementById('edit-ml').value)||0;p.precio=nuevoPrecio;p.pVenta=parseFloat(document.getElementById('edit-pventa').value)||0;p.proveedor=document.getElementById('edit-proveedor').value.trim();p.stock=Math.max(0,parseInt(document.getElementById('edit-stock').value)||0);p.stockMin=parseInt(document.getElementById('edit-stock-min').value)||3;p.notas=document.getElementById('edit-notas').value.trim();if(editFotoTemporal==='__quitar__')p.foto=null;else if(editFotoTemporal)p.foto=editFotoTemporal;else{const u=document.getElementById('edit-foto-url').value.trim();if(u)p.foto=u;}editandoPerfumeNombre=null;editFotoTemporal=null;save();closeModal('modal-editar');renderStock();renderCatalogo();toast(`✓ "${p.nombre}" actualizado`);}
 // ── GASTOS ────────────────────────────────────────────────────
 function toggleGastoCat(){const cat=document.getElementById('g-categoria').value;document.getElementById('g-envio-compra-extra').style.display=cat==='envio_compra'?'block':'none';document.getElementById('g-otro-extra').style.display=cat==='otro'?'block':'none';if(cat==='envio_compra'){perfumesEnvioTemp=[];renderPerfumesEnvio();}}
 function fillSuggestionsGasto(){const n=[...new Set(ventas.map(v=>v.perfume).filter(Boolean))];document.getElementById('sug-perfume-gasto').innerHTML=n.map(x=>`<option value="${escapeHTML(x)}">`).join('');}
@@ -2681,7 +2681,7 @@ function addVenta(){
   const mesFecha=mesKey(fecha);const esMesNuevo=!mesesDeVentas().includes(mesFecha);const nVenta=ventas.filter(v=>mesKey(v.fecha)===mesFecha).length+1;const esCuotas=tipo==='cuotas';let cuotasTotal=1,primeraCuota=0,cuotasPagos=[];if(esCuotas){cuotasTotal=parseInt(document.getElementById('f-num-cuotas').value)||2;primeraCuota=parseFloat(document.getElementById('f-primera-cuota').value)||0;if(primeraCuota>0)cuotasPagos=[{monto:primeraCuota,fecha,numCuota:0}];}else cuotasPagos=[{monto:pvFinal,fecha,numCuota:0}];const _btnGuardar = document.getElementById('btn-guardar-venta');
   if(_btnGuardar){_btnGuardar.disabled=true;_btnGuardar.textContent='Guardando...';}
   const _esPrimeraVenta = ventas.length === 0;
-  ventas.unshift({id:Date.now(),createdAt:Date.now(),nVenta,perfume,precioVenta:pvFinal,precioCompra:pc,ganancia:pvFinal-pc,descuento:dto||0,esCuotas,cuotasTotal,primeraCuota,cuotasPagos,proveedor,vendedor,cliente,nota,fecha});
+  ventas.unshift({id:crypto.randomUUID(),createdAt:Date.now(),nVenta,perfume,precioVenta:pvFinal,precioCompra:pc,ganancia:pvFinal-pc,descuento:dto||0,esCuotas,cuotasTotal,primeraCuota,cuotasPagos,proveedor,vendedor,cliente,nota,fecha});
   if (_esPrimeraVenta && typeof _obConfetti === 'function') setTimeout(_obConfetti, 800);let sp=perfumes.find(p=>p.nombre.toLowerCase()===perfume.toLowerCase());const _eraNuevo=!sp;if(!sp){sp={nombre:perfume,precio:pc,stock:0,proveedor,foto:null,historialPrecios:[{precio:pc,fecha}]};perfumes.push(sp);}const _stockAntes=sp.stock||0;if(sp.stock>0)sp.stock--;haptic('success');save();
   // BUG-05: avisar cuando el stock llega a 0
   if(!_eraNuevo&&_stockAntes===1)setTimeout(()=>toast(`⚠ Sin stock: "${perfume}" llegó a 0 unidades. Acordate de reponer.`,4500),3400);_clearDraft();updateStats();['f-perfume','f-pventa','f-pcompra','f-descuento','f-proveedor','f-vendedor','f-cliente','f-nota'].forEach(id=>document.getElementById(id).value='');['f-pventa','f-pcompra'].forEach(id=>{const h=document.getElementById('hint-'+id);if(h)h.textContent='';});const _fFecha=document.getElementById('f-fecha');if(_fFecha){const _hoy=new Date().toISOString().slice(0,10);_fFecha.max=_hoy;_fFecha.value=_hoy;}document.getElementById('f-tipo-cuota').value='contado';document.getElementById('cuotas-form-extra').style.display='none';document.getElementById('cuotas-preview').innerHTML='';document.getElementById('precio-sugerido').style.display='none';document.getElementById('ganancia-preview').textContent='';const debe=calcDebe(ventas[0]);toast((esCuotas?`✓ Venta en ${cuotasTotal} cuotas${primeraCuota?' · 1ra cobrada':''}${debe>0?' · Resta: '+fmt(debe):''}`:` ✓ Venta registrada · Ganancia: ${fmt(pvFinal-pc)}`)+(dto>0?` · Descuento: ${dto}%`:'')+(esMesNuevo?`\n📅 Nueva sección ${mesLabel(mesFecha)} creada`:''),3200);if(esMesNuevo)activeMesVentas=mesFecha;
