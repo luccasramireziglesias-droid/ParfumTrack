@@ -4987,17 +4987,33 @@ var tourIndex = 0;
 
 function checkOnboarding() {
   if (localStorage.getItem('pt_onboarding_done')) return;
-  // Pequeño delay para que la app termine de renderizar
   setTimeout(function(){
     var el = document.getElementById('modal-onboarding');
     if (el) el.classList.add('open');
-    // Focus en el campo nombre
-    var inp = document.getElementById('ob-nombre');
-    if (inp) setTimeout(function(){ inp.focus(); }, 200);
-    // Mostrar botón de limpiar demo si hay datos existentes
+    // Reanudar desde el paso guardado
+    var savedStep = localStorage.getItem('pt_ob_step') || '1';
+    if (savedStep === '1b') {
+      document.getElementById('ob-step-1').style.display = 'none';
+      document.getElementById('ob-step-1b').style.display = 'block';
+    } else if (savedStep === '2') {
+      document.getElementById('ob-step-1').style.display = 'none';
+      document.getElementById('ob-step-2').style.display = 'block';
+    } else {
+      var inp = document.getElementById('ob-nombre');
+      if (inp) setTimeout(function(){ inp.focus(); }, 200);
+    }
+    _obUpdateDots(savedStep);
     var wrap = document.getElementById('ob-reset-wrap');
     if (wrap && (ventas.length > 0 || perfumes.length > 0)) wrap.style.display = 'block';
   }, 800);
+}
+function _obUpdateDots(step) {
+  var dots = document.getElementById('ob-dots');
+  if (!dots) return;
+  var idx = step === '2' ? 2 : step === '1b' ? 1 : 0;
+  dots.querySelectorAll('.ob-dot').forEach(function(d, i) {
+    d.style.background = i <= idx ? 'var(--gold2)' : 'var(--border2)';
+  });
 }
 
 function _obLimpiarDemo(){
@@ -5037,11 +5053,14 @@ function obPaso1() {
   var badge = document.getElementById('profile-badge');
   if (badge) badge.textContent = '🍶 ' + (nombre.length > 8 ? nombre.slice(0,8)+'…' : nombre);
   // Mostrar paso 1b (WhatsApp)
+  localStorage.setItem('pt_ob_step', '1b');
   document.getElementById('ob-step-1').style.display = 'none';
   document.getElementById('ob-step-1b').style.display = 'block';
+  _obUpdateDots('1b');
   var saludoWb = document.getElementById('ob-saludo-wb');
   if (saludoWb) saludoWb.textContent = '¡Hola, ' + nombre + '!';
   setTimeout(function(){ var inp = document.getElementById('ob-wa'); if(inp) inp.focus(); }, 100);
+  trackEvent('onboarding_paso_1_completado');
 }
 
 function obPaso1b() {
@@ -5051,21 +5070,27 @@ function obPaso1b() {
 }
 function obPaso1bSkip() { _obMostrarPaso2(); }
 function _obMostrarPaso2() {
+  localStorage.setItem('pt_ob_step', '2');
   document.getElementById('ob-step-1b').style.display = 'none';
   document.getElementById('ob-step-2').style.display = 'block';
+  _obUpdateDots('2');
   var nombre = (document.getElementById('ob-nombre').value || '').trim();
   var saludo = document.getElementById('ob-saludo');
-  if (saludo) saludo.textContent = '¡Hola, ' + nombre + '!';
+  if (saludo) saludo.textContent = '¡Hola, ' + (nombre||'') + '!';
+  trackEvent('onboarding_paso_2_completado');
 }
 
 function obSaltar() {
   localStorage.setItem('pt_onboarding_done', '1');
+  localStorage.removeItem('pt_ob_step');
   var el = document.getElementById('modal-onboarding');
   if (el) el.classList.remove('open');
+  trackEvent('onboarding_saltado');
 }
 
 function obTerminar() {
   localStorage.setItem('pt_onboarding_done', '1');
+  localStorage.removeItem('pt_ob_step');
   var el = document.getElementById('modal-onboarding');
   if (el) el.classList.remove('open');
   trackEvent('onboarding_completado');
@@ -5107,6 +5132,7 @@ function cerrarOnboarding() {
   var el = document.getElementById('ob-welcome-screen');
   if (el) el.classList.remove('show');
   localStorage.setItem('pt_onboarding_done', '1');
+  localStorage.removeItem('pt_ob_step');
 }
 
 function iniciarTour() {
@@ -5175,6 +5201,7 @@ function terminarTour() {
   document.getElementById('tour-highlight').classList.remove('show');
   document.getElementById('tour-tip').classList.remove('show');
   localStorage.setItem('pt_onboarding_done', '1');
+  localStorage.removeItem('pt_ob_step');
   if (typeof showTab === 'function') showTab('ventas');
   if (typeof toast === 'function') toast('🎉 ¡Listo! Ya podés empezar a usar Parfum Track');
 }
@@ -5182,6 +5209,7 @@ function terminarTour() {
 // Permite reabrir el tour desde Ajustes
 function reiniciarTour() {
   localStorage.removeItem('pt_onboarding_done');
+  localStorage.removeItem('pt_ob_step');
   tourIndex = 0;
   iniciarTour();
 }
@@ -6542,6 +6570,13 @@ async function descargarPDFCatalogo() {
 <!-- ═══════ MODAL ONBOARDING ═══════ -->
 <div id="modal-onboarding" class="modal-overlay" role="dialog" aria-modal="true" style="z-index:10001;backdrop-filter:blur(8px)">
   <div class="modal" style="max-width:340px;text-align:center;padding:28px 24px;">
+
+    <!-- Indicador de progreso -->
+    <div id="ob-dots" style="display:flex;justify-content:center;gap:7px;margin-bottom:20px;">
+      <div class="ob-dot" style="width:8px;height:8px;border-radius:50%;background:var(--gold2);transition:background .3s;"></div>
+      <div class="ob-dot" style="width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s;"></div>
+      <div class="ob-dot" style="width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s;"></div>
+    </div>
 
     <!-- Paso 1 -->
     <div id="ob-step-1">
