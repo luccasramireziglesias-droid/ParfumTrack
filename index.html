@@ -1461,7 +1461,9 @@ input.field-error,select.field-error{border-color:var(--danger)!important;box-sh
       <div class="form-group"><label class="form-label">Cliente</label><input type="text" id="f-cliente" maxlength="80" placeholder="Nombre del cliente" list="sug-cliente" oninput="onClienteInput()"><datalist id="sug-cliente"></datalist></div>
       <div class="form-group"><label class="form-label">Nota interna</label><textarea id="f-nota" maxlength="400" rows="3" placeholder="Ej: paga a fin de mes, por encargo..." style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical;min-height:70px"></textarea></div>
       <div class="form-group"><label class="form-label">Fecha de la venta</label><input type="date" id="f-fecha" style="width:100%;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;"></div>
-      <button class="btn-primary" id="btn-guardar-venta" onclick="addVenta()">Guardar venta</button>
+      <div style="position:sticky;bottom:0;padding:10px 0 2px;background:var(--bg2);margin:4px -16px 0;padding-left:16px;padding-right:16px;box-shadow:0 -6px 20px rgba(0,0,0,.25);">
+        <button class="btn-primary" id="btn-guardar-venta" onclick="addVenta()" style="margin-top:0;">Guardar venta</button>
+      </div>
     </div>
 
   </div>
@@ -2697,7 +2699,7 @@ function addVenta(){
   const mesFecha=mesKey(fecha);const esMesNuevo=!mesesDeVentas().includes(mesFecha);const nVenta=ventas.filter(v=>mesKey(v.fecha)===mesFecha).length+1;const esCuotas=tipo==='cuotas';let cuotasTotal=1,primeraCuota=0,cuotasPagos=[];if(esCuotas){cuotasTotal=parseInt(document.getElementById('f-num-cuotas').value)||2;primeraCuota=parseFloat(document.getElementById('f-primera-cuota').value)||0;if(primeraCuota>0)cuotasPagos=[{monto:primeraCuota,fecha,numCuota:0}];}else cuotasPagos=[{monto:pvFinal,fecha,numCuota:0}];const _btnGuardar = document.getElementById('btn-guardar-venta');
   if(_btnGuardar){_btnGuardar.disabled=true;_btnGuardar.textContent='Guardando...';}
   const _esPrimeraVenta = ventas.length === 0;
-  ventas.unshift({id:Date.now()*1000+Math.floor(Math.random()*1000),createdAt:Date.now(),nVenta,perfume,precioVenta:pvFinal,precioCompra:pc,ganancia:pvFinal-pc,descuento:dto||0,esCuotas,cuotasTotal,primeraCuota,cuotasPagos,proveedor,vendedor,cliente,nota,fecha});
+  ventas.unshift({id:Date.now()*1000+Math.floor(Math.random()*1000),createdAt:Date.now(),nVenta,perfume,precioVenta:pvFinal,precioCompra:pc,ganancia:Math.round(pvFinal-pc),descuento:dto||0,esCuotas,cuotasTotal,primeraCuota,cuotasPagos,proveedor,vendedor,cliente,nota,fecha});
   if (_esPrimeraVenta && typeof _obConfetti === 'function') setTimeout(_obConfetti, 800);let sp=perfumes.find(p=>p.nombre.toLowerCase()===perfume.toLowerCase());const _eraNuevo=!sp;if(!sp){sp={nombre:perfume,precio:pc,stock:0,proveedor,foto:null,historialPrecios:[{precio:pc,fecha}]};perfumes.push(sp);}const _stockAntes=sp.stock||0;if(sp.stock>0)sp.stock--;haptic('success');save();
   // BUG-05: avisar cuando el stock llega a 0
   if(!_eraNuevo&&_stockAntes===1)setTimeout(()=>toast(`⚠ Sin stock: "${perfume}" llegó a 0 unidades. Acordate de reponer.`,4500),3400);_clearDraft();updateStats();['f-perfume','f-pventa','f-pcompra','f-descuento','f-proveedor','f-vendedor','f-cliente','f-nota'].forEach(id=>document.getElementById(id).value='');['f-pventa','f-pcompra'].forEach(id=>{const h=document.getElementById('hint-'+id);if(h)h.textContent='';});const _fFecha=document.getElementById('f-fecha');if(_fFecha){const _hoy=new Date().toISOString().slice(0,10);_fFecha.max=_hoy;_fFecha.value=_hoy;}document.getElementById('f-tipo-cuota').value='contado';document.getElementById('cuotas-form-extra').style.display='none';document.getElementById('cuotas-preview').innerHTML='';document.getElementById('precio-sugerido').style.display='none';document.getElementById('ganancia-preview').textContent='';const debe=calcDebe(ventas[0]);toast((esCuotas?`✓ Venta en ${cuotasTotal} cuotas${primeraCuota?' · 1ra cobrada':''}${debe>0?' · Resta: '+fmt(debe):''}`:` ✓ Venta registrada · Ganancia: ${fmt(pvFinal-pc)}`)+(dto>0?` · Descuento: ${dto}%`:'')+(esMesNuevo?`\n📅 Nueva sección ${mesLabel(mesFecha)} creada`:''),3200);if(esMesNuevo)activeMesVentas=mesFecha;
@@ -2897,7 +2899,7 @@ function guardarEditarVenta() {
   v.perfume = perfume;
   v.precioVenta = pv;
   v.precioCompra = pc;
-  v.ganancia = pv - pc;
+  v.ganancia = Math.round(pv - pc);
   v.cliente = cliente;
   v.nota = nota;
   // Si es cuotas y cambió el precio, recalcular cuotas pendientes proporcionalmente
@@ -4669,7 +4671,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var PIN_FAILS_KEY = 'pt_pin_fails';
     var MAX_FAILS = 5;
     var LOCKOUT_MS = 5 * 60 * 1000; // 5 minutos
-    var _failsMem = 0; // contador en memoria — persiste aunque limpien localStorage
+    var _failsMem = parseInt(localStorage.getItem(PIN_FAILS_KEY) || '0');
     var buf = '';
     var setupStep = 0;   // 0=ingresar nuevo, 1=confirmar
     var setupFirst = ''; // primer ingreso para confirmar
