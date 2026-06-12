@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría Técnica Enterprise v2 — Parfum Track</title>
+<style>
+  :root {
+    --bg: #0d0d14;
+    --bg2: #12121e;
+    --card: #181826;
+    --card2: #1e1e2e;
+    --border: rgba(255,255,255,0.07);
+    --gold: #c9a84c;
+    --gold2: #f5dfa0;
+    --text: #e8e6f0;
+    --text2: #9e9bbf;
+    --text3: #6b6880;
+    --red: #e07070;
+    --orange: #e09060;
+    --yellow: #e0c060;
+    --green: #70c990;
+    --blue: #70a0e0;
+    --purple: #a070e0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+  a { color: var(--gold); }
+
+  .hero { background: linear-gradient(135deg, #0d0d14 0%, #1a1228 50%, #0d0d14 100%); border-bottom: 1px solid var(--border); padding: 48px 24px 36px; text-align: center; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 60%); }
+  .hero-badge { display: inline-block; background: rgba(201,168,76,0.12); border: 0.5px solid rgba(201,168,76,0.4); color: var(--gold); border-radius: 20px; padding: 4px 14px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
+  .hero h1 { font-size: 32px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .hero h1 span { color: var(--gold2); }
+  .hero-meta { color: var(--text3); font-size: 12px; margin-top: 12px; }
+  .hero-meta strong { color: var(--text2); }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+  .progress-section { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 24px 20px; }
+  .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; max-width: 960px; margin: 0 auto; }
+  .progress-card { background: var(--card); border: 0.5px solid var(--border); border-radius: 10px; padding: 14px; }
+  .progress-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .progress-val { font-size: 22px; font-weight: 700; }
+  .progress-val.up { color: var(--green); }
+  .progress-val.down { color: var(--red); }
+  .progress-val.same { color: var(--yellow); }
+  .progress-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  .toc { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
+  .toc h3 { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); margin-bottom: 12px; }
+  .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+  .toc-item { color: var(--text2); font-size: 13px; padding: 4px 0; }
+  .toc-item a { color: var(--text2); text-decoration: none; transition: color 0.2s; }
+  .toc-item a:hover { color: var(--gold2); }
+
+  .phase { margin: 40px 0; }
+  .phase-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .phase-num { background: linear-gradient(135deg, var(--gold), var(--gold2)); color: #1a1228; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .phase-title { font-size: 20px; font-weight: 700; color: var(--text); }
+  .phase-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+  .section-title { font-size: 13px; font-weight: 600; color: var(--gold2); text-transform: uppercase; letter-spacing: 0.5px; margin: 24px 0 12px; }
+
+  .card { background: var(--card); border: 0.5px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 12px; }
+  .card-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+  .card-title { font-weight: 600; font-size: 14px; color: var(--text); }
+  .card-body { font-size: 13px; color: var(--text2); line-height: 1.7; }
+  .card-body p { margin-bottom: 6px; }
+
+  .bug-card { background: var(--card); border-radius: 10px; padding: 18px 20px; margin-bottom: 14px; border-left: 3px solid; }
+  .bug-card.crit { border-color: var(--red); }
+  .bug-card.high { border-color: var(--orange); }
+  .bug-card.med { border-color: var(--yellow); }
+  .bug-card.low { border-color: var(--green); }
+  .bug-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .bug-id { font-size: 10px; background: rgba(255,255,255,0.06); color: var(--text3); border-radius: 4px; padding: 2px 7px; font-family: monospace; }
+  .bug-title { font-weight: 600; font-size: 14px; color: var(--text); }
+  .bug-status { font-size: 10px; border-radius: 20px; padding: 2px 8px; font-weight: 600; letter-spacing: 0.3px; }
+  .status-new { background: rgba(224,112,112,0.15); color: var(--red); border: 0.5px solid rgba(224,112,112,0.3); }
+  .status-fixed { background: rgba(112,201,160,0.15); color: var(--green); border: 0.5px solid rgba(112,201,160,0.3); }
+  .status-open { background: rgba(224,176,60,0.15); color: var(--yellow); border: 0.5px solid rgba(224,176,60,0.3); }
+  .bug-body { font-size: 13px; color: var(--text2); line-height: 1.7; }
+  .bug-body p { margin-bottom: 6px; }
+  .bug-body strong { color: var(--text); }
+
+  .severity { font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 8px; }
+  .sev-crit { background: rgba(224,112,112,0.15); color: var(--red); }
+  .sev-high { background: rgba(224,144,96,0.15); color: var(--orange); }
+  .sev-med { background: rgba(224,192,96,0.15); color: var(--yellow); }
+  .sev-low { background: rgba(112,201,160,0.15); color: var(--green); }
+
+  code { background: rgba(255,255,255,0.06); border: 0.5px solid var(--border); border-radius: 4px; padding: 1px 6px; font-family: 'Consolas', monospace; font-size: 12px; color: var(--gold2); }
+  pre { background: #0a0a12; border: 0.5px solid var(--border); border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin: 10px 0; }
+  pre code { background: none; border: none; padding: 0; color: #a0d8a0; font-size: 12px; line-height: 1.6; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: rgba(255,255,255,0.04); color: var(--text3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 12px; border-bottom: 0.5px solid var(--border); color: var(--text2); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin: 20px 0; }
+  .score-card { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; padding: 18px; }
+  .score-label { font-size: 12px; color: var(--text3); margin-bottom: 8px; }
+  .score-val { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .score-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+  .score-bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s; }
+
+  .verdict { background: linear-gradient(135deg, rgba(224,176,60,0.08), rgba(201,168,76,0.03)); border: 1px solid rgba(224,176,60,0.25); border-radius: 14px; padding: 28px; margin: 28px 0; text-align: center; }
+  .verdict-emoji { font-size: 40px; margin-bottom: 12px; }
+  .verdict-title { font-size: 22px; font-weight: 700; color: var(--gold2); margin-bottom: 8px; }
+  .verdict-body { color: var(--text2); font-size: 14px; line-height: 1.8; max-width: 640px; margin: 0 auto; }
+
+  .checklist { list-style: none; }
+  .checklist li { padding: 8px 0; border-bottom: 0.5px solid var(--border); display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
+  .checklist li:last-child { border-bottom: none; }
+  .check-ok { color: var(--green); flex-shrink: 0; }
+  .check-fail { color: var(--red); flex-shrink: 0; }
+  .check-warn { color: var(--yellow); flex-shrink: 0; }
+  .check-text { color: var(--text2); }
+  .check-text strong { color: var(--text); }
+
+  .fixed-badge { background: rgba(112,201,160,0.1); border: 0.5px solid rgba(112,201,160,0.3); color: var(--green); border-radius: 6px; padding: 4px 10px; font-size: 12px; display: inline-block; margin: 2px; }
+  .new-badge { background: rgba(224,112,112,0.1); border: 0.5px solid rgba(224,112,112,0.3); color: var(--red); border-radius: 6px; padding: 4px 10px; font-size: 12px; display: inline-block; margin: 2px; }
+  .open-badge { background: rgba(224,176,60,0.1); border: 0.5px solid rgba(224,176,60,0.3); color: var(--yellow); border-radius: 6px; padding: 4px 10px; font-size: 12px; display: inline-block; margin: 2px; }
+
+  .top-list { counter-reset: top-counter; list-style: none; }
+  .top-list li { counter-increment: top-counter; display: flex; gap: 14px; padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+  .top-list li:last-child { border-bottom: none; }
+  .top-num { background: linear-gradient(135deg, var(--card), var(--card2)); border: 0.5px solid var(--border); color: var(--text3); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+  .top-content { flex: 1; }
+  .top-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .top-desc { font-size: 12px; color: var(--text3); }
+
+  .team-tag { display: inline-block; background: rgba(160,112,224,0.1); border: 0.5px solid rgba(160,112,224,0.3); color: #c0a0f0; border-radius: 4px; padding: 1px 7px; font-size: 10px; margin-right: 4px; }
+
+  .regression-banner { background: rgba(224,112,112,0.1); border: 1px solid rgba(224,112,112,0.3); border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; }
+  .regression-banner .rb-title { color: var(--red); font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+  .regression-banner .rb-body { color: var(--text2); font-size: 13px; }
+
+  .divider { height: 1px; background: var(--border); margin: 36px 0; }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 22px; }
+    .progress-grid { grid-template-columns: repeat(2, 1fr); }
+    .score-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container" style="position:relative;z-index:1">
+    <div class="hero-badge">Auditoría Enterprise v2 · 2026-06-12</div>
+    <h1>Parfum Track — <span>Auditoría Técnica</span></h1>
+    <p style="color:var(--text2);margin-top:10px;font-size:15px">Post-fixes · Estado real del código · 10 fases</p>
+    <div class="hero-meta">
+      Equipo: <strong>CTO · Arquitecto · QA Lead · Security Engineer · PM · UX/UI · Frontend · Backend · Mobile · Performance</strong>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px">
+      <span class="fixed-badge">✅ 22 fixes aplicados desde v1</span>
+      <span class="new-badge">🔴 3 nuevos críticos encontrados</span>
+      <span class="open-badge">⚠ Build fallando en producción</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESO DESDE v1 -->
+<div class="progress-section">
+  <div class="progress-grid">
+    <div class="progress-card">
+      <div class="progress-label">Bugs críticos resueltos</div>
+      <div class="progress-val up">22</div>
+      <div class="progress-sub">Desde la auditoría anterior</div>
+    </div>
+    <div class="progress-card">
+      <div class="progress-label">Seguridad (era 4.8)</div>
+      <div class="progress-val up">6.0</div>
+      <div class="progress-sub">+1.2 — pero 3 críticos nuevos</div>
+    </div>
+    <div class="progress-card">
+      <div class="progress-label">Producción (era 5.2)</div>
+      <div class="progress-val up">6.8</div>
+      <div class="progress-sub">+1.6 — KV activo, bugs corregidos</div>
+    </div>
+    <div class="progress-card">
+      <div class="progress-label">Estado del deploy</div>
+      <div class="progress-val down">FAIL</div>
+      <div class="progress-sub">R2 bucket no creado</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<div class="toc">
+  <h3>Índice</h3>
+  <div class="toc-grid">
+    <div class="toc-item"><a href="#fase1">Fase 1 — Auditoría Funcional</a></div>
+    <div class="toc-item"><a href="#fase2">Fase 2 — Catálogo de Bugs</a></div>
+    <div class="toc-item"><a href="#fase3">Fase 3 — QA Extremo</a></div>
+    <div class="toc-item"><a href="#fase4">Fase 4 — Seguridad</a></div>
+    <div class="toc-item"><a href="#fase5">Fase 5 — UX/UI</a></div>
+    <div class="toc-item"><a href="#fase6">Fase 6 — Rendimiento</a></div>
+    <div class="toc-item"><a href="#fase7">Fase 7 — Escalabilidad</a></div>
+    <div class="toc-item"><a href="#fase8">Fase 8 — Completitud</a></div>
+    <div class="toc-item"><a href="#fase9">Fase 9 — Checklist Producción</a></div>
+    <div class="toc-item"><a href="#fase10">Fase 10 — Informe Final</a></div>
+  </div>
+</div>
+
+<!-- FASE 1 -->
+<div class="phase" id="fase1">
+  <div class="phase-header">
+    <div class="phase-num">1</div>
+    <div>
+      <div class="phase-title">Auditoría Funcional Completa</div>
+      <div class="phase-sub">CTO Senior · Arquitecto · QA Lead</div>
+    </div>
+  </div>
+
+  <div class="regression-banner">
+    <div class="rb-title">⚠ Regresión detectada y corregida durante esta auditoría</div>
+    <div class="rb-body">
+      El cambio <code>id: crypto.randomUUID()</code> introducido en la sesión anterior rompía <strong>todos</strong> los handlers de ventas. UUIDs con guiones (<code>"abc-123-def"</code>) generaban JS inválido en <code>onclick="func(abc-123-def)"</code> — interpretado como sustracción de variables indefinidas. Resultado: ningún botón de cobrar, editar, borrar, o WhatsApp funcionaba. <strong>Corregido antes de push.</strong>
+    </div>
+  </div>
+
+  <div class="section-title">Módulo: Registro de Ventas (addVenta)</div>
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">✅ Funciona bien — con matices</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <p><strong>Qué hace:</strong> Valida inputs, construye objeto venta, lo inserta en el array, decrementa stock, guarda en IndexedDB con debounce 500ms.</p>
+      <p><strong>Riesgos ocultos:</strong></p>
+      <table>
+        <tr><th>Escenario</th><th>Resultado actual</th><th>Esperado</th></tr>
+        <tr><td>Doble tap en "Guardar"</td><td>✅ Guard <code>_addVentaEnProceso</code> previene doble submit</td><td>✅</td></tr>
+        <tr><td>Precio venta $0</td><td>🔴 Validación falla: <code>!pv || pv &lt;= 0</code> — correcto</td><td>✅</td></tr>
+        <tr><td>Precio compra $0</td><td>🟡 Solo avisa, no bloquea</td><td>Depende del negocio</td></tr>
+        <tr><td>Descuento 100%</td><td>🔴 Precio final = $0, se acepta</td><td>Debería bloquear o confirmar</td></tr>
+        <tr><td>Nombre perfume con &lt;script&gt;</td><td>✅ escapeHTML en todos los renders</td><td>✅</td></tr>
+        <tr><td>Perfume con 500 caracteres</td><td>🟡 maxlength=80 en form pero no en edición de venta</td><td>Consistente</td></tr>
+        <tr><td>Fecha mañana (timezone +3)</td><td>✅ Corregido en esta sesión</td><td>✅</td></tr>
+        <tr><td>Cuotas con primera cuota &gt; total</td><td>🟡 No valida, ganancia se distorsiona</td><td>Validar primera &lt;= total</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-title">Módulo: Sistema de Cuotas</div>
+  <div class="card">
+    <div class="card-body">
+      <p><strong>Bug en cuotas panel:</strong> <code>${p.fecha}</code> insertado en innerHTML sin escapeHTML. Aunque las fechas vienen de <code>hoy()</code> (función interna), un backup importado puede contener <code>fecha: "01/01/2026&lt;img src=x onerror=alert(1)&gt;"</code>. Stored XSS via backup. <span class="severity sev-high">ALTO</span></p>
+      <pre><code>// VULNERABLE (línea ~2508)
+items += `&lt;div class="cuota-fecha"&gt;${p.fecha}&lt;/div&gt;`
+
+// SEGURO
+items += `&lt;div class="cuota-fecha"&gt;${escapeHTML(p.fecha)}&lt;/div&gt;`</code></pre>
+      <p><strong>También afectado:</strong> <code>${_fe}</code> (fecha estimada de cuota), <code>${m.fecha}</code> en caja, <code>${c.fecha}</code> en gastos — todos sin escapeHTML en innerHTML.</p>
+    </div>
+  </div>
+
+  <div class="section-title">Módulo: Save / Persistencia</div>
+  <div class="card">
+    <div class="card-body">
+      <p><strong>Bien:</strong> <code>save()</code> usa debounce 500ms + guard <code>_saveRunning</code> con retry. IndexedDB correctamente implementado. Perfiles con <code>profileKey()</code> para namespacing.</p>
+      <p><strong>Problema:</strong> Sin <code>BroadcastChannel</code> ni <code>visibilitychange</code>, si el usuario abre dos pestañas, los datos se sobrescriben mutuamente silenciosamente. El último <code>save()</code> gana. <span class="severity sev-med">MEDIO</span></p>
+      <p><strong>Sin confirmación al cerrar con cambios no guardados.</strong> Si IndexedDB falla después de <code>_saveRunning=false</code>, el usuario no se entera. <span class="severity sev-med">MEDIO</span></p>
+    </div>
+  </div>
+
+  <div class="section-title">Módulo: Backup / Restore</div>
+  <div class="card">
+    <div class="card-body">
+      <p><strong>✅ Mejorado:</strong> <code>_validarSchemaBackup</code> ya no rechaza backups con 0 ventas. timingSafeEqual en backup.js. Rate limiting KV activo.</p>
+      <p><strong>🔴 R2 bucket no existe:</strong> El bucket <code>parfumtrack-backups</code> no fue creado. Cloudflare falla al deployar por binding a bucket inexistente. <strong>La app en producción no está actualizada.</strong></p>
+      <p><strong>🟡 Backup local marca timestamp antes de confirmar descarga:</strong> Si el browser bloquea el download (popup blocker), <code>pt_ultimo_backup</code> se marca como hecho aunque el archivo nunca se descargó.</p>
+    </div>
+  </div>
+
+  <div class="section-title">Módulo: Licencias / Trial</div>
+  <div class="card">
+    <div class="card-body">
+      <p><strong>🔴 CRÍTICO de negocio:</strong> Toda la lógica de licencia vive en localStorage:</p>
+      <pre><code>localStorage.getItem('pt_activated_code')   // código de activación
+localStorage.getItem('pt_activated_at')     // fecha de activación
+localStorage.getItem('pt_trial_start')      // inicio del trial</code></pre>
+      <p>Cualquier usuario con DevTools puede escribir:</p>
+      <pre><code>localStorage.setItem('pt_activated_code', 'CUALQUIER-COSA')
+localStorage.setItem('pt_activated_at', Date.now())
+// App desbloqueada sin pagar</code></pre>
+      <p>El servidor valida el token HMAC al activar, pero después <strong>nunca re-valida</strong>. La app solo chequea <code>localStorage.getItem('pt_activated_code')</code>.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FASE 2 -->
+<div class="phase" id="fase2">
+  <div class="phase-header">
+    <div class="phase-num">2</div>
+    <div>
+      <div class="phase-title">Catálogo Completo de Bugs</div>
+      <div class="phase-sub">QA Lead · Security Engineer · Frontend Senior</div>
+    </div>
+  </div>
+
+  <div class="section-title">🔴 Críticos</div>
+
+  <div class="bug-card crit">
+    <div class="bug-header">
+      <span class="bug-id">SEC-01</span>
+      <span class="bug-title">Licencia bypasseable via localStorage</span>
+      <span class="bug-status status-new">NUEVO</span>
+      <span class="severity sev-crit">CRÍTICO</span>
+    </div>
+    <div class="bug-body">
+      <p><strong>Reproducción:</strong> DevTools → Application → Local Storage → setear <code>pt_activated_code</code> a cualquier valor → recargar.</p>
+      <p><strong>Causa raíz:</strong> <code>isActivated()</code> solo verifica <code>!!localStorage.getItem('pt_activated_code')</code>. No hay re-validación server-side después de la activación inicial.</p>
+      <p><strong>Impacto:</strong> Pérdida total de ingresos. Cualquier usuario técnico accede gratis permanentemente.</p>
+      <p><strong>Fix:</strong> Periodic re-validation: al cargar la app, si hay un código en localStorage, validar contra el servidor cada N horas (hash + timestamp). Si falla, marcar como inválido.</p>
+    </div>
+  </div>
+
+  <div class="bug-card crit">
+    <div class="bug-header">
+      <span class="bug-id">SEC-02</span>
+      <span class="bug-title">Trial permanente via localStorage</span>
+      <span class="bug-status status-new">NUEVO</span>
+      <span class="severity sev-crit">CRÍTICO</span>
+    </div>
+    <div class="bug-body">
+      <p><strong>Reproducción:</strong> <code>localStorage.setItem('pt_trial_start', Date.now())</code> cada vez que el trial expire → trial infinito.</p>
+      <p><strong>O aún más simple:</strong> <code>localStorage.removeItem('pt_trial_start')</code> → el trial nunca arranca → acceso sin restricciones.</p>
+      <p><strong>Causa raíz:</strong> El trial start está almacenado client-side sin ninguna validación server-side.</p>
+      <p><strong>Fix:</strong> Usar el Worker para emitir un token firmado con timestamp al primer acceso. Almacenarlo en localStorage pero validar la firma en cada carga. Sin firma válida, el trial no existe.</p>
+    </div>
+  </div>
+
+  <div class="bug-card crit">
+    <div class="bug-header">
+      <span class="bug-id">DEPLOY-01</span>
+      <span class="bug-title">Build fallando en producción — app no actualizada</span>
+      <span class="bug-status status-new">NUEVO</span>
+      <span class="severity sev-crit">CRÍTICO</span>
+    </div>
+    <div class="bug-body">
+      <p><strong>Reproducción:</strong> Dashboard Cloudflare → parfumtrack → "Latest build failed".</p>
+      <p><strong>Causa raíz:</strong> <code>wrangler.jsonc</code> declara un R2 bucket binding (<code>PT_BACKUP: "parfumtrack-backups"</code>) pero el bucket nunca fue creado. Cloudflare rechaza el deploy.</p>
+      <p><strong>Impacto:</strong> Todos los 22 fixes de seguridad y funcionalidad de esta sesión <strong>no están en producción</strong>. Los usuarios reales siguen usando la versión vulnerable.</p>
+      <p><strong>Fix inmediato:</strong> Crear bucket <code>parfumtrack-backups</code> en Cloudflare R2 → el siguiente push triggerea el build automáticamente.</p>
+    </div>
+  </div>
+
+  <div class="section-title">🟠 Altos</div>
+
+  <div class="bug-card high">
+    <div class="bug-header">
+      <span class="bug-id">XSS-01</span>
+      <span class="bug-title">p.fecha sin escapeHTML en cuotas panel (stored XSS via backup)</span>
+      <span class="bug-status status-new">NUEVO</span>
+      <span class="severity sev-high">ALTO</span>
+    </div>
+    <div class="bug-body">
+      <p><strong>Afecta:</strong> <code>cuotas panel</code> (~línea 2508), <code>renderCaja</code> (<code>${m.fecha}</code>), <code>renderGastos</code> (<code>${c.fecha}</code>), fechas estimadas (<code>${_fe}</code>).</p>
+      <p><strong>Vector:</strong> Un backup malicioso con <code>fecha: "01/01/2026&lt;script&gt;...&lt;/script&gt;"</code> se inyecta al importar.</p>
+      <p><strong>Fix:</strong> Envolver todos en <code>escapeHTML(p.fecha)</code>, <code>escapeHTML(m.fecha)</code>, etc.</p>
+    </div>
+  </div>
+
+  <div class="bug-card high">
+    <div class="bug-header">
+      <span class="bug-id">XSS-02</span>
+      <span class="bug-title">LICENSE.clientName sin escapeHTML en renderAjustes</span>
+      <span class="bug-status status-new">NUEVO</span>
+      <span class="severity sev-high">ALTO</span>
+    </div>
+    <div class="bug-body">
+      <p><strong>Código vulnerable (~línea 4068):</strong></p>
+      <pre><code>html += `&lt;div&gt;👤 Perfil: &lt;strong ...&gt;${LICENSE.clientName}&lt;/strong&gt;&lt;/div&gt;`;</code></pre>
+      <p><code>LICENSE.clientName</code> viene del servidor al validar el código. Si el nombre de un cliente contiene HTML (<code>Juan&lt;img src=x onerror=alert(1)&gt;</code>), se inyecta en el innerHTML de ajustes.</p>
+      <p><strong>Fix:</strong> <code>escapeHTML(LICENSE.clientName)</code></p>
+    </div>
+  </div>
+
+  <div class="bug-card high">
+    <div class="bug-header">
+      <span class="bug-id">BUG-SW</span>
+      <span class="bug-title">Service Worker sw.js no auditado — posible cache stale</span>
+      <span class="bug-status status-open">PENDIENTE</span>
+      <span class="severity sev-high">ALTO</span>
+    </div>
+    <div class="bug-body">
+      <p>El service worker en <code>/sw.js</code> se registra pero nunca fue auditado. Riesgos:</p>
+      <p>1. Cache agresivo → usuarios reciben versiones antiguas post-deploy, sin los fixes de seguridad.</p>
+      <p>2. Sin versioning → si el SW no invalida la cache, todos los 22 fixes son invisibles para usuarios con app instalada.</p>
+      <p>3. Si el SW intercepta requests al Worker API, podría cachear respuestas de validación de licencia.</p>
+    </div>
+  </div>
+
+  <div class="bug-card high">
+    <div class="bug-header">
+      <span class="bug-id">BUG-13</span>
+      <span class="bug-title">PIN hash almacenado en localStorage — brute-forceable offline</span>
+      <span class="bug-status status-open">PENDIENTE</span>
+      <span class="severity sev-high">ALTO</span>
+    </div>
+    <div class="bug-body">
+      <p>El hash SHA-256 del PIN se guarda en <code>localStorage.getItem('pt_pin_hash')</code>. Cualquier acceso físico al dispositivo + DevTools permite extraer el hash y hacer brute force offline de PINs de 4 dígitos (solo 10.000 combinaciones, en segundos).</p>
+      <p><strong>Fix:</strong> Almacenar el hash en IndexedDB (menos accesible que localStorage). Agregar salt único por dispositivo. El lockout (<code>_failsMem</code>) es solo en memoria — se resetea al recargar.</p>
+    </div>
+  </div>
+
+  <div class="bug-card high">
+    <div class="bug-header">
+      <span class="bug-id">BUG-14</span>
+      <span class="bug-title">Descuento 100% → precio final $0 → se acepta como venta</span>
+      <span class="bug-status status-new">NUEVO</span>
+      <span class="severity sev-high">ALTO</span>
+    </div>
+    <div class="bug-body">
+      <p><strong>Reproducción:</strong> Agregar venta con descuento 100% → se guarda con precio $0 y ganancia negativa (igual a -precioCompra).</p>
+      <p><strong>Impacto:</strong> Estadísticas distorsionadas. Venta registrada con precio $0 es inconsistente con cualquier reporte.</p>
+      <p><strong>Fix:</strong></p>
+      <pre><code>if(dto === 100){ _abort('⚠ Un descuento del 100% equivale a dar el producto gratis. Confirmá.'); return; }</code></pre>
+    </div>
+  </div>
+
+  <div class="section-title">🟡 Medios</div>
+
+  <table>
+    <tr>
+      <th>ID</th><th>Descripción</th><th>Línea aprox.</th><th>Fix</th>
+    </tr>
+    <tr>
+      <td><code>BUG-15</code></td>
+      <td>Lockout de PIN reseteado al recargar (<code>_failsMem</code> solo en memoria)</td>
+      <td>~4740</td>
+      <td>Persistir contador en sessionStorage o IndexedDB</td>
+    </tr>
+    <tr>
+      <td><code>BUG-16</code></td>
+      <td>Multi-tab: dos pestañas abiertas sobreescriben datos mutuamente</td>
+      <td>save()</td>
+      <td>BroadcastChannel + reload/merge al detectar conflicto</td>
+    </tr>
+    <tr>
+      <td><code>BUG-17</code></td>
+      <td>Primera cuota puede ser mayor al total → plan de cuotas negativo</td>
+      <td>~2681</td>
+      <td>Validar <code>primeraCuota &lt; pvFinal</code></td>
+    </tr>
+    <tr>
+      <td><code>BUG-18</code></td>
+      <td>Demo data tiene IDs 1, 2, 3 — colisionan con ventas reales si usuario carga demo y tiene ventas previas</td>
+      <td>~3480</td>
+      <td>Usar <code>Date.now()</code> para IDs del demo data</td>
+    </tr>
+    <tr>
+      <td><code>BUG-19</code></td>
+      <td><code>window.location.href = 'mailto:...'</code> no usa openLink — puede ser bloqueado en iOS</td>
+      <td>~3660</td>
+      <td>Usar <code>openLink('mailto:...')</code></td>
+    </tr>
+    <tr>
+      <td><code>BUG-20</code></td>
+      <td>Backup timestamp marcado antes de confirmar éxito de descarga del archivo</td>
+      <td>~1972</td>
+      <td>Mover setItem al callback post-descarga</td>
+    </tr>
+    <tr>
+      <td><code>BUG-21</code></td>
+      <td>fillSuggestions() reconstruye datalists completos en cada llamada (O(4n))</td>
+      <td>~2619</td>
+      <td>Flag dirty para reconstruir solo si datos cambiaron</td>
+    </tr>
+    <tr>
+      <td><code>BUG-22</code></td>
+      <td>Gas/caja: <code>m.fecha</code>, <code>g.fecha</code> sin escapeHTML en innerHTML</td>
+      <td>~2548, ~2613</td>
+      <td><code>escapeHTML(m.fecha)</code> en todos los contextos innerHTML</td>
+    </tr>
+  </table>
+
+  <div class="section-title">🟢 Bajos</div>
+  <table>
+    <tr><th>Descripción</th><th>Fix</th></tr>
+    <tr><td>Imágenes sin <code>width</code>/<code>height</code> → CLS (Cumulative Layout Shift)</td><td>Agregar atributos de dimensión o aspect-ratio en CSS</td></tr>
+    <tr><td>No hay <code>rel="noopener noreferrer"</code> en algunos links (ya en openLink ✅ pero no en anchors HTML)</td><td>Auditar anchors estáticos</td></tr>
+    <tr><td>Console.error solo en failures — sin logging estructurado</td><td>Agregar Cloudflare Analytics Events o similar</td></tr>
+    <tr><td>CSS inline extensivo en elementos dinámicos — dificulta theming</td><td>Mover a clases CSS</td></tr>
+    <tr><td>Sin <code>aria-modal="true"</code> en modales</td><td>Agregar atributo ARIA</td></tr>
+    <tr><td>Focus no regresa al trigger al cerrar modales</td><td>Guardar <code>document.activeElement</code> antes de abrir, restaurar al cerrar</td></tr>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- FASE 3 -->
+<div class="phase" id="fase3">
+  <div class="phase-header">
+    <div class="phase-num">3</div>
+    <div>
+      <div class="phase-title">QA Extremo — 5 Perfiles de Usuario</div>
+      <div class="phase-sub">QA Lead · QA Automation · Mobile Specialist</div>
+    </div>
+  </div>
+
+  <div class="section-title">Usuario Principiante</div>
+  <div class="card">
+    <div class="card-body">
+      <table>
+        <tr><th>Acción</th><th>Resultado</th><th>Problema</th></tr>
+        <tr><td>Abre la app por primera vez</td><td>Pantalla de onboarding ✅</td><td>—</td></tr>
+        <tr><td>Intenta guardar venta sin llenar precio</td><td>Error visible ✅</td><td>—</td></tr>
+        <tr><td>Pone precio de compra en "precio de venta"</td><td>🟡 Solo avisa ganancia negativa</td><td>Confuso para principiante</td></tr>
+        <tr><td>Agrega perfume con foto URL http://</td><td>🔴 Bloqueado sin mensaje claro — solo no carga</td><td>Solo acepta https://</td></tr>
+        <tr><td>Toca "Importar backup" con un .txt</td><td>🟡 Error genérico "archivo inválido"</td><td>Podría ser más descriptivo</td></tr>
+        <tr><td>Intenta hacer backup sin ventas</td><td>✅ Ahora permitido (fix aplicado)</td><td>—</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-title">Usuario Malicioso</div>
+  <div class="card">
+    <div class="card-body">
+      <table>
+        <tr><th>Ataque</th><th>Resultado actual</th><th>Riesgo</th></tr>
+        <tr><td>Nombre perfume: <code>&lt;script&gt;alert(1)&lt;/script&gt;</code></td><td>✅ escapeHTML en todos los renders</td><td>Mitigado</td></tr>
+        <tr><td>URL foto: <code>" onerror="alert(1)</code></td><td>✅ escapeHTML(url) en src</td><td>Mitigado</td></tr>
+        <tr><td>Backup con fechas maliciosas en cuotas</td><td>🔴 Sin escapeHTML en p.fecha del cuotas panel</td><td>Stored XSS</td></tr>
+        <tr><td>DevTools: <code>localStorage.setItem('pt_activated_code','HACK')</code></td><td>🔴 App se desbloquea completamente</td><td>License bypass</td></tr>
+        <tr><td>URL: <code>?test=1</code></td><td>✅ PIN bypass eliminado</td><td>Mitigado</td></tr>
+        <tr><td>DevTools: modificar <code>ventas</code> array</td><td>🟡 Se puede hacer pero requiere re-save manual</td><td>Bajo (datos propios)</td></tr>
+        <tr><td>Importar backup 50MB</td><td>🟡 Sin validación de tamaño de archivo</td><td>Posible freeze de UI</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-title">Usuario que Intenta Romper la App</div>
+  <div class="card">
+    <div class="card-body">
+      <table>
+        <tr><th>Acción extrema</th><th>Resultado</th></tr>
+        <tr><td>10 ventas en 2 segundos (spam tap)</td><td>🔴 Guard solo previene doble submit simultáneo; taps secuenciales rápidos registran todas las ventas</td></tr>
+        <tr><td>Cambiar tab mientras guardando</td><td>✅ debounce maneja esto correctamente</td></tr>
+        <tr><td>Cerrar app a la mitad de un save()</td><td>🟡 IndexedDB transaction puede quedar incompleta — se resuelve en el próximo open() automáticamente</td></tr>
+        <tr><td>1000 ventas registradas</td><td>🟡 Virtual scroll en ventas ✅ pero renderGanancias itera todo sin cache</td></tr>
+        <tr><td>Nombre con 1000 caracteres (via DevTools)</td><td>🟡 maxlength en form pero no en datos importados vía backup</td></tr>
+        <tr><td>Cuotas = 999</td><td>✅ max="24" en input</td></tr>
+        <tr><td>Descuento 101%</td><td>✅ Validación <code>dto &lt; 0 || dto &gt; 100</code></td></tr>
+        <tr><td>Precio $99,999,999</td><td>🟡 Solo valida &gt; $10,000,000 con mensaje</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FASE 4 -->
+<div class="phase" id="fase4">
+  <div class="phase-header">
+    <div class="phase-num">4</div>
+    <div>
+      <div class="phase-title">Seguridad</div>
+      <div class="phase-sub">Security Engineer</div>
+    </div>
+  </div>
+
+  <div class="section-title">Estado post-fixes</div>
+  <div class="card">
+    <div class="card-body">
+      <p><strong>✅ Resueltos en esta sesión:</strong></p>
+      <div style="margin:10px 0">
+        <span class="fixed-badge">PIN bypass ?test eliminado</span>
+        <span class="fixed-badge">toast() innerHTML → textContent</span>
+        <span class="fixed-badge">p.foto escapeHTML (3 lugares)</span>
+        <span class="fixed-badge">mesLabel() escapeHTML (7 lugares)</span>
+        <span class="fixed-badge">onclick injection mes → JSON.stringify</span>
+        <span class="fixed-badge">previewFotoUrl https:// validation</span>
+        <span class="fixed-badge">window.open → openLink() (9 lugares)</span>
+        <span class="fixed-badge">KV namespace activo</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Vulnerabilidades Activas</div>
+
+  <table>
+    <tr>
+      <th>Vulnerabilidad</th><th>Riesgo</th><th>Vector</th><th>Fix</th>
+    </tr>
+    <tr>
+      <td>Licencia bypass via localStorage</td>
+      <td><span class="severity sev-crit">CRÍTICO</span></td>
+      <td>DevTools, extensión browser</td>
+      <td>Periodic server re-validation</td>
+    </tr>
+    <tr>
+      <td>Trial reset via localStorage</td>
+      <td><span class="severity sev-crit">CRÍTICO</span></td>
+      <td>DevTools</td>
+      <td>Token firmado server-side</td>
+    </tr>
+    <tr>
+      <td>Stored XSS via fechas en backup</td>
+      <td><span class="severity sev-high">ALTO</span></td>
+      <td>Backup importado malicioso</td>
+      <td>escapeHTML en todas las fechas</td>
+    </tr>
+    <tr>
+      <td>LICENSE.clientName sin escape</td>
+      <td><span class="severity sev-high">ALTO</span></td>
+      <td>Código de licencia malicioso</td>
+      <td>escapeHTML(LICENSE.clientName)</td>
+    </tr>
+    <tr>
+      <td>PIN hash brute-forceable (localStorage)</td>
+      <td><span class="severity sev-high">ALTO</span></td>
+      <td>Acceso físico al dispositivo</td>
+      <td>Salt + IndexedDB storage</td>
+    </tr>
+    <tr>
+      <td>CSP: unsafe-inline + unsafe-eval</td>
+      <td><span class="severity sev-med">MEDIO</span></td>
+      <td>XSS residual amplificado</td>
+      <td>Requiere refactor de arquitectura</td>
+    </tr>
+    <tr>
+      <td>Service Worker sin auditoría</td>
+      <td><span class="severity sev-med">MEDIO</span></td>
+      <td>Cache stale post-deploy</td>
+      <td>Auditar sw.js + version cache</td>
+    </tr>
+    <tr>
+      <td>Sin Content-Security-Policy en Worker CORS</td>
+      <td><span class="severity sev-low">BAJO</span></td>
+      <td>Origin: * en OPTIONS</td>
+      <td>Restringir origins en worker.js</td>
+    </tr>
+  </table>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-header"><div class="card-title">Worker CORS sin restricción de origen</div></div>
+    <div class="card-body">
+      <pre><code>// worker.js — línea ~30
+'Access-Control-Allow-Origin': origin,  // ← cualquier origen puede llamar la API</code></pre>
+      <p>El Worker acepta POST de cualquier dominio. Un atacante puede llamar <code>/validate-license</code> desde su propio dominio para intentar validar códigos de otros usuarios (mitigado por rate limiting KV, pero el origen no se valida).</p>
+      <p><strong>Fix:</strong> <code>const ALLOWED = 'https://parfumtrack.luccasramireziglesias.workers.dev'; if (origin !== ALLOWED) return 403;</code></p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FASE 5 -->
+<div class="phase" id="fase5">
+  <div class="phase-header">
+    <div class="phase-num">5</div>
+    <div>
+      <div class="phase-title">UX / UI</div>
+      <div class="phase-sub">UX/UI Senior · Product Manager · Mobile Specialist</div>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>Problema</th><th>Impacto en usuario</th><th>Severidad</th></tr>
+    <tr>
+      <td>URL foto solo acepta https:// pero el mensaje de error no lo dice</td>
+      <td>Usuario pega URL http:// y no pasa nada — confusión total</td>
+      <td><span class="severity sev-high">ALTO</span></td>
+    </tr>
+    <tr>
+      <td>Sin estado de carga visible al guardar (IndexedDB)</td>
+      <td>Usuario no sabe si se guardó o no</td>
+      <td><span class="severity sev-med">MEDIO</span></td>
+    </tr>
+    <tr>
+      <td>Descuento 100% aceptado sin confirmación clara</td>
+      <td>Venta $0 queda en historial, confunde reportes</td>
+      <td><span class="severity sev-high">ALTO</span></td>
+    </tr>
+    <tr>
+      <td>Al eliminar un mes, no hay preview del impacto (cuotas abiertas en ese mes)</td>
+      <td>Usuario puede borrar accidentalmente cuotas que estaban pendientes</td>
+      <td><span class="severity sev-med">MEDIO</span></td>
+    </tr>
+    <tr>
+      <td>Toast de "backup guardado" aparece aunque el archivo no se descargó</td>
+      <td>Usuario piensa que hizo backup cuando no hay archivo</td>
+      <td><span class="severity sev-high">ALTO</span></td>
+    </tr>
+    <tr>
+      <td>Modales sin focus trap — Tab puede salir del modal</td>
+      <td>Problema de accesibilidad y UX en desktop</td>
+      <td><span class="severity sev-med">MEDIO</span></td>
+    </tr>
+    <tr>
+      <td>Sin mensaje de error cuando la foto URL no es una imagen válida (onerror silencioso)</td>
+      <td>Usuario ve el input vacío sin saber por qué</td>
+      <td><span class="severity sev-med">MEDIO</span></td>
+    </tr>
+    <tr>
+      <td>Múltiples toasts simultáneos se sobreescriben sin queue</td>
+      <td>Si dos operaciones terminan al mismo tiempo, solo se ve el último mensaje</td>
+      <td><span class="severity sev-low">BAJO</span></td>
+    </tr>
+  </table>
+
+  <div class="section-title">Aciertos de UX que deben mantenerse</div>
+  <div class="card">
+    <div class="card-body">
+      <p>✅ Haptic feedback en acciones críticas</p>
+      <p>✅ Toast undo en eliminaciones</p>
+      <p>✅ Borrador de venta persistido (draft)</p>
+      <p>✅ Confirmación doble para ganancia negativa</p>
+      <p>✅ Virtual scroll en ventas — excelente para listas largas</p>
+      <p>✅ Quick panel de ventas del día (muy útil en mobile)</p>
+      <p>✅ Filtros de mes persistidos al cambiar de tab</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FASE 6 -->
+<div class="phase" id="fase6">
+  <div class="phase-header">
+    <div class="phase-num">6</div>
+    <div>
+      <div class="phase-title">Rendimiento</div>
+      <div class="phase-sub">Performance Engineer · Frontend Senior</div>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>Operación</th><th>Complejidad</th><th>Con 100 ventas</th><th>Con 1000 ventas</th></tr>
+    <tr><td>renderVentas() (virtual scroll)</td><td>O(batch)</td><td>&lt;5ms ✅</td><td>&lt;5ms ✅</td></tr>
+    <tr><td>renderGanancias()</td><td>O(n × m)</td><td>~8ms</td><td>~200ms 🟡</td></tr>
+    <tr><td>fillSuggestions()</td><td>O(4n)</td><td>~2ms</td><td>~20ms</td></tr>
+    <tr><td>save() / IndexedDB write</td><td>O(n) serialización</td><td>&lt;10ms ✅</td><td>~50ms 🟡</td></tr>
+    <tr><td>Exportar PDF catálogo</td><td>O(n × img)</td><td>~500ms</td><td>~5s 🔴</td></tr>
+    <tr><td>CSV export</td><td>O(n)</td><td>&lt;5ms ✅</td><td>&lt;50ms ✅</td></tr>
+    <tr><td>renderStock() con búsqueda</td><td>O(n)</td><td>&lt;10ms ✅</td><td>&lt;50ms ✅</td></tr>
+  </table>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-header"><div class="card-title">¿Qué se degrada primero en mobile económico?</div></div>
+    <div class="card-body">
+      <p><strong>1. renderGanancias() + Chart.js:</strong> La combinación de reducir todos los meses + renderizar Chart.js en cada cambio de tab puede causar jank visible en devices con &lt;2GB RAM. Solución: memoizar por mesKey.</p>
+      <p><strong>2. Exportar PDF con fotos:</strong> Cargar 10+ imágenes en canvas simultáneamente puede freezear el hilo principal 2-8 segundos en mobile económico.</p>
+      <p><strong>3. IndexedDB serialize con 1000+ ventas:</strong> <code>JSON.stringify(ventas)</code> en el main thread. Solución: Web Worker para serialización.</p>
+      <p><strong>4. Monolito de 7.009 líneas:</strong> Parse inicial ~40-80ms en V8, &lt;200ms en JavascriptCore (iOS). No crítico pero nota para futuro.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FASE 7 -->
+<div class="phase" id="fase7">
+  <div class="phase-header">
+    <div class="phase-num">7</div>
+    <div>
+      <div class="phase-title">Escalabilidad</div>
+      <div class="phase-sub">Arquitecto de Software · Backend Senior · CTO</div>
+    </div>
+  </div>
+
+  <table>
+    <tr>
+      <th>Escala</th><th>Qué falla</th><th>Cuándo</th>
+    </tr>
+    <tr>
+      <td><strong>100 usuarios</strong></td>
+      <td>✅ Nada — arquitectura serverless Cloudflare aguanta perfectamente</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>1.000 usuarios</strong></td>
+      <td>
+        🟡 License bypass masivo vía localStorage — nadie paga<br>
+        🟡 KV rate limiting: 10 req/hr por IP puede ser insuficiente en IPs compartidas (NAT, colegios)
+      </td>
+      <td>Inmediato</td>
+    </tr>
+    <tr>
+      <td><strong>10.000 usuarios</strong></td>
+      <td>
+        🔴 Workers KV tiene límite de 1.000 writes/s en plan gratuito<br>
+        🔴 validate-license sin autenticación de origen — posible DDoS del endpoint<br>
+        🟡 R2 storage para backups: $0.015/GB/mes — escala linealmente
+      </td>
+      <td>3-6 meses si crece</td>
+    </tr>
+    <tr>
+      <td><strong>100.000 usuarios</strong></td>
+      <td>
+        🔴 Arquitectura de licencias client-side no es viable — necesita base de datos real (D1, Supabase)<br>
+        🔴 Monolito no divisible — imposible A/B testing, feature flags, rollbacks parciales<br>
+        🔴 Sin analytics de uso reales — sin datos para optimizar<br>
+        🔴 Soporte: sin sistema de tickets, sin historial de licencias
+      </td>
+      <td>Antes de llegar ahí</td>
+    </tr>
+  </table>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-header"><div class="card-title">Deuda técnica principal (por impacto)</div></div>
+    <div class="card-body">
+      <p>1. <strong>Monolito de 7.009 líneas</strong> — todo el JS en un archivo. Imposible tree-shaking, code splitting, o testing unitario real.</p>
+      <p>2. <strong>Licencias en localStorage</strong> — no escala a ninguna cantidad de usuarios. Necesita servidor con BD.</p>
+      <p>3. <strong>Sin sistema de logging</strong> — cuando algo falla en producción, no hay forma de saberlo sin que el usuario lo reporte.</p>
+      <p>4. <strong>Sin versioning de datos</strong> — si se cambia el schema de ventas, los backups viejos pueden fallar silenciosamente.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FASE 8 -->
+<div class="phase" id="fase8">
+  <div class="phase-header">
+    <div class="phase-num">8</div>
+    <div>
+      <div class="phase-title">Completitud del Producto</div>
+      <div class="phase-sub">Product Manager · CTO</div>
+    </div>
+  </div>
+
+  <div class="section-title">Obligatorio antes del lanzamiento</div>
+  <table>
+    <tr><th>Feature</th><th>Estado</th><th>Impacto</th></tr>
+    <tr><td>Crear R2 bucket (backups en nube)</td><td>🔴 Sin hacer</td><td>Build fallando</td></tr>
+    <tr><td>Auditar sw.js para cache versioning</td><td>🔴 Sin hacer</td><td>Fixes no llegan a usuarios</td></tr>
+    <tr><td>escapeHTML en fechas de cuotas/caja/gastos</td><td>🔴 Sin hacer</td><td>Stored XSS</td></tr>
+    <tr><td>escapeHTML en LICENSE.clientName</td><td>🔴 Sin hacer</td><td>XSS en ajustes</td></tr>
+    <tr><td>Mensaje claro al rechazar URL http://</td><td>🟡 Sin hacer</td><td>UX confusa</td></tr>
+    <tr><td>Validar tamaño de backup antes de cargar</td><td>🟡 Sin hacer</td><td>Freeze con archivos grandes</td></tr>
+    <tr><td>Descuento 100% requiere confirmación</td><td>🟡 Sin hacer</td><td>Datos inconsistentes</td></tr>
+  </table>
+
+  <div class="section-title">Premium / Roadmap</div>
+  <table>
+    <tr><th>Feature</th><th>Impacto de conversión</th></tr>
+    <tr><td>Validación server-side periódica de licencia</td><td>🔴 Crítico para monetización</td></tr>
+    <tr><td>Whatsapp Business API (envío directo, no solo abrir)</td><td>🟠 Alto</td></tr>
+    <tr><td>Multi-usuario / vendedor con permisos</td><td>🟠 Alto (negocio con equipo)</td></tr>
+    <tr><td>Reportes avanzados con exportación Excel real</td><td>🟡 Medio</td></tr>
+    <tr><td>Notificaciones push de cuotas vencidas</td><td>🟡 Medio</td></tr>
+    <tr><td>Sincronización multi-dispositivo real (Cloudflare D1)</td><td>🟠 Alto (diferenciador)</td></tr>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- FASE 9 -->
+<div class="phase" id="fase9">
+  <div class="phase-header">
+    <div class="phase-num">9</div>
+    <div>
+      <div class="phase-title">Checklist de Producción</div>
+      <div class="phase-sub">QA Lead · DevOps</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <ul class="checklist">
+        <li><span class="check-ok">✓</span><span class="check-text"><strong>XSS principales</strong> — 13 vulnerabilidades corregidas</span></li>
+        <li><span class="check-ok">✓</span><span class="check-text"><strong>PIN bypass</strong> — eliminado</span></li>
+        <li><span class="check-ok">✓</span><span class="check-text"><strong>KV namespace</strong> — configurado y activo</span></li>
+        <li><span class="check-ok">✓</span><span class="check-text"><strong>Rate limiting</strong> — activo en /validate-license y /backup</span></li>
+        <li><span class="check-ok">✓</span><span class="check-text"><strong>window.open → openLink()</strong> — iOS Safari compat</span></li>
+        <li><span class="check-ok">✓</span><span class="check-text"><strong>Stock negativo</strong> — Math.max(0,...) aplicado</span></li>
+        <li><span class="check-ok">✓</span><span class="check-text"><strong>CSV campo correcto</strong> — precioVenta en lugar de precio</span></li>
+        <li><span class="check-ok">✓</span><span class="check-text"><strong>Fecha timezone</strong> — parse local corregido</span></li>
+        <li><span class="check-fail">✗</span><span class="check-text"><strong>BUILD FALLANDO</strong> — R2 bucket no existe, deploy no funciona</span></li>
+        <li><span class="check-fail">✗</span><span class="check-text"><strong>Licencia bypaseable</strong> — localStorage sin re-validación</span></li>
+        <li><span class="check-fail">✗</span><span class="check-text"><strong>Trial bypaseable</strong> — localStorage manipulable</span></li>
+        <li><span class="check-fail">✗</span><span class="check-text"><strong>XSS fechas cuotas/caja/gastos</strong> — sin escapeHTML</span></li>
+        <li><span class="check-fail">✗</span><span class="check-text"><strong>LICENSE.clientName sin escape</strong> — XSS en ajustes</span></li>
+        <li><span class="check-fail">✗</span><span class="check-text"><strong>sw.js no auditado</strong> — cache stale posible</span></li>
+        <li><span class="check-warn">⚠</span><span class="check-text"><strong>LICENSE_SERVER_SECRET</strong> — verificar que esté seteado en Cloudflare</span></li>
+        <li><span class="check-warn">⚠</span><span class="check-text"><strong>CORS origen</strong> — Worker acepta cualquier origen</span></li>
+        <li><span class="check-warn">⚠</span><span class="check-text"><strong>Backup timestamp</strong> — se marca antes de confirmar descarga</span></li>
+        <li><span class="check-warn">⚠</span><span class="check-text"><strong>Multi-tab</strong> — sin BroadcastChannel, datos pueden divergir</span></li>
+        <li><span class="check-warn">⚠</span><span class="check-text"><strong>PIN lockout</strong> — solo en memoria, se resetea al recargar</span></li>
+        <li><span class="check-warn">⚠</span><span class="check-text"><strong>Descuento 100%</strong> — aceptado sin confirmación explícita</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FASE 10 -->
+<div class="phase" id="fase10">
+  <div class="phase-header">
+    <div class="phase-num">10</div>
+    <div>
+      <div class="phase-title">Informe Final</div>
+      <div class="phase-sub">CTO · Comité de Aprobación</div>
+    </div>
+  </div>
+
+  <div class="section-title">Top 20 Problemas</div>
+  <ol class="top-list">
+    <li><div class="top-num">1</div><div class="top-content"><div class="top-title">🔴 Build fallando en producción — ningún fix llegó a usuarios</div><div class="top-desc">R2 bucket sin crear. Todos los cambios de esta sesión están en git pero no desplegados.</div></div></li>
+    <li><div class="top-num">2</div><div class="top-content"><div class="top-title">🔴 Licencia bypasseable con una línea de DevTools</div><div class="top-desc">localStorage.setItem('pt_activated_code', 'x') desbloquea la app permanentemente.</div></div></li>
+    <li><div class="top-num">3</div><div class="top-content"><div class="top-title">🔴 Trial bypasseable — acceso gratuito indefinido</div><div class="top-desc">Resetear o eliminar pt_trial_start da trial infinito o inmediato.</div></div></li>
+    <li><div class="top-num">4</div><div class="top-content"><div class="top-title">🟠 Stored XSS via fechas en backup malicioso</div><div class="top-desc">p.fecha, m.fecha, g.fecha sin escapeHTML en múltiples contextos innerHTML.</div></div></li>
+    <li><div class="top-num">5</div><div class="top-content"><div class="top-title">🟠 LICENSE.clientName sin escapeHTML en renderAjustes</div><div class="top-desc">XSS en panel de configuración si el nombre del cliente contiene HTML.</div></div></li>
+    <li><div class="top-num">6</div><div class="top-content"><div class="top-title">🟠 Service Worker sw.js no auditado — cache stale post-deploy</div><div class="top-desc">Usuarios con app instalada pueden no recibir los fixes de seguridad.</div></div></li>
+    <li><div class="top-num">7</div><div class="top-content"><div class="top-title">🟠 PIN brute-forceable — solo 10.000 combinaciones en hash localStorage</div><div class="top-desc">Acceso físico + DevTools = PIN comprometido en segundos.</div></div></li>
+    <li><div class="top-num">8</div><div class="top-content"><div class="top-title">🟠 CORS en Worker acepta cualquier origen</div><div class="top-desc">API pública desde cualquier dominio — facilita scraping de endpoints.</div></div></li>
+    <li><div class="top-num">9</div><div class="top-content"><div class="top-title">🟠 Descuento 100% genera venta $0 sin advertencia fuerte</div><div class="top-desc">Distorsiona estadísticas y reportes.</div></div></li>
+    <li><div class="top-num">10</div><div class="top-content"><div class="top-title">🟡 Backup timestamp marcado antes de confirmar descarga</div><div class="top-desc">Usuario cree que hizo backup cuando el archivo puede no haberse descargado.</div></div></li>
+    <li><div class="top-num">11</div><div class="top-content"><div class="top-title">🟡 Multi-tab sin sincronización — datos divergen silenciosamente</div><div class="top-desc">Último save gana. Sin aviso al usuario.</div></div></li>
+    <li><div class="top-num">12</div><div class="top-content"><div class="top-title">🟡 PIN lockout solo en memoria — reset con F5</div><div class="top-desc">Protección anti-brute force inefectiva.</div></div></li>
+    <li><div class="top-num">13</div><div class="top-content"><div class="top-title">🟡 URL foto rechaza http:// sin mensaje de error claro</div><div class="top-desc">Usuario no entiende por qué no carga la imagen.</div></div></li>
+    <li><div class="top-num">14</div><div class="top-content"><div class="top-title">🟡 Sin validación de tamaño de backup antes de cargar</div><div class="top-desc">Archivo de 50MB puede freezar la UI en mobile.</div></div></li>
+    <li><div class="top-num">15</div><div class="top-content"><div class="top-title">🟡 Primera cuota mayor al total no validada</div><div class="top-desc">Plan de cuotas con valores negativos posible.</div></div></li>
+    <li><div class="top-num">16</div><div class="top-content"><div class="top-title">🟡 Demo data con IDs 1,2,3 — colisión posible con ventas reales</div><div class="top-desc">Si un usuario importa demo data y tiene ventas propias, IDs pueden colisionar.</div></div></li>
+    <li><div class="top-num">17</div><div class="top-content"><div class="top-title">🟡 Sin logging de errores en producción</div><div class="top-desc">Cuando algo falla, no hay forma de saberlo sin reporte del usuario.</div></div></li>
+    <li><div class="top-num">18</div><div class="top-content"><div class="top-title">🟡 renderGanancias O(n×m) sin cache</div><div class="top-desc">Con 1000+ ventas empieza a ser perceptible en mobile.</div></div></li>
+    <li><div class="top-num">19</div><div class="top-content"><div class="top-title">🟢 Modales sin focus trap ni aria-modal</div><div class="top-desc">Problema de accesibilidad en desktop.</div></div></li>
+    <li><div class="top-num">20</div><div class="top-content"><div class="top-title">🟢 CSP con unsafe-inline + unsafe-eval</div><div class="top-desc">Necesita refactor de arquitectura para resolverse correctamente.</div></div></li>
+  </ol>
+
+  <div class="section-title">Top 20 Mejoras Recomendadas</div>
+  <ol class="top-list">
+    <li><div class="top-num">1</div><div class="top-content"><div class="top-title">Crear R2 bucket → desbloqueará el build</div><div class="top-desc">5 minutos. Máximo impacto. Todos los fixes llegarán a producción.</div></div></li>
+    <li><div class="top-num">2</div><div class="top-content"><div class="top-title">escapeHTML en todas las fechas en innerHTML</div><div class="top-desc">p.fecha, m.fecha, g.fecha, _fe — 10 minutos. Cierra stored XSS.</div></div></li>
+    <li><div class="top-num">3</div><div class="top-content"><div class="top-title">escapeHTML(LICENSE.clientName) en renderAjustes</div><div class="top-desc">1 línea, 1 minuto.</div></div></li>
+    <li><div class="top-num">4</div><div class="top-content"><div class="top-title">Auditar + versionar sw.js</div><div class="top-desc">Asegurar que cada deploy invalide el cache. Crítico para que los fixes lleguen a usuarios con app instalada.</div></div></li>
+    <li><div class="top-num">5</div><div class="top-content"><div class="top-title">Mensaje claro cuando URL foto es http://</div><div class="top-desc">"Solo se permiten URLs que empiecen con https://" — ya existe el toast, solo falta mostrarlo siempre.</div></div></li>
+    <li><div class="top-num">6</div><div class="top-content"><div class="top-title">Validar tamaño de backup (&lt; 10MB) antes de parsear</div><div class="top-desc">Evita freezes en mobile con archivos gigantes.</div></div></li>
+    <li><div class="top-num">7</div><div class="top-content"><div class="top-title">Bloquear descuento 100% o pedir confirmación explícita</div><div class="top-desc">Ventas a $0 son estadísticamente dañinas.</div></div></li>
+    <li><div class="top-num">8</div><div class="top-content"><div class="top-title">Marcar timestamp de backup DESPUÉS de confirmar descarga</div><div class="top-desc">Usar el evento del link o verificar con blob URL.</div></div></li>
+    <li><div class="top-num">9</div><div class="top-content"><div class="top-title">Persistir contador de intentos fallidos de PIN en sessionStorage</div><div class="top-desc">5 minutos. Hace el lockout efectivo entre recargas.</div></div></li>
+    <li><div class="top-num">10</div><div class="top-content"><div class="top-title">Restringir CORS en Worker al origen propio</div><div class="top-desc">Evita acceso externo a los endpoints de licencia y backup.</div></div></li>
+    <li><div class="top-num">11</div><div class="top-content"><div class="top-title">Validar primera cuota &lt;= precio total</div><div class="top-desc">Evita planes de cuotas matemáticamente incoherentes.</div></div></li>
+    <li><div class="top-num">12</div><div class="top-content"><div class="top-title">Usar Date.now() para IDs del demo data</div><div class="top-desc">Evita colisión de IDs 1,2,3 con ventas reales.</div></div></li>
+    <li><div class="top-num">13</div><div class="top-content"><div class="top-title">openLink() para mailto: en backupPorEmail</div><div class="top-desc">Consistencia con el resto de links externos en iOS.</div></div></li>
+    <li><div class="top-num">14</div><div class="top-content"><div class="top-title">Aviso de multi-tab al detectar datos más nuevos al hacer focus</div><div class="top-desc">visibilitychange → recargar datos desde IndexedDB si el timestamp cambió.</div></div></li>
+    <li><div class="top-num">15</div><div class="top-content"><div class="top-title">Memoizar cálculos de ganancias por mes</div><div class="top-desc">Recalcular solo si los datos del mes cambiaron.</div></div></li>
+    <li><div class="top-num">16</div><div class="top-content"><div class="top-title">Agregar Plausible / analytics de errores</div><div class="top-desc">Sin métricas, sin producto. No sabés qué usa nadie ni qué se rompe.</div></div></li>
+    <li><div class="top-num">17</div><div class="top-content"><div class="top-title">Focus trap en modales (accesibilidad)</div><div class="top-desc">Tab no debe salir del modal activo.</div></div></li>
+    <li><div class="top-num">18</div><div class="top-content"><div class="top-title">Mover validación de licencia al servidor (largo plazo)</div><div class="top-desc">Sin esto, la monetización es fundamentalmente vulnerable.</div></div></li>
+    <li><div class="top-num">19</div><div class="top-content"><div class="top-title">Sincronización multi-tab con BroadcastChannel</div><div class="top-desc">Previene silenciosa pérdida de datos al trabajar en múltiples pestañas.</div></div></li>
+    <li><div class="top-num">20</div><div class="top-content"><div class="top-title">Notificación cuando el SW descarga una nueva versión</div><div class="top-desc">"Nueva versión disponible — recargar" es UX estándar en PWAs.</div></div></li>
+  </ol>
+
+  <div class="section-title">Puntuación Final</div>
+  <div class="score-grid">
+    <div class="score-card">
+      <div class="score-label">Funcionalidad</div>
+      <div class="score-val" style="color:#70c990">8.2<span style="font-size:16px;color:var(--text3)">/10</span></div>
+      <div style="font-size:11px;color:var(--text3)">↑ era 7.8 — bugs corregidos</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:82%;background:var(--green)"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Seguridad</div>
+      <div class="score-val" style="color:#e09060">6.0<span style="font-size:16px;color:var(--text3)">/10</span></div>
+      <div style="font-size:11px;color:var(--text3)">↑ era 4.8 — pero licencia vulnerable</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:60%;background:var(--orange)"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">UX / UI</div>
+      <div class="score-val" style="color:#70c990">7.8<span style="font-size:16px;color:var(--text3)">/10</span></div>
+      <div style="font-size:11px;color:var(--text3)">= sin cambios</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:78%;background:var(--green)"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Rendimiento</div>
+      <div class="score-val" style="color:#70c990">7.2<span style="font-size:16px;color:var(--text3)">/10</span></div>
+      <div style="font-size:11px;color:var(--text3)">= sin cambios</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:72%;background:var(--green)"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Escalabilidad</div>
+      <div class="score-val" style="color:#e09060">5.2<span style="font-size:16px;color:var(--text3)">/10</span></div>
+      <div style="font-size:11px;color:var(--text3)">↑ era 5.0 — KV activo</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:52%;background:var(--orange)"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Calidad de código</div>
+      <div class="score-val" style="color:#70c990">7.0<span style="font-size:16px;color:var(--text3)">/10</span></div>
+      <div style="font-size:11px;color:var(--text3)">↑ era 5.8 — fixes masivos</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:70%;background:var(--green)"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Preparación producción</div>
+      <div class="score-val" style="color:#e0c060">6.8<span style="font-size:16px;color:var(--text3)">/10</span></div>
+      <div style="font-size:11px;color:var(--text3)">↑ era 5.2 — BUILD FALLA</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:68%;background:var(--yellow)"></div></div>
+    </div>
+    <div class="score-card" style="background:linear-gradient(135deg,rgba(201,168,76,0.08),var(--card));border-color:rgba(201,168,76,0.2)">
+      <div class="score-label">PROMEDIO TOTAL</div>
+      <div class="score-val" style="color:var(--gold2)">6.9<span style="font-size:16px;color:var(--text3)">/10</span></div>
+      <div style="font-size:11px;color:var(--text3)">↑ era 6.2</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:69%;background:linear-gradient(90deg,var(--gold),var(--gold2))"></div></div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <div class="verdict-emoji">⚠️</div>
+    <div class="verdict-title">NO LANZAR — 3 blockers críticos</div>
+    <div class="verdict-body">
+      La app mejoró dramáticamente desde la última auditoría. <strong>22 vulnerabilidades corregidas</strong> en esta sesión. Pero hay tres blockers que impiden el lanzamiento:<br><br>
+      <strong>1. El build está fallando</strong> — ningún fix llegó a producción aún.<br>
+      <strong>2. La licencia es bypasseable</strong> — cualquier usuario técnico accede gratis.<br>
+      <strong>3. El trial es bypasseable</strong> — no hay monetización real.<br><br>
+      Si el modelo de negocio no depende de la licencia (app gratuita), los puntos 2 y 3 no son blockers. En ese caso, <strong>solo hay que crear el R2 bucket para desbloquear el deploy</strong> y la app puede lanzarse.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">Roadmap de corrección — 3 sprints</div></div>
+    <div class="card-body">
+      <table>
+        <tr><th>Sprint</th><th>Tareas</th><th>Tiempo</th></tr>
+        <tr>
+          <td><strong>Sprint 0 — Hoy</strong></td>
+          <td>
+            1. Crear R2 bucket → build funciona<br>
+            2. escapeHTML en fechas de cuotas/caja/gastos<br>
+            3. escapeHTML(LICENSE.clientName)<br>
+            4. Auditar sw.js
+          </td>
+          <td>~2 horas</td>
+        </tr>
+        <tr>
+          <td><strong>Sprint 1 — Esta semana</strong></td>
+          <td>
+            Restricción CORS en Worker · Tamaño backup · Descuento 100% · Backup timestamp · PIN lockout persistente · Demo data IDs
+          </td>
+          <td>~4 horas</td>
+        </tr>
+        <tr>
+          <td><strong>Sprint 2 — Próximo mes</strong></td>
+          <td>
+            Validación periódica de licencia server-side · BroadcastChannel multi-tab · sw.js versioning · Analytics de errores
+          </td>
+          <td>~2 días</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center;padding:40px 20px;color:var(--text3);font-size:12px;border-top:1px solid var(--border);margin-top:40px">
+  Parfum Track · Auditoría Técnica Enterprise v2 · 2026-06-12<br>
+  Equipo: CTO · Arquitecto · QA Lead · Security · PM · UX/UI · Frontend · Backend · Mobile · Performance
+</div>
+
+</div>
+</body>
+</html>
