@@ -2675,8 +2675,9 @@ function addVenta(){
   let fecha=hoy();
   if(_fechaInput&&_fechaInput.value){
     const[aa,mm,dd]=_fechaInput.value.split('-');
-    const _fTest=new Date(_fechaInput.value);
-    if(!isNaN(_fTest.getTime())&&_fTest<=new Date()){fecha=`${dd}/${mm}/${aa}`;}
+    const _fTest=new Date(+aa,+mm-1,+dd);
+    const _hoy=new Date();_hoy.setHours(23,59,59,999);
+    if(!isNaN(_fTest.getTime())&&_fTest<=_hoy){fecha=`${dd}/${mm}/${aa}`;}
   }
   const mesFecha=mesKey(fecha);const esMesNuevo=!mesesDeVentas().includes(mesFecha);const nVenta=ventas.filter(v=>mesKey(v.fecha)===mesFecha).length+1;const esCuotas=tipo==='cuotas';let cuotasTotal=1,primeraCuota=0,cuotasPagos=[];if(esCuotas){cuotasTotal=parseInt(document.getElementById('f-num-cuotas').value)||2;primeraCuota=parseFloat(document.getElementById('f-primera-cuota').value)||0;if(primeraCuota>0)cuotasPagos=[{monto:primeraCuota,fecha,numCuota:0}];}else cuotasPagos=[{monto:pvFinal,fecha,numCuota:0}];const _btnGuardar = document.getElementById('btn-guardar-venta');
   if(_btnGuardar){_btnGuardar.disabled=true;_btnGuardar.textContent='Guardando...';}
