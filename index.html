@@ -961,6 +961,10 @@ input.field-error,select.field-error{border-color:var(--danger)!important;box-sh
           </select>
           <button id="btn-limpiar-filtros" onclick="limpiarFiltrosVentas()" style="display:none;padding:5px 12px;background:rgba(224,112,112,0.12);border:0.5px solid rgba(224,112,112,0.35);color:var(--danger);border-radius:20px;font-size:11px;cursor:pointer;font-weight:600;white-space:nowrap;">✕ Limpiar</button>
         </div>
+        <div id="ventas-stock-warn" style="display:none;margin-bottom:8px;padding:9px 12px;background:rgba(224,176,96,0.1);border:0.5px solid rgba(224,176,96,0.3);border-radius:var(--radius-sm);flex-direction:row;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;" onclick="showTab('stock')">
+          <div style="font-size:12px;color:var(--warn);">📦 <span id="ventas-stock-warn-txt"></span></div>
+          <span style="font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0;">Ver stock →</span>
+        </div>
         <div id="ventas-list">
           <!-- skeleton cards — reemplazados por renderVentas() al cargar -->
           <div class="sk-card"><div class="sk-row"><div class="sk-line wide"></div><div class="sk-line short"></div></div><div class="sk-row"><div class="sk-line mid"></div><div class="sk-line short"></div></div><div class="sk-row"><div class="sk-line full"></div><div class="sk-line short"></div></div></div>
@@ -2276,6 +2280,18 @@ function verDetalleCliente(nombre) {
     modal.classList.add('open');
   }
 }
+function _updateLowStockBanner(){
+  const el=document.getElementById('ventas-stock-warn');
+  if(!el)return;
+  const low=perfumes.filter(p=>p.stock===0);
+  const warn=perfumes.filter(p=>p.stock>0&&p.stock<=(p.stockMin||3));
+  if(!low.length&&!warn.length){el.style.display='none';return;}
+  const parts=[];
+  if(low.length)parts.push(`${low.length} sin stock`);
+  if(warn.length)parts.push(`${warn.length} con stock bajo`);
+  document.getElementById('ventas-stock-warn-txt').textContent=parts.join(' · ');
+  el.style.display='flex';
+}
 function updateStats(){
   document.getElementById('st-ventas').textContent=ventas.length;
   document.getElementById('st-ganancia').textContent=fmt(ventas.reduce((s,v)=>s+(v.ganancia||0),0));
@@ -2290,6 +2306,7 @@ function updateStats(){
   }
   renderMetaStrip();renderResumenDiario();
   updateVentasQuickPanel();
+  _updateLowStockBanner();
 }
 function updateVentasQuickPanel(){
   const panel = document.getElementById('ventas-quick-panel');
@@ -2413,6 +2430,7 @@ function _initSwipeVentas(container) {
 
 function _parseFechaMs(f){if(!f)return 0;const p=f.split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]).getTime():0;}
 function renderVentas(){
+  _updateLowStockBanner();
   const q=(document.getElementById('search-ventas').value||'').toLowerCase();
   let filtered=activeMesVentas==='todos'?ventas:ventas.filter(v=>mesKey(v.fecha)===activeMesVentas);
   if(q)filtered=filtered.filter(v=>[v.perfume,v.cliente,v.vendedor,v.proveedor].some(x=>(x||'').toLowerCase().includes(q)));
@@ -6642,6 +6660,34 @@ async function descargarPDFCatalogo() {
           </div>
         </div>
         <div style="font-size:11px;color:var(--text3);line-height:1.7;">✓ Todo Pro + ✓ Perfiles ilimitados · ✓ Exportar Excel<br>✓ Soporte prioritario · ✓ Funciones beta anticipadas</div>
+      </div>
+    </div>
+
+    <!-- Comparación de planes (colapsable) -->
+    <div style="margin-bottom:12px;">
+      <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'Ver comparación completa ▼':'Ocultar comparación ▲';"
+        style="width:100%;padding:7px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:8px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;">Ver comparación completa ▼</button>
+      <div style="display:none;margin-top:8px;border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <thead>
+            <tr style="background:var(--card2);">
+              <th style="padding:7px 8px;text-align:left;color:var(--text3);font-weight:600;border-bottom:0.5px solid var(--border);">Función</th>
+              <th style="padding:7px 6px;text-align:center;color:var(--text3);font-weight:600;border-bottom:0.5px solid var(--border);">🌱</th>
+              <th style="padding:7px 6px;text-align:center;color:var(--gold2);font-weight:700;border-bottom:0.5px solid var(--border);">⭐</th>
+              <th style="padding:7px 6px;text-align:center;color:var(--text3);font-weight:600;border-bottom:0.5px solid var(--border);">🏆</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:0.5px solid var(--border);"><td style="padding:6px 8px;color:var(--text2);">Perfiles</td><td style="text-align:center;color:var(--text);">1</td><td style="text-align:center;color:var(--gold2);font-weight:600;">3</td><td style="text-align:center;color:var(--text);">∞</td></tr>
+            <tr style="border-bottom:0.5px solid var(--border);background:var(--card);"><td style="padding:6px 8px;color:var(--text2);">Ventas ilimitadas</td><td style="text-align:center;">✓</td><td style="text-align:center;color:var(--gold2);">✓</td><td style="text-align:center;">✓</td></tr>
+            <tr style="border-bottom:0.5px solid var(--border);"><td style="padding:6px 8px;color:var(--text2);">Catálogo WhatsApp</td><td style="text-align:center;">✓</td><td style="text-align:center;color:var(--gold2);">✓</td><td style="text-align:center;">✓</td></tr>
+            <tr style="border-bottom:0.5px solid var(--border);background:var(--card);"><td style="padding:6px 8px;color:var(--text2);">Backup</td><td style="text-align:center;color:var(--text3);">Manual</td><td style="text-align:center;color:var(--gold2);">Auto</td><td style="text-align:center;color:var(--success);">Auto</td></tr>
+            <tr style="border-bottom:0.5px solid var(--border);"><td style="padding:6px 8px;color:var(--text2);">PDF recibos</td><td style="text-align:center;color:var(--border2);">—</td><td style="text-align:center;color:var(--gold2);">✓</td><td style="text-align:center;">✓</td></tr>
+            <tr style="border-bottom:0.5px solid var(--border);background:var(--card);"><td style="padding:6px 8px;color:var(--text2);">Notificaciones push</td><td style="text-align:center;color:var(--border2);">—</td><td style="text-align:center;color:var(--gold2);">✓</td><td style="text-align:center;">✓</td></tr>
+            <tr style="border-bottom:0.5px solid var(--border);"><td style="padding:6px 8px;color:var(--text2);">Exportar Excel</td><td style="text-align:center;color:var(--border2);">—</td><td style="text-align:center;color:var(--border2);">—</td><td style="text-align:center;color:var(--success);">✓</td></tr>
+            <tr><td style="padding:6px 8px;color:var(--text2);">Soporte</td><td style="text-align:center;color:var(--text3);">Normal</td><td style="text-align:center;color:var(--gold2);">Normal</td><td style="text-align:center;color:var(--success);">Prioritario</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
