@@ -9975,7 +9975,7 @@
         };
 
         // Trial limit check
-        if (window._trialLimitado && !isActivated()) {
+        if (_sec.isTrialExp() && !isActivated()) {
           if (getTrialVentasRestantes() <= 0) {
             abrirModalActivacion();
             _abort(
@@ -10135,7 +10135,7 @@
         }
         _addVentaEnProceso = false;
 
-        if (window._trialLimitado && !isActivated()) {
+        if (_sec.isTrialExp() && !isActivated()) {
           const r = getTrialVentasRestantes();
           if (r === 1)
             setTimeout(
@@ -11786,12 +11786,12 @@
           localStorage.setItem("pt_activation_mode", "server");
           localStorage.setItem("pt_activated_at", Date.now().toString());
           localStorage.setItem("pt_license_raw_code", code);
-          window._activationVerified = true;
+          _sec.activate(true);
           const banner = document.getElementById("trial-banner");
           if (banner) banner.remove();
           document.body.classList.remove("has-top-banner");
           closeModal("modal-activacion");
-          window._trialLimitado = false;
+          _sec.setTrialExp(false);
           toast(
             "🎉 ¡Licencia activada! Parfum Track está completamente desbloqueado.",
             4000,
@@ -11865,19 +11865,35 @@
         trackEvent("paywall_visto");
       }
 
-      // ── Global state variables — invariants ──
-      // _activationVerified: true only after ECDSA signature of stored license passes verifyStoredLicense().
-      //   Set to false on startup, true on successful verification, false+cleared on tampered data.
-      // _trialLimitado: true when trial period has expired and user has not activated.
-      //   Set in checkTrial() / trial ticker. Reset to false on successful activation.
+      // ── SECURE STATE MODULE ───────────────────────────────────────
+      // License and trial flags live inside a private closure.
+      // They are NOT properties of window and CANNOT be read or set
+      // from the DevTools console. Bypassing requires patching source.
       // _addVentaEnProceso: mutex for addVenta(). Prevents double-submit on fast taps.
       // _addingStock: mutex for agregarStock(). Same purpose.
       // _addingCaja: mutex for addMovCaja(). Same purpose.
       // _backupInFlight: mutex for cloudBackupSave/Restore(). Prevents concurrent cloud operations.
-      window._activationVerified = false;
+      const _sec = (() => {
+        let _a = false; // license activated — set only by initLicenseVerification / activarLicencia
+        let _t = false; // trial expired — set only by checkTrial / trial ticker
+        return {
+          activate(v) {
+            _a = !!v;
+          },
+          isActivated() {
+            return _a;
+          },
+          setTrialExp(v) {
+            _t = !!v;
+          },
+          isTrialExp() {
+            return _t;
+          },
+        };
+      })();
 
       function isActivated() {
-        return window._activationVerified === true;
+        return _sec.isActivated();
       }
 
       async function verifyStoredLicense() {
@@ -11913,9 +11929,9 @@
       async function initLicenseVerification() {
         const valid = await verifyStoredLicense();
         if (valid === true) {
-          window._activationVerified = true;
+          _sec.activate(true);
         } else {
-          window._activationVerified = false;
+          _sec.activate(false);
           if (localStorage.getItem("pt_activation_mode") === "server") {
             // Had activation data but failed ECDSA check — clear tampered state
             [
@@ -11947,7 +11963,7 @@
       // ══════════════════════════════════════════════
       // SISTEMA DE TRIAL — 7 días completo → modo limitado
       // ══════════════════════════════════════════════
-      window._trialLimitado = false; // true cuando venció el trial pero no activó
+      // trial expired state managed by _sec module (not on window)
 
       function getTrialDuration() {
         // Demo mode: usar minutos si está seteado
@@ -11985,6 +12001,52 @@
         return Math.max(0, LICENSE.trialLimitedVentas - ventasTrasVencer);
       }
 
+      // ── Server-side trial anchor ──────────────────────────────────
+      // Registers (or retrieves) the trial start in Cloudflare KV.
+      // If the server knows an earlier start (user cleared localStorage),
+      // we impose the server value so the trial cannot be reset.
+      function _getOrCreateDeviceId() {
+        let id = localStorage.getItem("pt_device_id");
+        if (!id) {
+          id = crypto.randomUUID
+            ? crypto.randomUUID()
+            : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
+                (
+                  c ^
+                  (crypto.getRandomValues(new Uint8Array(1))[0] &
+                    (15 >> (c / 4)))
+                ).toString(16),
+              );
+          localStorage.setItem("pt_device_id", id);
+        }
+        return id;
+      }
+
+      async function registerTrialServer(localStartAt) {
+        try {
+          const deviceId = _getOrCreateDeviceId();
+          const resp = await fetch("/trial", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deviceId }),
+            signal: AbortSignal.timeout(5000),
+          });
+          if (!resp.ok) return;
+          const { startAt } = await resp.json();
+          if (!startAt || typeof startAt !== "number") return;
+          // Server knows an earlier start — impose it (prevents reset bypass)
+          if (startAt < localStartAt) {
+            const serverTs = String(startAt);
+            localStorage.setItem("pt_trial_start", serverTs);
+            PTDB.set("pt_trial_start", serverTs);
+            // Reload checkTrial with the corrected (earlier) timestamp
+            checkTrial();
+          }
+        } catch {
+          /* network error — graceful degradation */
+        }
+      }
+
       function checkTrial() {
         if (isActivated()) return;
         if (LICENSE.isDemo) {
@@ -12019,8 +12081,14 @@
             setTimeout(() => mostrarBienvenidaTrial(), 1200);
             setTimeout(() => sendTrialEmail("trial_welcome"), 3000);
           }
+          // Register with server — any future reset will be corrected
+          setTimeout(() => registerTrialServer(parseInt(trialStart)), 2000);
           return;
         }
+
+        // On every load, verify with server (async, non-blocking)
+        // If user cleared storage and resumed, server will push back the real start
+        setTimeout(() => registerTrialServer(parseInt(trialStart)), 1500);
 
         // Validate: trial start cannot be newer than the oldest venta (detects reset bypass)
         const oldestVentaTs = ventas.reduce(
@@ -12040,7 +12108,7 @@
         const daysLeft = Math.ceil(msLeft / 86400000);
 
         if (msLeft <= 0) {
-          window._trialLimitado = true;
+          _sec.setTrialExp(true);
           trackEvent("trial_vencido");
           const restantes = getTrialVentasRestantes();
           mostrarBannerTrialVencido(restantes);
@@ -12071,7 +12139,7 @@
               const ms = getTrialTimeLeft(trialStart);
               if (ms <= 0) {
                 clearInterval(window._trialTickerInterval);
-                window._trialLimitado = true;
+                _sec.setTrialExp(true);
                 trackEvent("trial_vencido");
                 const r = getTrialVentasRestantes();
                 mostrarBannerTrialVencido(r);
@@ -12392,11 +12460,7 @@
         }
       }
 
-      function resetTrialYDatos() {
-        // Para testing: limpia el trial
-        localStorage.removeItem("pt_trial_start");
-        localStorage.removeItem("pt_trial_demo_loaded");
-      }
+      // resetTrialYDatos() removed from production build
 
       function checkLicense() {
         if (!LICENSE.key) return;
@@ -13889,6 +13953,7 @@
             // ── PIN SYSTEM — SHA-256, lockout, modal propio ──
             (function () {
               var PIN_HASH_KEY = "pt_pin_hash"; // Guardamos el hash, nunca el PIN en claro
+              var PIN_SALT_KEY = "pt_pin_salt"; // Salt aleatorio por usuario (32 hex chars)
               var PIN_LOCK_KEY = "pt_pin_lockout";
               var PIN_FAILS_KEY = "pt_pin_fails";
               var MAX_FAILS = 5;
@@ -13901,8 +13966,24 @@
               var setupFirst = ""; // primer ingreso para confirmar
 
               // ── Hash SHA-256 via SubtleCrypto (async) ──
+              // Salt is random per user, stored in localStorage (pt_pin_salt).
+              // Falls back to legacy hardcoded salt for hashes created before this change.
+              function _ensurePinSalt() {
+                if (!localStorage.getItem(PIN_SALT_KEY)) {
+                  var arr = new Uint8Array(16);
+                  crypto.getRandomValues(arr);
+                  localStorage.setItem(
+                    PIN_SALT_KEY,
+                    Array.from(arr)
+                      .map((b) => b.toString(16).padStart(2, "0"))
+                      .join(""),
+                  );
+                }
+              }
               async function hashPIN(pin) {
-                var enc = new TextEncoder().encode("pt_salt_2026_" + pin);
+                var salt =
+                  localStorage.getItem(PIN_SALT_KEY) || "pt_salt_2026_";
+                var enc = new TextEncoder().encode(salt + pin);
                 var buf2 = await crypto.subtle.digest("SHA-256", enc);
                 return Array.from(new Uint8Array(buf2))
                   .map((b) => b.toString(16).padStart(2, "0"))
@@ -14205,7 +14286,8 @@
                     updateSetupDots();
                     return;
                   }
-                  // ¡Guardar el hash!
+                  // Generar salt aleatorio antes de hashear (si no existe aún)
+                  _ensurePinSalt();
                   var finalHash = await hashPIN(buf);
                   localStorage.setItem(PIN_HASH_KEY, finalHash);
                   clearFails();
