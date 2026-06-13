@@ -20,7 +20,7 @@ export default {
 
       if (request.method === 'OPTIONS') {
         const origin = request.headers.get('Origin') || '';
-        const allowed = /^https?:\/\/(localhost|127\.0\.0\.1|.*\.netlify\.app|.*\.pages\.dev|.*\.workers\.dev)(:\d+)?$/.test(origin) ? origin : 'null';
+        const allowed = /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/.test(origin) ? origin : 'null';
         return new Response(null, {
           status: 204,
           headers: {

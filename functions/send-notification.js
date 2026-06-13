@@ -4,8 +4,8 @@
 // Body: { subscriptionId, title, message, url }
 //
 // Variables de entorno en Cloudflare Pages → Settings → Environment variables:
-//   ONESIGNAL_APP_ID   = "4b037409-ce19-48b9-932c-3021b31b2a33"
-//   ONESIGNAL_REST_KEY = "scaeqmcf7eid4g4uvotnhwfm6"
+//   ONESIGNAL_APP_ID   = "<tu-app-id-de-onesignal>"
+//   ONESIGNAL_REST_KEY = "<tu-rest-api-key-de-onesignal>"
 // ══════════════════════════════════════════════════════════════
 
 export async function onRequestPost(context) {

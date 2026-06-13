@@ -2216,7 +2216,7 @@ function renderClientes() {
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div>
           <div style="font-size:15px;font-weight:700;color:var(--text)">${escapeHTML(c.nombre)}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">${c.ventas.length} compra${c.ventas.length!==1?'s':''} · Última: ${ultVenta?.fecha||'—'}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${c.ventas.length} compra${c.ventas.length!==1?'s':''} · Última: ${escapeHTML(ultVenta?.fecha||'—')}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:14px;font-weight:700;color:var(--gold2)">${fmt(c.totalVenta)}</div>
@@ -2284,7 +2284,7 @@ function verDetalleCliente(nombre) {
     return `<div style="background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
       <div>
         <div style="font-size:13px;font-weight:600;color:var(--text)">${escapeHTML(v.perfume||'')}</div>
-        <div style="font-size:11px;color:var(--text3)">${v.fecha||''} ${v.esCuotas?'· Cuotas':''}</div>
+        <div style="font-size:11px;color:var(--text3)">${escapeHTML(v.fecha||'')} ${v.esCuotas?'· Cuotas':''}</div>
       </div>
       <div style="text-align:right">
         <div style="font-size:13px;font-weight:600;color:var(--gold2)">${fmt(v.precioVenta||0)}</div>

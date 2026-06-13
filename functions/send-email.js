@@ -252,7 +252,7 @@ export async function onRequestOptions(context) {
 }
 
 function corsHeaders(origin) {
-  const allowed = /^https?:\/\/(localhost|127\.0\.0\.1|.*\.netlify\.app|.*\.pages\.dev|.*\.workers\.dev)(:\d+)?$/.test(origin);
+  const allowed = /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/.test(origin);
   return {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': allowed ? origin : 'null',
