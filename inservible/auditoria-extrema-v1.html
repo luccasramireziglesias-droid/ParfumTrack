@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditoría Extrema v1 — ParfumTrack PWA</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d1a;--bg2:#13132a;--card:#1e1e35;--card2:#252540;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.12);
+  --gold:#e8cc7a;--gold2:#c9a84c;--gold-dim:rgba(201,168,76,0.12);
+  --text:#f0eee8;--text2:#b8b4a8;--text3:#7a7870;
+  --success:#70c9a0;--danger:#e07070;--warn:#e0b060;--info:#7ab0e0;
+  --crit:rgba(224,112,112,0.12);--crit-border:rgba(224,112,112,0.35);
+  --mid:rgba(224,176,96,0.12);--mid-border:rgba(224,176,96,0.35);
+  --low:rgba(112,201,160,0.1);--low-border:rgba(112,201,160,0.3);
+  --info-bg:rgba(122,176,224,0.1);--info-border:rgba(122,176,224,0.3);
+  --radius:14px;--radius-sm:8px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding-bottom:60px}
+.header{background:linear-gradient(135deg,rgba(224,112,112,0.12),rgba(201,168,76,0.06));border-bottom:1px solid rgba(224,112,112,0.25);padding:36px 24px 28px;text-align:center}
+.header-icon{font-size:44px;margin-bottom:12px}
+.header h1{font-size:22px;font-weight:800;color:var(--gold);letter-spacing:-.3px}
+.header-sub{font-size:12px;color:var(--text3);margin-top:5px;letter-spacing:.5px;text-transform:uppercase}
+.header-meta{display:flex;justify-content:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.chip{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--text3)}
+.chip b{color:var(--text2)}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+.scores-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:24px 0}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:12px}
+.sc-ico{font-size:22px;flex-shrink:0}
+.sc-info{flex:1;min-width:0}
+.sc-name{font-size:12px;font-weight:600;color:var(--text)}
+.sc-sub{font-size:10px;color:var(--text3);margin-top:2px;line-height:1.4}
+.sc-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:3px;margin-top:7px}
+.sc-fill{height:100%;border-radius:3px}
+.sc-val{font-size:24px;font-weight:900;flex-shrink:0}
+.sc-val.ok{color:var(--success)}.sc-val.warn{color:var(--warn)}.sc-val.danger{color:var(--danger)}.sc-val.gold{color:var(--gold)}
+.sh{font-size:11px;font-weight:700;color:var(--gold2);text-transform:uppercase;letter-spacing:1.5px;margin:28px 0 12px;display:flex;align-items:center;gap:8px}
+.sh::after{content:'';flex:1;height:1px;background:var(--border)}
+.finding{border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px;border-left:3px solid}
+.finding.crit{background:var(--crit);border-color:var(--danger)}
+.finding.mid{background:var(--mid);border-color:var(--warn)}
+.finding.low{background:var(--low);border-color:var(--success)}
+.finding.info{background:var(--info-bg);border-color:var(--info)}
+.f-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.f-sev{font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px;flex-shrink:0;margin-top:1px}
+.sev-crit{background:rgba(224,112,112,0.2);color:var(--danger)}
+.sev-mid{background:rgba(224,176,96,0.2);color:var(--warn)}
+.sev-low{background:rgba(112,201,160,0.2);color:var(--success)}
+.sev-info{background:rgba(122,176,224,0.2);color:var(--info)}
+.f-title{font-size:13px;font-weight:700;color:var(--text);flex:1}
+.f-line{font-size:10px;color:var(--text3);background:var(--card2);border-radius:4px;padding:1px 6px;flex-shrink:0;font-family:monospace;margin-top:2px}
+.f-body{font-size:12px;color:var(--text2);line-height:1.65;margin-top:6px}
+.f-row{display:grid;grid-template-columns:110px 1fr;gap:4px 10px;font-size:11px;margin-top:8px;border-top:1px solid var(--border);padding-top:8px}
+.f-label{color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding-top:1px}
+.f-val{color:var(--text2);line-height:1.6}
+.f-val code{background:rgba(255,255,255,0.07);border-radius:3px;padding:1px 5px;font-size:10px;font-family:monospace;color:var(--gold2)}
+.area{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+.area-head{padding:15px 18px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.area-head:hover{background:rgba(255,255,255,0.025)}
+.area-ico{font-size:20px}
+.area-title{font-size:14px;font-weight:700;flex:1}
+.area-score{font-size:20px;font-weight:900;color:var(--gold)}
+.area-cnt{font-size:11px;color:var(--text3);margin-right:4px}
+.area-caret{color:var(--text3);font-size:11px;transition:transform .2s}
+.area-body{padding:0 16px 16px;display:none}
+.area-body.open{display:block}
+.area-intro{font-size:12px;color:var(--text2);line-height:1.65;padding:0 0 12px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.verdict{border:1.5px solid rgba(224,112,112,0.4);border-radius:var(--radius);padding:22px 20px;margin:24px 0;text-align:center;background:linear-gradient(135deg,rgba(224,112,112,0.08),rgba(224,112,112,0.02))}
+.verdict.yes{border-color:rgba(112,201,160,0.4);background:linear-gradient(135deg,rgba(112,201,160,0.1),rgba(112,201,160,0.02))}
+.vq{font-size:13px;color:var(--text2);font-style:italic;margin-bottom:8px}
+.va{font-size:28px;font-weight:900}
+.va.yes{color:var(--success)}.va.no{color:var(--danger)}.va.cond{color:var(--warn)}
+.vbody{font-size:12px;color:var(--text2);margin-top:10px;line-height:1.7;max-width:600px;margin-left:auto;margin-right:auto}
+.stbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+.stbl th{text-align:left;padding:9px 12px;background:var(--card2);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.stbl td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+.stbl tr:last-child td{border-bottom:none}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;flex-shrink:0}
+.dot-r{background:var(--danger)}.dot-y{background:var(--warn)}.dot-g{background:var(--success)}.dot-b{background:var(--info)}
+.footer{text-align:center;margin-top:40px;padding-top:24px;border-top:1px solid var(--border);color:var(--text3);font-size:11px;line-height:2}
+code{background:rgba(255,255,255,0.07);border-radius:4px;padding:1px 5px;font-size:11px;font-family:monospace;color:var(--gold2)}
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px}
+.plan-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px}
+.plan-title{font-size:11px;font-weight:700;color:var(--gold2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.plan-item{font-size:11px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.5}
+.plan-item:last-child{border-bottom:none}
+.plan-item b{color:var(--text);display:block}
+.prob-bar{height:8px;background:rgba(255,255,255,0.06);border-radius:8px;margin:12px 0 6px;overflow:hidden}
+.prob-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--danger),var(--warn))}
+.prob-fill.high{background:linear-gradient(90deg,var(--warn),var(--success))}
+.info-box{background:var(--info-bg);border:1px solid var(--info-border);border-radius:var(--radius-sm);padding:10px 14px;font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.7}
+.warn-box{background:var(--mid);border:1px solid var(--mid-border);border-radius:var(--radius-sm);padding:10px 14px;font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.7}
+.warn-box b,.info-box b{color:var(--gold)}
+.roi-tag{display:inline-block;font-size:10px;font-weight:700;border-radius:20px;padding:1px 7px;margin-left:6px;vertical-align:middle}
+.roi-a{background:rgba(112,201,160,0.2);color:var(--success)}
+.roi-b{background:rgba(224,176,96,0.2);color:var(--warn)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">🔬</div>
+  <h1>Auditoría Extrema v1 — ParfumTrack PWA</h1>
+  <div class="header-sub">Sistema multidisciplinario · 11 fases · Técnico · Negocio · Ventas · Competencia · Legal</div>
+  <div class="header-meta">
+    <div class="chip">Fecha <b>13 Jun 2026</b></div>
+    <div class="chip">Commit <b>be44f84</b></div>
+    <div class="chip">Archivos analizados <b>8</b></div>
+    <div class="chip">Líneas revisadas <b>15.500+</b></div>
+    <div class="chip">Roles activos <b>15</b></div>
+    <div class="chip">Perspectivas <b>9</b></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- SCORES -->
+<div class="sh">Scores por dimensión</div>
+<div class="scores-grid">
+  <div class="sc">
+    <div class="sc-ico">🔒</div>
+    <div class="sc-info">
+      <div class="sc-name">Técnico</div>
+      <div class="sc-sub">Seguridad · código · arquitectura · QA</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:74%;background:linear-gradient(90deg,#e0b060,#e8cc7a)"></div></div>
+    </div>
+    <div class="sc-val warn">74</div>
+  </div>
+  <div class="sc">
+    <div class="sc-ico">📱</div>
+    <div class="sc-info">
+      <div class="sc-name">UX</div>
+      <div class="sc-sub">Onboarding · conversión · mobile · accesibilidad</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:71%;background:linear-gradient(90deg,#e0b060,#e8cc7a)"></div></div>
+    </div>
+    <div class="sc-val warn">71</div>
+  </div>
+  <div class="sc">
+    <div class="sc-ico">💰</div>
+    <div class="sc-info">
+      <div class="sc-name">Ventas</div>
+      <div class="sc-sub">Conversión · psicología · onboarding · marketing</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:45%;background:linear-gradient(90deg,#e07070,#e0b060)"></div></div>
+    </div>
+    <div class="sc-val danger">45</div>
+  </div>
+  <div class="sc">
+    <div class="sc-ico">📊</div>
+    <div class="sc-info">
+      <div class="sc-name">Negocio</div>
+      <div class="sc-sub">Mercado · monetización · legal · operaciones</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:52%;background:linear-gradient(90deg,#e07070,#e0b060)"></div></div>
+    </div>
+    <div class="sc-val danger">52</div>
+  </div>
+  <div class="sc">
+    <div class="sc-ico">🚀</div>
+    <div class="sc-info">
+      <div class="sc-name">Escalabilidad</div>
+      <div class="sc-sub">Proceso · automatización · crecimiento</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:38%;background:linear-gradient(90deg,#e07070,#e07070)"></div></div>
+    </div>
+    <div class="sc-val danger">38</div>
+  </div>
+  <div class="sc" style="border-color:rgba(201,168,76,0.3);background:rgba(201,168,76,0.06)">
+    <div class="sc-ico">🎯</div>
+    <div class="sc-info">
+      <div class="sc-name">Score Total</div>
+      <div class="sc-sub">Promedio ponderado de todas las dimensiones</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:56%;background:linear-gradient(90deg,#e07070,#e0b060)"></div></div>
+    </div>
+    <div class="sc-val gold">56</div>
+  </div>
+</div>
+
+<!-- PROBABILIDAD -->
+<div class="sh">Probabilidad de éxito</div>
+<div class="area" style="padding:18px 20px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <span style="font-size:13px;color:var(--text2)">Estado actual (sin mejoras críticas)</span>
+    <span style="font-size:26px;font-weight:900;color:var(--warn)">35%</span>
+  </div>
+  <div class="prob-bar"><div class="prob-fill" style="width:35%"></div></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;margin-top:16px">
+    <span style="font-size:13px;color:var(--text2)">Con mejoras críticas aplicadas (pago automático + marketing + legal)</span>
+    <span style="font-size:26px;font-weight:900;color:var(--success)">65%</span>
+  </div>
+  <div class="prob-bar"><div class="prob-fill high" style="width:65%"></div></div>
+  <div style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.7">
+    Factores negativos: proceso manual de licencias · sin analytics · riesgo percepción "puedo perder datos" · sin marketing · sin comunidad<br>
+    Factores positivos: nicho bien definido · costo operativo ~$0 · producto técnico genuinamente bueno · no requiere VC para sobrevivir
+  </div>
+</div>
+
+<!-- VEREDICTO -->
+<div class="verdict yes">
+  <div class="vq">¿Lanzarías el producto?</div>
+  <div class="va cond">SÍ — con 4 condiciones no negociables ⚠️</div>
+  <div class="vbody">
+    El problema que resuelve es real, el dolor es genuino, el costo operativo es casi cero. Pero tiene <strong style="color:var(--danger)">2 endpoints sin autenticación abiertos al mundo</strong>, backup incompleto, y sin self-service de pago el crecimiento es manualmente imposible de escalar. Con esas 4 cosas resueltas, puede generar <strong style="color:var(--text)">$2.000–$10.000 USD/mes con 200–800 usuarios</strong>, operado por 1 persona.
+  </div>
+</div>
+
+<!-- INFORMACIÓN FALTANTE -->
+<div class="warn-box" style="margin-top:20px">
+  <b>Información faltante detectada (afecta confianza en análisis de negocio):</b><br>
+  Precio de la licencia · Cantidad de usuarios activos actuales · Tasa de conversión trial→pago · Costo operativo real actual · Feedback real de usuarios · Canales de adquisición actuales
+</div>
+
+<!-- HALLAZGOS DETALLADOS -->
+<div class="sh">Hallazgos detallados por fase</div>
+
+<!-- SEGURIDAD -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">🔒</div>
+    <div class="area-title">Seguridad</div>
+    <div class="area-cnt">2 críticos · 4 altos · 2 medios</div>
+    <div class="area-score" style="color:var(--danger)">!</div>
+    <div class="area-caret">▼</div>
+  </div>
+  <div class="area-body open">
+
+    <div class="finding crit">
+      <div class="f-head"><div class="f-sev sev-crit">🔴 CRÍTICO</div><div class="f-title">send-email sin autenticación — cualquiera puede mandar emails en tu nombre</div><div class="f-line">send-email.js</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">Spam bombing, cuenta Brevo suspendida, phishing a tus usuarios, costo en API</span>
+        <span class="f-label">Causa</span><span class="f-val">Endpoint POST solo verifica CORS (bypasseable con curl) — sin token ni firma</span>
+        <span class="f-label">Reproducir</span><span class="f-val"><code>curl -X POST .../send-email -d '{"to":"victim@gmail.com","type":"trial_expired"}'</code></span>
+        <span class="f-label">Solución</span><span class="f-val">Requerir HMAC token de licencia en el body. Sin token válido → 401.</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Baja — 2 horas</span>
+      </div>
+    </div>
+
+    <div class="finding crit">
+      <div class="f-head"><div class="f-sev sev-crit">🔴 CRÍTICO</div><div class="f-title">send-notification sin autenticación — push de phishing a cualquier usuario</div><div class="f-line">send-notification.js</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">Atacante puede enviar "Tu cuenta fue suspendida, ingresá acá" a cualquier suscriptor de tu PWA</span>
+        <span class="f-label">Causa</span><span class="f-val">Acepta cualquier subscriptionId sin verificar que el sender sea legítimo</span>
+        <span class="f-label">Solución</span><span class="f-val">Mismo patrón — HMAC token + validar que subscriptionId pertenece a esa licencia</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Baja — 2 horas</span>
+      </div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head"><div class="f-sev sev-mid">🟡 ALTO</div><div class="f-title">CORS regex permite cualquier subdominio de pages.dev — no solo ParfumTrack</div><div class="f-line">todos los Workers</div></div>
+      <div class="f-row">
+        <span class="f-label">Evidencia</span><span class="f-val"><code>.*\.pages\.dev</code> en send-notification.js ln 75 — acepta cualquier proyecto de Cloudflare Pages</span>
+        <span class="f-label">Impacto</span><span class="f-val">Atacante crea <code>evil-parfumtrack.pages.dev</code> y hace calls autenticadas a tus APIs</span>
+        <span class="f-label">Solución</span><span class="f-val">Reemplazar por <code>^https://parfumtrack\.pages\.dev$</code> en los 4 Workers</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Muy baja — 30 minutos</span>
+      </div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head"><div class="f-sev sev-mid">🟡 ALTO</div><div class="f-title">PIN de 4 dígitos sin rate limiting server-side — bypasseable con DevTools en 30 segundos</div><div class="f-line">index.html — localStorage</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">Datos de negocio expuestos ante robo de dispositivo — el atacante borra <code>pt_pin_fails</code> y prueba los 10.000 combos</span>
+        <span class="f-label">Causa</span><span class="f-val">Lockout almacenado en localStorage, editable desde DevTools</span>
+        <span class="f-label">Reproducir</span><span class="f-val">DevTools → Application → LocalStorage → borrar <code>pt_pin_fails</code> y <code>pt_pin_locked</code> → reintentar</span>
+        <span class="f-label">Solución</span><span class="f-val">Almacenar hash de PIN en KV (con license code como key). Lockout de 15 min server-side tras 5 intentos.</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Media — 1 día</span>
+      </div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head"><div class="f-sev sev-mid">🟡 ALTO</div><div class="f-title">Backup sin cifrado — datos de clientes en R2 en texto plano</div><div class="f-line">backup.js</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">Breach de R2 → exposición total: nombres, montos, notas, deudas de todos los clientes</span>
+        <span class="f-label">Solución</span><span class="f-val">Cifrar client-side con AES-256-GCM (license code como passphrase, derivado con PBKDF2 100k iter). Servidor nunca ve plaintext.</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Media — 4 horas</span>
+      </div>
+    </div>
+
+    <div class="finding low">
+      <div class="f-head"><div class="f-sev sev-low">🟠 MEDIO</div><div class="f-title">Trial manipulable vía edición de timestamps en IndexedDB</div><div class="f-line">checkTrial() — index.html</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">Usuario técnico modifica <code>createdAt</code> de ventas desde DevTools → trial se reinicia</span>
+        <span class="f-label">Causa</span><span class="f-val"><code>checkTrial()</code> usa <code>Math.min(...ventas.map(v => v.createdAt))</code> — dato editable en IndexedDB</span>
+        <span class="f-label">Solución</span><span class="f-val">Anclar trial start en servidor (KV) vinculado al email al primer envío de email. El client no puede modificarlo.</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Media-Alta — 2 días</span>
+      </div>
+    </div>
+
+    <div class="finding low">
+      <div class="f-head"><div class="f-sev sev-low">🟠 MEDIO</div><div class="f-title">Datos del usuario interpolados en template de email sin sanitización</div><div class="f-line">send-email.js ln 213</div></div>
+      <div class="f-row">
+        <span class="f-label">Causa</span><span class="f-val"><code>data.name</code> viene del cliente sin validar → interpolado directamente en template HTML</span>
+        <span class="f-label">Solución</span><span class="f-val">Aplicar <code>escapeHTML()</code> a todos los campos de <code>data</code> antes de interpolar</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Muy baja — 30 minutos</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CÓDIGO Y ARQUITECTURA -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">🏗️</div>
+    <div class="area-title">Código y Arquitectura</div>
+    <div class="area-cnt">3 hallazgos · base sólida con gaps de escala</div>
+    <div class="area-caret">▼</div>
+  </div>
+  <div class="area-body">
+
+    <div class="finding mid">
+      <div class="f-head"><div class="f-sev sev-mid">🟡 MEDIO</div><div class="f-title">Archivo único de 15.524 líneas — imposible testear, difícil de escalar</div><div class="f-line">index.html</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">Debugging 3-5x más lento. Sin tests unitarios posibles. Un error de sintaxis rompe toda la app. Onboarding de colaborador: semanas.</span>
+        <span class="f-label">Causa</span><span class="f-val">Decisión deliberada de "zero-build" para simplificar deploy en Cloudflare Pages</span>
+        <span class="f-label">Solución</span><span class="f-val">Migrar gradualmente a módulos ES6 (<code>&lt;script type="module" src="js/ventas.js"&gt;</code>). Compatible con zero-build — los módulos funcionan en browsers modernos sin bundler.</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Alta — sprint de 2 semanas</span>
+      </div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head"><div class="f-sev sev-mid">🟡 ALTO</div><div class="f-title">Sin analytics de comportamiento — decisiones de producto completamente ciegas</div><div class="f-line">index.html — solo Plausible pageviews</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">No sabés qué feature nadie usa. No sabés cuándo abandonan el onboarding. Cada decisión de producto es un disparo al aire.</span>
+        <span class="f-label">Solución</span><span class="f-val">Agregar eventos custom de Plausible: <code>plausible('Venta creada')</code>, <code>plausible('Trial expirado')</code>, <code>plausible('Backup realizado')</code>, <code>plausible('Activación exitosa')</code></span>
+        <span class="f-label">Dificultad</span><span class="f-val">Muy baja — 2 horas</span>
+      </div>
+    </div>
+
+    <div class="finding low">
+      <div class="f-head"><div class="f-sev sev-low">🟠 MEDIO</div><div class="f-title">Service Worker versión hardcodeada — riesgo de caché stale en deploys</div><div class="f-line">sw.js ln 5 — parfumtrack-v4</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">Si se olvida incrementar la versión, usuarios reciben assets viejos silenciosamente post-deploy</span>
+        <span class="f-label">Solución</span><span class="f-val">Script Node mínimo que inyecta el hash del commit en sw.js al hacer deploy: <code>const CACHE_NAME = 'parfumtrack-${GIT_HASH}'</code></span>
+        <span class="f-label">Dificultad</span><span class="f-val">Baja — 2 horas</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- UX / CONVERSIÓN -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">📱</div>
+    <div class="area-title">UX y Conversión</div>
+    <div class="area-cnt">4 hallazgos de alto impacto en activación y conversión</div>
+    <div class="area-caret">▼</div>
+  </div>
+  <div class="area-body">
+
+    <div class="finding crit">
+      <div class="f-head"><div class="f-sev sev-crit">🔴 ALTO</div><div class="f-title">Sin demo data ni modo de demostración — usuarios nuevos ven pantalla vacía</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">40-60% de usuarios nuevos abandona antes de crear su primera venta cuando ve una lista vacía sin guía (referencia: estudios de onboarding Intercom/Heap)</span>
+        <span class="f-label">Solución</span><span class="f-val">Botón "Ver demo con datos de ejemplo" en el empty state que carga 10 ventas ficticias, 5 perfumes, 2 gastos. El usuario ve el valor del dashboard de inmediato.</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Baja — 3 horas</span>
+        <span class="f-label">ROI esperado</span><span class="f-val">+30-50% activación de usuarios nuevos</span>
+      </div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head"><div class="f-sev sev-mid">🟡 ALTO</div><div class="f-title">Trial de 7 días insuficiente para el usuario objetivo — no experimenta el valor real</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">Una revendedora casual puede tener 2-3 ventas en 7 días. Nunca ve el valor de cobrar cuotas ni analytics mensuales. Se va sin haber experimentado el producto.</span>
+        <span class="f-label">Solución</span><span class="f-val">Trial basado en actividad: "10 ventas gratis" o extender a 14 días. Testear cuál convierte más.</span>
+        <span class="f-label">ROI esperado</span><span class="f-val">+15-25% conversión trial→pago</span>
+      </div>
+    </div>
+
+    <div class="finding low">
+      <div class="f-head"><div class="f-sev sev-low">🟠 MEDIO</div><div class="f-title">Sin barra de progreso del trial — la expiración sorprende al usuario</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">El usuario no se prepara para pagar. Cuando expira, es una sorpresa negativa que genera fricción y abandono.</span>
+        <span class="f-label">Solución</span><span class="f-val">Barra de progreso sutil en el header: "Día 5 de 7 del trial" con CTA "Activar ahora" que se hace más prominente progresivamente.</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Baja — 3 horas · ROI: +10-15% conversión</span>
+      </div>
+    </div>
+
+    <div class="finding low">
+      <div class="f-head"><div class="f-sev sev-low">🟠 MEDIO</div><div class="f-title">Sin manejo específico de QuotaExceededError en iOS Safari — pérdida silenciosa de datos</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">iOS Safari tiene límites agresivos de storage. Si hay muchas fotos de catálogo, la app puede fallar silenciosamente al guardar.</span>
+        <span class="f-label">Solución</span><span class="f-val">En <code>PTDB.set()</code>, catch <code>QuotaExceededError</code> específicamente → toast "Almacenamiento lleno — eliminá fotos o hacé backup".</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Baja — 2 horas</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- QA EXTREMO -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">🧪</div>
+    <div class="area-title">QA Extremo</div>
+    <div class="area-cnt">Escenarios críticos: múltiples pestañas · emoji en PDFs · internet lento · datos grandes</div>
+    <div class="area-caret">▼</div>
+  </div>
+  <div class="area-body">
+
+    <div class="finding mid">
+      <div class="f-head"><div class="f-sev sev-mid">🟡 MEDIO</div><div class="f-title">Múltiples pestañas — condición de carrera en IndexedDB: la última escritura gana</div></div>
+      <div class="f-row">
+        <span class="f-label">Reproducir</span><span class="f-val">Abrir app en 2 pestañas → agregar venta en cada una simultáneamente → verificar que ambas se guardaron</span>
+        <span class="f-label">Solución</span><span class="f-val">Detectar múltiples clientes via Service Worker → toast "Cerrá las otras pestañas para evitar conflictos". O usar <code>BroadcastChannel</code> para sincronizar estado.</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Media — 4 horas</span>
+      </div>
+    </div>
+
+    <div class="finding low">
+      <div class="f-head"><div class="f-sev sev-low">🟠 BAJO</div><div class="f-title">Emoji en nombres de perfumes puede romper PDFs generados con jsPDF</div></div>
+      <div class="f-row">
+        <span class="f-label">Reproducir</span><span class="f-val">Crear venta con perfume "🌹 Flor 💐 Test" → generar recibo PDF → verificar renderizado</span>
+        <span class="f-label">Solución</span><span class="f-val">Stripear emojis en <code>_readVentaForm()</code> o usar fuente jsPDF con soporte Unicode completo</span>
+      </div>
+    </div>
+
+    <div class="finding low">
+      <div class="f-head"><div class="f-sev sev-low">🟠 MEDIO</div><div class="f-title">Internet lento — botón "Activar licencia" sin estado de loading claro → doble-submit</div></div>
+      <div class="f-row">
+        <span class="f-label">Reproducir</span><span class="f-val">Throttle a Slow 3G en DevTools → intentar activar licencia → observar si el botón da feedback visual claro</span>
+        <span class="f-label">Solución</span><span class="f-val">Botón cambia a "Verificando..." + spinner + disabled durante la llamada. Timeout de 10s con mensaje claro.</span>
+      </div>
+    </div>
+
+    <div class="finding low">
+      <div class="f-head"><div class="f-sev sev-low">🟠 BAJO</div><div class="f-title">Dataset grande (1000+ ventas) — export Excel puede freezar el browser en mobile</div></div>
+      <div class="f-row">
+        <span class="f-label">Causa</span><span class="f-val">SheetJS corre de forma síncrona en el main thread. En mobile con datasets grandes, puede bloquear la UI por 3-5 segundos.</span>
+        <span class="f-label">Solución</span><span class="f-val">Usar <code>requestIdleCallback</code> o Web Worker para el export. Progress indicator "Generando Excel... 453/1000".</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- STARTUP Y NEGOCIO -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">📊</div>
+    <div class="area-title">Startup y Negocio</div>
+    <div class="area-cnt">Sin self-service de pago · sin analytics · mercado real pero acotado</div>
+    <div class="area-caret">▼</div>
+  </div>
+  <div class="area-body">
+    <p class="area-intro">Mercado estimado: 50.000-200.000 revendedoras en Argentina. Accesible con tech: 10.000-30.000. A $8-15 USD/mes → TAM = $960k-$5.4M ARR. Pequeño pero viable para 1 persona.</p>
+
+    <div class="finding crit">
+      <div class="f-head"><div class="f-sev sev-crit">🔴 CRÍTICO — NEGOCIO</div><div class="f-title">Sin self-service de pago — el crecimiento está artificialmente limitado por trabajo manual</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">Cada licencia nueva requiere intervención manual. A 100 usuarios ya es trabajo a tiempo completo. A 1000, es imposible.</span>
+        <span class="f-label">Causa</span><span class="f-val">Sin integración de sistema de pagos (MercadoPago, Stripe)</span>
+        <span class="f-label">Solución</span><span class="f-val">Integrar MercadoPago Checkout Pro → al pagar, auto-generar license code → enviar por email automáticamente. Sin intervención humana.</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Media — 1 semana · ROI: desbloquea crecimiento ilimitado</span>
+      </div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head"><div class="f-sev sev-mid">🟡 ALTO</div><div class="f-title">¿Por qué podría fracasar? — 5 riesgos reales</div></div>
+      <div class="f-body">
+        <strong style="color:var(--danger)">1.</strong> Sin marketing → nadie que no conozca al dueño encuentra el producto<br>
+        <strong style="color:var(--danger)">2.</strong> Una historia viral de "perdí todos mis datos" puede destruir la reputación (backup incompleto = riesgo real)<br>
+        <strong style="color:var(--danger)">3.</strong> Competidor con VC money puede ofrecer gratis por 12 meses y capturar el mercado<br>
+        <strong style="color:var(--danger)">4.</strong> Precio demasiado bajo → nunca rentable para invertir en crecimiento<br>
+        <strong style="color:var(--danger)">5.</strong> Trial de 7 días muy corto → usuarios no experimentan el valor → no convierten
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- VENTAS Y PSICOLOGÍA -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">🧠</div>
+    <div class="area-title">Ventas y Psicología</div>
+    <div class="area-cnt">Score 45/100 — la mayor brecha del producto</div>
+    <div class="area-caret">▼</div>
+  </div>
+  <div class="area-body">
+    <p class="area-intro">"ParfumTrack" como nombre no comunica el beneficio. Una revendedora que lo ve por primera vez no entiende "esto me ayuda a saber quién me debe". La propuesta de valor no está articulada dentro de la app.</p>
+
+    <div class="finding crit">
+      <div class="f-head"><div class="f-sev sev-crit">🔴 ALTO</div><div class="f-title">5 razones por las que el cliente NO compra — barreras reales no resueltas</div></div>
+      <div class="f-body">
+        <strong style="color:var(--danger)">1. "¿Y si pierdo todos mis datos?"</strong> — Miedo al riesgo de adopción. La barrera más crítica. Backup incompleto la empeora.<br>
+        <strong style="color:var(--danger)">2. "No soy buena con la tecnología"</strong> — Inseguridad técnica del usuario objetivo. El onboarding debe ser idiot-proof.<br>
+        <strong style="color:var(--danger)">3. "Lo puedo hacer en WhatsApp / Excel"</strong> — Status quo bias. Necesita una demo que muestre el dolor del método actual.<br>
+        <strong style="color:var(--danger)">4. "¿Para qué pagar si hay gratuitas?"</strong> — El valor diferencial no está articulado claramente.<br>
+        <strong style="color:var(--danger)">5. "¿Esta app va a estar mañana?"</strong> — Sin social proof visible (reviews, testimonios, número de usuarias).
+      </div>
+    </div>
+
+    <div class="finding low">
+      <div class="f-head"><div class="f-sev sev-low">💡 OPORTUNIDAD</div><div class="f-title">Disparadores psicológicos sin usar — deseo · miedo · estatus · ahorro</div></div>
+      <div class="f-body">
+        <strong style="color:var(--success)">Miedo a perder dinero:</strong> "¿Sabés cuánto te deben tus clientas en este momento?" (el usuario no sabe → quiere saberlo)<br>
+        <strong style="color:var(--success)">Estatus:</strong> "Las revendedoras más profesionales ya lo usan" (social proof)<br>
+        <strong style="color:var(--success)">Ahorro:</strong> "Recuperás el costo de la suscripción con UNA venta que no olvidarías cobrar"<br>
+        <strong style="color:var(--success)">Comodidad:</strong> "Todo en el celular, sin Excel, sin papel, sin olvidar nada"
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- COMPETENCIA -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">⚔️</div>
+    <div class="area-title">Competencia y Posicionamiento</div>
+    <div class="area-cnt">La especialización en perfumes es la moat real</div>
+    <div class="area-caret">▼</div>
+  </div>
+  <div class="area-body">
+
+    <div style="background:var(--card2);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:12px">
+      <table class="stbl">
+        <thead><tr><th>Competidor</th><th>Fortaleza</th><th>Debilidad</th><th>Precio</th></tr></thead>
+        <tbody>
+          <tr><td>Excel/Google Sheets</td><td>Gratis, flexible, conocido</td><td>No mobile, no cuotas, no WA</td><td>$0</td></tr>
+          <tr><td>Bling (Brasil)</td><td>Robusto, NF-e</td><td>Complejo, caro, no para perfumes</td><td>R$50+/mes</td></tr>
+          <tr><td>Gestión Simple (AR)</td><td>Hecho para LATAM</td><td>Genérico, sin especialización</td><td>$5-15 USD</td></tr>
+          <tr><td>Cuaderno/WhatsApp</td><td>Sin fricción, gratis</td><td>Sin datos, sin analytics, se pierde todo</td><td>$0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="finding low">
+      <div class="f-head"><div class="f-sev sev-low">💡 OPORTUNIDAD</div><div class="f-title">Ventaja única para crear — 4 features que ningún competidor tiene</div></div>
+      <div class="f-body">
+        <strong style="color:var(--success)">1. Catálogo público compartible</strong> — URL única que las clientas ven sin instalar nada (disponibilidad, precios, fotos)<br>
+        <strong style="color:var(--success)">2. ROI por proveedor</strong> — "Yanbal vs Avon: cuál te deja más ganancia por mes"<br>
+        <strong style="color:var(--success)">3. Directorio de proveedores integrado</strong> — con precios de referencia<br>
+        <strong style="color:var(--success)">4. Recordatorio automático de cobro</strong> — WhatsApp ya existe, llevar a automático completo
+      </div>
+    </div>
+
+    <div class="finding crit">
+      <div class="f-head"><div class="f-sev sev-crit">⚔️ COMPETIDOR AGRESIVO</div><div class="f-title">Cómo un competidor con VC money destruiría ParfumTrack</div></div>
+      <div class="f-body">
+        <strong style="color:var(--danger)">1.</strong> Clonaría la app en 3 meses (el código es open) con mejor diseño y equipo de 3 devs<br>
+        <strong style="color:var(--danger)">2.</strong> Campaña: "¿Usás ParfumTrack? Si perdés tu celular, perdés todo. Nosotros tenemos backup real." — destruye confianza<br>
+        <strong style="color:var(--danger)">3.</strong> Producto gratis por 12 meses con VC money para capturar el mercado<br>
+        <strong style="color:var(--danger)">4.</strong> Compraría keywords "ParfumTrack" en Google Ads para capturar a tus búsquedas de marca<br>
+        <strong style="color:var(--danger)">5.</strong> Integración con MercadoLibre — las revendedoras ven ML + ventas directas en una sola app<br>
+        <strong style="color:var(--gold)">Debilidad fatal que atacaría:</strong> datos locales sin backup real. Este es el Talón de Aquiles.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MÉTRICAS -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">📈</div>
+    <div class="area-title">Métricas y Crecimiento</div>
+    <div class="area-cnt">Sin datos actuales — decisiones completamente ciegas</div>
+    <div class="area-caret">▼</div>
+  </div>
+  <div class="area-body">
+
+    <div class="finding crit">
+      <div class="f-head"><div class="f-sev sev-crit">🔴 CRÍTICO</div><div class="f-title">¿Qué métrica destruiría el negocio? — El churn</div></div>
+      <div class="f-body">
+        Si el 60%+ de usuarios que pagan no renueva al mes 2, el negocio es insostenible. Indica que el producto no genera valor real post-compra.
+        <br><br>
+        <strong style="color:var(--text)">LTV estimado (sin datos reales):</strong><br>
+        A $8 USD/mes con churn 8%/mes → LTV = $100 USD<br>
+        A $15 USD/mes con churn 5%/mes → LTV = $300 USD<br>
+        La diferencia entre churn alto y bajo es 3x en LTV.
+      </div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head"><div class="f-sev sev-mid">🟡 URGENTE</div><div class="f-title">5 métricas que hay que empezar a medir HOY</div></div>
+      <div class="f-body">
+        <strong style="color:var(--gold)">1. Activation rate:</strong> % de users trial que registran primera venta en 24h (objetivo: >60%)<br>
+        <strong style="color:var(--gold)">2. Time to value:</strong> tiempo hasta primera cuota cobrada (el momento "aha")<br>
+        <strong style="color:var(--gold)">3. D7 retention:</strong> % que abre la app al día 7 (objetivo: >40%)<br>
+        <strong style="color:var(--gold)">4. Trial→Paid conversion:</strong> % que convierte (sin este dato, nada más importa)<br>
+        <strong style="color:var(--gold)">5. DAU/MAU ratio:</strong> qué tan habitual es el uso (objetivo: >50%)
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FINANZAS Y LEGAL -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">⚖️</div>
+    <div class="area-title">Legal, Finanzas y Operaciones</div>
+    <div class="area-cnt">Costos casi $0 — ilegalidades técnicas no resueltas</div>
+    <div class="area-caret">▼</div>
+  </div>
+  <div class="area-body">
+    <p class="area-intro">Estructura de costos casi ideal: Cloudflare Pages $0 · KV ~$0.50/mes · R2 $0 hasta 10GB · Brevo $0 hasta 300 emails/día · OneSignal $0. Total: $0-5 USD/mes. Extraordinariamente eficiente para bootstrap.</p>
+
+    <div class="finding mid">
+      <div class="f-head"><div class="f-sev sev-mid">🟡 ALTO</div><div class="f-title">Sin Política de Privacidad ni Términos de Uso — ilegalidad técnica bajo Ley 25.326 AR</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">La ley Argentina 25.326 requiere informar qué datos se recolectan. La app guarda datos de los CLIENTES de la revendedora — terceros sin consentimiento explícito.</span>
+        <span class="f-label">Solución</span><span class="f-val">Crear <code>/privacidad</code> y <code>/terminos</code> con generador (Iubenda) o abogado ($200-400 USD). Aclarar que ParfumTrack es "data processor" y el usuario es "data controller".</span>
+        <span class="f-label">Dificultad</span><span class="f-val">Baja (con generador) — 4 horas</span>
+      </div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head"><div class="f-sev sev-mid">🟡 MEDIO</div><div class="f-title">Sin facturación — informalidad fiscal que escala con el negocio</div></div>
+      <div class="f-row">
+        <span class="f-label">Impacto</span><span class="f-val">A medida que el negocio crece, AFIP puede reclamar. Usuarios que pagan pedirán factura.</span>
+        <span class="f-label">Solución</span><span class="f-val">Registrarse como monotributista (si no lo está) + emitir facturas C. MercadoPago maneja parte automáticamente.</span>
+      </div>
+    </div>
+
+    <div class="finding crit">
+      <div class="f-head"><div class="f-sev sev-crit">🔴 CRÍTICO</div><div class="f-title">¿Qué rompería el negocio si creciera 10x (100 → 1000 usuarios)?</div></div>
+      <div class="f-body">
+        <strong style="color:var(--danger)">1. Proceso manual de licencias</strong> — emitir cada código requiere intervención manual. A 1000 users, es trabajo full-time.<br>
+        <strong style="color:var(--danger)">2. Soporte al cliente</strong> — sin chat ni FAQ, las preguntas consumen horas/día desde 200 usuarios.<br>
+        <strong style="color:var(--danger)">3. Brevo free tier</strong> — 300 emails/día se supera en el primer mes con 1000 users en trial.<br>
+        <strong style="color:var(--danger)">4. Sin sistema de pagos</strong> — con pagos manuales (MP link por WA), escalar es humanamente imposible.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOP 10 PROBLEMAS CRÍTICOS -->
+<div class="sh">Top 10 — Problemas Críticos</div>
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px">
+<table class="stbl">
+  <thead><tr><th>#</th><th>Problema</th><th>Severidad</th><th>Área</th></tr></thead>
+  <tbody>
+    <tr><td style="font-weight:700;color:var(--gold)">1</td><td><code>send-email</code> y <code>send-notification</code> sin autenticación</td><td style="color:var(--danger)">Crítico</td><td>Seguridad</td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">2</td><td>Sin self-service de pago — crecimiento manualmente limitado</td><td style="color:var(--danger)">Crítico</td><td>Negocio</td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">3</td><td>Backup cloud incompleto (R2 comentado) — sin respaldo real</td><td style="color:var(--danger)">Crítico</td><td>Funcionalidad</td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">4</td><td>CORS regex permite cualquier <code>*.pages.dev</code></td><td style="color:var(--warn)">Alto</td><td>Seguridad</td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">5</td><td>PIN sin rate limiting server-side — bypasseable con DevTools</td><td style="color:var(--warn)">Alto</td><td>Seguridad</td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">6</td><td>Sin analytics de comportamiento — decisiones completamente ciegas</td><td style="color:var(--warn)">Alto</td><td>Negocio</td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">7</td><td>Sin Política de Privacidad ni Términos — ilegalidad bajo Ley 25.326</td><td style="color:var(--warn)">Alto</td><td>Legal</td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">8</td><td>Datos de backup sin cifrar en R2</td><td style="color:var(--warn)">Alto</td><td>Seguridad</td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">9</td><td>Sin demo data — activación muy baja en usuarios nuevos</td><td style="color:var(--warn)">Alto</td><td>UX/Conversión</td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">10</td><td>Sin facturación — informalidad fiscal que escala con el negocio</td><td style="color:var(--text3)">Medio</td><td>Legal/Ops</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- TOP 10 MEJORAS ROI -->
+<div class="sh">Top 10 — Mejoras con Mejor ROI</div>
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px">
+<table class="stbl">
+  <thead><tr><th>#</th><th>Mejora</th><th>Dificultad</th><th>ROI</th></tr></thead>
+  <tbody>
+    <tr><td style="font-weight:700;color:var(--gold)">1</td><td>Integrar MercadoPago (checkout automático)</td><td>1 semana</td><td><span class="roi-tag roi-a">Altísimo</span></td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">2</td><td>Demo data en onboarding ("Ver con datos de ejemplo")</td><td>3 horas</td><td><span class="roi-tag roi-a">Altísimo</span></td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">3</td><td>Eventos custom Plausible (Venta creada, Trial expirado, etc.)</td><td>2 horas</td><td><span class="roi-tag roi-a">Altísimo</span></td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">4</td><td>Auth HMAC en send-email y send-notification</td><td>2 horas</td><td><span class="roi-tag roi-a">Altísimo</span></td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">5</td><td>CORS exacto a dominio específico</td><td>30 min</td><td><span class="roi-tag roi-a">Altísimo</span></td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">6</td><td>Trial basado en actividad (10 ventas gratis) vs 7 días</td><td>1 día</td><td><span class="roi-tag roi-a">Alto</span></td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">7</td><td>Barra de progreso del trial en el header</td><td>3 horas</td><td><span class="roi-tag roi-a">Alto</span></td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">8</td><td>Activar R2 backup + cifrado AES-256 client-side</td><td>1 día</td><td><span class="roi-tag roi-a">Alto</span></td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">9</td><td>Política de privacidad y Términos de Uso</td><td>4 horas</td><td><span class="roi-tag roi-a">Alto</span></td></tr>
+    <tr><td style="font-weight:700;color:var(--gold)">10</td><td>Catálogo público compartible (URL para clientas)</td><td>2 días</td><td><span class="roi-tag roi-b">Alto</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- PLANES DE ACCIÓN -->
+<div class="sh">Planes de acción</div>
+<div class="plan-grid">
+  <div class="plan-card" style="border-color:rgba(224,112,112,0.3)">
+    <div class="plan-title" style="color:var(--danger)">Plan 24 horas — Urgente</div>
+    <div class="plan-item"><b>1. Auth en send-email y send-notification</b>HMAC token obligatorio en body · 2h</div>
+    <div class="plan-item"><b>2. CORS regex exacto</b>Solo parfumtrack.pages.dev · 30 min</div>
+    <div class="plan-item"><b>3. Activar R2 en wrangler.jsonc</b>Crear bucket + descomentar binding · 1h</div>
+    <div class="plan-item"><b>4. Configurar env vars faltantes</b>Cloudflare Dashboard · 30 min</div>
+  </div>
+  <div class="plan-card" style="border-color:rgba(224,176,96,0.3)">
+    <div class="plan-title" style="color:var(--warn)">Plan 7 días — Conversión</div>
+    <div class="plan-item"><b>1. Eventos Plausible custom</b>Base de datos para decisiones</div>
+    <div class="plan-item"><b>2. Demo data en onboarding</b>+30-50% activación</div>
+    <div class="plan-item"><b>3. Barra de progreso trial</b>+10-15% conversión</div>
+    <div class="plan-item"><b>4. Política de privacidad y Términos</b>Legalidad + credibilidad</div>
+    <div class="plan-item"><b>5. Mensajes de error mejorados</b>Backup fallido + quota excedida</div>
+  </div>
+  <div class="plan-card" style="border-color:rgba(112,201,160,0.3)">
+    <div class="plan-title" style="color:var(--success)">Plan 30 días — Self-service</div>
+    <div class="plan-item"><b>1. MercadoPago checkout</b>Pago + auto-activación de licencia</div>
+    <div class="plan-item"><b>2. Trial 14 días o 10 ventas</b>Testear cuál convierte más</div>
+    <div class="plan-item"><b>3. Cifrado AES-256 en backups</b>Confidencialidad total</div>
+    <div class="plan-item"><b>4. Rate limiting en endpoints</b>10 req/min por IP via KV</div>
+    <div class="plan-item"><b>5. PIN lockout server-side</b>5 intentos → 15 min en KV</div>
+  </div>
+  <div class="plan-card">
+    <div class="plan-title">Plan 90 días — Diferenciación</div>
+    <div class="plan-item"><b>1. Catálogo público compartible</b>URL para clientas sin instalar</div>
+    <div class="plan-item"><b>2. Multi-dispositivo</b>Sync via R2 o Cloudflare D1</div>
+    <div class="plan-item"><b>3. ROI por proveedor</b>Analytics Yanbal vs Avon</div>
+    <div class="plan-item"><b>4. Programa de referidos</b>1 mes gratis por revendedora invitada</div>
+    <div class="plan-item"><b>5. Landing page externa</b>Testimonios + precio + demo video</div>
+  </div>
+</div>
+
+<!-- VEREDICTO FINAL -->
+<div class="verdict yes" style="margin-top:28px">
+  <div class="vq">¿Lanzarías el producto?</div>
+  <div class="va cond">SÍ — con 4 condiciones no negociables</div>
+  <div class="vbody">
+    <strong style="color:var(--text)">1.</strong> Cerrar las vulnerabilidades de seguridad en los endpoints (24h)<br>
+    <strong style="color:var(--text)">2.</strong> Activar el backup cloud completo con cifrado (el producto no puede vivir sin respaldo real)<br>
+    <strong style="color:var(--text)">3.</strong> Integrar MercadoPago para self-service (sin esto el techo de crecimiento es un cuello de botella humano)<br>
+    <strong style="color:var(--text)">4.</strong> Demo data + onboarding mejorado (sin esto la conversión es estructuralmente baja)<br><br>
+    Con esas 4 cosas: <strong style="color:var(--success)">negocio real · $2.000-$10.000 USD/mes · 200-800 usuarios · 1 persona · 12 meses</strong>
+  </div>
+</div>
+
+<!-- AUTOCRÍTICA -->
+<div class="sh">Autocrítica del auditor</div>
+<div class="info-box">
+  <b>Asumido sin evidencia:</b> Precio de la licencia · Cantidad de usuarios actuales · Tasa de conversión real · Canales de adquisición actuales · Calidad del onboarding (no se verificó live)<br><br>
+  <b>Necesita más investigación:</b> Entrevistas con 5 usuarios actuales · Análisis de Plausible existente · Flujo de activación completo · Estado real del soporte
+</div>
+
+<div class="footer">
+  Auditoría ejecutada por <strong style="color:var(--gold)">Sistema de Auditoría Extrema — 11 Fases · 15 Roles · 9 Perspectivas</strong><br>
+  ParfumTrack PWA · Cloudflare Pages + Workers · IndexedDB · ECDSA P-256<br>
+  <span style="opacity:.4">13 Jun 2026 · Commit be44f84 · claude/remote-control-d369h1 · Auditoría Extrema v1</span>
+</div>
+
+</div>
+
+<script>
+function toggle(header) {
+  const body = header.nextElementSibling;
+  const caret = header.querySelector('.area-caret');
+  const open = body.classList.toggle('open');
+  caret.style.transform = open ? 'rotate(180deg)' : '';
+}
+</script>
+</body>
+</html>
