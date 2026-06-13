@@ -2802,68 +2802,185 @@ function onClienteInput(){
   }
 }
 let _addVentaEnProceso = false;
-let _negGainPending = false; // flag doble-tap para ganancia negativa
+let _negGainPending = false;
 let _negGainTimer = null;
-function addVenta(){
+
+function _readVentaForm() {
+  return {
+    perfume:   (document.getElementById('f-perfume')?.value   || '').trim(),
+    pv:        parseFloat(document.getElementById('f-pventa')?.value)  || 0,
+    pc:        parseFloat(document.getElementById('f-pcompra')?.value) || 0,
+    dto:       parseFloat(document.getElementById('f-descuento')?.value) || 0,
+    tipo:      document.getElementById('f-tipo-cuota')?.value || 'contado',
+    proveedor: (document.getElementById('f-proveedor')?.value  || '').trim(),
+    vendedor:  (document.getElementById('f-vendedor')?.value   || '').trim(),
+    cliente:   (document.getElementById('f-cliente')?.value    || '').trim(),
+    nota:      (document.getElementById('f-nota')?.value       || '').trim(),
+  };
+}
+
+function _validateVenta(f) {
+  if (!f.perfume) { showFieldError('f-perfume', 'Ingresá el nombre del perfume'); return 'field'; }
+  if (!f.pv || f.pv <= 0) { showFieldError('f-pventa', 'Precio de venta requerido (mayor a 0)'); return 'field'; }
+  if (f.pc < 0) return '⚠ El precio de compra no puede ser negativo';
+  if (f.pv > 10000000) return '⚠ El precio parece muy alto. Verificá los datos';
+  if (f.dto < 0 || f.dto > 100) return '⚠ El descuento debe estar entre 0 y 100%';
+  return null;
+}
+
+function _parseFechaVenta() {
+  const inp = document.getElementById('f-fecha');
+  if (inp && inp.value) {
+    const [aa, mm, dd] = inp.value.split('-');
+    const test = new Date(+aa, +mm - 1, +dd);
+    const limite = new Date(); limite.setHours(23, 59, 59, 999);
+    if (!isNaN(test.getTime()) && test <= limite) return `${dd}/${mm}/${aa}`;
+  }
+  return hoy();
+}
+
+function _clearVentaForm() {
+  ['f-perfume','f-pventa','f-pcompra','f-descuento','f-proveedor','f-vendedor','f-cliente','f-nota']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['f-pventa','f-pcompra'].forEach(id => {
+    const h = document.getElementById('hint-' + id);
+    if (h) h.textContent = '';
+  });
+  const fFecha = document.getElementById('f-fecha');
+  if (fFecha) { const t = new Date().toISOString().slice(0, 10); fFecha.max = t; fFecha.value = t; }
+  const tipoCuota = document.getElementById('f-tipo-cuota');
+  if (tipoCuota) tipoCuota.value = 'contado';
+  const extraForm = document.getElementById('cuotas-form-extra');
+  if (extraForm) extraForm.style.display = 'none';
+  const preview = document.getElementById('cuotas-preview');
+  if (preview) preview.innerHTML = '';
+  const sugerido = document.getElementById('precio-sugerido');
+  if (sugerido) sugerido.style.display = 'none';
+  const ganPrev = document.getElementById('ganancia-preview');
+  if (ganPrev) ganPrev.textContent = '';
+}
+
+function addVenta() {
   if (_addVentaEnProceso) return;
   _addVentaEnProceso = true;
   clearFieldErrors();
-  // Helper: libera el guard y sale. Usar en todos los early returns.
-  const _abort = (msg, ms) => { _addVentaEnProceso = false; if(msg) toast(msg, ms||2800); };
+  const _abort = (msg, ms) => { _addVentaEnProceso = false; if (msg) toast(msg, ms || 2800); };
 
-  // ── TRIAL LIMIT CHECK ──
+  // Trial limit check
   if (window._trialLimitado && !isActivated()) {
-    const restantes = getTrialVentasRestantes();
-    if (restantes <= 0) {
+    if (getTrialVentasRestantes() <= 0) {
       abrirModalActivacion();
       _abort('🔒 Límite alcanzado. Activá tu licencia para seguir registrando ventas.');
       return;
     }
   }
-  const perfume=document.getElementById('f-perfume').value.trim();const pv=parseFloat(document.getElementById('f-pventa').value)||0;const pc=parseFloat(document.getElementById('f-pcompra').value)||0;const dto=parseFloat(document.getElementById('f-descuento').value)||0;const tipo=document.getElementById('f-tipo-cuota').value;const proveedor=document.getElementById('f-proveedor').value.trim();const vendedor=document.getElementById('f-vendedor').value.trim();const cliente=document.getElementById('f-cliente').value.trim();const nota=document.getElementById('f-nota').value.trim();
-  if(!perfume){showFieldError('f-perfume','Ingresá el nombre del perfume');_abort();return;}
-  if(!pv||pv<=0){showFieldError('f-pventa','Precio de venta requerido (mayor a 0)');_abort();return;}
-  if(pc<0){_abort('⚠ El precio de compra no puede ser negativo');return;}
-  if(pv>10000000){_abort('⚠ El precio parece muy alto. Verificá los datos');return;}
-  if(dto < 0 || dto > 100){_abort('⚠ El descuento debe estar entre 0 y 100%');return;}
-  if(pc === 0){toast('💡 El precio de compra es $0 — la ganancia podría estar inflada', 3500);}
-  const pvFinal=dto>0?pv*(1-dto/100):pv;
-  // Advertir si ganancia negativa — requiere segundo tap para confirmar
-  if(pc > pvFinal){
-    if(!_negGainPending){
-      _negGainPending=true;
+
+  const f = _readVentaForm();
+  const err = _validateVenta(f);
+  if (err) { _abort(err === 'field' ? null : err); return; }
+
+  if (f.pc === 0) toast('💡 El precio de compra es $0 — la ganancia podría estar inflada', 3500);
+
+  const pvFinal = f.dto > 0 ? f.pv * (1 - f.dto / 100) : f.pv;
+
+  // Negative gain warning — requires second tap
+  if (f.pc > pvFinal) {
+    if (!_negGainPending) {
+      _negGainPending = true;
       clearTimeout(_negGainTimer);
-      _negGainTimer=setTimeout(()=>{ _negGainPending=false; },5000);
-      const btn=document.getElementById('btn-guardar-venta');
-      if(btn){ btn.textContent='⚠ Ganancia negativa — tocá de nuevo para confirmar'; btn.style.background='rgba(224,144,96,0.2)'; btn.style.borderColor='var(--warn)'; setTimeout(()=>{ btn.textContent='Guardar venta'; btn.style.background=''; btn.style.borderColor=''; },5000); }
-      _addVentaEnProceso=false;
+      _negGainTimer = setTimeout(() => { _negGainPending = false; }, 5000);
+      const btn = document.getElementById('btn-guardar-venta');
+      if (btn) {
+        btn.textContent = '⚠ Ganancia negativa — tocá de nuevo para confirmar';
+        btn.style.background = 'rgba(224,144,96,0.2)';
+        btn.style.borderColor = 'var(--warn)';
+        setTimeout(() => { btn.textContent = 'Guardar venta'; btn.style.background = ''; btn.style.borderColor = ''; }, 5000);
+      }
+      _addVentaEnProceso = false;
       return;
     }
-    _negGainPending=false;
+    _negGainPending = false;
     clearTimeout(_negGainTimer);
   }
-  // Fecha editable — default hoy, máximo hoy (no se pueden registrar ventas futuras)
-  const _fechaInput=document.getElementById('f-fecha');
-  let fecha=hoy();
-  if(_fechaInput&&_fechaInput.value){
-    const[aa,mm,dd]=_fechaInput.value.split('-');
-    const _fTest=new Date(+aa,+mm-1,+dd);
-    const _hoy=new Date();_hoy.setHours(23,59,59,999);
-    if(!isNaN(_fTest.getTime())&&_fTest<=_hoy){fecha=`${dd}/${mm}/${aa}`;}
+
+  const fecha = _parseFechaVenta();
+  const mesFecha = mesKey(fecha);
+  const esMesNuevo = !mesesDeVentas().includes(mesFecha);
+  const nVenta = ventas.filter(v => mesKey(v.fecha) === mesFecha).length + 1;
+  const esCuotas = f.tipo === 'cuotas';
+
+  let cuotasTotal = 1, primeraCuota = 0, cuotasPagos = [];
+  if (esCuotas) {
+    cuotasTotal = parseInt(document.getElementById('f-num-cuotas')?.value) || 2;
+    primeraCuota = parseFloat(document.getElementById('f-primera-cuota')?.value) || 0;
+    if (primeraCuota > 0) cuotasPagos = [{ monto: primeraCuota, fecha, numCuota: 0 }];
+  } else {
+    cuotasPagos = [{ monto: pvFinal, fecha, numCuota: 0 }];
   }
-  const mesFecha=mesKey(fecha);const esMesNuevo=!mesesDeVentas().includes(mesFecha);const nVenta=ventas.filter(v=>mesKey(v.fecha)===mesFecha).length+1;const esCuotas=tipo==='cuotas';let cuotasTotal=1,primeraCuota=0,cuotasPagos=[];if(esCuotas){cuotasTotal=parseInt(document.getElementById('f-num-cuotas').value)||2;primeraCuota=parseFloat(document.getElementById('f-primera-cuota').value)||0;if(primeraCuota>0)cuotasPagos=[{monto:primeraCuota,fecha,numCuota:0}];}else cuotasPagos=[{monto:pvFinal,fecha,numCuota:0}];const _btnGuardar = document.getElementById('btn-guardar-venta');
-  if(_btnGuardar){_btnGuardar.disabled=true;_btnGuardar.textContent='Guardando...';}
-  const _esPrimeraVenta = ventas.length === 0;
-  ventas.unshift({id:Date.now()*1000+Math.floor(Math.random()*1000),createdAt:Date.now(),nVenta,perfume,precioVenta:pvFinal,precioCompra:pc,ganancia:Math.round(pvFinal-pc),descuento:dto||0,esCuotas,cuotasTotal,primeraCuota,cuotasPagos,proveedor,vendedor,cliente,nota,fecha});
-  if (_esPrimeraVenta && typeof _obConfetti === 'function') setTimeout(_obConfetti, 800);let sp=perfumes.find(p=>p.nombre.toLowerCase()===perfume.toLowerCase());const _eraNuevo=!sp;if(!sp){sp={nombre:perfume,precio:pc,stock:0,proveedor,foto:null,historialPrecios:[{precio:pc,fecha}]};perfumes.push(sp);}const _stockAntes=sp.stock||0;if(sp.stock>0)sp.stock--;haptic('success');save();
-  // BUG-05: avisar cuando el stock llega a 0
-  if(!_eraNuevo&&_stockAntes===1)setTimeout(()=>toast(`⚠ Sin stock: "${perfume}" llegó a 0 unidades. Acordate de reponer.`,4500),3400);_clearDraft();updateStats();['f-perfume','f-pventa','f-pcompra','f-descuento','f-proveedor','f-vendedor','f-cliente','f-nota'].forEach(id=>document.getElementById(id).value='');['f-pventa','f-pcompra'].forEach(id=>{const h=document.getElementById('hint-'+id);if(h)h.textContent='';});const _fFecha=document.getElementById('f-fecha');if(_fFecha){const _hoy=new Date().toISOString().slice(0,10);_fFecha.max=_hoy;_fFecha.value=_hoy;}document.getElementById('f-tipo-cuota').value='contado';document.getElementById('cuotas-form-extra').style.display='none';document.getElementById('cuotas-preview').innerHTML='';document.getElementById('precio-sugerido').style.display='none';document.getElementById('ganancia-preview').textContent='';const debe=calcDebe(ventas[0]);toast((esCuotas?`✓ Venta en ${cuotasTotal} cuotas${primeraCuota?' · 1ra cobrada':''}${debe>0?' · Resta: '+fmt(debe):''}`:` ✓ Venta registrada · Ganancia: ${fmt(pvFinal-pc)}`)+(dto>0?` · Descuento: ${dto}%`:'')+(esMesNuevo?`\n📅 Nueva sección ${mesLabel(mesFecha)} creada`:''),3200);if(esMesNuevo)activeMesVentas=mesFecha;
-  // Rehabilitar botón guardar y liberar guard
-  const _bg=document.getElementById('btn-guardar-venta');if(_bg){_bg.disabled=false;_bg.textContent='Guardar venta';}
+
+  const btnGuardar = document.getElementById('btn-guardar-venta');
+  if (btnGuardar) { btnGuardar.disabled = true; btnGuardar.textContent = 'Guardando...'; }
+
+  const esPrimeraVenta = ventas.length === 0;
+  ventas.unshift({
+    id: Date.now() * 1000 + Math.floor(Math.random() * 1000),
+    createdAt: Date.now(),
+    nVenta,
+    perfume: f.perfume,
+    precioVenta: pvFinal,
+    precioCompra: f.pc,
+    ganancia: Math.round(pvFinal - f.pc),
+    descuento: f.dto || 0,
+    esCuotas,
+    cuotasTotal,
+    primeraCuota,
+    cuotasPagos,
+    proveedor: f.proveedor,
+    vendedor: f.vendedor,
+    cliente: f.cliente,
+    nota: f.nota,
+    fecha,
+  });
+
+  if (esPrimeraVenta && typeof _obConfetti === 'function') setTimeout(_obConfetti, 800);
+
+  // Update stock
+  let sp = perfumes.find(p => p.nombre.toLowerCase() === f.perfume.toLowerCase());
+  const eraNuevo = !sp;
+  if (!sp) {
+    sp = { nombre: f.perfume, precio: f.pc, stock: 0, proveedor: f.proveedor, foto: null, historialPrecios: [{ precio: f.pc, fecha }] };
+    perfumes.push(sp);
+  }
+  const stockAntes = sp.stock || 0;
+  if (sp.stock > 0) sp.stock--;
+  haptic('success');
+  save();
+
+  if (!eraNuevo && stockAntes === 1) {
+    setTimeout(() => toast(`⚠ Sin stock: "${f.perfume}" llegó a 0 unidades. Acordate de reponer.`, 4500), 3400);
+  }
+
+  _clearDraft();
+  updateStats();
+  _clearVentaForm();
+
+  const debe = calcDebe(ventas[0]);
+  const msgVenta = esCuotas
+    ? `✓ Venta en ${cuotasTotal} cuotas${primeraCuota ? ' · 1ra cobrada' : ''}${debe > 0 ? ' · Resta: ' + fmt(debe) : ''}`
+    : ` ✓ Venta registrada · Ganancia: ${fmt(pvFinal - f.pc)}`;
+  toast(msgVenta + (f.dto > 0 ? ` · Descuento: ${f.dto}%` : '') + (esMesNuevo ? `\n📅 Nueva sección ${mesLabel(mesFecha)} creada` : ''), 3200);
+
+  if (esMesNuevo) activeMesVentas = mesFecha;
+
+  if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = 'Guardar venta'; }
   _addVentaEnProceso = false;
-  // Aviso si queda poco margen de trial limitado
-  if(window._trialLimitado && !isActivated()){const r=getTrialVentasRestantes();if(r===1)setTimeout(()=>toast('⚠ Esta fue tu penúltima venta en modo limitado. Activá la licencia para seguir.',4000),3400);else if(r===0)setTimeout(()=>{mostrarBannerTrialVencido(0);},3400);}
-  trackEvent('venta_guardada',{perfume,esCuotas:esCuotas?1:0});
+
+  if (window._trialLimitado && !isActivated()) {
+    const r = getTrialVentasRestantes();
+    if (r === 1) setTimeout(() => toast('⚠ Esta fue tu penúltima venta en modo limitado. Activá la licencia para seguir.', 4000), 3400);
+    else if (r === 0) setTimeout(() => { mostrarBannerTrialVencido(0); }, 3400);
+  }
+  trackEvent('venta_guardada', { perfume: f.perfume, esCuotas: esCuotas ? 1 : 0 });
 }
 function renderMetaBar(){
   const el=document.getElementById('meta-bar-fill');
@@ -3450,7 +3567,15 @@ function abrirModalActivacion() {
   trackEvent('paywall_visto');
 }
 
-// ── License state (set by initLicenseVerification at startup) ──
+// ── Global state variables — invariants ──
+// _activationVerified: true only after ECDSA signature of stored license passes verifyStoredLicense().
+//   Set to false on startup, true on successful verification, false+cleared on tampered data.
+// _trialLimitado: true when trial period has expired and user has not activated.
+//   Set in checkTrial() / trial ticker. Reset to false on successful activation.
+// _addVentaEnProceso: mutex for addVenta(). Prevents double-submit on fast taps.
+// _addingStock: mutex for agregarStock(). Same purpose.
+// _addingCaja: mutex for addMovCaja(). Same purpose.
+// _backupInFlight: mutex for cloudBackupSave/Restore(). Prevents concurrent cloud operations.
 window._activationVerified = false;
 
 function isActivated() {
