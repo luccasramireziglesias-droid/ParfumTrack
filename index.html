@@ -12104,6 +12104,123 @@
 
       const _trialTickerRef = [null]; // avoids window._trialTickerInterval global exposure
 
+      // ── Email OTP trial registration ──────────────────────────
+      async function _trialSolicitarOtp() {
+        const emailInput = document.getElementById("trial-email-input");
+        const errEl = document.getElementById("trial-email-error");
+        const btn = document.getElementById("trial-email-btn");
+        const email = emailInput.value.trim().toLowerCase();
+
+        errEl.textContent = "";
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+          errEl.textContent = "⚠ Ingresá un email válido";
+          shakeInput(emailInput);
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Enviando...";
+        try {
+          const resp = await fetch("/trial", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              step: "register",
+              email,
+              deviceId: _getOrCreateDeviceId(),
+            }),
+            signal: AbortSignal.timeout(10000),
+          });
+          const data = await resp.json();
+          if (resp.ok && data.sent) {
+            document.getElementById("trial-otp-dest").textContent = email;
+            document.getElementById("trial-email-step1").style.display = "none";
+            document.getElementById("trial-email-step2").style.display =
+              "block";
+            setTimeout(
+              () => document.getElementById("trial-otp-input")?.focus(),
+              100,
+            );
+          } else {
+            errEl.textContent =
+              data.error || "⚠ No se pudo enviar el código. Intentá de nuevo.";
+          }
+        } catch {
+          errEl.textContent = "📶 Sin conexión. Verificá tu internet.";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Continuar →";
+        }
+      }
+
+      async function _trialVerificarOtp() {
+        const emailInput = document.getElementById("trial-email-input");
+        const otpInput = document.getElementById("trial-otp-input");
+        const errEl = document.getElementById("trial-otp-error");
+        const btn = document.getElementById("trial-otp-btn");
+        const email = emailInput.value.trim().toLowerCase();
+        const otp = otpInput.value.trim();
+
+        errEl.textContent = "";
+        if (!otp || !/^\d{6}$/.test(otp)) {
+          errEl.textContent = "⚠ Ingresá el código de 6 dígitos";
+          shakeInput(otpInput);
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Verificando...";
+        try {
+          const resp = await fetch("/trial", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              step: "verify",
+              email,
+              otp,
+              deviceId: _getOrCreateDeviceId(),
+            }),
+            signal: AbortSignal.timeout(10000),
+          });
+          const data = await resp.json();
+          if (resp.ok && data.verified) {
+            localStorage.setItem("pt_trial_email", email);
+            if (data.startAt && typeof data.startAt === "number") {
+              const ts = String(data.startAt);
+              localStorage.setItem("pt_trial_start", ts);
+              PTDB.set("pt_trial_start", ts);
+            }
+            document
+              .getElementById("modal-trial-email")
+              .classList.remove("open");
+            checkTrial();
+          } else {
+            let msg = data.error || "⚠ Código incorrecto. Intentá de nuevo.";
+            if (data.attemptsLeft !== undefined)
+              msg += ` (${data.attemptsLeft} intentos restantes)`;
+            errEl.textContent = msg;
+            shakeInput(otpInput);
+          }
+        } catch {
+          errEl.textContent = "📶 Sin conexión. Verificá tu internet.";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Verificar →";
+        }
+      }
+
+      function _trialVolverEmail() {
+        document.getElementById("trial-email-step1").style.display = "block";
+        document.getElementById("trial-email-step2").style.display = "none";
+        document.getElementById("trial-otp-input").value = "";
+        document.getElementById("trial-otp-error").textContent = "";
+        document.getElementById("trial-email-error").textContent = "";
+        setTimeout(
+          () => document.getElementById("trial-email-input")?.focus(),
+          100,
+        );
+      }
+
       function checkTrial() {
         if (isActivated()) return;
         if (LICENSE.isDemo) {
@@ -12113,6 +12230,16 @@
         }
         if (!LICENSE.trialDays && !LICENSE.trialMinutes) return;
         if (LICENSE.expiresAt) return;
+
+        // Email registration required before trial starts
+        if (!localStorage.getItem("pt_trial_email")) {
+          document.getElementById("modal-trial-email").classList.add("open");
+          setTimeout(
+            () => document.getElementById("trial-email-input")?.focus(),
+            200,
+          );
+          return;
+        }
 
         let trialStart = localStorage.getItem("pt_trial_start");
         if (!trialStart) {
@@ -17326,6 +17453,200 @@
             style="width: 100%; padding: 13px"
           >
             Registrar mi primera venta →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ MODAL REGISTRO EMAIL TRIAL ═══════ -->
+    <div
+      id="modal-trial-email"
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="trial-email-title"
+      style="z-index: 10001"
+    >
+      <div class="modal" style="max-width: 380px; padding: 28px 24px 32px">
+        <!-- Step 1: email -->
+        <div id="trial-email-step1">
+          <div style="text-align: center; margin-bottom: 20px">
+            <div style="font-size: 36px; margin-bottom: 6px">🍶</div>
+            <h3
+              id="trial-email-title"
+              style="
+                font-family: &quot;Cormorant Garamond&quot;, serif;
+                font-size: 21px;
+                color: var(--gold2);
+                margin-bottom: 6px;
+              "
+            >
+              Comenzar prueba gratuita
+            </h3>
+            <p style="font-size: 12px; color: var(--text3); line-height: 1.5">
+              7 días completos · Sin límites · Sin tarjeta
+            </p>
+          </div>
+          <p
+            style="
+              font-size: 13px;
+              color: var(--text2);
+              line-height: 1.6;
+              margin-bottom: 16px;
+            "
+          >
+            Ingresá tu email para activar el trial. También te permitirá
+            recuperar tus datos si cambiás de dispositivo.
+          </p>
+          <input
+            type="email"
+            id="trial-email-input"
+            placeholder="tu@email.com"
+            autocomplete="email"
+            inputmode="email"
+            style="
+              width: 100%;
+              padding: 12px 14px;
+              background: var(--card2);
+              border: 1px solid var(--border);
+              border-radius: var(--radius);
+              color: var(--text);
+              font-size: 15px;
+              box-sizing: border-box;
+              margin-bottom: 6px;
+              outline: none;
+              transition: border-color 0.2s;
+            "
+            onfocus="this.style.borderColor = 'var(--gold)'"
+            onblur="this.style.borderColor = 'var(--border)'"
+            onkeydown="if (event.key === 'Enter') _trialSolicitarOtp();"
+          />
+          <p
+            id="trial-email-error"
+            style="
+              color: var(--danger);
+              font-size: 12px;
+              min-height: 18px;
+              margin-bottom: 12px;
+            "
+          ></p>
+          <button
+            onclick="_trialSolicitarOtp()"
+            id="trial-email-btn"
+            style="
+              width: 100%;
+              padding: 13px;
+              background: linear-gradient(135deg, var(--gold), var(--gold2));
+              color: #1a1206;
+              border: none;
+              border-radius: var(--radius);
+              font-size: 15px;
+              font-weight: 700;
+              cursor: pointer;
+              letter-spacing: 0.3px;
+            "
+          >
+            Continuar →
+          </button>
+        </div>
+
+        <!-- Step 2: OTP -->
+        <div id="trial-email-step2" style="display: none">
+          <div style="text-align: center; margin-bottom: 20px">
+            <div style="font-size: 36px; margin-bottom: 6px">📬</div>
+            <h3
+              style="
+                font-family: &quot;Cormorant Garamond&quot;, serif;
+                font-size: 21px;
+                color: var(--gold2);
+                margin-bottom: 6px;
+              "
+            >
+              Verificá tu email
+            </h3>
+          </div>
+          <p
+            style="
+              font-size: 13px;
+              color: var(--text2);
+              line-height: 1.6;
+              margin-bottom: 16px;
+            "
+          >
+            Enviamos un código de 6 dígitos a
+            <strong id="trial-otp-dest" style="color: var(--text)"></strong>.
+            Revisá tu bandeja de entrada (y spam).
+          </p>
+          <input
+            type="text"
+            id="trial-otp-input"
+            placeholder="000000"
+            maxlength="6"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            style="
+              width: 100%;
+              padding: 14px;
+              background: var(--card2);
+              border: 1px solid var(--border);
+              border-radius: var(--radius);
+              color: var(--text);
+              font-size: 24px;
+              font-weight: 700;
+              text-align: center;
+              letter-spacing: 8px;
+              box-sizing: border-box;
+              margin-bottom: 6px;
+              outline: none;
+              transition: border-color 0.2s;
+              font-family: monospace;
+            "
+            onfocus="this.style.borderColor = 'var(--gold)'"
+            onblur="this.style.borderColor = 'var(--border)'"
+            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+            onkeydown="if (event.key === 'Enter') _trialVerificarOtp();"
+          />
+          <p
+            id="trial-otp-error"
+            style="
+              color: var(--danger);
+              font-size: 12px;
+              min-height: 18px;
+              margin-bottom: 12px;
+            "
+          ></p>
+          <button
+            onclick="_trialVerificarOtp()"
+            id="trial-otp-btn"
+            style="
+              width: 100%;
+              padding: 13px;
+              background: linear-gradient(135deg, var(--gold), var(--gold2));
+              color: #1a1206;
+              border: none;
+              border-radius: var(--radius);
+              font-size: 15px;
+              font-weight: 700;
+              cursor: pointer;
+              letter-spacing: 0.3px;
+              margin-bottom: 10px;
+            "
+          >
+            Verificar →
+          </button>
+          <button
+            onclick="_trialVolverEmail()"
+            style="
+              width: 100%;
+              padding: 9px;
+              background: none;
+              border: none;
+              color: var(--text3);
+              font-size: 12px;
+              cursor: pointer;
+            "
+          >
+            ← Cambiar email o reenviar código
           </button>
         </div>
       </div>
