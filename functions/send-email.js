@@ -177,12 +177,49 @@ const TEMPLATES = {
   }),
 };
 
+// Escape HTML special chars to prevent injection into email templates
+function sanitize(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+// KV-based rate limiter: allows `max` requests per `windowSecs` seconds
+async function checkRateLimit(env, key, max, windowSecs) {
+  if (!env.PT_LICENSES) return null;
+
+  const now = Math.floor(Date.now() / 1000);
+  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
+
+  let count = 0;
+  try {
+    const stored = await env.PT_LICENSES.get(windowKey);
+    count = stored ? parseInt(stored, 10) : 0;
+  } catch { return null; }
+
+  if (count >= max) return 'Too many requests, please try again later';
+
+  try {
+    await env.PT_LICENSES.put(windowKey, String(count + 1), { expirationTtl: windowSecs * 2 });
+  } catch { /* non-blocking */ }
+
+  return null;
+}
+
 // ── Main handler ─────────────────────────────────────────────
 
 export async function onRequestPost(context) {
   const { request, env } = context;
   const origin = request.headers.get('Origin') || '';
   const headers = corsHeaders(origin);
+
+  // Rate limit by IP: max 5 email requests/hour
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ipLimitError = await checkRateLimit(env, `rl_email_ip_${ip}`, 5, 3600);
+  if (ipLimitError) return new Response(JSON.stringify({ ok: false, error: ipLimitError }), { status: 429, headers });
 
   let body;
   try {
@@ -201,6 +238,11 @@ export async function onRequestPost(context) {
     return new Response(JSON.stringify({ ok: false, error: 'Invalid email address' }), { status: 400, headers });
   }
 
+  // Rate limit by destination email: max 3 emails/24h per address
+  const emailKey = to.toLowerCase().replace(/[^a-z0-9@._-]/g, '').slice(0, 100);
+  const emailLimitError = await checkRateLimit(env, `rl_email_to_${emailKey}`, 3, 86400);
+  if (emailLimitError) return new Response(JSON.stringify({ ok: false, error: emailLimitError }), { status: 429, headers });
+
   const apiKey = env.BREVO_API_KEY;
   const fromEmail = env.FROM_EMAIL || 'hola@parfumtrack.com';
   const fromName = env.FROM_NAME || 'Parfum Track';
@@ -210,7 +252,9 @@ export async function onRequestPost(context) {
     return new Response(JSON.stringify({ ok: false, error: 'Email service not configured' }), { status: 500, headers });
   }
 
-  const tpl = TEMPLATES[template]({ ...data, name: toName || to.split('@')[0] });
+  // Sanitize user-supplied name before interpolation into HTML templates
+  const safeName = sanitize((toName || to.split('@')[0]).slice(0, 80));
+  const tpl = TEMPLATES[template]({ ...data, name: safeName });
 
   const payload = {
     sender: { name: fromName, email: fromEmail },

@@ -5991,6 +5991,7 @@
           if (result.ok) {
             localStorage.setItem('pt_cloud_backup_at', result.savedAt);
             renderCloudBackupStatus();
+            trackEvent('backup_guardado');
             toast('☁️ Backup guardado en la nube.', 3000);
           } else {
             toast('⚠ ' + (result.error || 'Error al guardar backup.'), 3500, 'warning');
@@ -6071,6 +6072,7 @@
             if (data.meta) metaMensual = data.meta;
             save();
             renderAll();
+            trackEvent('backup_restaurado');
             toast('✅ Backup restaurado desde la nube.', 3500);
           }
         );
@@ -6453,6 +6455,7 @@
         a.download = `parfumtrack_ventas_${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}.csv`;
         a.click();
         URL.revokeObjectURL(url);
+        trackEvent('exportar_csv', { registros: ventas.length });
         toast('📊 CSV exportado correctamente');
       }
       function actualizarBtnLimpiarFiltros() {
@@ -10051,6 +10054,7 @@
 
         if (msLeft <= 0) {
           window._trialLimitado = true;
+          trackEvent('trial_vencido');
           const restantes = getTrialVentasRestantes();
           mostrarBannerTrialVencido(restantes);
           // Email de trial vencido (una sola vez)
@@ -10073,6 +10077,7 @@
               if (ms <= 0) {
                 clearInterval(window._trialTickerInterval);
                 window._trialLimitado = true;
+                trackEvent('trial_vencido');
                 const r = getTrialVentasRestantes();
                 mostrarBannerTrialVencido(r);
                 toast('⏳ Período de prueba finalizado. Podés registrar ' + r + ' ventas más.', 5000);

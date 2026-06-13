@@ -22,6 +22,16 @@ export async function onRequestPost(context) {
   const origin = request.headers.get('Origin') || '';
   const headers = corsHeaders(origin);
 
+  // Rate limit by IP: max 10 attempts per 15 minutes
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ipLimitError = await checkRateLimit(env, `rl_lic_ip_${ip}`, 10, 900);
+  if (ipLimitError) {
+    return new Response(JSON.stringify({ valid: false, error: 'Too many requests, please try again later' }), {
+      status: 429,
+      headers,
+    });
+  }
+
   let code;
   try {
     ({ code } = await request.json());
@@ -124,6 +134,28 @@ export async function onRequestOptions(context) {
 
 function delay(ms) {
   return new Promise(r => setTimeout(r, ms));
+}
+
+// KV-based rate limiter: allows `max` requests per `windowSecs` seconds
+async function checkRateLimit(env, key, max, windowSecs) {
+  if (!env.PT_LICENSES) return null;
+
+  const now = Math.floor(Date.now() / 1000);
+  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
+
+  let count = 0;
+  try {
+    const stored = await env.PT_LICENSES.get(windowKey);
+    count = stored ? parseInt(stored, 10) : 0;
+  } catch { return null; }
+
+  if (count >= max) return 'Too many requests, please try again later';
+
+  try {
+    await env.PT_LICENSES.put(windowKey, String(count + 1), { expirationTtl: windowSecs * 2 });
+  } catch { /* non-blocking */ }
+
+  return null;
 }
 
 function corsHeaders(origin) {
