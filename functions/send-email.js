@@ -15,7 +15,6 @@
 // ══════════════════════════════════════════════════════════════
 
 const TEMPLATES = {
-
   trial_welcome: (data) => ({
     subject: `¡Bienvenida a Parfum Track, ${data.name}! 🌸`,
     html: `
@@ -43,14 +42,24 @@ const TEMPLATES = {
 
       <!-- Features list -->
       <div style="margin-bottom:24px;">
-        ${['💵 Registrá ventas en segundos', '🗓️ Cobrá en cuotas con recordatorios', '📊 Estadísticas automáticas del mes', '📲 Enviá recordatorios por WhatsApp', '📤 Exportá todo a Excel'].map(f => `
+        ${[
+          "💵 Registrá ventas en segundos",
+          "🗓️ Cobrá en cuotas con recordatorios",
+          "📊 Estadísticas automáticas del mes",
+          "📲 Enviá recordatorios por WhatsApp",
+          "📤 Exportá todo a Excel",
+        ]
+          .map(
+            (f) => `
         <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
           <span style="font-size:14px;color:#b8b4a8;">${f}</span>
-        </div>`).join('')}
+        </div>`,
+          )
+          .join("")}
       </div>
 
       <!-- CTA -->
-      <a href="${data.appUrl || 'https://parfumtrack.pages.dev'}"
+      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}"
          style="display:block;text-align:center;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:16px;">
         Abrir Parfum Track →
       </a>
@@ -63,16 +72,16 @@ const TEMPLATES = {
     <!-- Footer -->
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;line-height:1.6;">
       Recibiste este email porque te registraste en Parfum Track.<br>
-      <a href="${data.appUrl || 'https://parfumtrack.pages.dev'}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
+      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
     </p>
   </div>
 </body>
 </html>`,
-    text: `¡Hola ${data.name}! Tu prueba gratuita de 7 días de Parfum Track ya está activa. Abrí la app: ${data.appUrl || 'https://parfumtrack.pages.dev'}`
+    text: `¡Hola ${data.name}! Tu prueba gratuita de 7 días de Parfum Track ya está activa. Abrí la app: ${data.appUrl || "https://parfumtrack.pages.dev"}`,
   }),
 
   trial_reminder: (data) => ({
-    subject: `⏰ Tu prueba de Parfum Track vence en ${data.daysLeft} día${data.daysLeft !== 1 ? 's' : ''}`,
+    subject: `⏰ Tu prueba de Parfum Track vence en ${data.daysLeft} día${data.daysLeft !== 1 ? "s" : ""}`,
     html: `
 <!DOCTYPE html>
 <html lang="es">
@@ -89,7 +98,7 @@ const TEMPLATES = {
       <!-- Urgency badge -->
       <div style="background:rgba(224,176,96,0.15);border:1px solid rgba(224,176,96,0.3);border-radius:8px;padding:10px 14px;margin-bottom:20px;text-align:center;">
         <span style="color:#e8cc7a;font-size:13px;font-weight:700;">
-          ⚠ Quedan ${data.daysLeft} día${data.daysLeft !== 1 ? 's' : ''} de prueba gratuita
+          ⚠ Quedan ${data.daysLeft} día${data.daysLeft !== 1 ? "s" : ""} de prueba gratuita
         </span>
       </div>
 
@@ -102,29 +111,33 @@ const TEMPLATES = {
       </p>
 
       <!-- Stats highlight if available -->
-      ${data.ventas ? `
+      ${
+        data.ventas
+          ? `
       <div style="background:#13132a;border-radius:12px;padding:16px;margin-bottom:20px;">
         <p style="color:#7a7870;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Durante tu prueba registraste</p>
         <p style="color:#e8cc7a;font-size:24px;font-weight:800;margin:0;">${data.ventas} ventas</p>
-      </div>` : ''}
+      </div>`
+          : ""
+      }
 
-      <a href="${data.appUrl || 'https://parfumtrack.pages.dev'}#activar"
+      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}#activar"
          style="display:block;text-align:center;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:12px;">
         🔑 Activar mi licencia ahora
       </a>
-      <a href="${data.waUrl || '#'}"
+      <a href="${data.waUrl || "#"}"
          style="display:block;text-align:center;background:transparent;border:1.5px solid rgba(255,255,255,0.15);color:#b8b4a8;padding:12px 24px;border-radius:50px;font-size:14px;font-weight:600;text-decoration:none;">
         📲 Consultar por WhatsApp
       </a>
     </div>
 
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;line-height:1.6;">
-      <a href="${data.appUrl || 'https://parfumtrack.pages.dev'}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
+      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
     </p>
   </div>
 </body>
 </html>`,
-    text: `Hola ${data.name}, tu prueba de Parfum Track vence en ${data.daysLeft} días. Activá tu licencia: ${data.appUrl || 'https://parfumtrack.pages.dev'}`
+    text: `Hola ${data.name}, tu prueba de Parfum Track vence en ${data.daysLeft} días. Activá tu licencia: ${data.appUrl || "https://parfumtrack.pages.dev"}`,
   }),
 
   trial_expired: (data) => ({
@@ -157,34 +170,34 @@ const TEMPLATES = {
         <p style="color:#7a7870;font-size:13px;margin:0;">Plan Pro · Cancelás cuando querés</p>
       </div>
 
-      <a href="${data.waUrl || '#'}"
+      <a href="${data.waUrl || "#"}"
          style="display:block;text-align:center;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:12px;">
         📲 Activar por WhatsApp →
       </a>
-      <a href="${data.appUrl || 'https://parfumtrack.pages.dev'}"
+      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}"
          style="display:block;text-align:center;background:transparent;border:1.5px solid rgba(255,255,255,0.15);color:#b8b4a8;padding:12px 24px;border-radius:50px;font-size:14px;font-weight:600;text-decoration:none;">
         Ver todos los planes
       </a>
     </div>
 
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;line-height:1.6;">
-      <a href="${data.appUrl || 'https://parfumtrack.pages.dev'}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
+      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
     </p>
   </div>
 </body>
 </html>`,
-    text: `Tu prueba de Parfum Track venció, ${data.name}. Activá tu licencia con un pago único: ${data.waUrl || data.appUrl || 'https://parfumtrack.pages.dev'}`
+    text: `Tu prueba de Parfum Track venció, ${data.name}. Activá tu licencia con un pago único: ${data.waUrl || data.appUrl || "https://parfumtrack.pages.dev"}`,
   }),
 };
 
 // Escape HTML special chars to prevent injection into email templates
 function sanitize(str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
 }
 
 // KV-based rate limiter: allows `max` requests per `windowSecs` seconds
@@ -198,13 +211,19 @@ async function checkRateLimit(env, key, max, windowSecs) {
   try {
     const stored = await env.PT_LICENSES.get(windowKey);
     count = stored ? parseInt(stored, 10) : 0;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 
-  if (count >= max) return 'Too many requests, please try again later';
+  if (count >= max) return "Too many requests, please try again later";
 
   try {
-    await env.PT_LICENSES.put(windowKey, String(count + 1), { expirationTtl: windowSecs * 2 });
-  } catch { /* non-blocking */ }
+    await env.PT_LICENSES.put(windowKey, String(count + 1), {
+      expirationTtl: windowSecs * 2,
+    });
+  } catch {
+    /* non-blocking */
+  }
 
   return null;
 }
@@ -213,94 +232,144 @@ async function checkRateLimit(env, key, max, windowSecs) {
 
 export async function onRequestPost(context) {
   const { request, env } = context;
-  const origin = request.headers.get('Origin') || '';
+  const origin = request.headers.get("Origin") || "";
   const headers = corsHeaders(origin);
 
   // Rate limit by IP: max 5 email requests/hour
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
   const ipLimitError = await checkRateLimit(env, `rl_email_ip_${ip}`, 5, 3600);
-  if (ipLimitError) return new Response(JSON.stringify({ ok: false, error: ipLimitError }), { status: 429, headers });
+  if (ipLimitError)
+    return new Response(JSON.stringify({ ok: false, error: ipLimitError }), {
+      status: 429,
+      headers,
+    });
 
   let body;
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ ok: false, error: 'Bad request' }), { status: 400, headers });
+    return new Response(JSON.stringify({ ok: false, error: "Bad request" }), {
+      status: 400,
+      headers,
+    });
   }
 
   const { to, toName, template, data = {} } = body;
 
   if (!to || !template || !TEMPLATES[template]) {
-    return new Response(JSON.stringify({ ok: false, error: 'Missing or invalid fields' }), { status: 400, headers });
+    return new Response(
+      JSON.stringify({ ok: false, error: "Missing or invalid fields" }),
+      { status: 400, headers },
+    );
   }
 
-  if (typeof to !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(to) || to.length > 320) {
-    return new Response(JSON.stringify({ ok: false, error: 'Invalid email address' }), { status: 400, headers });
+  if (
+    typeof to !== "string" ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(to) ||
+    to.length > 320
+  ) {
+    return new Response(
+      JSON.stringify({ ok: false, error: "Invalid email address" }),
+      { status: 400, headers },
+    );
   }
 
   // Rate limit by destination email: max 3 emails/24h per address
-  const emailKey = to.toLowerCase().replace(/[^a-z0-9@._-]/g, '').slice(0, 100);
-  const emailLimitError = await checkRateLimit(env, `rl_email_to_${emailKey}`, 3, 86400);
-  if (emailLimitError) return new Response(JSON.stringify({ ok: false, error: emailLimitError }), { status: 429, headers });
+  const emailKey = to
+    .toLowerCase()
+    .replace(/[^a-z0-9@._-]/g, "")
+    .slice(0, 100);
+  const emailLimitError = await checkRateLimit(
+    env,
+    `rl_email_to_${emailKey}`,
+    3,
+    86400,
+  );
+  if (emailLimitError)
+    return new Response(JSON.stringify({ ok: false, error: emailLimitError }), {
+      status: 429,
+      headers,
+    });
 
   const apiKey = env.BREVO_API_KEY;
-  const fromEmail = env.FROM_EMAIL || 'hola@parfumtrack.com';
-  const fromName = env.FROM_NAME || 'Parfum Track';
+  const fromEmail = env.FROM_EMAIL || "hola@parfumtrack.com";
+  const fromName = env.FROM_NAME || "Parfum Track";
 
   if (!apiKey) {
-    console.error('[send-email] BREVO_API_KEY not configured');
-    return new Response(JSON.stringify({ ok: false, error: 'Email service not configured' }), { status: 500, headers });
+    console.error("[send-email] BREVO_API_KEY not configured");
+    return new Response(
+      JSON.stringify({ ok: false, error: "Email service not configured" }),
+      { status: 500, headers },
+    );
   }
 
   // Sanitize user-supplied name before interpolation into HTML templates
-  const safeName = sanitize((toName || to.split('@')[0]).slice(0, 80));
+  const safeName = sanitize((toName || to.split("@")[0]).slice(0, 80));
   const tpl = TEMPLATES[template]({ ...data, name: safeName });
 
   const payload = {
     sender: { name: fromName, email: fromEmail },
-    to: [{ email: to, name: toName || '' }],
+    to: [{ email: to, name: toName || "" }],
     subject: tpl.subject,
     htmlContent: tpl.html,
     textContent: tpl.text,
   };
 
   try {
-    const resp = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
+    const resp = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'api-key': apiKey,
+        "Content-Type": "application/json",
+        "api-key": apiKey,
       },
       body: JSON.stringify(payload),
     });
 
     if (!resp.ok) {
       const err = await resp.text();
-      console.error('[send-email] Brevo error:', resp.status, err);
-      return new Response(JSON.stringify({ ok: false, error: `Brevo ${resp.status}` }), { status: 200, headers });
+      console.error("[send-email] Brevo error:", resp.status, err);
+      return new Response(
+        JSON.stringify({ ok: false, error: `Brevo ${resp.status}` }),
+        { status: 200, headers },
+      );
     }
 
     const result = await resp.json();
-    console.log('[send-email] Sent:', template, 'to', to, '— messageId:', result.messageId);
-    return new Response(JSON.stringify({ ok: true, messageId: result.messageId }), { status: 200, headers });
-
+    console.log(
+      "[send-email] Sent:",
+      template,
+      "to",
+      to,
+      "— messageId:",
+      result.messageId,
+    );
+    return new Response(
+      JSON.stringify({ ok: true, messageId: result.messageId }),
+      { status: 200, headers },
+    );
   } catch (e) {
-    console.error('[send-email] Fetch error:', e.message);
-    return new Response(JSON.stringify({ ok: false, error: e.message }), { status: 500, headers });
+    console.error("[send-email] Fetch error:", e.message);
+    return new Response(JSON.stringify({ ok: false, error: e.message }), {
+      status: 500,
+      headers,
+    });
   }
 }
 
 export async function onRequestOptions(context) {
-  const origin = context.request.headers.get('Origin') || '';
+  const origin = context.request.headers.get("Origin") || "";
   return new Response(null, { status: 204, headers: corsHeaders(origin) });
 }
 
 function corsHeaders(origin) {
-  const allowed = /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/.test(origin);
+  const allowed =
+    /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/.test(
+      origin,
+    );
   return {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': allowed ? origin : 'null',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": allowed ? origin : "null",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
   };
 }
