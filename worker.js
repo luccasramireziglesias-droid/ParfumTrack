@@ -3,11 +3,19 @@
 // Maneja rutas API y sirve assets estáticos
 // ══════════════════════════════════════════════════════════════
 
-import { onRequestPost as sendNotification } from './functions/send-notification.js';
-import { onRequestPost as validateLicense } from './functions/validate-license.js';
-import { onRequestPost as sendEmail } from './functions/send-email.js';
+import { onRequestPost as sendNotification } from "./functions/send-notification.js";
+import { onRequestPost as validateLicense } from "./functions/validate-license.js";
+import { onRequestPost as sendEmail } from "./functions/send-email.js";
+import { onRequestPost as backup } from "./functions/backup.js";
+import { onRequestPost as trial } from "./functions/trial.js";
 
-const API_ROUTES = ['/send-notification', '/validate-license', '/send-email'];
+const API_ROUTES = [
+  "/send-notification",
+  "/validate-license",
+  "/send-email",
+  "/backup",
+  "/trial",
+];
 
 export default {
   async fetch(request, env, ctx) {
@@ -18,26 +26,33 @@ export default {
     if (API_ROUTES.includes(path)) {
       const context = { request, env, ctx };
 
-      if (request.method === 'OPTIONS') {
-        const origin = request.headers.get('Origin') || '';
-        const allowed = /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/.test(origin) ? origin : 'null';
+      if (request.method === "OPTIONS") {
+        const origin = request.headers.get("Origin") || "";
+        const allowed =
+          /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/.test(
+            origin,
+          )
+            ? origin
+            : "null";
         return new Response(null, {
           status: 204,
           headers: {
-            'Access-Control-Allow-Origin': allowed,
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            "Access-Control-Allow-Origin": allowed,
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
           },
         });
       }
 
-      if (request.method !== 'POST') {
-        return new Response('Method Not Allowed', { status: 405 });
+      if (request.method !== "POST") {
+        return new Response("Method Not Allowed", { status: 405 });
       }
 
-      if (path === '/send-notification') return sendNotification(context);
-      if (path === '/validate-license')  return validateLicense(context);
-      if (path === '/send-email')        return sendEmail(context);
+      if (path === "/send-notification") return sendNotification(context);
+      if (path === "/validate-license") return validateLicense(context);
+      if (path === "/send-email") return sendEmail(context);
+      if (path === "/backup") return backup(context);
+      if (path === "/trial") return trial(context);
     }
 
     // Todo lo demás → servir assets estáticos (index.html, sw.js, etc.)

@@ -8425,11 +8425,11 @@
         }
         if (v.descuento)
           badges.push(
-            `<span class="badge" style="background:rgba(201,168,76,0.1);color:var(--gold);border:0.5px solid var(--border)">%${v.descuento} dto</span>`,
+            `<span class="badge" style="background:rgba(201,168,76,0.1);color:var(--gold);border:0.5px solid var(--border)">%${escapeHTML(String(v.descuento))} dto</span>`,
           );
         if (v.vendedor)
           badges.push(
-            `<span class="badge" style="background:var(--card2);color:var(--text2);border:0.5px solid var(--border)">${v.vendedor}</span>`,
+            `<span class="badge" style="background:var(--card2);color:var(--text2);border:0.5px solid var(--border)">${escapeHTML(v.vendedor)}</span>`,
           );
         let cuotasPanel = "";
         if (v.esCuotas) {
@@ -11680,16 +11680,16 @@
       // ══════════════════════════════════════════════
       // 1. SISTEMA DE LICENCIA
       // ══════════════════════════════════════════════
-      const LICENSE = {
-        key: "PT-DEMO-2026", // Cambiar por clave única por cliente
-        clientName: "Demo", // Nombre del cliente
-        expiresAt: null, // null = sin vencimiento. Formato: 'YYYY-MM-DD'
-        maxUses: null, // null = usos ilimitados
-        trialDays: 7, // Días de prueba gratuita completa
-        trialMinutes: null, // Solo para demo — setear a un número (ej: 1) para pruebas rápidas
-        trialLimitedVentas: 5, // Ventas nuevas permitidas tras vencer el trial
-        isDemo: false, // true = modo demostración con datos de ejemplo
-      };
+      const LICENSE = Object.freeze({
+        key: "PT-DEMO-2026",
+        clientName: "Demo",
+        expiresAt: null,
+        maxUses: null,
+        trialDays: 7,
+        trialMinutes: null,
+        trialLimitedVentas: 5,
+        isDemo: false,
+      });
 
       // ══════════════════════════════════════════════
       // SISTEMA DE ACTIVACIÓN POR CÓDIGO
@@ -12047,6 +12047,8 @@
         }
       }
 
+      const _trialTickerRef = [null]; // avoids window._trialTickerInterval global exposure
+
       function checkTrial() {
         if (isActivated()) return;
         if (LICENSE.isDemo) {
@@ -12129,16 +12131,15 @@
           mostrarBannerTrial(formatTrialTimeLeft(msLeft));
           // Si estamos en modo minutos, actualizar el banner cada segundo
           if (LICENSE.trialMinutes) {
-            if (window._trialTickerInterval)
-              clearInterval(window._trialTickerInterval);
-            window._trialTickerInterval = setInterval(() => {
+            if (_trialTickerRef[0]) clearInterval(_trialTickerRef[0]);
+            _trialTickerRef[0] = setInterval(() => {
               if (isActivated()) {
-                clearInterval(window._trialTickerInterval);
+                clearInterval(_trialTickerRef[0]);
                 return;
               }
               const ms = getTrialTimeLeft(trialStart);
               if (ms <= 0) {
-                clearInterval(window._trialTickerInterval);
+                clearInterval(_trialTickerRef[0]);
                 _sec.setTrialExp(true);
                 trackEvent("trial_vencido");
                 const r = getTrialVentasRestantes();
