@@ -7399,6 +7399,12 @@
           !data.gastos?.length
         )
           return "⚠ El backup parece estar vacío. ¿Es el archivo correcto?";
+        if (Array.isArray(data.ventas) && data.ventas.length > 50000)
+          return "⚠ El backup tiene demasiadas ventas — archivo sospechoso.";
+        if (Array.isArray(data.perfumes) && data.perfumes.length > 10000)
+          return "⚠ El backup tiene demasiados perfumes — archivo sospechoso.";
+        if (Array.isArray(data.gastos) && data.gastos.length > 20000)
+          return "⚠ El backup tiene demasiados gastos — archivo sospechoso.";
         if (Array.isArray(data.ventas)) {
           for (let i = 0; i < Math.min(data.ventas.length, 50); i++) {
             const v = data.ventas[i];
@@ -7423,6 +7429,11 @@
       function restoreBackup(e) {
         const file = e.target.files[0];
         if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+          toast("⚠ El archivo es demasiado grande (máx. 5 MB)", 4000);
+          e.target.value = "";
+          return;
+        }
         const r = new FileReader();
         r.onerror = () => {
           toast(
@@ -9600,6 +9611,20 @@
           toast("⚠ Ingresá un monto mayor a cero");
           return;
         }
+        if (monto > 10000000) {
+          toast("⚠ El monto parece muy alto. Verificá los datos");
+          return;
+        }
+        if (desc.length > 500) {
+          toast("⚠ La descripción es demasiado larga (máx. 500 caracteres)");
+          return;
+        }
+        if (otroNombre.length > 100) {
+          toast(
+            "⚠ El nombre del gasto es demasiado largo (máx. 100 caracteres)",
+          );
+          return;
+        }
         if (!fechaRaw) {
           toast("⚠ Seleccioná la fecha");
           return;
@@ -9690,7 +9715,7 @@
           .sort(([, a], [, b]) => b - a)
           .forEach(([cat, tot]) => {
             const pct = totFilt > 0 ? Math.round((tot / totFilt) * 100) : 0;
-            html += `<div class="gastos-resumen-cat-row"><span>${getAllCatLabels()[cat] || cat}</span><span>${fmt(tot)} <span style="color:var(--text3);font-weight:400">(${pct}%)</span></span></div>`;
+            html += `<div class="gastos-resumen-cat-row"><span>${getAllCatLabels()[cat] || escapeHTML(cat)}</span><span>${fmt(tot)} <span style="color:var(--text3);font-weight:400">(${pct}%)</span></span></div>`;
           });
         html += "</div>";
         const porMes = {};
@@ -9718,7 +9743,7 @@
               const titulo =
                 g.categoria === "otro" && g.nombreOtro
                   ? `📋 ${escapeHTML(g.nombreOtro)}`
-                  : getAllCatLabels()[g.categoria] || g.categoria;
+                  : getAllCatLabels()[g.categoria] || escapeHTML(g.categoria);
               const cxp =
                 g.categoria === "envio_compra" && g.perfumesEnvio?.length > 0
                   ? `<div class="gc-row"><span>Costo por perfume</span><span>${fmt(g.monto / g.perfumesEnvio.length)}</span></div>`
