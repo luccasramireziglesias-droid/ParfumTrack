@@ -25,12 +25,11 @@
       "id": "412577285b984e42a7e230dfabcd0a27"
     }
   ],
-  // R2 bucket para backups en la nube — descomentar cuando se cree el bucket.
-  // Para crear el bucket: npx wrangler r2 bucket create parfumtrack-backups
-  // "r2_buckets": [
-  //   {
-  //     "binding": "PT_BACKUP",
-  //     "bucket_name": "parfumtrack-backups"
-  //   }
-  // ]
+  // R2 bucket para backups en la nube.
+  "r2_buckets": [
+    {
+      "binding": "PT_BACKUP",
+      "bucket_name": "parfumtrack-backups"
+    }
+  ]
 }
