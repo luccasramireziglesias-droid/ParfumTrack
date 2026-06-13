@@ -11825,7 +11825,10 @@
           localStorage.setItem("pt_activation_mode", "server");
           localStorage.setItem("pt_activated_at", Date.now().toString());
           localStorage.setItem("pt_license_raw_code", code);
-          _sec.activate(true);
+          const _sigBytes = Uint8Array.from(atob(serverSig), (c) =>
+            c.charCodeAt(0),
+          );
+          _sec.activate(_sigBytes);
           const banner = document.getElementById("trial-banner");
           if (banner) banner.remove();
           document.body.classList.remove("has-top-banner");
@@ -11912,12 +11915,23 @@
       // _addingStock: mutex for agregarStock(). Same purpose.
       // _addingCaja: mutex for addMovCaja(). Same purpose.
       // _backupInFlight: mutex for cloudBackupSave/Restore(). Prevents concurrent cloud operations.
+
+      // Capture Date.now before any external code can monkey-patch it.
+      const _realDateNow = Date.now.bind(Date);
+
       const _sec = (() => {
         let _a = false; // license activated — set only by initLicenseVerification / activarLicencia
         let _t = false; // trial expired — set only by checkTrial / trial ticker
-        return {
-          activate(v) {
-            _a = !!v;
+        return Object.freeze({
+          // sigBytes must be the actual ECDSA P-256 sig (Uint8Array ≥64 bytes).
+          // Rejects console calls like _sec.activate(true) or _sec.activate(1).
+          activate(sigBytes) {
+            if (!(sigBytes instanceof Uint8Array) || sigBytes.length < 64)
+              return;
+            _a = true;
+          },
+          deactivate() {
+            _a = false;
           },
           isActivated() {
             return _a;
@@ -11928,7 +11942,7 @@
           isTrialExp() {
             return _t;
           },
-        };
+        });
       })();
 
       function isActivated() {
@@ -11954,23 +11968,25 @@
           );
           const sig = Uint8Array.from(atob(sigB64), (c) => c.charCodeAt(0));
           const data = new TextEncoder().encode(code.trim().toUpperCase());
-          return await crypto.subtle.verify(
+          const ok = await crypto.subtle.verify(
             { name: "ECDSA", hash: "SHA-256" },
             pubKey,
             sig,
             data,
           );
+          // Return the sig bytes on success — used as proof token for _sec.activate()
+          return ok ? sig : false;
         } catch {
           return false;
         }
       }
 
       async function initLicenseVerification() {
-        const valid = await verifyStoredLicense();
-        if (valid === true) {
-          _sec.activate(true);
+        const result = await verifyStoredLicense();
+        if (result instanceof Uint8Array) {
+          _sec.activate(result);
         } else {
-          _sec.activate(false);
+          _sec.deactivate();
           if (localStorage.getItem("pt_activation_mode") === "server") {
             // Had activation data but failed ECDSA check — clear tampered state
             [
@@ -12011,7 +12027,7 @@
       }
 
       function getTrialTimeLeft(trialStart) {
-        const elapsed = Date.now() - parseInt(trialStart);
+        const elapsed = _realDateNow() - parseInt(trialStart);
         const duration = getTrialDuration();
         return duration - elapsed;
       }
@@ -12107,8 +12123,8 @@
           );
           trialStart = (
             oldestVenta !== Infinity
-              ? Math.min(oldestVenta, Date.now())
-              : Date.now()
+              ? Math.min(oldestVenta, _realDateNow())
+              : _realDateNow()
           ).toString();
           localStorage.setItem("pt_trial_start", trialStart);
           PTDB.set("pt_trial_start", trialStart);
@@ -12117,7 +12133,7 @@
             localStorage.setItem("pt_trial_demo_loaded", "1");
           }
           trackEvent("trial_iniciado");
-          if (parseInt(trialStart) >= Date.now() - 5000) {
+          if (parseInt(trialStart) >= _realDateNow() - 5000) {
             // Truly new user (no existing ventas anchor)
             setTimeout(() => mostrarBienvenidaTrial(), 1200);
             setTimeout(() => sendTrialEmail("trial_welcome"), 3000);
