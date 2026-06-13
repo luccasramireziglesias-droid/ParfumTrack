@@ -1,5 +1,5 @@
-// Parfum Track — Service Worker v4 (OneSignal + PWA cache)
-importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
+// Parfum Track — Service Worker v5 (OneSignal + PWA cache)
+try { importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js'); } catch(e) { console.warn('[SW] OneSignal no disponible:', e.message); }
 
 const CACHE_NAME = 'parfumtrack-v4';
 const STATIC_ASSETS = [
@@ -60,4 +60,9 @@ self.addEventListener('fetch', event => {
       });
     })
   );
+});
+
+// Permite que el cliente fuerce la activación del nuevo SW
+self.addEventListener('message', event => {
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });

@@ -13,7 +13,7 @@
 //   value: { clientName, expiresAt, maxUses, usedCount, createdAt, lastActivatedAt }
 // ══════════════════════════════════════════════════════════════
 
-const DELAY_ON_INVALID = 600; // ms — frena brute-force
+const DELAY_ON_INVALID = 2000; // ms — frena brute-force
 
 // Código del dueño leído desde env var LICENSE_OWNER_CODE (Cloudflare Dashboard → Workers → Settings)
 
