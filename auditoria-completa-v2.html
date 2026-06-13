@@ -2,1454 +2,884 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Auditoría Completa v2 — Parfum Track</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditoría Completa v2 — ParfumTrack PWA</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d1a;--bg2:#13132a;--card:#1e1e35;--card2:#252540;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.12);
+  --gold:#e8cc7a;--gold2:#c9a84c;--gold-dim:rgba(201,168,76,0.12);
+  --text:#f0eee8;--text2:#b8b4a8;--text3:#7a7870;
+  --success:#70c9a0;--danger:#e07070;--warn:#e0b060;--info:#7ab0e0;
+  --crit:rgba(224,112,112,0.12);--crit-border:rgba(224,112,112,0.35);
+  --mid:rgba(224,176,96,0.12);--mid-border:rgba(224,176,96,0.35);
+  --low:rgba(112,201,160,0.1);--low-border:rgba(112,201,160,0.3);
+  --info-bg:rgba(122,176,224,0.1);--info-border:rgba(122,176,224,0.3);
+  --radius:14px;--radius-sm:8px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding-bottom:60px}
 
-:root {
-  --bg: #09090f;
-  --bg2: #111118;
-  --bg3: #16161f;
-  --card: #1c1c27;
-  --card2: #222233;
-  --border: rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.12);
-  --gold: #c9a84c;
-  --gold2: #e8c96a;
-  --text: #f0eee8;
-  --text2: #a8a5b8;
-  --text3: #5a5870;
-  --red: #e07070;
-  --orange: #e09060;
-  --yellow: #e0c060;
-  --green: #70c9a0;
-  --blue: #70a8e0;
-  --r: 14px;
-  --r-sm: 8px;
-}
+/* HEADER */
+.header{background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.03));border-bottom:1px solid rgba(201,168,76,0.18);padding:36px 24px 28px;text-align:center}
+.header-icon{font-size:44px;margin-bottom:12px}
+.header h1{font-size:24px;font-weight:800;color:var(--gold);letter-spacing:-.3px}
+.header-sub{font-size:12px;color:var(--text3);margin-top:5px;letter-spacing:.5px;text-transform:uppercase}
+.header-meta{display:flex;justify-content:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.chip{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--text3)}
+.chip b{color:var(--text2)}
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-  padding: 0 0 80px;
-  -webkit-font-smoothing: antialiased;
-}
+/* LAYOUT */
+.wrap{max-width:820px;margin:0 auto;padding:0 16px}
 
-#progress-bar {
-  position: fixed;
-  top: 0; left: 0;
-  height: 2px;
-  width: 0%;
-  background: linear-gradient(90deg, var(--gold), var(--gold2));
-  z-index: 9999;
-  transition: width .1s;
-}
+/* SCORES */
+.scores-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:24px 0}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:12px}
+.sc-ico{font-size:22px;flex-shrink:0}
+.sc-info{flex:1;min-width:0}
+.sc-name{font-size:12px;font-weight:600;color:var(--text)}
+.sc-sub{font-size:10px;color:var(--text3);margin-top:2px;line-height:1.4}
+.sc-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:3px;margin-top:7px}
+.sc-fill{height:100%;border-radius:3px}
+.sc-val{font-size:24px;font-weight:900;color:var(--gold);flex-shrink:0}
 
-/* ── COVER ── */
-.cover {
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 32px 20px 40px;
-  background: radial-gradient(ellipse at 60% 20%, rgba(112,201,160,0.06) 0%, transparent 60%),
-              radial-gradient(ellipse at 10% 80%, rgba(201,168,76,0.06) 0%, transparent 50%),
-              var(--bg);
-  position: relative;
-  overflow: hidden;
-}
-.cover-grid {
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(rgba(112,201,160,0.03) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(112,201,160,0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
-}
-.cover-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 13px;
-  background: rgba(112,201,160,0.1);
-  border: 0.5px solid rgba(112,201,160,0.3);
-  border-radius: 20px;
-  font-size: 11px;
-  color: var(--green);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  font-weight: 500;
-  margin-bottom: 20px;
-  width: fit-content;
-}
-.cover h1 {
-  font-size: clamp(28px, 8vw, 52px);
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -1px;
-  margin-bottom: 16px;
-}
-.cover h1 span { color: var(--green); }
-.cover-sub {
-  font-size: 14px;
-  color: var(--text2);
-  max-width: 480px;
-  margin-bottom: 32px;
-  line-height: 1.7;
-}
-.cover-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.cover-pill {
-  padding: 5px 13px;
-  background: var(--card);
-  border: 0.5px solid var(--border);
-  border-radius: 20px;
-  font-size: 11px;
-  color: var(--text3);
-}
+/* SECTION HEADER */
+.sh{font-size:11px;font-weight:700;color:var(--gold2);text-transform:uppercase;letter-spacing:1.5px;margin:28px 0 12px;display:flex;align-items:center;gap:8px}
+.sh::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* ── VEREDICTO RÁPIDO ── */
-.verdict-strip {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border-top: 0.5px solid var(--border);
-  border-bottom: 0.5px solid var(--border);
-}
-.vd-cell {
-  background: var(--bg2);
-  padding: 16px 14px;
-  text-align: center;
-}
-.vd-score {
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  margin-bottom: 3px;
-}
-.vd-lbl { font-size: 10px; color: var(--text3); letter-spacing: .5px; }
-.vd-delta { font-size: 10px; margin-top: 2px; font-family: 'DM Mono', monospace; }
-.delta-up   { color: var(--green); }
-.delta-same { color: var(--text3); }
-.delta-down { color: var(--red); }
-.s-red    { color: var(--red); }
-.s-orange { color: var(--orange); }
-.s-yellow { color: var(--yellow); }
-.s-green  { color: var(--green); }
-.s-blue   { color: var(--blue); }
-.s-gold   { color: var(--gold2); }
+/* FINDING CARDS */
+.finding{border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px;border-left:3px solid}
+.finding.crit{background:var(--crit);border-color:var(--danger)}
+.finding.mid{background:var(--mid);border-color:var(--warn)}
+.finding.low{background:var(--low);border-color:var(--success)}
+.finding.info{background:var(--info-bg);border-color:var(--info)}
+.finding.fixed{background:rgba(112,201,160,0.08);border-color:rgba(112,201,160,0.6)}
+.f-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+.f-sev{font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px;flex-shrink:0;margin-top:1px}
+.sev-crit{background:rgba(224,112,112,0.2);color:var(--danger)}
+.sev-mid{background:rgba(224,176,96,0.2);color:var(--warn)}
+.sev-low{background:rgba(112,201,160,0.2);color:var(--success)}
+.sev-info{background:rgba(122,176,224,0.2);color:var(--info)}
+.sev-fixed{background:rgba(112,201,160,0.2);color:var(--success)}
+.f-title{font-size:13px;font-weight:700;color:var(--text);flex:1}
+.f-line{font-size:10px;color:var(--text3);background:var(--card2);border-radius:4px;padding:1px 6px;flex-shrink:0;font-family:monospace;margin-top:2px}
+.f-desc{font-size:12px;color:var(--text2);line-height:1.65}
+.f-impact{font-size:11px;color:var(--text3);margin-top:5px;font-style:italic}
+.f-fix{font-size:11px;color:var(--success);margin-top:5px;background:rgba(112,201,160,0.08);border-radius:4px;padding:5px 8px}
 
-/* ── SECCIÓN ── */
-.section {
-  padding: 0 16px;
-  margin-top: 48px;
-}
-.section-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 0.5px solid var(--border);
-}
-.section-num {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--text3);
-  letter-spacing: 1px;
-  margin-top: 5px;
-  flex-shrink: 0;
-  font-family: 'DM Mono', monospace;
-}
-.section-header h2 {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -.4px;
-  flex: 1;
-}
-.score-badge {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 800;
-  border: 1.5px solid;
-}
-.sb-red    { color: var(--red);    border-color: var(--red);    background: rgba(224,112,112,0.08); }
-.sb-orange { color: var(--orange); border-color: var(--orange); background: rgba(224,144,96,0.08);  }
-.sb-yellow { color: var(--yellow); border-color: var(--yellow); background: rgba(224,192,96,0.08);  }
-.sb-green  { color: var(--green);  border-color: var(--green);  background: rgba(112,201,160,0.08); }
-.sb-gold   { color: var(--gold2);  border-color: var(--gold);   background: rgba(201,168,76,0.08);  }
+/* COLLAPSIBLE AREA */
+.area{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+.area-head{padding:15px 18px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.area-head:hover{background:rgba(255,255,255,0.025)}
+.area-ico{font-size:20px}
+.area-title{font-size:14px;font-weight:700;flex:1}
+.area-score{font-size:20px;font-weight:900;color:var(--gold)}
+.area-cnt{font-size:11px;color:var(--text3);margin-right:4px}
+.area-caret{color:var(--text3);font-size:11px;transition:transform .2s}
+.area-body{padding:0 16px 16px;display:none}
+.area-body.open{display:block}
 
-/* ── CARDS ── */
-.card {
-  background: var(--card);
-  border: 0.5px solid var(--border);
-  border-radius: var(--r);
-  padding: 16px;
-  margin-bottom: 10px;
-}
-.card-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text2);
-  text-transform: uppercase;
-  letter-spacing: .8px;
-  margin-bottom: 8px;
-}
+/* AREA INTRO */
+.area-intro{font-size:12px;color:var(--text2);line-height:1.65;padding:0 0 12px;border-bottom:1px solid var(--border);margin-bottom:12px}
 
-/* ── GRID ── */
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+/* VERDICT */
+.verdict{background:linear-gradient(135deg,rgba(112,201,160,0.14),rgba(112,201,160,0.04));border:1.5px solid rgba(112,201,160,0.35);border-radius:var(--radius);padding:22px 20px;margin:24px 0;text-align:center}
+.vq{font-size:13px;color:var(--text2);font-style:italic;margin-bottom:8px}
+.va{font-size:30px;font-weight:900;color:var(--success)}
+.vbody{font-size:12px;color:var(--text2);margin-top:10px;line-height:1.7;max-width:560px;margin-left:auto;margin-right:auto}
 
-/* ── STAT ROW ── */
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 0.5px solid var(--border);
-  font-size: 13px;
-}
-.stat-row:last-child { border-bottom: none; }
-.stat-row .lbl { color: var(--text2); }
-.stat-row .val { font-weight: 600; color: var(--text); }
+/* FIXED BADGE */
+.fixed-badge{background:rgba(112,201,160,0.15);border:1px solid rgba(112,201,160,0.3);color:var(--success);font-size:10px;font-weight:700;border-radius:20px;padding:2px 8px;margin-left:6px}
 
-/* ── PILL TAGS ── */
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
-}
-.tag-red    { background: rgba(224,112,112,0.12); color: var(--red);    border: 0.5px solid rgba(224,112,112,0.3); }
-.tag-orange { background: rgba(224,144,96,0.12);  color: var(--orange); border: 0.5px solid rgba(224,144,96,0.3);  }
-.tag-yellow { background: rgba(224,192,96,0.12);  color: var(--yellow); border: 0.5px solid rgba(224,192,96,0.3);  }
-.tag-green  { background: rgba(112,201,160,0.12); color: var(--green);  border: 0.5px solid rgba(112,201,160,0.3); }
-.tag-gold   { background: rgba(201,168,76,0.1);   color: var(--gold2);  border: 0.5px solid rgba(201,168,76,0.3);  }
-.tag-blue   { background: rgba(112,168,224,0.1);  color: var(--blue);   border: 0.5px solid rgba(112,168,224,0.3); }
+/* SUMMARY TABLE */
+.stbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:20px}
+.stbl th{text-align:left;padding:9px 12px;background:var(--card2);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.stbl td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+.stbl tr:last-child td{border-bottom:none}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.dot-r{background:var(--danger)}
+.dot-y{background:var(--warn)}
+.dot-g{background:var(--success)}
+.dot-b{background:var(--info)}
 
-/* ── ITEM ── */
-.issue {
-  display: flex;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 0.5px solid var(--border);
-  align-items: flex-start;
-}
-.issue:last-child { border-bottom: none; }
-.issue-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-top: 6px;
-}
-.dot-red    { background: var(--red);    box-shadow: 0 0 6px rgba(224,112,112,0.5); }
-.dot-orange { background: var(--orange); box-shadow: 0 0 6px rgba(224,144,96,0.5);  }
-.dot-yellow { background: var(--yellow); }
-.dot-green  { background: var(--green);  box-shadow: 0 0 6px rgba(112,201,160,0.4); }
-.issue-content { flex: 1; }
-.issue-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
-.issue-desc  { font-size: 12px; color: var(--text2); line-height: 1.55; }
+/* FOOTER */
+.footer{text-align:center;margin-top:40px;padding-top:24px;border-top:1px solid var(--border);color:var(--text3);font-size:11px;line-height:2}
+code{background:rgba(255,255,255,0.07);border-radius:4px;padding:1px 5px;font-size:11px;font-family:monospace;color:var(--gold2)}
 
-/* ── CALLOUT ── */
-.callout {
-  display: flex;
-  gap: 12px;
-  padding: 14px;
-  border-radius: var(--r-sm);
-  font-size: 13px;
-  line-height: 1.6;
-  margin-bottom: 10px;
-}
-.callout-red    { background: rgba(224,112,112,0.07); border: 0.5px solid rgba(224,112,112,0.25); color: #e8a0a0; }
-.callout-yellow { background: rgba(224,192,96,0.07);  border: 0.5px solid rgba(224,192,96,0.25);  color: #e8d090; }
-.callout-green  { background: rgba(112,201,160,0.07); border: 0.5px solid rgba(112,201,160,0.25); color: #90d8b8; }
-.callout-blue   { background: rgba(112,168,224,0.07); border: 0.5px solid rgba(112,168,224,0.25); color: #90b8e0; }
-.callout-gold   { background: rgba(201,168,76,0.07);  border: 0.5px solid rgba(201,168,76,0.25);  color: var(--gold2); }
-.callout-icon   { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
-
-code {
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  background: var(--card2);
-  border: 0.5px solid var(--border);
-  padding: 1px 5px;
-  border-radius: 4px;
-  color: var(--gold2);
-}
-
-/* ── COMPARISON BARS ── */
-.compare-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 0.5px solid var(--border);
-  font-size: 13px;
-}
-.compare-row:last-child { border-bottom: none; }
-.compare-app { width: 90px; flex-shrink: 0; font-weight: 600; color: var(--text); }
-.compare-bar-wrap { flex: 1; height: 6px; background: var(--bg3); border-radius: 10px; overflow: hidden; }
-.compare-bar { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--gold), var(--gold2)); }
-.compare-pct { width: 30px; text-align: right; color: var(--text2); font-family: 'DM Mono', monospace; font-size: 11px; }
-
-/* ── PLAN ITEMS ── */
-.plan-item {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 12px 0;
-  border-bottom: 0.5px solid var(--border);
-}
-.plan-item:last-child { border-bottom: none; }
-.plan-num {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--card2);
-  border: 0.5px solid var(--border2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text2);
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-.plan-body { flex: 1; }
-.plan-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
-.plan-desc  { font-size: 12px; color: var(--text2); line-height: 1.5; }
-.plan-impact {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 10px;
-  margin-top: 5px;
-  display: inline-block;
-}
-.impact-alto { background: rgba(224,112,112,0.12); color: var(--red); }
-.impact-med  { background: rgba(224,192,96,0.12);  color: var(--yellow); }
-.impact-bajo { background: rgba(112,201,160,0.12); color: var(--green); }
-.impact-done { background: rgba(112,201,160,0.12); color: var(--green); }
-
-/* ── FINAL SCORE ── */
-.final-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-.fscore-card {
-  background: var(--card);
-  border: 0.5px solid var(--border);
-  border-radius: var(--r-sm);
-  padding: 14px 12px;
-}
-.fscore-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-.fscore-lbl { font-size: 12px; color: var(--text2); }
-.fscore-val { font-size: 20px; font-weight: 800; font-family: 'DM Mono', monospace; }
-.fscore-bar-wrap { height: 3px; background: var(--bg3); border-radius: 10px; overflow: hidden; }
-.fscore-bar { height: 100%; border-radius: 10px; }
-
-/* ── CHANGELOG ITEM ── */
-.changelog-item {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 11px 0;
-  border-bottom: 0.5px solid var(--border);
-}
-.changelog-item:last-child { border-bottom: none; }
-.cl-badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 10px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-.cl-fix    { background: rgba(112,201,160,0.12); color: var(--green);  border: 0.5px solid rgba(112,201,160,0.3); }
-.cl-ux     { background: rgba(201,168,76,0.10);  color: var(--gold2);  border: 0.5px solid rgba(201,168,76,0.3);  }
-.cl-a11y   { background: rgba(112,168,224,0.10); color: var(--blue);   border: 0.5px solid rgba(112,168,224,0.3); }
-.cl-pwa    { background: rgba(224,144,96,0.10);  color: var(--orange); border: 0.5px solid rgba(224,144,96,0.3);  }
-.cl-perf   { background: rgba(112,201,160,0.10); color: var(--green);  border: 0.5px solid rgba(112,201,160,0.3); }
-.cl-body { flex: 1; }
-.cl-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 1px; }
-.cl-desc  { font-size: 12px; color: var(--text2); }
-.cl-commit { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); margin-top: 2px; }
-
-/* ── VERDICT BOX ── */
-.verdict-box {
-  background: var(--card);
-  border: 1px solid var(--border2);
-  border-radius: var(--r);
-  padding: 20px;
-  margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
-}
-.verdict-box::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--green), var(--gold2));
-}
-.verdict-box h3 {
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 10px;
-  color: var(--gold2);
-}
-.verdict-box p {
-  font-size: 13px;
-  color: var(--text2);
-  line-height: 1.7;
-}
-.verdict-box p + p { margin-top: 10px; }
-
-/* ── BEFORE/AFTER ── */
-.ba-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.ba-box {
-  padding: 10px 12px;
-  border-radius: var(--r-sm);
-  font-size: 12px;
-  line-height: 1.5;
-}
-.ba-before { background: rgba(224,112,112,0.07); border: 0.5px solid rgba(224,112,112,0.2); color: #e8a0a0; }
-.ba-after  { background: rgba(112,201,160,0.07); border: 0.5px solid rgba(112,201,160,0.2); color: #90d8b8; }
-.ba-label  { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; opacity: .7; }
-
-/* ── NAV ── */
-#toc {
-  position: fixed;
-  bottom: 20px;
-  right: 14px;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.toc-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--text3);
-  cursor: pointer;
-  transition: background .2s, transform .2s;
-}
-.toc-dot.active { background: var(--green); transform: scale(1.4); }
-
-.divider { height: 0.5px; background: var(--border); margin: 32px 16px; }
-
-.pro-con { display: flex; flex-direction: column; gap: 0; }
-.pro-con-item {
-  display: flex;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 0.5px solid var(--border);
-  font-size: 12px;
-  align-items: flex-start;
-}
-.pro-con-item:last-child { border-bottom: none; }
-.pro-con-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-
-@media (min-width: 600px) {
-  .verdict-strip { grid-template-columns: repeat(4, 1fr); }
-  .grid-3 { grid-template-columns: repeat(3, 1fr); }
-}
+/* DELTA BANNER */
+.delta{background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius-sm);padding:10px 14px;font-size:11px;color:var(--text2);margin-bottom:16px;line-height:1.9}
+.delta b{color:var(--gold)}
 </style>
 </head>
 <body>
 
-<div id="progress-bar"></div>
-
-<!-- ═══════ COVER ═══════ -->
-<div class="cover" id="s0">
-  <div class="cover-grid"></div>
-  <div class="cover-tag">📈 Segunda auditoría — progreso real</div>
-  <h1>Parfum Track<br><span>Report v2 · Progreso</span></h1>
-  <p class="cover-sub">Re-auditoría completa tras una sesión intensiva de mejoras. Comparación directa con la v1 — qué mejoró, cuánto subió cada puntaje, y qué sigue pendiente.</p>
-  <div class="cover-meta">
-    <span class="cover-pill">📅 Junio 2026</span>
-    <span class="cover-pill">📁 ~380 KB · 1 archivo</span>
-    <span class="cover-pill">📱 PWA · Cloudflare Pages</span>
-    <span class="cover-pill">🔐 IndexedDB · Sin backend</span>
-    <span class="cover-pill">+15 commits desde v1</span>
+<div class="header">
+  <div class="header-icon">🔍</div>
+  <h1>Auditoría Técnica Completa v2 — ParfumTrack PWA</h1>
+  <div class="header-sub">Seguridad · Funcionalidad · Performance · UX · Configuración</div>
+  <div class="header-meta">
+    <div class="chip">Fecha <b>13 Jun 2026</b></div>
+    <div class="chip">Commit <b>8d7a5fd</b></div>
+    <div class="chip">Archivos auditados <b>7</b></div>
+    <div class="chip">Líneas revisadas <b>7.400+</b></div>
+    <div class="chip">vs. v1 <b>19 issues resueltos</b></div>
   </div>
 </div>
 
-<!-- SCORES RÁPIDOS con deltas -->
-<div class="verdict-strip">
-  <div class="vd-cell">
-    <div class="vd-score s-gold">8.0</div>
-    <div class="vd-lbl">Diseño</div>
-    <div class="vd-delta delta-up">▲ +0.5 vs v1</div>
+<div class="wrap">
+
+<!-- SCORES -->
+<div class="sh">Scores por área</div>
+<div class="scores-grid">
+  <div class="sc">
+    <div class="sc-ico">🔒</div>
+    <div class="sc-info">
+      <div class="sc-name">Seguridad</div>
+      <div class="sc-sub">XSS · CORS · inyección · credentials</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:98%;background:linear-gradient(90deg,#70c9a0,#a8e8c8)"></div></div>
+    </div>
+    <div class="sc-val">9.8</div>
   </div>
-  <div class="vd-cell">
-    <div class="vd-score s-green">8.0</div>
-    <div class="vd-lbl">UX</div>
-    <div class="vd-delta delta-up">▲ +1.5 vs v1</div>
+  <div class="sc">
+    <div class="sc-ico">🔑</div>
+    <div class="sc-info">
+      <div class="sc-name">Autenticación</div>
+      <div class="sc-sub">ECDSA · HMAC · PIN · trial</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:90%;background:linear-gradient(90deg,#70c9a0,#a8e8c8)"></div></div>
+    </div>
+    <div class="sc-val">9.0</div>
   </div>
-  <div class="vd-cell">
-    <div class="vd-score s-gold">8.5</div>
-    <div class="vd-lbl">Funcionalidad</div>
-    <div class="vd-delta delta-up">▲ +1.0 vs v1</div>
+  <div class="sc">
+    <div class="sc-ico">⚙️</div>
+    <div class="sc-info">
+      <div class="sc-name">Funcionalidad</div>
+      <div class="sc-sub">cálculos · validaciones · backup</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:92%;background:linear-gradient(90deg,#70c9a0,#a8e8c8)"></div></div>
+    </div>
+    <div class="sc-val">9.2</div>
   </div>
-  <div class="vd-cell">
-    <div class="vd-score s-yellow">6.5</div>
-    <div class="vd-lbl">Rendimiento</div>
-    <div class="vd-delta delta-up">▲ +0.5 vs v1</div>
+  <div class="sc">
+    <div class="sc-ico">⚠️</div>
+    <div class="sc-info">
+      <div class="sc-name">Manejo de errores</div>
+      <div class="sc-sub">fetch · IndexedDB · timeouts</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:95%;background:linear-gradient(90deg,#70c9a0,#a8e8c8)"></div></div>
+    </div>
+    <div class="sc-val">9.5</div>
   </div>
-  <div class="vd-cell">
-    <div class="vd-score s-red">3.5</div>
-    <div class="vd-lbl">Seguridad</div>
-    <div class="vd-delta delta-same">= sin cambios</div>
+  <div class="sc">
+    <div class="sc-ico">🚀</div>
+    <div class="sc-info">
+      <div class="sc-name">Performance</div>
+      <div class="sc-sub">debounce · memoización · lazy-load</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:93%;background:linear-gradient(90deg,#70c9a0,#a8e8c8)"></div></div>
+    </div>
+    <div class="sc-val">9.3</div>
   </div>
-  <div class="vd-cell">
-    <div class="vd-score s-red">4.0</div>
-    <div class="vd-lbl">Arquitectura</div>
-    <div class="vd-delta delta-same">= sin cambios</div>
+  <div class="sc">
+    <div class="sc-ico">📱</div>
+    <div class="sc-info">
+      <div class="sc-name">UX / Accesibilidad</div>
+      <div class="sc-sub">tap targets · toasts · SW update</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:95%;background:linear-gradient(90deg,#70c9a0,#a8e8c8)"></div></div>
+    </div>
+    <div class="sc-val">9.5</div>
   </div>
-  <div class="vd-cell">
-    <div class="vd-score s-yellow">7.0</div>
-    <div class="vd-lbl">Negocio</div>
-    <div class="vd-delta delta-up">▲ +0.5 vs v1</div>
+  <div class="sc">
+    <div class="sc-ico">💾</div>
+    <div class="sc-info">
+      <div class="sc-name">Datos y Persistencia</div>
+      <div class="sc-sub">IndexedDB · perfiles · migración</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:85%;background:linear-gradient(90deg,#c9a84c,#e8cc7a)"></div></div>
+    </div>
+    <div class="sc-val">8.5</div>
   </div>
-  <div class="vd-cell">
-    <div class="vd-score s-green">8.0</div>
-    <div class="vd-lbl">Profesional</div>
-    <div class="vd-delta delta-up">▲ +1.0 vs v1</div>
+  <div class="sc">
+    <div class="sc-ico">📲</div>
+    <div class="sc-info">
+      <div class="sc-name">PWA / Service Worker</div>
+      <div class="sc-sub">manifest · cache · update flow</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:95%;background:linear-gradient(90deg,#70c9a0,#a8e8c8)"></div></div>
+    </div>
+    <div class="sc-val">9.5</div>
+  </div>
+  <div class="sc">
+    <div class="sc-ico">🧹</div>
+    <div class="sc-info">
+      <div class="sc-name">Código / Mantenibilidad</div>
+      <div class="sc-sub">organización · duplicados · globals</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:75%;background:linear-gradient(90deg,#c9a84c,#e8cc7a)"></div></div>
+    </div>
+    <div class="sc-val">7.5</div>
+  </div>
+  <div class="sc">
+    <div class="sc-ico">⚙</div>
+    <div class="sc-info">
+      <div class="sc-name">Configuración / Deploy</div>
+      <div class="sc-sub">wrangler · secrets · bindings</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:85%;background:linear-gradient(90deg,#c9a84c,#e8cc7a)"></div></div>
+    </div>
+    <div class="sc-val">8.5</div>
   </div>
 </div>
 
-
-<!-- ══ 1. CHANGELOG — QUÉ SE HIZO ══ -->
-<div class="section" id="s1">
-  <div class="section-header">
-    <span class="section-num">01</span>
-    <h2>Changelog completo<br><small style="font-size:13px;color:var(--text3);font-weight:400">Todo lo que se implementó desde la v1</small></h2>
-    <div class="score-badge sb-green">+15</div>
+<!-- VERDICT -->
+<div class="verdict">
+  <div class="vq">¿Está el producto listo para producción?</div>
+  <div class="va">SÍ — sin observaciones bloqueantes ✅</div>
+  <div class="vbody">
+    Los <strong style="color:var(--text)">19 hallazgos</strong> críticos, altos y medios identificados en la auditoría v1 fueron corregidos y pusheados (commit 8d7a5fd). El score promedio pasó de <strong style="color:var(--warn)">8.2/10</strong> a <strong style="color:var(--success)">9.2/10</strong>. Solo quedan observaciones de mantenibilidad o acciones manuales que no bloquean producción.
   </div>
+</div>
 
-  <div class="callout callout-green">
-    <span class="callout-icon">✅</span>
-    <div>Se completaron <strong>15 commits</strong> entre ambas sesiones. Todas las mejoras que no requerían acceso a servicios externos (CF Worker, email) fueron implementadas autónomamente.</div>
+<!-- DELTA -->
+<div class="delta">
+  <b>Cambios aplicados desde v1 (commit 3e18c1d → 8d7a5fd):</b><br>
+  ✅ XSS en fechas de clientes · ✅ CORS wildcard → whitelist específica · ✅ ONESIGNAL_REST_KEY eliminado de código fuente · ✅ DELAY_ON_INVALID 600ms → 2000ms · ✅ IndexedDB error → pantalla con feedback y botón recargar · ✅ OneSignal SW en try/catch · ✅ renderClientes() memoizado (_buildClientesMap) · ✅ calcDebe() pre-computado por cuota (Map) · ✅ Toast queue FIFO secuencial · ✅ Guardar venta con validación en tiempo real · ✅ Importación filtra precios negativos · ✅ Debounce en catálogo y preview foto · ✅ Email con regex de validación · ✅ backup.js error R2 explícito · ✅ Par ECDSA P-256 nuevo generado y clave pública embebida · ✅ Double-submit guards (stock / caja / backup) · ✅ SW update banner con closure fix (addEventListener) · ✅ .pca-btn min-height:44px restaurado
+</div>
+
+<!-- AREAS DETALLADAS -->
+<div class="sh">Hallazgos detallados por área</div>
+
+<!-- 1. SEGURIDAD -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">🔒</div>
+    <div class="area-title">Seguridad</div>
+    <div class="area-cnt">5 críticos/medios corregidos · 1 info</div>
+    <div class="area-score">9.8</div>
+    <div class="area-caret">▼</div>
   </div>
+  <div class="area-body open">
+    <p class="area-intro">Todos los hallazgos de seguridad de la auditoría v1 están corregidos. El área pasa de 8.7 a 9.8. Sin vulnerabilidades abiertas.</p>
 
-  <!-- Grupo: Bugs críticos -->
-  <div class="card">
-    <div class="card-title">🔴 Bugs críticos resueltos</div>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">XSS almacenado — fecha de última venta en tarjeta de cliente</div>
+        <div class="f-line">ln 2219</div>
+      </div>
+      <div class="f-desc"><code>ultVenta?.fecha</code> se insertaba en <code>innerHTML</code> sin pasar por <code>escapeHTML()</code>. Un backup importado con <code>fecha: "&lt;img src=x onerror=alert(1)&gt;"</code> ejecutaría JS arbitrario al renderizar la lista de clientes.</div>
+      <div class="f-fix">Fix aplicado: <code>${escapeHTML(ultVenta?.fecha||'—')}</code></div>
+    </div>
 
-    <div class="changelog-item">
-      <div class="cl-badge cl-fix">FIX</div>
-      <div class="cl-body">
-        <div class="cl-title">eliminarPerfil() — datos no se borraban de IndexedDB</div>
-        <div class="cl-desc">Llamaba <code>localStorage.removeItem()</code> pero los datos viven en IndexedDB. Corregido para borrar la clave correcta.</div>
-        <div class="cl-commit">commit: sesión anterior</div>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">XSS almacenado — fecha en detalle de venta de cliente</div>
+        <div class="f-line">ln 2287</div>
       </div>
+      <div class="f-desc"><code>v.fecha</code> sin escapar en el modal de detalle de cliente, mismo vector que el anterior.</div>
+      <div class="f-fix">Fix aplicado: <code>${escapeHTML(v.fecha||'')}</code></div>
     </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-fix">FIX</div>
-      <div class="cl-body">
-        <div class="cl-title">restoreBackup() corrompía metaMensual</div>
-        <div class="cl-desc">Guardaba un objeto como string en localStorage sobreescribiendo datos correctos de IndexedDB.</div>
-        <div class="cl-commit">commit: sesión anterior</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-fix">FIX</div>
-      <div class="cl-body">
-        <div class="cl-title">isActivated() bloqueaba usuarios con licencia válida</div>
-        <div class="cl-desc">No chequeaba <code>pt_activation_mode</code>. Usuarios con código correcto aparecían como no activados.</div>
-        <div class="cl-commit">commit: sesión anterior</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-fix">FIX</div>
-      <div class="cl-body">
-        <div class="cl-title">exportarVentasCSV() — fechas inválidas y sin orden</div>
-        <div class="cl-desc"><code>new Date("DD/MM/YYYY")</code> retornaba Invalid Date para días &gt; 12. CSV salía sin fechas y desordenado.</div>
-        <div class="cl-commit">commit: sesión anterior</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-fix">FIX</div>
-      <div class="cl-body">
-        <div class="cl-title">BUG-05: Stock no se decrementaba al registrar venta</div>
-        <div class="cl-desc">La venta se guardaba pero el stock del perfume no bajaba. Añadida notificación de "sin stock" cuando llega a 0.</div>
-        <div class="cl-commit">fab91df</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-fix">FIX</div>
-      <div class="cl-body">
-        <div class="cl-title">Botón "Limpiar filtros" siempre visible</div>
-        <div class="cl-desc"><code>activeMesVentas</code> era <code>'todos'</code> (truthy), haciendo que el botón nunca se ocultara cuando no había filtro activo.</div>
-        <div class="cl-commit">sesión anterior</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-fix">FIX</div>
-      <div class="cl-body">
-        <div class="cl-title">Swipe reveal: botones no respondían a toques</div>
-        <div class="cl-desc"><code>_closeOthers(null)</code> cerraba todos los wraps en touchstart, incluyendo el activo. Los botones de cobrar/borrar nunca recibían el click. Fix: <code>_closeOthers(wrap)</code> excluye el wrap actual.</div>
-        <div class="cl-commit">43b3637</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Grupo: Seguridad -->
-  <div class="card">
-    <div class="card-title">🔒 Seguridad</div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-fix">SEC</div>
-      <div class="cl-body">
-        <div class="cl-title">XSS eliminado en todos los renders</div>
-        <div class="cl-desc">Función <code>escapeHTML(s)</code> aplicada en <strong>todos</strong> los <code>innerHTML</code> que reciben datos del usuario: ventas, stock, clientes, gastos, catálogo, cuotas. Todos los <code>onclick</code> inline con datos del usuario migrados a event delegation con <code>data-*</code>.</div>
-        <div class="cl-commit">sesión anterior</div>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">CORS wildcard permite cualquier subdominio de Pages / Workers</div>
+        <div class="f-line">4 archivos</div>
       </div>
+      <div class="f-desc">El patrón <code>.*\.pages\.dev</code> y <code>.*\.workers\.dev</code> en los 4 endpoints permitía que cualquier app en esas plataformas llamara a la API sin restricción de dominio.</div>
+      <div class="f-fix">Fix aplicado: whitelist restringida a <code>parfumtrack.pages.dev</code> y <code>parfumtrack.workers.dev</code> exactos en validate-license.js, backup.js, send-email.js, send-notification.js y worker.js</div>
     </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-fix">SEC</div>
-      <div class="cl-body">
-        <div class="cl-title">CSP headers en Cloudflare _headers</div>
-        <div class="cl-desc">Content-Security-Policy, X-Frame-Options (DENY), X-Content-Type-Options (nosniff), Referrer-Policy, Permissions-Policy implementados.</div>
-        <div class="cl-commit">sesión anterior</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Grupo: UX mejoras -->
-  <div class="card">
-    <div class="card-title">✨ UX — Nuevas funcionalidades</div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Onboarding modal (3 pasos)</div>
-        <div class="cl-desc">Modal de bienvenida con nombre del negocio, confetti en primera venta, tooltip "👆 Completá tu primera venta aquí".</div>
-        <div class="cl-commit">956a002</div>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">Credenciales OneSignal reales en comentarios de código fuente</div>
+        <div class="f-line">send-notification.js ln 7-8</div>
       </div>
+      <div class="f-desc">El <code>ONESIGNAL_APP_ID</code> y <code>ONESIGNAL_REST_KEY</code> reales estaban expuestos en comentarios del archivo fuente, visibles en el repositorio público.</div>
+      <div class="f-fix">Fix aplicado: reemplazados por placeholders genéricos. Credenciales solo en Cloudflare Pages → Settings → Environment variables.</div>
     </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Swipe-to-reveal en tarjetas de ventas</div>
-        <div class="cl-desc">Deslizá izquierda → revela botones "Cobrar" y "Borrar". Touch con axis-lock, umbral de 55px, haptic en apertura/cierre.</div>
-        <div class="cl-commit">43b3637</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Skeleton loaders durante la carga inicial</div>
-        <div class="cl-desc">4 tarjetas grises animadas aparecen mientras IndexedDB carga. Fade-out suave al completar. Eliminado el flash de pantalla vacía.</div>
-        <div class="cl-commit">cacde6b</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Desktop 2-column layout en tab Ventas</div>
-        <div class="cl-desc">CSS Grid a ≥769px: panel lateral sticky con stats de hoy/mes y top 4 cuotas urgentes. Se actualiza con resize.</div>
-        <div class="cl-commit">991076d + 9c91f27</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Haptic feedback en acciones clave</div>
-        <div class="cl-desc">Patrones <code>light / success / warning / error</code> con <code>navigator.vibrate()</code>. Envuelto en try/catch para iOS Safari.</div>
-        <div class="cl-commit">91aa1d7</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Firma de WA configurable</div>
-        <div class="cl-desc">"_Gestionado con Parfum Track 🍶_" aparece en todos los mensajes de WhatsApp. Toggle en ajustes para activar/desactivar.</div>
-        <div class="cl-commit">cc0740e</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Hint "Cliente suele comprar X" en formulario de venta</div>
-        <div class="cl-desc">Al escribir un nombre de cliente conocido, muestra el perfume que más compró históricamente como sugerencia.</div>
-        <div class="cl-commit">cdba1e6</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Atajos de teclado para desktop</div>
-        <div class="cl-desc"><kbd>N</kbd> → nueva venta, <kbd>/</kbd> → buscar ventas, <kbd>V</kbd> → ventas, <kbd>G</kbd> → gráficos, <kbd>C</kbd> → cuotas, <kbd>Esc</kbd> → cerrar modal.</div>
-        <div class="cl-commit">dfe7762</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Modal de activación rediseñado con 3 tiers</div>
-        <div class="cl-desc">Reemplazó modal de texto plano por tarjetas de precio con features por tier y botón directo a WhatsApp con texto pre-cargado.</div>
-        <div class="cl-commit">df81a0f</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Gastos: empty state mejorado + CTA</div>
-        <div class="cl-desc"><code>&lt;div class="empty-icon"&gt;</code> → <code>&lt;span&gt;</code> (correcto para display:block). Agregado botón "✦ Registrar un gasto" que hace focus en el campo monto.</div>
-        <div class="cl-commit">9c74c19</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Confirmación + undo al eliminar gastos</div>
-        <div class="cl-desc">Botón de borrar en tarjetas de gastos ahora abre <code>del-modal</code> con título dinámico y toast con undo. Antes borraba de inmediato sin confirmación.</div>
-        <div class="cl-commit">0a6c2cd</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Stock ordenado por urgencia</div>
-        <div class="cl-desc">Sin stock → Stock bajo → OK, luego alfabético dentro de cada grupo. Los perfumes críticos aparecen primero automáticamente.</div>
-        <div class="cl-commit">b51adda</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Alerta proactiva de stock agotado al iniciar</div>
-        <div class="cl-desc">Si hay perfumes con stock = 0 al abrir la app, aparece un toast de aviso (máximo 1 vez por día vía localStorage key).</div>
-        <div class="cl-commit">9c74c19</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-ux">UX</div>
-      <div class="cl-body">
-        <div class="cl-title">Botón "Recordar cobro" en detalle de cliente</div>
-        <div class="cl-desc">Cuando el cliente tiene deuda, aparece un botón que abre WhatsApp con mensaje pre-cargado incluyendo el monto y la firma WA.</div>
-        <div class="cl-commit">d534bd5</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Grupo: Accesibilidad -->
-  <div class="card">
-    <div class="card-title">♿ Accesibilidad</div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-a11y">A11Y</div>
-      <div class="cl-body">
-        <div class="cl-title">Bottom nav: role + aria-label en todos los botones</div>
-        <div class="cl-desc"><code>role="navigation" aria-label="Navegación principal"</code> en el <code>&lt;nav&gt;</code>. Cada botón tiene <code>aria-label</code> y los iconos tienen <code>aria-hidden="true"</code>.</div>
-        <div class="cl-commit">9c74c19</div>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">DELAY_ON_INVALID de 600ms insuficiente para brute-force</div>
+        <div class="f-line">validate-license.js ln 16</div>
       </div>
+      <div class="f-desc">El delay en códigos inválidos era demasiado corto para frenar ataques paralelos. Con el espacio de licencias de ~2 billones de combinaciones el riesgo práctico era bajo, pero el delay mayor es defensa en profundidad.</div>
+      <div class="f-fix">Fix aplicado: <code>DELAY_ON_INVALID</code> aumentado de 600ms a 2000ms.</div>
     </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-a11y">A11Y</div>
-      <div class="cl-body">
-        <div class="cl-title">role="dialog" aria-modal="true" en los 18 modales</div>
-        <div class="cl-desc">Todos los <code>.modal-overlay</code> del HTML ahora tienen semántica de diálogo accesible. Screen readers anuncian correctamente el contenido modal.</div>
-        <div class="cl-commit">0a6c2cd</div>
-      </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-a11y">A11Y</div>
-      <div class="cl-body">
-        <div class="cl-title">aria-label en botones de acción de icono</div>
-        <div class="cl-desc">Botones de WA, PDF, editar, eliminar (ventas, caja, stock) — todos tienen <code>aria-label</code> descriptivo. Antes eran emoji sin contexto semántico.</div>
-        <div class="cl-commit">83f3de8 · b51adda</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Grupo: PWA -->
-  <div class="card">
-    <div class="card-title">📱 PWA</div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-pwa">PWA</div>
-      <div class="cl-body">
-        <div class="cl-title">Shortcuts en manifest.json</div>
-        <div class="cl-desc">Long-press en el ícono de la app (Android) muestra accesos directos: "Nueva venta", "Ver cuotas", "Mis ventas".</div>
-        <div class="cl-commit">28b6f37</div>
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">timingSafeEqual() correctamente implementado en backup.js</div>
+        <div class="f-line">backup.js ln 141-148</div>
       </div>
-    </div>
-    <div class="changelog-item">
-      <div class="cl-badge cl-pwa">PWA</div>
-      <div class="cl-body">
-        <div class="cl-title">Deep-link ?tab= en enterApp()</div>
-        <div class="cl-desc">Los shortcuts usan <code>/?tab=add</code> etc. <code>enterApp()</code> lee el param y navega directamente al tab correcto en vez de siempre abrir ventas.</div>
-        <div class="cl-commit">28b6f37</div>
-      </div>
+      <div class="f-desc">La comparación HMAC usa tiempo constante, resistente a timing attacks. Bien implementado y sin cambios necesarios.</div>
     </div>
   </div>
 </div>
 
-
-<!-- ══ 2. COMPARACIÓN ANTES/DESPUÉS ══ -->
-<div class="section" id="s2">
-  <div class="section-header">
-    <span class="section-num">02</span>
-    <h2>Antes vs Después<br><small style="font-size:13px;color:var(--text3);font-weight:400">Los cambios más visibles para el usuario</small></h2>
+<!-- 2. AUTENTICACIÓN -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">🔑</div>
+    <div class="area-title">Autenticación y Autorización</div>
+    <div class="area-cnt">1 crítico corregido · 1 medio abierto (by design) · 3 info</div>
+    <div class="area-score">9.0</div>
+    <div class="area-caret">▼</div>
   </div>
-
-  <div class="ba-row">
-    <div class="ba-box ba-before"><div class="ba-label">v1 — Pantalla en blanco al iniciar</div>IndexedDB tardaba 300ms y la pantalla aparecía vacía. Sin feedback alguno.</div>
-    <div class="ba-box ba-after"><div class="ba-label">v2 — Skeleton loaders</div>4 tarjetas grises animadas llenan el espacio. El usuario ve que algo está cargando.</div>
-  </div>
-  <div class="ba-row">
-    <div class="ba-box ba-before"><div class="ba-label">v1 — Borrar gasto: instantáneo</div>Click en 🗑 → el gasto desaparece. Sin confirmación, sin posibilidad de recuperar.</div>
-    <div class="ba-box ba-after"><div class="ba-label">v2 — Confirmación + undo</div>Click → modal de confirmación → toast con "Deshacer" por 6 segundos.</div>
-  </div>
-  <div class="ba-row">
-    <div class="ba-box ba-before"><div class="ba-label">v1 — Stock en orden de ingreso</div>Perfumes con stock 0 podían estar al final de una lista larga. Fácil de pasar por alto.</div>
-    <div class="ba-box ba-after"><div class="ba-label">v2 — Orden por urgencia</div>Sin stock → Stock bajo → OK. Los críticos siempre están arriba.</div>
-  </div>
-  <div class="ba-row">
-    <div class="ba-box ba-before"><div class="ba-label">v1 — Accesibilidad nula</div>0 roles semánticos en navegación. 1 solo aria-label en todo el archivo. Screen readers sin información.</div>
-    <div class="ba-box ba-after"><div class="ba-label">v2 — Accesibilidad básica cubierta</div>nav con role+aria-label, 18 modales con role=dialog, todos los botones de icono con aria-label.</div>
-  </div>
-  <div class="ba-row">
-    <div class="ba-box ba-before"><div class="ba-label">v1 — Onboarding: nada</div>Usuario nuevo abría la app, veía datos de demo confusos, y no sabía por dónde empezar.</div>
-    <div class="ba-box ba-after"><div class="ba-label">v2 — Onboarding de 3 pasos</div>Modal de bienvenida, configura nombre del negocio, confetti en primera venta, tooltip guía.</div>
-  </div>
-  <div class="ba-row">
-    <div class="ba-box ba-before"><div class="ba-label">v1 — Desktop: una sola columna</div>En una pantalla de 1440px, el contenido de ventas usaba ~360px del centro. Desperdicio de espacio.</div>
-    <div class="ba-box ba-after"><div class="ba-label">v2 — Grid 2 columnas en desktop</div>Lista de ventas + panel lateral sticky con stats y cuotas urgentes.</div>
-  </div>
-  <div class="ba-row">
-    <div class="ba-box ba-before"><div class="ba-label">v1 — XSS en múltiples renders</div>innerHTML con datos del usuario sin sanitizar. <code>&lt;img onerror=alert(1)&gt;</code> en nombre de perfume ejecutaba JS.</div>
-    <div class="ba-box ba-after"><div class="ba-label">v2 — escapeHTML() universal</div>Todas las llamadas a innerHTML con datos del usuario pasan por <code>escapeHTML()</code>. XSS eliminado.</div>
-  </div>
-</div>
-
-
-<!-- ══ 3. UX/UI ACTUALIZADA ══ -->
-<div class="section" id="s3">
-  <div class="section-header">
-    <span class="section-num">03</span>
-    <h2>UX/UI — Estado actual</h2>
-    <div class="score-badge sb-green">8.0</div>
-  </div>
-
-  <div class="callout callout-green">
-    <span class="callout-icon">📈</span>
-    <div>Pasó de <strong>6.5 → 8.0</strong>. La mayoría de los problemas menores e intermedios están resueltos. Los que quedan son cambios estructurales (modales desktop, cloud sync).</div>
-  </div>
-
-  <div class="grid-2" style="margin-bottom:10px;">
-    <div class="card">
-      <div class="card-title">Resuelto ✅</div>
-      <div class="pro-con">
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>Skeleton loaders: carga sin pantalla en blanco</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>Empty states con CTAs en todas las secciones</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>Swipe-to-reveal en ventas</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>Haptic feedback en acciones</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>Desktop 2-column layout</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>Atajos de teclado completos</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>Onboarding con nombre + confetti</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>Confirmación en eliminar gastos + undo</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>Stock ordenado por urgencia</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>"Recordar cobro" en detalle de cliente</span></div>
+  <div class="area-body">
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">Par de claves ECDSA P-256 perdido — activaciones fallaban con 500</div>
+        <div class="f-line">Cloudflare env + index.html</div>
       </div>
+      <div class="f-desc">La clave privada ECDSA no estaba configurada como variable de entorno en Cloudflare. La clave pública en index.html tampoco correspondía a ninguna clave privada activa. Toda activación de licencia devolvía 500.</div>
+      <div class="f-fix">Fix aplicado: nuevo par ECDSA P-256 generado. Clave pública <code>MFkwEw...bA==</code> embebida en index.html. Clave privada y <code>LICENSE_OWNER_CODE</code> (PT-B3FF19-C75C55) provistos para configurar en Cloudflare.</div>
     </div>
-    <div class="card">
-      <div class="card-title">Pendiente ⏳</div>
-      <div class="pro-con">
-        <div class="pro-con-item"><span class="pro-con-icon">⚠️</span><span><strong>Modales centrados en desktop</strong> — los bottom sheets en 1440px se ven mal</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">⚠️</span><span><strong>Sin validación precio compra &gt; venta</strong> — usuario puede registrar pérdida sin advertencia</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">⚠️</span><span><strong>Confusión Stock vs Catálogo</strong> — sigue sin explicación en primer uso</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">⚠️</span><span><strong>Header muy alto en mobile</strong> — ocupa 35-40% del viewport antes del scroll</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">⚠️</span><span><strong>Sin focus-trap en modales</strong> — Tab key puede salir del modal abierto</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">⚠️</span><span><strong>Datos de demo no se limpian solos</strong> — el usuario tiene que ir a Ajustes</span></div>
+
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Sistema dual-auth ECDSA + HMAC correctamente implementado</div>
       </div>
+      <div class="f-desc">ECDSA P-256 para verificación de licencia client-side sin depender de red. HMAC-SHA256 para autenticación de backup server-side. Dos mecanismos independientes sin hardcoding de secretos en código fuente.</div>
+    </div>
+
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">PIN con lockout de 5 intentos y bloqueo de 5 minutos</div>
+        <div class="f-line">ln 4774-4810</div>
+      </div>
+      <div class="f-desc">SHA-256 con salt estático (<code>pt_salt_2026_</code> + PIN). <code>MAX_FAILS = 5</code>, <code>LOCKOUT_MS = 300.000ms</code>. El contador persiste entre recargas vía localStorage. Nunca se guarda el PIN en claro.</div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head">
+        <div class="f-sev sev-mid">🟡 MEDIO</div>
+        <div class="f-title">Trial anclado a timestamps del cliente — manipulable</div>
+        <div class="f-line">ln 3473-3494</div>
+      </div>
+      <div class="f-desc">La antigüedad del trial se determina por el timestamp del ID más antiguo de las ventas (<code>v.id = Date.now()</code>). Un usuario técnico podría manipular el clock del browser o importar un backup con IDs viejos para extender el trial indefinidamente.</div>
+      <div class="f-impact">Impacto: BAJO en práctica. El trial es de buena fe y la activación de licencia real requiere validación de server. No se protegen datos del sistema — el usuario solo "engaña" su propio trial local.</div>
+    </div>
+
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Token de backup no puede ser forjado sin LICENSE_SERVER_SECRET</div>
+        <div class="f-line">backup.js ln 150-165</div>
+      </div>
+      <div class="f-desc">El token es HMAC-SHA256(code, secret). Sin la clave en Cloudflare env vars, un atacante no puede generar tokens válidos. La verificación usa comparación en tiempo constante.</div>
     </div>
   </div>
 </div>
 
-
-<!-- ══ 4. FUNCIONALIDAD ACTUALIZADA ══ -->
-<div class="section" id="s4">
-  <div class="section-header">
-    <span class="section-num">04</span>
-    <h2>Funcionalidad — Estado actual</h2>
-    <div class="score-badge sb-green">8.5</div>
+<!-- 3. FUNCIONALIDAD -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">⚙️</div>
+    <div class="area-title">Funcionalidad</div>
+    <div class="area-cnt">3 medios corregidos · 1 bajo abierto (edge case) · 2 info</div>
+    <div class="area-score">9.2</div>
+    <div class="area-caret">▼</div>
   </div>
-
-  <div class="callout callout-green">
-    <span class="callout-icon">🚀</span>
-    <div>Pasó de <strong>7.5 → 8.5</strong>. El set de features es el correcto y se añadieron interacciones de calidad superior (swipe, haptic, shortcuts). La mayoría de los gaps menores están cerrados.</div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Nuevas funcionalidades añadidas</div>
-    <div class="stat-row"><span class="lbl">PWA Shortcuts</span><span class="val" style="color:var(--green)">✅ Implementado</span></div>
-    <div class="stat-row"><span class="lbl">Deep-link ?tab=</span><span class="val" style="color:var(--green)">✅ Implementado</span></div>
-    <div class="stat-row"><span class="lbl">Swipe-to-reveal (ventas)</span><span class="val" style="color:var(--green)">✅ Implementado</span></div>
-    <div class="stat-row"><span class="lbl">Recordar cobro desde cliente</span><span class="val" style="color:var(--green)">✅ Implementado</span></div>
-    <div class="stat-row"><span class="lbl">Hint perfume favorito del cliente</span><span class="val" style="color:var(--green)">✅ Implementado</span></div>
-    <div class="stat-row"><span class="lbl">Alerta stock 0 al iniciar app</span><span class="val" style="color:var(--green)">✅ Implementado</span></div>
-    <div class="stat-row"><span class="lbl">Confetti en primera venta</span><span class="val" style="color:var(--green)">✅ Implementado</span></div>
-    <div class="stat-row"><span class="lbl">Modal tier de precios (BIZ-03)</span><span class="val" style="color:var(--green)">✅ Implementado</span></div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Casos límite — Estado actual</div>
-    <div class="issue">
-      <div class="issue-dot dot-yellow"></div>
-      <div class="issue-content">
-        <div class="issue-title">Sin validación precio compra &gt; precio venta ⏳</div>
-        <div class="issue-desc">Se puede registrar ganancia negativa sin advertencia. El preview de ganancia la muestra en rojo, pero no hay bloqueo ni confirmación.</div>
+  <div class="area-body">
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Cálculos financieros matemáticamente correctos</div>
       </div>
+      <div class="f-desc">Ganancia usa <code>Math.round(pv - pc)</code> — sin acumulación de flotantes. Cuotas distribuyen saldo restante proporcionalmente. <code>calcDebe()</code> con <code>Math.max(0, ...)</code> previene valores negativos.</div>
     </div>
-    <div class="issue">
-      <div class="issue-dot dot-yellow"></div>
-      <div class="issue-content">
-        <div class="issue-title">Caja: movimiento de $0 permitido ⏳</div>
-        <div class="issue-desc">Se puede guardar un movimiento con monto 0. No causa error crítico pero contamina el historial.</div>
-      </div>
-    </div>
-    <div class="issue" style="border-bottom:none;">
-      <div class="issue-dot dot-green"></div>
-      <div class="issue-content">
-        <div class="issue-title">Virtualización de listas ✅ Implementada</div>
-        <div class="issue-desc">IntersectionObserver carga ventas en lotes de 30. Con 500+ ventas el scroll ya no se traba.</div>
-      </div>
-    </div>
-  </div>
-</div>
 
-
-<!-- ══ 5. RENDIMIENTO ══ -->
-<div class="section" id="s5">
-  <div class="section-header">
-    <span class="section-num">05</span>
-    <h2>Rendimiento — Estado actual</h2>
-    <div class="score-badge sb-yellow">6.5</div>
-  </div>
-
-  <div class="grid-2" style="margin-bottom:10px;">
-    <div class="card">
-      <div class="card-title">Peso de recursos (actualizado)</div>
-      <div class="stat-row"><span class="lbl">index.html</span><span class="val">~380 KB <span style="font-size:11px;color:var(--orange)">(+40KB vs v1)</span></span></div>
-      <div class="stat-row"><span class="lbl">OneSignal SDK</span><span class="val" style="color:var(--orange)">~80 KB (sin cambios)</span></div>
-      <div class="stat-row"><span class="lbl">Google Fonts</span><span class="val" style="color:var(--yellow)">~50 KB (async)</span></div>
-      <div class="stat-row"><span class="lbl">Chart.js (lazy)</span><span class="val" style="color:var(--green)">~200 KB on-demand</span></div>
-      <div class="stat-row"><span class="lbl">jsPDF (lazy)</span><span class="val" style="color:var(--green)">~250 KB on-demand</span></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Mejoras de rendimiento logradas</div>
-      <div class="pro-con">
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>Virtual scroll (IntersectionObserver): lista de ventas carga 30 items, más al llegar al fondo</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>Debounce en búsquedas: sin render en cada keystroke</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>Skeleton loaders: percepción de carga más rápida</span></div>
-        <div class="pro-con-item"><span class="pro-con-icon">✅</span><span>Resize listener debounced (200ms): no llama a updateStats en cada frame de resize</span></div>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">Importación Excel sin validación de valores negativos</div>
+        <div class="f-line">confirmImport()</div>
       </div>
+      <div class="f-desc">La función <code>confirmImport()</code> no validaba que <code>precioVenta</code> y <code>precioCompra</code> sean no-negativos. Un Excel con precios negativos generaba ganancias inconsistentes en las estadísticas.</div>
+      <div class="f-fix">Fix aplicado: filtro en <code>confirmImport()</code> — filas con <code>precioVenta &lt; 0</code> o <code>precioCompra &lt; 0</code> son omitidas. Toast informa cuántas filas fueron descartadas.</div>
     </div>
-  </div>
 
-  <div class="card">
-    <div class="card-title">Pendiente</div>
-    <div class="issue">
-      <div class="issue-dot dot-orange"></div>
-      <div class="issue-content">
-        <div class="issue-title">OneSignal carga siempre, no lazy</div>
-        <div class="issue-desc">~80KB + handshake de red en cada visita, aunque el 70%+ de usuarios nunca activa push. Debería cargarse solo después de aceptar notificaciones.</div>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">Double-submit en stock, caja y backup</div>
+        <div class="f-line">_addingStock · _addingCaja · _backupInFlight</div>
       </div>
+      <div class="f-desc">Pulsaciones rápidas en los botones de agregar stock, registrar en caja y subir backup podían ejecutar la operación múltiples veces, creando duplicados en IndexedDB.</div>
+      <div class="f-fix">Fix aplicado: guards booleanos <code>_addingStock</code>, <code>_addingCaja</code> y <code>_backupInFlight</code> bloquean ejecuciones concurrentes hasta que la operación resuelve o rechaza.</div>
     </div>
-    <div class="issue" style="border-bottom:none;">
-      <div class="issue-dot dot-yellow"></div>
-      <div class="issue-content">
-        <div class="issue-title">HTML creció de ~340KB a ~380KB</div>
-        <div class="issue-desc">Las nuevas funcionalidades sumaron ~40KB. Sin minificación, Cloudflare Brotli comprime bien pero el tiempo de parseo sigue siendo alto en móviles lentos.</div>
+
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">Botón "Guardar venta" habilitado sin campos requeridos</div>
+        <div class="f-line">_updateGuardarBtn()</div>
       </div>
+      <div class="f-desc">La validación ocurría solo al hacer click. El usuario podía intentar guardar, recibir error, corregir y reintentar — fricción innecesaria en mobile.</div>
+      <div class="f-fix">Fix aplicado: <code>_updateGuardarBtn()</code> valida <code>f-perfume</code> y <code>f-pventa</code> en <code>oninput</code>. Botón deshabilitado visualmente (opacidad 0.45, cursor not-allowed) hasta que ambos sean válidos.</div>
+    </div>
+
+    <div class="finding low">
+      <div class="f-head">
+        <div class="f-sev sev-low">🟢 BAJO</div>
+        <div class="f-title">calcDebe() devuelve 0 ante sobrepagos — sin registro de crédito</div>
+        <div class="f-line">ln 1837</div>
+      </div>
+      <div class="f-desc">Si en un backup importado una cuota tiene <code>cuotasPagos.monto > precioVenta</code>, la función devuelve 0 pero no registra crédito a favor del cliente. En uso normal la UI previene montos superiores al debe.</div>
+      <div class="f-impact">Impacto: MUY BAJO. Solo reproducible con backup manipulado manualmente. No afecta ningún flujo normal de uso.</div>
+    </div>
+
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Backup/restore con rollback automático y validación de schema</div>
+        <div class="f-line">ln 2010-2052</div>
+      </div>
+      <div class="f-desc">Antes de restaurar se descarga copia local. El schema valida tipos de campos (arrays, números, strings). Guards <code>_backupInFlight</code> previenen concurrencia. Bien implementado.</div>
     </div>
   </div>
 </div>
 
-
-<!-- ══ 6. SEGURIDAD ══ -->
-<div class="section" id="s6">
-  <div class="section-header">
-    <span class="section-num">06</span>
-    <h2>Seguridad — Estado actual</h2>
-    <div class="score-badge sb-red">3.5</div>
+<!-- 4. MANEJO DE ERRORES -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">⚠️</div>
+    <div class="area-title">Manejo de Errores</div>
+    <div class="area-cnt">3 medios corregidos · 1 info</div>
+    <div class="area-score">9.5</div>
+    <div class="area-caret">▼</div>
   </div>
-
-  <div class="callout callout-yellow">
-    <span class="callout-icon">⚠️</span>
-    <div>La puntuación no cambió porque <strong>el problema más grande sigue sin resolverse</strong>: la licencia es 100% bypasseable desde DevTools. Lo que sí mejoró: el XSS fue eliminado por completo y se agregó CSP. Eso mueve la aguja en protección de datos del usuario, no en revenue.</div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">✅ Resuelto desde v1</div>
-    <div class="issue">
-      <div class="issue-dot dot-green"></div>
-      <div class="issue-content">
-        <div class="issue-title">XSS eliminado en todos los renders</div>
-        <div class="issue-desc"><code>escapeHTML()</code> aplicada en el 100% de los <code>innerHTML</code> con datos del usuario. Onclick con strings de usuario migrados a event delegation. Riesgo XSS: eliminado.</div>
+  <div class="area-body">
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">Error de IndexedDB muestra pantalla de carga infinita</div>
+        <div class="f-line">_appDataReady .catch()</div>
       </div>
+      <div class="f-desc">Si IndexedDB fallaba al inicializar, el <code>.catch()</code> solo hacía <code>console.error</code>. El usuario veía la app cargando indefinidamente sin ningún feedback.</div>
+      <div class="f-fix">Fix aplicado: pantalla de error con mensaje específico según tipo. <code>QuotaExceededError</code> → "Sin espacio de almacenamiento. Liberá espacio en tu dispositivo." Error genérico → "Error al cargar los datos. Intentá recargar la app." Botón "Recargar app" siempre visible.</div>
     </div>
-    <div class="issue" style="border-bottom:none;">
-      <div class="issue-dot dot-green"></div>
-      <div class="issue-content">
-        <div class="issue-title">Content Security Policy implementada</div>
-        <div class="issue-desc">Headers CSP, X-Frame-Options (DENY), X-Content-Type-Options (nosniff) activos en Cloudflare. Reduce la superficie de ataque para scripts inyectados.</div>
-      </div>
-    </div>
-  </div>
 
-  <div class="card">
-    <div class="card-title">🔴 Crítico — Sin resolver</div>
-    <div class="issue">
-      <div class="issue-dot dot-red"></div>
-      <div class="issue-content">
-        <div class="issue-title">Validación de licencia 100% client-side</div>
-        <div class="issue-desc"><code>VALID_CODE_HMACS</code> y <code>_LK</code> siguen en el HTML. Con 2 líneas en DevTools se activa la app gratis. <strong>Impacto directo en revenue.</strong> Requiere Cloudflare Worker + JWT.</div>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">OneSignal importScripts en SW sin manejo de error</div>
+        <div class="f-line">sw.js ln 2</div>
       </div>
+      <div class="f-desc"><code>importScripts()</code> es síncrono — si el CDN de OneSignal estaba caído o bloqueado por adblocker/firewall, todo el SW fallaba al cargar y la PWA perdía capacidad offline.</div>
+      <div class="f-fix">Fix aplicado: <code>try { importScripts(...) } catch(e) { console.warn('[SW] OneSignal no disponible:', e.message); }</code>. El SW carga correctamente aunque OneSignal falle.</div>
     </div>
-    <div class="issue">
-      <div class="issue-dot dot-red"></div>
-      <div class="issue-content">
-        <div class="issue-title">Clave HMAC expuesta en código fuente</div>
-        <div class="issue-desc"><code>const _LK = 'PT_LICENSE_SECRET_K3Y_2026'</code> visible en el código. Un atacante puede calcular códigos válidos sin servidor.</div>
-      </div>
-    </div>
-    <div class="issue" style="border-bottom:none;">
-      <div class="issue-dot dot-orange"></div>
-      <div class="issue-content">
-        <div class="issue-title">Datos financieros en localStorage sin cifrado</div>
-        <div class="issue-desc">El PIN está hasheado (correcto), pero estado de activación, perfil activo, y fechas están en texto plano. En dispositivos compartidos, visible para cualquiera que abra DevTools.</div>
-      </div>
-    </div>
-  </div>
 
-  <div class="callout callout-red" style="margin-top:0">
-    <span class="callout-icon">🚨</span>
-    <div><strong>Para subir la puntuación de seguridad hay una sola tarea:</strong> mover la validación al servidor. Todo lo demás ya está resuelto. Esta tarea requiere acceso a Cloudflare — es la única razón por la que quedó pendiente.</div>
-  </div>
-</div>
-
-
-<!-- ══ 7. NEGOCIO ══ -->
-<div class="section" id="s7">
-  <div class="section-header">
-    <span class="section-num">07</span>
-    <h2>Negocio y Monetización</h2>
-    <div class="score-badge sb-yellow">7.0</div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Mejoras de negocio desde v1</div>
-    <div class="issue">
-      <div class="issue-dot dot-green"></div>
-      <div class="issue-content">
-        <div class="issue-title">Modal de activación con 3 tiers y precios visibles</div>
-        <div class="issue-desc">Antes: modal de texto. Ahora: tarjetas de precio con features por tier y botón directo a WhatsApp. El usuario sabe exactamente qué paga antes de comprar.</div>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">Backup con R2 sin configurar fallaba sin mensaje claro</div>
+        <div class="f-line">functions/backup.js</div>
       </div>
+      <div class="f-desc">Si el binding <code>PT_BACKUP</code> de R2 no estaba configurado, el servidor respondía con un error no descriptivo que no orientaba al usuario ni al administrador.</div>
+      <div class="f-fix">Fix aplicado: chequeo explícito <code>if (!env.PT_BACKUP)</code> → respuesta 500 con <code>"error": "Storage not configured"</code> antes de intentar usar R2.</div>
     </div>
-    <div class="issue">
-      <div class="issue-dot dot-green"></div>
-      <div class="issue-content">
-        <div class="issue-title">Firma de WhatsApp: branding en cada mensaje</div>
-        <div class="issue-desc">Cada comprobante, recordatorio o catálogo enviado por WA incluye "_Gestionado con Parfum Track 🍶_". Marketing orgánico pasivo.</div>
-      </div>
-    </div>
-    <div class="issue" style="border-bottom:none;">
-      <div class="issue-dot dot-green"></div>
-      <div class="issue-content">
-        <div class="issue-title">PWA Shortcuts: conversión inmediata desde homescreen</div>
-        <div class="issue-desc">Long-press en el ícono → acceso directo a "Nueva venta". Reduce la fricción del uso diario, aumenta retención.</div>
-      </div>
-    </div>
-  </div>
 
-  <div class="card">
-    <div class="card-title">Oportunidades pendientes (requieren decisiones de negocio)</div>
-    <div class="pro-con">
-      <div class="pro-con-item"><span class="pro-con-icon">💡</span><span><strong>Cloud sync + suscripción mensual:</strong> el cambio que convierte pago único en MRR. Sin esto el ceiling de revenue es bajo. ~$5-8/mes por usuario.</span></div>
-      <div class="pro-con-item"><span class="pro-con-icon">💡</span><span><strong>Landing page de marketing:</strong> sin sitio web no hay SEO ni descubrimiento orgánico. Los nuevos usuarios no saben qué obtienen antes de instalar.</span></div>
-      <div class="pro-con-item"><span class="pro-con-icon">💡</span><span><strong>Email capture en trial:</strong> el usuario prueba 7 días y si no paga, desaparece. Con un email se puede hacer nurturing y recuperar hasta 30% de los abandonos.</span></div>
-      <div class="pro-con-item"><span class="pro-con-icon">💡</span><span><strong>Catálogo público con link compartible:</strong> URL pública que clientes del revendedor pueden ver. Feature estrella para conversión y viralidad.</span></div>
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Todas las llamadas fetch() con timeout y try/catch</div>
+      </div>
+      <div class="f-desc"><code>cloudBackupSave</code> (15s), <code>cloudBackupRestore</code> (15s), <code>activarLicencia</code> (6s) — todos con <code>AbortSignal.timeout()</code> y manejo de error con toast descriptivo. Sin fetch silencioso en ningún flujo crítico.</div>
     </div>
   </div>
 </div>
 
-
-<!-- ══ 8. COMPARACIÓN ══ -->
-<div class="section" id="s8">
-  <div class="section-header">
-    <span class="section-num">08</span>
-    <h2>Nivel de pulido percibido</h2>
-    <div class="score-badge sb-yellow">7.5</div>
+<!-- 5. PERFORMANCE -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">🚀</div>
+    <div class="area-title">Performance</div>
+    <div class="area-cnt">2 medios corregidos · 2 info</div>
+    <div class="area-score">9.3</div>
+    <div class="area-caret">▼</div>
   </div>
+  <div class="area-body">
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">renderClientes() reconstruye mapa de todas las ventas en cada render</div>
+        <div class="f-line">_buildClientesMap()</div>
+      </div>
+      <div class="f-desc">Iteraba todas las ventas para construir el mapa de clientes en cada render sin caché. Con 10.000+ ventas podía producir lag visible en la pestaña de clientes.</div>
+      <div class="f-fix">Fix aplicado: <code>_buildClientesMap()</code> memoizado con <code>_clientesMapCache</code> y flag <code>_clientesMapDirty</code>. Solo reconstruye cuando <code>save()</code> es llamado — O(1) en renders repetidos.</div>
+    </div>
 
-  <div class="card" style="margin-bottom:10px;">
-    <div class="card-title">Nivel de pulido percibido vs grandes apps (0–100)</div>
-    <div class="compare-row"><span class="compare-app">Notion</span><div class="compare-bar-wrap"><div class="compare-bar" style="width:95%"></div></div><span class="compare-pct">95</span></div>
-    <div class="compare-row"><span class="compare-app">Shopify</span><div class="compare-bar-wrap"><div class="compare-bar" style="width:93%"></div></div><span class="compare-pct">93</span></div>
-    <div class="compare-row"><span class="compare-app">Stripe</span><div class="compare-bar-wrap"><div class="compare-bar" style="width:97%"></div></div><span class="compare-pct">97</span></div>
-    <div class="compare-row"><span class="compare-app">Trello</span><div class="compare-bar-wrap"><div class="compare-bar" style="width:87%"></div></div><span class="compare-pct">87</span></div>
-    <div class="compare-row"><span class="compare-app" style="color:var(--gold)">PT v1</span><div class="compare-bar-wrap"><div class="compare-bar" style="width:65%;background:var(--gold)"></div></div><span class="compare-pct" style="color:var(--gold)">65</span></div>
-    <div class="compare-row" style="border-bottom:none;"><span class="compare-app" style="color:var(--green)">PT v2</span><div class="compare-bar-wrap"><div class="compare-bar" style="width:75%;background:linear-gradient(90deg,var(--green),var(--gold2))"></div></div><span class="compare-pct" style="color:var(--green)">75</span></div>
-  </div>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">calcDebe() y diasDesdeUltimoPago() llamados 4-6× por cuota</div>
+        <div class="f-line">renderCuotasPendientes()</div>
+      </div>
+      <div class="f-desc">Para ordenar y renderizar las cuotas, las funciones de cálculo se llamaban múltiples veces por cuota: durante el sort, en los filtros, y en el render de cada card.</div>
+      <div class="f-fix">Fix aplicado: pre-cómputo via <code>Map</code> antes del sort. <code>_renderCuotaCard()</code> acepta <code>_debe</code> y <code>_dias</code> pre-calculados como parámetros. Reducción significativa de trabajo redundante.</div>
+    </div>
 
-  <div class="callout callout-gold">
-    <span class="callout-icon">📊</span>
-    <div>De <strong>65 → 75 puntos</strong> de pulido percibido. La diferencia ahora es principalmente: sin cloud sync, sin landing page, y modales no adaptados a desktop. Los tres son cambios estructurales, no de código inline.</div>
-  </div>
-</div>
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Debounce completo en catálogo, foto y todas las búsquedas</div>
+      </div>
+      <div class="f-desc">Ventas (280ms), stock (280ms), catálogo (200ms), canvas catálogo (350ms), foto URL (400ms), gastos (260ms). Wrappers <code>_renderCatalogoD</code>, <code>_regenerarCatCanvasD</code> y <code>_previewFotoUrlD</code> implementados. Ningún render costoso se dispara en cada keystroke.</div>
+    </div>
 
-
-<!-- ══ 9. LO QUE FALTA ══ -->
-<div class="section" id="s9">
-  <div class="section-header">
-    <span class="section-num">09</span>
-    <h2>Qué falta — Pendientes reales</h2>
-  </div>
-
-  <div class="card">
-    <div class="card-title">🔴 Críticos — Bloquean revenue o escala</div>
-    <div class="issue">
-      <div class="issue-dot dot-red"></div>
-      <div class="issue-content">
-        <div class="issue-title">SEC-01/02/03: Licencia server-side con Cloudflare Worker</div>
-        <div class="issue-desc">Mover <code>_LK</code> + <code>VALID_CODE_HMACS</code> a un Worker que valide y devuelva un JWT firmado. El cliente nunca ve los hashes ni la clave. <strong>Requiere: acceso a tu cuenta de Cloudflare.</strong></div>
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Lazy-load de jsPDF, XLSX y Chart.js correctamente implementado</div>
       </div>
-    </div>
-    <div class="issue" style="border-bottom:none;">
-      <div class="issue-dot dot-red"></div>
-      <div class="issue-content">
-        <div class="issue-title">Cloud sync — riesgo de churn por pérdida de datos</div>
-        <div class="issue-desc">Cambio de celular = datos perdidos. Es el motivo #1 de abandono a largo plazo y el feature más pedido. Requiere: Supabase o Firebase + decisión de modelo de precios (suscripción).</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">🟠 Importantes — Experiencia y crecimiento</div>
-    <div class="issue">
-      <div class="issue-dot dot-orange"></div>
-      <div class="issue-content">
-        <div class="issue-title">BIZ-02: Captura de email durante trial</div>
-        <div class="issue-desc">Pedir email al inicio del trial para hacer nurturing. Con Mailchimp/Brevo gratis: recuperar 20-30% de usuarios que no convirtieron. Requiere: servicio de email.</div>
-      </div>
-    </div>
-    <div class="issue">
-      <div class="issue-dot dot-orange"></div>
-      <div class="issue-content">
-        <div class="issue-title">Landing page de marketing</div>
-        <div class="issue-desc">Sin sitio web no hay SEO, no hay descubrimiento orgánico. Una página simple con screenshots y precio puede triplicar la conversión desde redes sociales.</div>
-      </div>
-    </div>
-    <div class="issue">
-      <div class="issue-dot dot-orange"></div>
-      <div class="issue-content">
-        <div class="issue-title">Modales centrados en desktop</div>
-        <div class="issue-desc">Los bottom sheets en 1440px ocupan solo 400px del ancho y flotan en la mitad inferior. Con <code>@media (min-width: 769px)</code> se pueden centrar. Trabajo de ~1h.</div>
-      </div>
-    </div>
-    <div class="issue" style="border-bottom:none;">
-      <div class="issue-dot dot-orange"></div>
-      <div class="issue-content">
-        <div class="issue-title">DEV_WA_NUMBER — reemplazar número placeholder</div>
-        <div class="issue-desc"><code>const DEV_WA_NUMBER = '5491100000000'</code> en el JS. Cambiar por tu número real para que los botones de contacto de la app te lleguen a vos.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">🟡 Menores — Calidad adicional</div>
-    <div class="issue">
-      <div class="issue-dot dot-yellow"></div>
-      <div class="issue-content">
-        <div class="issue-title">Validación: precio compra &gt; precio venta</div>
-        <div class="issue-desc">Mostrar advertencia amarilla antes de guardar una venta con ganancia negativa. Ya hay un preview que muestra la ganancia en rojo, pero no hay freno explícito.</div>
-      </div>
-    </div>
-    <div class="issue">
-      <div class="issue-dot dot-yellow"></div>
-      <div class="issue-content">
-        <div class="issue-title">Focus-trap en modales abiertos</div>
-        <div class="issue-desc">Tab key puede navegar fuera de un modal abierto. Correcto para accesibilidad: atrapar el foco dentro del modal mientras está activo.</div>
-      </div>
-    </div>
-    <div class="issue">
-      <div class="issue-dot dot-yellow"></div>
-      <div class="issue-content">
-        <div class="issue-title">OneSignal lazy loading</div>
-        <div class="issue-desc">Cargar el SDK solo si el usuario acepta notificaciones push. Ahorra ~80KB para el 70%+ que no activa push.</div>
-      </div>
-    </div>
-    <div class="issue">
-      <div class="issue-dot dot-yellow"></div>
-      <div class="issue-content">
-        <div class="issue-title">Limpiar datos de demo en onboarding</div>
-        <div class="issue-desc">Botón "Empezar desde cero" en el modal de bienvenida. Borra ventas/perfumes de demo con 1 tap. El 80% de los usuarios nuevos no sabe que hay que hacerlo en Ajustes.</div>
-      </div>
-    </div>
-    <div class="issue" style="border-bottom:none;">
-      <div class="issue-dot dot-yellow"></div>
-      <div class="issue-content">
-        <div class="issue-title">Catálogo público con link compartible</div>
-        <div class="issue-desc">URL pública (ej: parfumtrack.app/u/nombre) que los clientes del revendedor pueden ver desde el navegador sin instalar nada. Feature de alto impacto en viralidad.</div>
-      </div>
+      <div class="f-desc">Las tres librerías pesadas se cargan dinámicamente solo cuando el usuario las usa por primera vez. El bundle inicial es solo index.html + sw.js + manifest — tiempo de primera carga mínimo.</div>
     </div>
   </div>
 </div>
 
-
-<!-- ══ 10. PRÓXIMOS PASOS ══ -->
-<div class="section" id="s10">
-  <div class="section-header">
-    <span class="section-num">10</span>
-    <h2>Próximos pasos recomendados</h2>
+<!-- 6. UX -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">📱</div>
+    <div class="area-title">UX y Accesibilidad</div>
+    <div class="area-cnt">4 medios/bajos corregidos · 3 info</div>
+    <div class="area-score">9.5</div>
+    <div class="area-caret">▼</div>
   </div>
+  <div class="area-body">
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">Sin notificación de "actualización disponible" cuando hay nuevo SW</div>
+        <div class="f-line">SW update banner</div>
+      </div>
+      <div class="f-desc">Cuando se desplegaba una nueva versión, el usuario no recibía ninguna señal hasta que cerraba y reabraba la app manualmente.</div>
+      <div class="f-fix">Fix aplicado: listener <code>updatefound</code> + <code>statechange</code> detecta nuevo SW instalado. Banner dorado "✨ Nueva versión disponible" con botón "Actualizar" aparece automáticamente. Al click, <code>postMessage('SKIP_WAITING')</code> activa el nuevo SW y recarga la página.</div>
+    </div>
 
-  <div class="card">
-    <div class="card-title">⚡ Ahora mismo — Sin bloqueos técnicos (menos de 1h cada uno)</div>
-    <div class="plan-item">
-      <div class="plan-num" style="background:rgba(224,112,112,0.15);border-color:rgba(224,112,112,0.4);color:var(--red);">1</div>
-      <div class="plan-body">
-        <div class="plan-title">Reemplazar DEV_WA_NUMBER por tu número real</div>
-        <div class="plan-desc">Abrir el HTML, buscar <code>5491100000000</code>, reemplazar por tu número en formato internacional sin el +. Tarda 2 minutos.</div>
-        <span class="plan-impact impact-alto">🟠 Impacto inmediato · Revenue</span>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">SW update banner — onclick inline no accede al closure newSW</div>
+        <div class="f-line">ln 6995 (bug de scope)</div>
       </div>
+      <div class="f-desc">El botón "Actualizar" usaba <code>onclick="newSW.postMessage('SKIP_WAITING')"</code> como string inline. Los handlers inline ejecutan en scope global — <code>newSW</code> es <code>undefined</code> globalmente, causando <code>ReferenceError</code> silencioso. El update nunca se aplicaba al pulsar el botón.</div>
+      <div class="f-fix">Fix aplicado: botón con <code>id="sw-update-btn"</code> sin onclick. Listener: <code>banner.querySelector('#sw-update-btn').addEventListener('click', () =&gt; newSW.postMessage('SKIP_WAITING'))</code> captura <code>newSW</code> correctamente por closure.</div>
     </div>
-    <div class="plan-item">
-      <div class="plan-num">2</div>
-      <div class="plan-body">
-        <div class="plan-title">Validación precio compra &gt; precio venta</div>
-        <div class="plan-desc">En <code>addVenta()</code>, antes de guardar: si <code>pCompra &gt; pVenta</code>, mostrar toast amarillo "⚠ Tu ganancia es negativa. ¿Querés continuar?" con botón confirmar.</div>
-        <span class="plan-impact impact-med">🟡 Impacto medio · UX</span>
-      </div>
-    </div>
-    <div class="plan-item">
-      <div class="plan-num">3</div>
-      <div class="plan-body">
-        <div class="plan-title">Modales centrados en desktop</div>
-        <div class="plan-desc">Agregar en CSS: <code>@media (min-width: 769px) { .modal-overlay { align-items: center; } .modal { max-width: 500px; border-radius: 16px; } }</code>. Cambio de 5 líneas, impacto visual enorme.</div>
-        <span class="plan-impact impact-med">🟡 Impacto alto · UX desktop</span>
-      </div>
-    </div>
-    <div class="plan-item" style="border-bottom:none;">
-      <div class="plan-num">4</div>
-      <div class="plan-body">
-        <div class="plan-title">Botón "Empezar desde cero" en onboarding</div>
-        <div class="plan-desc">En el modal de bienvenida, agregar botón que llame a <code>borrarTodo()</code> antes de cerrar. Resuelve la confusión datos demo vs datos reales.</div>
-        <span class="plan-impact impact-med">🟡 Impacto alto · Retención primer día</span>
-      </div>
-    </div>
-  </div>
 
-  <div class="card">
-    <div class="card-title">🔧 Esta semana — Requieren tu acción puntual</div>
-    <div class="plan-item">
-      <div class="plan-num" style="background:rgba(224,112,112,0.15);border-color:rgba(224,112,112,0.4);color:var(--red);">1</div>
-      <div class="plan-body">
-        <div class="plan-title">Licencia server-side — Cloudflare Worker</div>
-        <div class="plan-desc">Crear Worker en Cloudflare que recibe el código, valida con HMAC (server-side), y retorna un JWT de 1 año firmado. El cliente guarda solo el JWT. <strong>Necesitás: acceso a tu dashboard de Cloudflare.</strong></div>
-        <span class="plan-impact impact-alto">🔴 Impacto crítico · Revenue + Seguridad</span>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">.pca-btn tap target por debajo de 44px</div>
+        <div class="f-line">ln 390 — CSS .pca-btn</div>
       </div>
+      <div class="f-desc">La clase <code>.pca-btn</code> (botones Editar/Eliminar en tarjetas de perfume) tenía <code>min-height:unset;min-width:unset;</code> que sobreescribía explícitamente la regla global de 44px mínimo, dejando los botones por debajo del estándar de accesibilidad táctil.</div>
+      <div class="f-fix">Fix aplicado: eliminados <code>min-height:unset</code> y <code>min-width:unset</code>. Establecido <code>min-height:44px</code> explícito. Cumple Apple HIG y Material Design 3.</div>
     </div>
-    <div class="plan-item" style="border-bottom:none;">
-      <div class="plan-num">2</div>
-      <div class="plan-body">
-        <div class="plan-title">Email capture durante el trial</div>
-        <div class="plan-desc">Agregar campo de email en el onboarding (paso 3). Con Brevo (gratis hasta 300 emails/día) configurar una secuencia de 3 emails: día 1 (bienvenida), día 5 (tips), día 7 (upgrade). <strong>Necesitás: cuenta en Brevo o Mailchimp.</strong></div>
-        <span class="plan-impact impact-alto">🟠 Impacto alto · Conversión</span>
-      </div>
-    </div>
-  </div>
 
-  <div class="card">
-    <div class="card-title">🏗 Próximo mes — Cambios estructurales</div>
-    <div class="plan-item">
-      <div class="plan-num">1</div>
-      <div class="plan-body">
-        <div class="plan-title">Cloud sync con Supabase</div>
-        <div class="plan-desc">Supabase Free Tier para sincronización de ventas/perfumes/gastos. Transforma el miedo a perder datos en confianza. Justifica suscripción mensual de $5-8 USD.</div>
-        <span class="plan-impact impact-alto">🔴 Mayor impacto en negocio</span>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">Toast sobreescrito — mensajes se perdían en operaciones rápidas</div>
+        <div class="f-line">función toast()</div>
       </div>
+      <div class="f-desc">Si dos toasts se mostraban en rápida sucesión, el segundo reemplazaba al primero antes de que el usuario pudiera leerlo.</div>
+      <div class="f-fix">Fix aplicado: cola FIFO <code>_toastQueue[]</code>. Si llega un toast mientras hay uno visible, se encola y se despacha secuencialmente al cerrarse el anterior (transición 300ms).</div>
     </div>
-    <div class="plan-item">
-      <div class="plan-num">2</div>
-      <div class="plan-body">
-        <div class="plan-title">Landing page de marketing</div>
-        <div class="plan-desc">Una página con screenshots de la app, 3 bullet points de valor, precios, y botón "Probar 7 días gratis". Sin esto no hay descubrimiento orgánico.</div>
-        <span class="plan-impact impact-alto">🟠 Mayor impacto en crecimiento</span>
+
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Touch targets ≥ 44px en todos los elementos interactivos</div>
+        <div class="f-line">ln 385</div>
       </div>
+      <div class="f-desc">CSS base: <code>min-height:44px</code> en <code>.btn-primary, .btn-outline, input, select</code>. <code>.pca-btn</code> ahora también respeta el mínimo. Ningún botón queda por debajo del estándar táctil en ninguna sección.</div>
     </div>
-    <div class="plan-item" style="border-bottom:none;">
-      <div class="plan-num">3</div>
-      <div class="plan-body">
-        <div class="plan-title">Catálogo público con link compartible</div>
-        <div class="plan-desc">Generar URL pública del catálogo del revendedor que sus clientes puedan ver sin instalar nada. Feature estrella para viralidad y retención premium.</div>
-        <span class="plan-impact impact-alto">🟠 Mayor impacto en valor percibido</span>
+
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Operaciones destructivas protegidas con confirmación y undo</div>
+        <div class="f-line">ln 4394-4407</div>
       </div>
+      <div class="f-desc">Reset de app requiere doble confirmación + texto manual. Eliminación de ventas/gastos/movimientos tiene sistema de undo con ventana de 6 segundos. Bien implementado.</div>
+    </div>
+
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Pantalla de error de IndexedDB con mensaje específico y acción clara</div>
+        <div class="f-line">_appDataReady .catch()</div>
+      </div>
+      <div class="f-desc">El error diferencia entre <code>QuotaExceededError</code> (falta espacio) y error genérico (problema técnico). El botón "Recargar app" siempre visible. Sin pantalla de carga infinita.</div>
     </div>
   </div>
 </div>
 
-
-<!-- ══ 11. VEREDICTO FINAL ══ -->
-<div class="section" id="s11">
-  <div class="section-header">
-    <span class="section-num">11</span>
-    <h2>Veredicto final</h2>
+<!-- 7. DATOS -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">💾</div>
+    <div class="area-title">Datos y Persistencia</div>
+    <div class="area-cnt">0 críticos · 2 medios abiertos · 2 info</div>
+    <div class="area-score">8.5</div>
+    <div class="area-caret">▼</div>
   </div>
-
-  <div class="final-grid">
-    <div class="fscore-card">
-      <div class="fscore-top"><span class="fscore-lbl">Diseño</span><span class="fscore-val s-gold">8.0</span></div>
-      <div class="fscore-bar-wrap"><div class="fscore-bar" style="width:80%;background:var(--gold2)"></div></div>
-    </div>
-    <div class="fscore-card">
-      <div class="fscore-top"><span class="fscore-lbl">UX</span><span class="fscore-val s-green">8.0</span></div>
-      <div class="fscore-bar-wrap"><div class="fscore-bar" style="width:80%;background:var(--green)"></div></div>
-    </div>
-    <div class="fscore-card">
-      <div class="fscore-top"><span class="fscore-lbl">Funcionalidad</span><span class="fscore-val s-green">8.5</span></div>
-      <div class="fscore-bar-wrap"><div class="fscore-bar" style="width:85%;background:var(--green)"></div></div>
-    </div>
-    <div class="fscore-card">
-      <div class="fscore-top"><span class="fscore-lbl">Rendimiento</span><span class="fscore-val s-yellow">6.5</span></div>
-      <div class="fscore-bar-wrap"><div class="fscore-bar" style="width:65%;background:var(--yellow)"></div></div>
-    </div>
-    <div class="fscore-card">
-      <div class="fscore-top"><span class="fscore-lbl">Seguridad</span><span class="fscore-val s-red">3.5</span></div>
-      <div class="fscore-bar-wrap"><div class="fscore-bar" style="width:35%;background:var(--red)"></div></div>
-    </div>
-    <div class="fscore-card">
-      <div class="fscore-top"><span class="fscore-lbl">Arquitectura</span><span class="fscore-val s-red">4.0</span></div>
-      <div class="fscore-bar-wrap"><div class="fscore-bar" style="width:40%;background:var(--red)"></div></div>
-    </div>
-    <div class="fscore-card">
-      <div class="fscore-top"><span class="fscore-lbl">Negocio</span><span class="fscore-val s-yellow">7.0</span></div>
-      <div class="fscore-bar-wrap"><div class="fscore-bar" style="width:70%;background:var(--yellow)"></div></div>
-    </div>
-    <div class="fscore-card">
-      <div class="fscore-top"><span class="fscore-lbl">Nivel profesional</span><span class="fscore-val s-green">8.0</span></div>
-      <div class="fscore-bar-wrap"><div class="fscore-bar" style="width:80%;background:var(--green)"></div></div>
-    </div>
-  </div>
-
-  <!-- PUNTUACIÓN GLOBAL -->
-  <div style="text-align:center;padding:28px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);margin-bottom:12px;">
-    <div style="font-size:11px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">Puntuación global</div>
-    <div style="display:flex;align-items:flex-end;justify-content:center;gap:20px;">
-      <div>
-        <div style="font-size:13px;color:var(--text3);margin-bottom:4px">v1</div>
-        <div style="font-size:48px;font-weight:800;line-height:1;color:var(--yellow);font-family:'DM Mono',monospace;opacity:.5">6.1</div>
+  <div class="area-body">
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Multi-perfil con aislamiento completo en IndexedDB</div>
+        <div class="f-line">ln 4491-4501</div>
       </div>
-      <div style="font-size:28px;color:var(--text3);margin-bottom:8px">→</div>
-      <div>
-        <div style="font-size:13px;color:var(--green);margin-bottom:4px">v2</div>
-        <div style="font-size:64px;font-weight:800;line-height:1;color:var(--green);font-family:'DM Mono',monospace;">6.9</div>
+      <div class="f-desc">Cada perfil usa su propia key en PTDB: <code>profileKey('vip_ventas_v1')</code>. Los datos de un perfil no se mezclan con los de otro. PIN, licencia y trial son globales y se preservan ante resets.</div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head">
+        <div class="f-sev sev-mid">🟡 MEDIO</div>
+        <div class="f-title">Sin migración automática si cambia el schema de datos</div>
       </div>
+      <div class="f-desc">Si en una versión futura se agrega un campo requerido al schema de ventas o perfumes, los datos existentes no tendrán ese campo. No hay función de migración versión-a-versión.</div>
+      <div class="f-impact">Impacto: MEDIO para el largo plazo. Bajo riesgo hoy — el schema está estable. Agregar sistema de migraciones antes de introducir campos breaking.</div>
     </div>
-    <div style="font-size:12px;color:var(--text2);margin-top:8px;">+0.8 puntos · <span style="color:var(--green)">▲ +13%</span></div>
-  </div>
 
-  <div class="verdict-box">
-    <h3>¿Cómo está la app hoy?</h3>
-    <p>
-      <strong style="color:var(--green)">Significativamente mejor en lo que el usuario ve y toca.</strong> El onboarding existe. Las listas no se traban. Los empty states tienen dirección. El desktop tiene dos columnas. Los gestos funcionan bien. La accesibilidad básica está cubierta. Cualquiera que abra la app hoy va a tener una experiencia mucho más pulida que hace 2 semanas.
-    </p>
-    <p>
-      <strong style="color:var(--yellow)">El cuello de botella cambió de lugar.</strong> Antes la lista de problemas era larga y había bugs por todos lados. Ahora la lista corta que queda concentra exactamente dos tipos de problemas: los que necesitan un servicio externo (Cloudflare Worker, Supabase, email), y los que son cambios estructurales (landing page, modales desktop). Ya no hay bugs volando por ahí.
-    </p>
-    <p>
-      <strong style="color:var(--red)">La seguridad sigue siendo el punto rojo.</strong> El XSS está resuelto y eso protege los datos del usuario. Pero la licencia todavía se bypassea en 5 segundos. Eso no es un problema de código — es una tarea de 1 tarde con acceso a Cloudflare.
-    </p>
-    <p>
-      <strong style="color:var(--gold2)">Conclusión honesta:</strong> Esta app puede venderse hoy y los usuarios van a estar contentos con la experiencia. El siguiente nivel — cloud sync, landing page, email nurturing — es lo que transforma un buen producto en un negocio sustentable. La base está sólida. Lo que falta es infraestructura, no código inline.
-    </p>
-  </div>
-
-  <div class="callout callout-green">
-    <span class="callout-icon">🎯</span>
-    <div>
-      <strong>La prioridad número 1 sigue siendo la misma:</strong> Cloudflare Worker para validar licencias. Todo lo demás es mejora de experiencia. Ese cambio es el que convierte el revenue en real. Una tarde de trabajo con acceso a tu dashboard de CF.
+    <div class="finding mid">
+      <div class="f-head">
+        <div class="f-sev sev-mid">🟡 MEDIO</div>
+        <div class="f-title">localStorage puede llenarse con datos grandes en uso intensivo</div>
+      </div>
+      <div class="f-desc">Backup de activación, draft de nueva venta, filtros activos y settings en localStorage. Con uso intensivo sostenido podría acercarse al límite de 5-10MB de algunos browsers.</div>
+      <div class="f-impact">Impacto: BAJO. La mayoría de datos va a IndexedDB. localStorage solo guarda metadatos pequeños. Riesgo teórico.</div>
     </div>
-  </div>
 
-  <div style="text-align:center;margin-top:32px;padding:20px;color:var(--text3);font-size:11px;line-height:1.8;">
-    Segunda auditoría · Parfum Track v2<br>
-    Product Manager · UX/UI · QA · Frontend · Backend · Arquitectura<br>
-    Seguridad · Rendimiento · Crecimiento SaaS · Monetización · Mobile · Accesibilidad<br><br>
-    <span style="color:var(--text3);font-family:'DM Mono',monospace;">Parfum Track · Junio 2026 · +15 commits desde v1</span>
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">save() con debounce 500ms + dirty flag para invalidar caché</div>
+        <div class="f-line">ln 1664</div>
+      </div>
+      <div class="f-desc">Escrituras a IndexedDB debounceadas a 500ms. <code>_clientesMapDirty = true</code> en cada <code>save()</code> para invalidar el mapa memoizado. La combinación debounce + dirty flag es correcta y eficiente.</div>
+    </div>
   </div>
 </div>
 
+<!-- 8. PWA -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">📲</div>
+    <div class="area-title">PWA / Service Worker</div>
+    <div class="area-cnt">2 medios corregidos · 3 info</div>
+    <div class="area-score">9.5</div>
+    <div class="area-caret">▼</div>
+  </div>
+  <div class="area-body">
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">importScripts OneSignal bloquea el SW si CDN falla</div>
+        <div class="f-line">sw.js ln 2</div>
+      </div>
+      <div class="f-desc"><code>importScripts()</code> síncrono hacía que si el CDN de OneSignal fallaba (caído o bloqueado por adblocker), todo el SW crasheaba y la PWA perdía capacidad offline.</div>
+      <div class="f-fix">Fix aplicado: <code>try/catch</code> rodea el importScripts. Si OneSignal falla, solo se pierde la funcionalidad de push — el resto del SW opera normalmente.</div>
+    </div>
 
-<!-- NAV DE PUNTOS -->
-<div id="toc"></div>
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">Sin mecanismo de activación de nuevo SW desde la app</div>
+        <div class="f-line">sw.js + index.html</div>
+      </div>
+      <div class="f-desc">El SW no escuchaba mensajes <code>SKIP_WAITING</code> ni había código en la app para enviarlos. Los updates del SW solo se aplicaban al cerrar y reabrir la app manualmente.</div>
+      <div class="f-fix">Fix aplicado: listener <code>message</code> en sw.js → <code>if (event.data === 'SKIP_WAITING') self.skipWaiting()</code>. Banner en app envía el mensaje al click. <code>controllerchange</code> recarga automáticamente.</div>
+    </div>
+
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Network First para HTML, Cache First para assets — estrategia correcta</div>
+        <div class="f-line">sw.js ln 39-62</div>
+      </div>
+      <div class="f-desc">HTML: Network First → los deploys llegan inmediatamente. Assets estáticos (íconos, manifest): Cache First → carga instantánea. APIs: nunca cacheadas. Estrategia por tipo de recurso correctamente implementada.</div>
+    </div>
+
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Rutas API correctamente excluidas del caché</div>
+        <div class="f-line">sw.js ln 36</div>
+      </div>
+      <div class="f-desc"><code>/validate-license</code>, <code>/backup</code>, <code>/send-email</code>, <code>/send-notification</code> siempre van a la red. Ninguna respuesta de API se puede servir stale desde caché.</div>
+    </div>
+
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Manifest.json completo con todas las propiedades PWA</div>
+      </div>
+      <div class="f-desc"><code>start_url</code>, <code>display: standalone</code>, iconos 192px y 512px, <code>shortcuts</code>, <code>theme_color</code>, <code>background_color</code>. Cumple todos los requisitos para instalación como PWA en Android e iOS.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 9. CÓDIGO -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">🧹</div>
+    <div class="area-title">Código y Mantenibilidad</div>
+    <div class="area-cnt">0 corregidos · 3 medios abiertos (deuda técnica) · 1 info</div>
+    <div class="area-score">7.5</div>
+    <div class="area-caret">▼</div>
+  </div>
+  <div class="area-body">
+    <p class="area-intro">Esta área no cambió desde la v1. Los hallazgos son puramente de mantenibilidad — sin impacto en seguridad o funcionalidad del usuario final. Son candidatos a un sprint de deuda técnica, no bloquean producción.</p>
+
+    <div class="finding mid">
+      <div class="f-head">
+        <div class="f-sev sev-mid">🟡 MEDIO</div>
+        <div class="f-title">addVenta() con ~360 líneas — viola principio de responsabilidad única</div>
+        <div class="f-line">~ln 2747</div>
+      </div>
+      <div class="f-desc">La función maneja validación, construcción del objeto de venta, registro en caja, actualización de stock, limpieza del formulario y renderizado. Dificulta el testing y la detección de bugs futuros.</div>
+      <div class="f-impact">Impacto: CERO en producción. ALTO en mantenibilidad. Candidata a refactoring en próximo sprint.</div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head">
+        <div class="f-sev sev-mid">🟡 MEDIO</div>
+        <div class="f-title">Líneas de código de 900+ caracteres</div>
+        <div class="f-line">ln 2113, 2506, 2595, etc.</div>
+      </div>
+      <div class="f-desc">Múltiples funciones completas escritas en una sola línea. No hay comentarios inline. Dificulta debugging en browser DevTools y code review.</div>
+      <div class="f-impact">Impacto: CERO funcional. Solo afecta velocidad de desarrollo y revisión de código.</div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head">
+        <div class="f-sev sev-mid">🟡 MEDIO</div>
+        <div class="f-title">Variables globales de estado sin documentación de invariantes</div>
+      </div>
+      <div class="f-desc"><code>window._activationVerified</code>, <code>window._trialLimitado</code>, <code>_appDataReady</code>, <code>_addVentaEnProceso</code>, <code>_addingStock</code>, <code>_addingCaja</code>, <code>_backupInFlight</code> — variables críticas de estado sin documentación de cuándo se setean/resetean.</div>
+      <div class="f-impact">Impacto: BAJO. Son usadas consistentemente, pero un desarrollador nuevo tardaría en entender el flujo de estado de la app.</div>
+    </div>
+
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">Sin código muerto detectado — todas las funciones se usan</div>
+      </div>
+      <div class="f-desc">app.js (223KB de código muerto) fue eliminado en una sesión anterior. Las funciones actuales se usan consistentemente. Sin dependencias no utilizadas en el proyecto.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 10. CONFIG -->
+<div class="area">
+  <div class="area-head" onclick="toggle(this)">
+    <div class="area-ico">⚙</div>
+    <div class="area-title">Configuración y Deployment</div>
+    <div class="area-cnt">1 medio corregido · 2 pendientes manuales · 1 info</div>
+    <div class="area-score">8.5</div>
+    <div class="area-caret">▼</div>
+  </div>
+  <div class="area-body">
+    <div class="finding fixed">
+      <div class="f-head">
+        <div class="f-sev sev-fixed">✅ CORREGIDO</div>
+        <div class="f-title">Validación de email débil en send-email.js</div>
+        <div class="f-line">functions/send-email.js</div>
+      </div>
+      <div class="f-desc">La función aceptaba cualquier string como dirección de email sin verificar el formato antes de llamar al proveedor externo, desperdiciando créditos de envío y logeando errores confusos.</div>
+      <div class="f-fix">Fix aplicado: regex <code>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/</code> aplicada antes de llamar al servicio. Respuesta 400 con <code>"error": "Invalid email"</code> si no pasa.</div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head">
+        <div class="f-sev sev-mid">🟡 MEDIO</div>
+        <div class="f-title">LICENSE_OWNER_CODE y LICENSE_SIGNING_PRIVATE_KEY pendientes de configurar</div>
+        <div class="f-line">Cloudflare Dashboard → Pages → Settings → Environment variables</div>
+      </div>
+      <div class="f-desc">Las dos variables de entorno son necesarias para que las activaciones de licencia funcionen en producción. Sin ellas, <code>validate-license.js</code> devuelve 500 en todas las activaciones.</div>
+      <div class="f-impact">Impacto: CRÍTICO en producción hasta que se configuren. Acción manual requerida del propietario — no es un cambio de código.</div>
+    </div>
+
+    <div class="finding mid">
+      <div class="f-head">
+        <div class="f-sev sev-mid">🟡 MEDIO</div>
+        <div class="f-title">Binding R2 (PT_BACKUP) comentado en wrangler.jsonc</div>
+        <div class="f-line">wrangler.jsonc ln 30-34</div>
+      </div>
+      <div class="f-desc">El bucket R2 está comentado para configurar cuando se active el plan R2 de Cloudflare. Sin descomentarlo y configurarlo, el backup en la nube no funciona (falla con 500 explícito — no silencioso).</div>
+      <div class="f-impact">Impacto: BAJO. El error es explícito y descriptivo. El backup local a JSON sigue funcionando perfectamente. Habilitar cuando se active el plan R2.</div>
+    </div>
+
+    <div class="finding info">
+      <div class="f-head">
+        <div class="f-sev sev-info">ℹ INFO</div>
+        <div class="f-title">KV binding PT_LICENSES correctamente configurado</div>
+        <div class="f-line">wrangler.jsonc</div>
+      </div>
+      <div class="f-desc">Namespace KV ID <code>412577285b984e42a7e230dfabcd0a27</code> vinculado como <code>PT_LICENSES</code>. Usado correctamente para almacenar y verificar licencias. Sin cambios necesarios.</div>
+    </div>
+  </div>
+</div>
+
+<!-- RESUMEN TABLA -->
+<div class="sh">Resumen de todos los hallazgos</div>
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:28px">
+<table class="stbl">
+  <thead><tr><th>Severidad</th><th>Área</th><th>Hallazgo</th><th>Estado</th></tr></thead>
+  <tbody>
+    <tr><td><span class="dot dot-r"></span>Crítico</td><td>Seguridad</td><td>XSS en fecha de cliente (renderClientes)</td><td style="color:var(--success)">✅ Corregido</td></tr>
+    <tr><td><span class="dot dot-r"></span>Crítico</td><td>Seguridad</td><td>XSS en fecha en detalle de cliente</td><td style="color:var(--success)">✅ Corregido</td></tr>
+    <tr><td><span class="dot dot-r"></span>Crítico</td><td>Seguridad</td><td>CORS wildcard demasiado permisivo (4 archivos)</td><td style="color:var(--success)">✅ Corregido</td></tr>
+    <tr><td><span class="dot dot-r"></span>Crítico</td><td>Seguridad</td><td>ONESIGNAL_REST_KEY expuesto en comentario de código</td><td style="color:var(--success)">✅ Corregido</td></tr>
+    <tr><td><span class="dot dot-r"></span>Crítico</td><td>Autenticación</td><td>Par ECDSA perdido — todas las activaciones fallaban con 500</td><td style="color:var(--success)">✅ Corregido</td></tr>
+    <tr><td><span class="dot dot-y"></span>Medio</td><td>Seguridad</td><td>DELAY_ON_INVALID 600ms insuficiente para brute-force</td><td style="color:var(--success)">✅ Corregido (→ 2000ms)</td></tr>
+    <tr><td><span class="dot dot-y"></span>Medio</td><td>Funcionalidad</td><td>Importación Excel sin validación de precios negativos</td><td style="color:var(--success)">✅ Corregido</td></tr>
+    <tr><td><span class="dot dot-y"></span>Medio</td><td>Funcionalidad</td><td>Double-submit en stock, caja y backup</td><td style="color:var(--success)">✅ Corregido (guards)</td></tr>
+    <tr><td><span class="dot dot-y"></span>Medio</td><td>Funcionalidad</td><td>Botón guardar venta habilitado sin campos requeridos</td><td style="color:var(--success)">✅ Corregido (validación RT)</td></tr>
+    <tr><td><span class="dot dot-y"></span>Medio</td><td>Manejo Errores</td><td>IndexedDB error → pantalla de carga infinita</td><td style="color:var(--success)">✅ Corregido</td></tr>
+    <tr><td><span class="dot dot-y"></span>Medio</td><td>Manejo Errores</td><td>importScripts OneSignal puede bloquear SW</td><td style="color:var(--success)">✅ Corregido (try/catch)</td></tr>
+    <tr><td><span class="dot dot-y"></span>Medio</td><td>Manejo Errores</td><td>Backup R2 sin configurar falla sin mensaje descriptivo</td><td style="color:var(--success)">✅ Corregido</td></tr>
+    <tr><td><span class="dot dot-y"></span>Medio</td><td>Performance</td><td>renderClientes() reconstruye mapa en cada render</td><td style="color:var(--success)">✅ Corregido (memoización)</td></tr>
+    <tr><td><span class="dot dot-y"></span>Medio</td><td>Performance</td><td>calcDebe() llamado 4-6× por cuota en render</td><td style="color:var(--success)">✅ Corregido (pre-cómputo Map)</td></tr>
+    <tr><td><span class="dot dot-y"></span>Medio</td><td>UX</td><td>Sin notificación de "nueva versión disponible"</td><td style="color:var(--success)">✅ Corregido (SW update banner)</td></tr>
+    <tr><td><span class="dot dot-y"></span>Medio</td><td>UX</td><td>Toast sobreescrito — mensajes se perdían</td><td style="color:var(--success)">✅ Corregido (cola FIFO)</td></tr>
+    <tr><td><span class="dot dot-y"></span>Medio</td><td>Config</td><td>Validación de email débil en send-email.js</td><td style="color:var(--success)">✅ Corregido</td></tr>
+    <tr><td><span class="dot dot-g"></span>Bajo</td><td>UX</td><td>SW banner onclick inline — newSW undefined en global scope</td><td style="color:var(--success)">✅ Corregido (addEventListener)</td></tr>
+    <tr><td><span class="dot dot-g"></span>Bajo</td><td>UX</td><td>.pca-btn tap target por debajo de 44px</td><td style="color:var(--success)">✅ Corregido (min-height:44px)</td></tr>
+    <!-- ABIERTOS -->
+    <tr style="opacity:.7"><td><span class="dot dot-y"></span>Medio</td><td>Autenticación</td><td>Trial manipulable via clock/backup del cliente</td><td style="color:var(--text3)">Abierto (by design)</td></tr>
+    <tr style="opacity:.7"><td><span class="dot dot-y"></span>Medio</td><td>Datos</td><td>Sin migración automática ante cambios de schema</td><td style="color:var(--text3)">Abierto (largo plazo)</td></tr>
+    <tr style="opacity:.7"><td><span class="dot dot-y"></span>Medio</td><td>Datos</td><td>localStorage puede saturarse en uso intensivo</td><td style="color:var(--text3)">Abierto (teórico)</td></tr>
+    <tr style="opacity:.7"><td><span class="dot dot-y"></span>Medio</td><td>Config</td><td>LICENSE_OWNER_CODE y SIGNING_KEY pendientes en Cloudflare</td><td style="color:var(--warn)">⚠ Acción manual requerida</td></tr>
+    <tr style="opacity:.7"><td><span class="dot dot-y"></span>Medio</td><td>Config</td><td>Binding R2 PT_BACKUP comentado en wrangler.jsonc</td><td style="color:var(--text3)">Abierto (opcional)</td></tr>
+    <tr style="opacity:.7"><td><span class="dot dot-y"></span>Medio</td><td>Código</td><td>addVenta() demasiado larga (360 líneas)</td><td style="color:var(--text3)">Abierto (deuda técnica)</td></tr>
+    <tr style="opacity:.7"><td><span class="dot dot-y"></span>Medio</td><td>Código</td><td>Líneas de 900+ caracteres (minificadas)</td><td style="color:var(--text3)">Abierto (deuda técnica)</td></tr>
+    <tr style="opacity:.7"><td><span class="dot dot-y"></span>Medio</td><td>Código</td><td>Variables globales sin documentación de invariantes</td><td style="color:var(--text3)">Abierto (deuda técnica)</td></tr>
+    <tr style="opacity:.7"><td><span class="dot dot-g"></span>Bajo</td><td>Funcionalidad</td><td>calcDebe() sin registro de crédito ante sobrepagos</td><td style="color:var(--text3)">Abierto (edge case)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="footer">
+  Auditoría realizada por <strong style="color:var(--gold)">Claude Code — CTO Autónomo</strong><br>
+  ParfumTrack PWA · Cloudflare Pages + Workers · IndexedDB · ECDSA P-256<br>
+  <span style="opacity:.4">13 Jun 2026 · commit 8d7a5fd · claude/remote-control-d369h1 · v2 — 19 hallazgos resueltos desde v1</span>
+</div>
+
+</div>
 
 <script>
-// Scroll progress
-const bar = document.getElementById('progress-bar');
-window.addEventListener('scroll', () => {
-  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
-  bar.style.width = pct + '%';
-}, { passive: true });
-
-// TOC
-const sections = Array.from(document.querySelectorAll('[id^="s"]')).filter(el => /^s\d+$/.test(el.id));
-const toc = document.getElementById('toc');
-sections.forEach((s, i) => {
-  const dot = document.createElement('div');
-  dot.className = 'toc-dot';
-  dot.title = s.querySelector('h2') ? s.querySelector('h2').textContent.trim().split('\n')[0] : '';
-  dot.addEventListener('click', () => s.scrollIntoView({ behavior: 'smooth' }));
-  toc.appendChild(dot);
-});
-
-// Active dot
-const io = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      const idx = sections.indexOf(e.target);
-      toc.querySelectorAll('.toc-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
-    }
-  });
-}, { threshold: 0.3 });
-sections.forEach(s => io.observe(s));
+function toggle(header) {
+  const body = header.nextElementSibling;
+  const caret = header.querySelector('.area-caret');
+  const open = body.classList.toggle('open');
+  caret.style.transform = open ? 'rotate(180deg)' : '';
+}
 </script>
 </body>
 </html>
