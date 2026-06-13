@@ -9490,6 +9490,10 @@
           toast("⚠ El nombre no puede estar vacío");
           return;
         }
+        if (nuevoNombre.length > 120) {
+          toast("⚠ El nombre es demasiado largo (máx. 120 caracteres)");
+          return;
+        }
         if (nuevoNombre !== p.nombre) {
           ventas.forEach((v) => {
             if (v.perfume === p.nombre) v.perfume = nuevoNombre;
@@ -9904,6 +9908,16 @@
           showFieldError("f-perfume", "Ingresá el nombre del perfume");
           return "field";
         }
+        if (f.perfume.length > 120)
+          return "⚠ Nombre del perfume demasiado largo (máx. 120 caracteres)";
+        if (f.cliente.length > 100)
+          return "⚠ Nombre del cliente demasiado largo (máx. 100 caracteres)";
+        if (f.vendedor.length > 80)
+          return "⚠ Nombre del vendedor demasiado largo (máx. 80 caracteres)";
+        if (f.nota.length > 500)
+          return "⚠ La nota es demasiado larga (máx. 500 caracteres)";
+        if (f.proveedor.length > 100)
+          return "⚠ Nombre del proveedor demasiado largo (máx. 100 caracteres)";
         if (!f.pv || f.pv <= 0) {
           showFieldError("f-pventa", "Precio de venta requerido (mayor a 0)");
           return "field";
@@ -11716,7 +11730,7 @@
         const input = document.getElementById("activation-code-input");
         if (!input) return;
         const code = input.value.trim().toUpperCase();
-        if (!code) {
+        if (!code || code.length > 64 || !/^[A-Z0-9\-]{5,64}$/.test(code)) {
           shakeInput(input);
           return;
         }

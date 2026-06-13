@@ -1,17 +1,10 @@
 /*
-  # Bloquea que la app sea embebida en iframes (clickjacking)
   X-Frame-Options: DENY
-
-  # Evita que el browser adivine el tipo MIME — previene sniffing attacks
   X-Content-Type-Options: nosniff
-
-  # Controla qué información se envía en el header Referer
   Referrer-Policy: strict-origin-when-cross-origin
-
-  # Permisos de APIs del browser — solo los que la app usa
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
-
-  # Content Security Policy
-  # unsafe-inline es necesario mientras el app sea un monolito HTML (inline scripts/styles)
-  # connect-src limita a dónde puede hacer fetch — bloquea exfiltración de datos
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.onesignal.com https://cdnjs.cloudflare.com https://plausible.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://onesignal.com https://*.onesignal.com https://api.onesignal.com https://plausible.io; img-src 'self' data: blob: https:; worker-src 'self' blob:; manifest-src 'self';
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Permitted-Cross-Domain-Policies: none
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.onesignal.com https://cdnjs.cloudflare.com https://plausible.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://onesignal.com https://*.onesignal.com https://api.onesignal.com https://plausible.io; img-src 'self' data: blob: https:; worker-src 'self' blob:; manifest-src 'self'; base-uri 'self'; form-action 'self';
