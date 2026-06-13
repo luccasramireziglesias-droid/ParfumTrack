@@ -1659,6 +1659,25 @@ async function loadProfile(pid){
   gastos      = await loadKey(profileKey('vip_gastos_v1'),  []);
   caja        = await loadKey(profileKey('vip_caja_v1'),    []);
   metaMensual = await loadKey(profileKey('vip_meta_v1'),    0);
+  await _applyMigrations();
+}
+
+const SCHEMA_VERSION = 1;
+async function _applyMigrations() {
+  const stored = (await PTDB.get('pt_schema_version')) || 0;
+  if (stored >= SCHEMA_VERSION) return;
+  // v0 → v1: ensure all ventas have createdAt (id was used before createdAt was added)
+  if (stored < 1) {
+    let changed = false;
+    ventas.forEach(v => {
+      if (!v.createdAt) {
+        v.createdAt = v.id > 1e15 ? Math.floor(v.id / 1000) : v.id;
+        changed = true;
+      }
+    });
+    if (changed) save(true);
+  }
+  await PTDB.set('pt_schema_version', SCHEMA_VERSION);
 }
 
 // save() con debounce para evitar escrituras repetitivas
@@ -1862,6 +1881,22 @@ function _restoreDraft(){
   }catch(e){return false;}
 }
 function _clearDraft(){localStorage.removeItem('pt_draft_venta');}
+
+function _pruneLocalStorage() {
+  const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+  const now = Date.now();
+  const toRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+    // Email dedup keys accumulate indefinitely — prune if older than 30 days
+    if (key.startsWith('pt_email_sent_')) {
+      const ts = parseInt(localStorage.getItem(key) || '0');
+      if (ts && now - ts > MAX_AGE_MS) toRemove.push(key);
+    }
+  }
+  toRemove.forEach(k => localStorage.removeItem(k));
+}
 
 // 2. Validación inline de campos
 function showFieldError(id,msg){
@@ -3451,6 +3486,11 @@ async function initLicenseVerification() {
       setTimeout(() => toast('🔑 Por seguridad, re-activá tu licencia en Ajustes.', 5000, 'warning'), 800);
     }
   }
+  // Recover trial start from IndexedDB if localStorage was cleared
+  if (!localStorage.getItem('pt_trial_start')) {
+    const idbTs = await PTDB.get('pt_trial_start');
+    if (idbTs) localStorage.setItem('pt_trial_start', idbTs);
+  }
   checkTrial();
 }
 
@@ -3503,6 +3543,7 @@ function checkTrial() {
     const oldestVenta = ventas.reduce((min, v) => Math.min(min, v.createdAt || v.id || Infinity), Infinity);
     trialStart = (oldestVenta !== Infinity ? Math.min(oldestVenta, Date.now()) : Date.now()).toString();
     localStorage.setItem('pt_trial_start', trialStart);
+    PTDB.set('pt_trial_start', trialStart);
     if (ventas.length === 0 && perfumes.length === 0) {
       cargarDatosDemo();
       localStorage.setItem('pt_trial_demo_loaded', '1');
@@ -3521,6 +3562,7 @@ function checkTrial() {
   if (oldestVentaTs !== Infinity && parseInt(trialStart) > oldestVentaTs) {
     trialStart = oldestVentaTs.toString();
     localStorage.setItem('pt_trial_start', trialStart);
+    PTDB.set('pt_trial_start', trialStart);
   }
 
   const msLeft = getTrialTimeLeft(trialStart);
@@ -4778,6 +4820,7 @@ document.addEventListener('DOMContentLoaded', function() {
   _appDataReady.then(function() {
   // Fade out loading screen → reveal app with skeleton → real content
   _hideLoader();
+  _pruneLocalStorage();
   // Disparar evento para que OneSignal chequee cobros pendientes
   window.dispatchEvent(new Event('pt-app-ready'));
   // Attach modal backdrop close listeners
