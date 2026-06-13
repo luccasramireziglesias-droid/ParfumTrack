@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Auditoría de Seguridad Ofensiva — Parfum Track v1</title>
+    <style>
+      :root {
+        --bg: #0d0d1a;
+        --bg2: #13132a;
+        --bg3: #1a1a2e;
+        --card: #1e1e35;
+        --card2: #24243e;
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #f0eee8;
+        --text2: #b8b4a8;
+        --text3: #7a7870;
+        --gold: #c9a84c;
+        --gold2: #e8cc7a;
+        --success: #5cb87a;
+        --warn: #e0b040;
+        --danger: #e05050;
+        --danger2: #ff6b6b;
+        --blue: #5080e0;
+        --orange: #e07830;
+        --radius: 16px;
+        --radius-sm: 10px;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { background: var(--bg); color: var(--text); font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 14px; line-height: 1.6; }
+      .page { max-width: 960px; margin: 0 auto; padding: 40px 20px 80px; }
+
+      /* HEADER */
+      .header { text-align: center; margin-bottom: 48px; }
+      .header-badge { display: inline-block; background: rgba(224,80,80,0.15); border: 1px solid rgba(224,80,80,0.4); color: var(--danger2); border-radius: 20px; padding: 5px 16px; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 20px; }
+      .header h1 { font-size: 32px; font-weight: 800; color: var(--gold2); margin-bottom: 8px; }
+      .header .sub { font-size: 15px; color: var(--text2); max-width: 600px; margin: 0 auto; }
+      .header .meta { display: flex; gap: 24px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+      .header .meta span { font-size: 12px; color: var(--text3); }
+      .header .meta strong { color: var(--text2); }
+
+      /* TEAM BOX */
+      .team-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 36px; }
+      .team-box h3 { font-size: 12px; color: var(--gold); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+      .team-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+      .team-chip { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2); color: var(--gold2); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 600; }
+
+      /* SECTION HEADERS */
+      .sh { font-size: 13px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 1.2px; margin: 40px 0 16px; display: flex; align-items: center; gap: 10px; }
+      .sh::after { content: ''; flex: 1; height: 1px; background: rgba(201,168,76,0.2); }
+
+      /* CARDS */
+      .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 12px; }
+      .card-danger { border-color: rgba(224,80,80,0.35); background: linear-gradient(135deg, rgba(224,80,80,0.08), var(--card)); }
+      .card-orange { border-color: rgba(224,120,48,0.35); background: linear-gradient(135deg, rgba(224,120,48,0.08), var(--card)); }
+      .card-warn { border-color: rgba(224,176,64,0.35); background: linear-gradient(135deg, rgba(224,176,64,0.08), var(--card)); }
+      .card-ok { border-color: rgba(92,184,122,0.3); background: linear-gradient(135deg, rgba(92,184,122,0.06), var(--card)); }
+
+      /* SEVERITY BADGES */
+      .sev { display: inline-block; border-radius: 6px; padding: 3px 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+      .sev-c { background: rgba(224,80,80,0.2); color: var(--danger2); border: 1px solid rgba(224,80,80,0.4); }
+      .sev-h { background: rgba(224,120,48,0.2); color: #f09050; border: 1px solid rgba(224,120,48,0.4); }
+      .sev-m { background: rgba(224,176,64,0.2); color: var(--warn); border: 1px solid rgba(224,176,64,0.4); }
+      .sev-l { background: rgba(92,184,122,0.15); color: var(--success); border: 1px solid rgba(92,184,122,0.3); }
+      .sev-ok { background: rgba(92,184,122,0.15); color: var(--success); border: 1px solid rgba(92,184,122,0.3); }
+
+      /* FINDING CARDS */
+      .finding { margin-bottom: 16px; }
+      .finding-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+      .finding-num { font-size: 20px; font-weight: 800; color: var(--gold); flex-shrink: 0; min-width: 32px; }
+      .finding-title { font-size: 16px; font-weight: 700; color: var(--text); flex: 1; }
+      .finding-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+      .finding-body { font-size: 13px; color: var(--text2); line-height: 1.7; }
+      .finding-body p { margin-bottom: 8px; }
+      .finding-body p:last-child { margin-bottom: 0; }
+      .finding-body strong { color: var(--text); }
+
+      /* CODE BLOCKS */
+      pre { background: #0a0a16; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 14px 16px; font-size: 12px; color: #a8e0b8; overflow-x: auto; margin: 10px 0; font-family: 'SF Mono', 'Consolas', monospace; line-height: 1.5; }
+      code { background: rgba(255,255,255,0.06); border-radius: 4px; padding: 1px 6px; font-size: 12px; color: #c8d8f0; font-family: 'SF Mono', 'Consolas', monospace; }
+
+      /* ATTACK SIMULATIONS */
+      .attack-step { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+      .attack-step:last-child { border-bottom: none; }
+      .attack-step-n { color: var(--gold); font-weight: 700; font-size: 13px; flex-shrink: 0; width: 24px; }
+      .attack-step-t { font-size: 13px; color: var(--text2); }
+      .attack-step-t strong { color: var(--text); }
+
+      /* TABLE */
+      table { width: 100%; border-collapse: collapse; }
+      th { text-align: left; font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+      td { padding: 12px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; color: var(--text2); vertical-align: top; }
+      tr:last-child td { border-bottom: none; }
+      tr:hover td { background: rgba(255,255,255,0.02); }
+
+      /* SCORES */
+      .scores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+      .score-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+      .score-card .label { font-size: 12px; color: var(--text3); margin-bottom: 8px; }
+      .score-card .val { font-size: 28px; font-weight: 800; color: var(--gold2); margin-bottom: 6px; }
+      .score-bar-wrap { background: rgba(255,255,255,0.06); border-radius: 4px; height: 6px; overflow: hidden; }
+      .score-bar { height: 100%; border-radius: 4px; }
+      .bar-danger { background: linear-gradient(90deg, var(--danger), #c03030); }
+      .bar-orange { background: linear-gradient(90deg, var(--orange), #c06020); }
+      .bar-warn { background: linear-gradient(90deg, var(--warn), #c09030); }
+      .bar-ok { background: linear-gradient(90deg, var(--success), #3a8a58); }
+
+      /* VERDICT */
+      .verdict { background: linear-gradient(135deg, rgba(224,80,80,0.18), rgba(201,168,76,0.06)); border: 1.5px solid rgba(224,80,80,0.4); border-radius: var(--radius); padding: 28px 32px; text-align: center; margin-top: 36px; }
+      .verdict .v-icon { font-size: 36px; margin-bottom: 12px; }
+      .verdict .v-title { font-size: 22px; font-weight: 800; color: var(--danger2); margin-bottom: 10px; }
+      .verdict .v-body { font-size: 14px; color: var(--text2); max-width: 600px; margin: 0 auto; line-height: 1.7; }
+
+      /* PLAN */
+      .plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+      .plan-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+      .plan-card .plan-label { font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+      .plan-card ul { list-style: none; }
+      .plan-card ul li { font-size: 12px; color: var(--text2); padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; gap: 8px; align-items: flex-start; }
+      .plan-card ul li:last-child { border-bottom: none; }
+      .plan-card ul li::before { content: '→'; color: var(--gold); flex-shrink: 0; }
+
+      /* OWASP */
+      .owasp-item { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); }
+      .owasp-item:last-child { border-bottom: none; }
+      .owasp-n { font-size: 11px; font-weight: 700; color: var(--text3); flex-shrink: 0; width: 32px; }
+      .owasp-name { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
+      .owasp-notes { font-size: 12px; color: var(--text2); margin-top: 3px; }
+
+      @media (max-width: 600px) {
+        .header h1 { font-size: 22px; }
+        .plan-grid { grid-template-columns: 1fr 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+
+      <!-- HEADER -->
+      <div class="header">
+        <div class="header-badge">🔴 Auditoría Ofensiva · Clasificado</div>
+        <h1>Auditoría de Seguridad Extrema</h1>
+        <div class="sub">
+          Parfum Track PWA — Análisis ofensivo y defensivo pre-lanzamiento.<br>
+          Simulación de ataques reales por equipo red team / enterprise security.
+        </div>
+        <div class="meta">
+          <span><strong>Fecha:</strong> 13 de junio de 2026</span>
+          <span><strong>Versión analizada:</strong> commit d71d9e7</span>
+          <span><strong>Metodología:</strong> OWASP + Red Team</span>
+          <span><strong>Nivel:</strong> Enterprise / Ofensivo</span>
+        </div>
+      </div>
+
+      <!-- TEAM -->
+      <div class="team-box">
+        <h3>Equipo activo</h3>
+        <div class="team-grid">
+          <span class="team-chip">Security Architect</span>
+          <span class="team-chip">Application Security Engineer</span>
+          <span class="team-chip">Ethical Hacker</span>
+          <span class="team-chip">Penetration Tester</span>
+          <span class="team-chip">Red Team Lead</span>
+          <span class="team-chip">OWASP Specialist</span>
+          <span class="team-chip">Frontend Security Engineer</span>
+          <span class="team-chip">Backend Security Engineer</span>
+          <span class="team-chip">Mobile Security Specialist</span>
+          <span class="team-chip">SaaS Security Consultant</span>
+        </div>
+      </div>
+
+      <!-- SUPERFICIE DE ATAQUE -->
+      <div class="sh">Superficie de ataque mapeada</div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr><th>Superficie</th><th>Qué contiene</th><th>Riesgo inicial</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>localStorage</code></td><td>pt_trial_start, pt_activated_sig, pt_activated_code, pt_license_raw_code, pt_activation_mode, pt_pin_hash, pt_pin_fails, pt_profiles</td><td><span class="sev sev-c">CRÍTICO</span></td></tr>
+            <tr><td><code>IndexedDB (parfumtrack_db)</code></td><td>ventas, perfumes, gastos, caja, metaMensual, pt_trial_start</td><td><span class="sev sev-c">CRÍTICO</span></td></tr>
+            <tr><td><code>window._activationVerified</code></td><td>Flag booleano que controla acceso a todas las funciones premium</td><td><span class="sev sev-c">CRÍTICO</span></td></tr>
+            <tr><td><code>window._trialLimitado</code></td><td>Flag que activa restricciones de trial vencido</td><td><span class="sev sev-c">CRÍTICO</span></td></tr>
+            <tr><td><code>POST /validate-license</code></td><td>Validación de código de licencia, devuelve token HMAC + firma ECDSA</td><td><span class="sev sev-m">MEDIO</span></td></tr>
+            <tr><td><code>POST /backup</code></td><td>Backup cifrado en Cloudflare KV (autenticado con HMAC)</td><td><span class="sev sev-l">BAJO</span></td></tr>
+            <tr><td><code>POST /send-email</code></td><td>Envío de emails trial vía Brevo</td><td><span class="sev sev-m">MEDIO</span> (rate limited)</td></tr>
+            <tr><td><code>POST /send-notification</code></td><td>Push notifications vía OneSignal</td><td><span class="sev sev-m">MEDIO</span> (rate limited)</td></tr>
+            <tr><td>Service Worker caché</td><td>Assets estáticos, HTML cacheado</td><td><span class="sev sev-l">BAJO</span></td></tr>
+            <tr><td>Parámetros URL</td><td>No se usa para datos sensibles</td><td><span class="sev sev-ok">OK</span></td></tr>
+            <tr><td>Subida de archivos</td><td>Fotos de perfumes (base64, solo local), restauración de backup JSON</td><td><span class="sev sev-m">MEDIO</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- VULNERABILIDADES CRÍTICAS -->
+      <div class="sh">🔴 Vulnerabilidades críticas</div>
+
+      <!-- VULN 1 -->
+      <div class="card card-danger finding">
+        <div class="finding-header">
+          <div class="finding-num">01</div>
+          <div>
+            <div class="finding-title">Bypass total de licencia via <code>window._activationVerified</code></div>
+            <div class="finding-meta">
+              <span class="sev sev-c">CRÍTICO</span>
+              <span class="sev" style="background:rgba(80,128,224,0.15);color:#80a8f0;border:1px solid rgba(80,128,224,0.3)">Frontend</span>
+              <span class="sev" style="background:rgba(255,255,255,0.06);color:var(--text3);border:1px solid var(--border)">OWASP A01 - Broken Access Control</span>
+            </div>
+          </div>
+        </div>
+        <div class="finding-body">
+          <p><strong>Descripción:</strong> La función <code>isActivated()</code> (línea 11879) retorna simplemente <code>window._activationVerified === true</code>. Esta variable global controla el acceso a <em>todas</em> las funciones premium: registrar ventas ilimitadas, exportar CSV, backup cloud, estadísticas completas. Al ser una variable <code>window.</code>, cualquier usuario con acceso a DevTools puede escribir una línea y obtener acceso completo <em>sin licencia, sin trial, sin límites</em>.</p>
+          <p><strong>Cómo explotarlo (< 5 segundos):</strong></p>
+          <pre>// En la consola del navegador (F12):
+window._activationVerified = true
+
+// RESULTADO: acceso ilimitado instantáneo.
+// La app cree que el usuario tiene licencia activada.
+// Funciona aunque el trial esté vencido.
+// Persiste hasta el próximo reload.</pre>
+          <p><strong>Variante persistente:</strong> Combinado con un Service Worker custom inyectado via extensión del navegador, o un bookmarklet, el atacante puede re-ejecutar esto en cada carga de página automáticamente.</p>
+          <p><strong>Impacto real:</strong> 100% de las restricciones de licencia son nulas. Un video de TikTok de 30 segundos explicando cómo hacerlo sería suficiente para que cientos de usuarios lo repliquen. Pérdida directa de ingresos por cada usuario que lo descubra.</p>
+          <p><strong>Solución:</strong> No usar variables globales para controles de acceso. Encapsular el estado en un closure privado. La lógica de licencia debe estar en una IIFE o módulo ES que no exponga ninguna variable a <code>window</code>. Además, re-verificar la firma ECDSA en los puntos de acceso críticos (no solo en el boot), con un cooldown para evitar abuso de crypto.</p>
+        </div>
+      </div>
+
+      <!-- VULN 2 -->
+      <div class="card card-danger finding">
+        <div class="finding-header">
+          <div class="finding-num">02</div>
+          <div>
+            <div class="finding-title">Reset infinito del trial via limpieza de almacenamiento</div>
+            <div class="finding-meta">
+              <span class="sev sev-c">CRÍTICO</span>
+              <span class="sev" style="background:rgba(80,128,224,0.15);color:#80a8f0;border:1px solid rgba(80,128,224,0.3)">Frontend</span>
+              <span class="sev" style="background:rgba(255,255,255,0.06);color:var(--text3);border:1px solid var(--border)">OWASP A05 - Security Misconfiguration</span>
+            </div>
+          </div>
+        </div>
+        <div class="finding-body">
+          <p><strong>Descripción:</strong> El trial de 7 días se ancla a <code>localStorage['pt_trial_start']</code> con fallback a IndexedDB. La protección anti-bypass consiste en anclar al timestamp de la venta más antigua (línea 12001). Sin embargo, ambos storages son accesibles y borrables por el usuario. Si el atacante borra todo, no hay ningún registro server-side y el trial se reinicia.</p>
+          <p><strong>Cómo explotarlo:</strong></p>
+          <pre>// Método A — Consola del navegador:
+await indexedDB.deleteDatabase('parfumtrack_db')
+localStorage.clear()
+location.reload()
+// RESULTADO: trial reiniciado. 7 días más de acceso completo gratis.
+
+// Método B — DevTools → Application → Storage → Clear site data
+// RESULTADO: mismo efecto, sin código.
+
+// Método C — Llamar la función de testing que quedó en producción:
+resetTrialYDatos()  // Esta función existe como global (línea 12395)</pre>
+          <p><strong>Función de testing expuesta:</strong> <code>resetTrialYDatos()</code> existe en el código de producción como función global accesible desde la consola. Borra el trial completo y data demo. Es una puerta trasera accidental.</p>
+          <p><strong>Impacto real:</strong> Trial gratuito infinito para cualquier usuario que conozca este truco. No requiere ningún conocimiento técnico avanzado — limpiar "datos del sitio" en Chrome es un menú de 2 clics.</p>
+          <p><strong>Solución:</strong> 1) Eliminar <code>resetTrialYDatos()</code> de producción o encapsularla en modo debug. 2) Registrar el inicio del trial server-side (en KV) usando un fingerprint de dispositivo o dirección IP+userAgent al primer uso. 3) En cada carga, si el trial_start local no coincide con el server-side, imponer el valor server-side.</p>
+        </div>
+      </div>
+
+      <!-- VULN 3 -->
+      <div class="card card-danger finding">
+        <div class="finding-header">
+          <div class="finding-num">03</div>
+          <div>
+            <div class="finding-title">Licencia nunca revocada — activación válida para siempre</div>
+            <div class="finding-meta">
+              <span class="sev sev-c">CRÍTICO</span>
+              <span class="sev" style="background:rgba(80,128,224,0.15);color:#80a8f0;border:1px solid rgba(80,128,224,0.3)">Backend / Auth</span>
+              <span class="sev" style="background:rgba(255,255,255,0.06);color:var(--text3);border:1px solid var(--border)">OWASP A07 - Identification & Auth Failures</span>
+            </div>
+          </div>
+        </div>
+        <div class="finding-body">
+          <p><strong>Descripción:</strong> El servidor valida la licencia <em>una sola vez</em> y devuelve una firma ECDSA. De ahí en adelante, el cliente verifica esa firma localmente contra la clave pública embebida (línea 11882). El servidor nunca vuelve a ser consultado. Esto significa que:</p>
+          <ul style="margin:10px 0 10px 16px;color:var(--text2)">
+            <li style="margin-bottom:4px">Una licencia no puede ser revocada: si un cliente paga y luego pide chargeback, sigue usando la app</li>
+            <li style="margin-bottom:4px">El mismo par <code>(code, sig)</code> puede compartirse entre N dispositivos — un usuario puede copiar su localStorage y dárselo a 10 amigos</li>
+            <li style="margin-bottom:4px">No hay forma de auditar cuántos dispositivos activos hay por licencia</li>
+          </ul>
+          <p><strong>Cómo explotarlo (compartir licencia):</strong></p>
+          <pre>// Dispositivo A (licencia legítima):
+JSON.stringify({
+  pt_license_raw_code:  localStorage.getItem('pt_license_raw_code'),
+  pt_activated_code:    localStorage.getItem('pt_activated_code'),
+  pt_activated_sig:     localStorage.getItem('pt_activated_sig'),
+  pt_activation_mode:   localStorage.getItem('pt_activation_mode'),
+})
+// Copiar este JSON y enviárselo a cualquier persona.
+
+// Dispositivo B (sin licencia):
+Object.entries(JSON.parse(PEGADO_ARRIBA)).forEach(([k,v]) => localStorage.setItem(k, v))
+location.reload()
+// RESULTADO: dispositivo B activa la licencia completamente.</pre>
+          <p><strong>Impacto real:</strong> Una licencia vendida puede replicarse a infinitos usuarios. Un foro de "cracks" podría publicar las keys de localStorage y anular completamente el modelo de monetización.</p>
+          <p><strong>Solución:</strong> Implementar un heartbeat periódico al backend (cada 7 días) donde el cliente envíe code+token para re-validar. Si la licencia fue revocada en KV, el server responde con <code>valid: false</code>. Esto no evita el uso offline pero limita el abuso.</p>
+        </div>
+      </div>
+
+      <!-- VULN 4 -->
+      <div class="card card-danger finding">
+        <div class="finding-header">
+          <div class="finding-num">04</div>
+          <div>
+            <div class="finding-title">Manipulación directa de datos de negocio via IndexedDB</div>
+            <div class="finding-meta">
+              <span class="sev sev-c">CRÍTICO</span>
+              <span class="sev" style="background:rgba(80,128,224,0.15);color:#80a8f0;border:1px solid rgba(80,128,224,0.3)">Frontend / Storage</span>
+              <span class="sev" style="background:rgba(255,255,255,0.06);color:var(--text3);border:1px solid var(--border)">OWASP A04 - Insecure Design</span>
+            </div>
+          </div>
+        </div>
+        <div class="finding-body">
+          <p><strong>Descripción:</strong> Todos los datos de negocio (ventas, perfumes, stock, gastos, caja) viven exclusivamente en IndexedDB local. No hay ningún servidor que valide o proteja la integridad de esos datos. Un atacante con acceso a DevTools puede modificar cualquier valor.</p>
+          <p><strong>Cómo explotarlo — manipular una venta para inflar ganancias:</strong></p>
+          <pre>// En DevTools → Application → IndexedDB → parfumtrack_db
+// Buscar "vip_ventas_v2_default", abrir, editar objeto
+
+// O via consola:
+const req = indexedDB.open('parfumtrack_db', 1);
+req.onsuccess = e => {
+  const db = e.target.result;
+  const tx = db.transaction(['kv'], 'readwrite');
+  const store = tx.objectStore('kv');
+  const r = store.get('vip_ventas_v2_default');
+  r.onsuccess = ev => {
+    const ventas = ev.target.result;
+    ventas[0].pv = 999999;   // precio de venta
+    ventas[0].ganancia = 999999; // ganancia
+    store.put(ventas, 'vip_ventas_v2_default');
+  };
+};
+// RESULTADO: estadísticas alteradas, ganancias infladas.</pre>
+          <p><strong>Escenarios de impacto:</strong> Un empleado que usa la app puede alterar sus ventas para parecer más productivo. Un revendedor puede manipular su caja para ocultar pérdidas. Datos fiscales falseados.</p>
+          <p><strong>Nota importante:</strong> Esto es un riesgo inherente a las apps 100% client-side. No es completamente solucionable sin mover los datos a un servidor con autenticación. Sin embargo, el backup en la nube (R2) puede servir como registro de auditoría si se implementa correctamente.</p>
+          <p><strong>Solución parcial:</strong> Implementar checksums locales de la data (firmados con la clave de licencia) para detectar manipulación. Más completo: servidor de sincronización con validaciones server-side.</p>
+        </div>
+      </div>
+
+      <!-- VULNERABILIDADES ALTAS -->
+      <div class="sh">🟠 Vulnerabilidades altas</div>
+
+      <!-- VULN 5 -->
+      <div class="card card-orange finding">
+        <div class="finding-header">
+          <div class="finding-num">05</div>
+          <div>
+            <div class="finding-title">Manipulación del timestamp de ventas para bypass del límite post-trial</div>
+            <div class="finding-meta">
+              <span class="sev sev-h">ALTO</span>
+              <span class="sev" style="background:rgba(80,128,224,0.15);color:#80a8f0;border:1px solid rgba(80,128,224,0.3)">Frontend / Lógica</span>
+            </div>
+          </div>
+        </div>
+        <div class="finding-body">
+          <p><strong>Descripción:</strong> Cuando el trial vence, la app permite seguir cargando hasta 5 ventas más (<code>trialLimitedVentas = 5</code>). El conteo usa <code>v.createdAt</code> comparado con la fecha de vencimiento del trial (línea 11983). Si un atacante modifica los <code>createdAt</code> de esas ventas para que sean <em>anteriores</em> al vencimiento, el contador llega a 0 y puede registrar ventas infinitamente más.</p>
+          <pre>// Modificar createdAt de todas las ventas post-trial para parecer anteriores:
+const req = indexedDB.open('parfumtrack_db', 1);
+req.onsuccess = e => {
+  const tx = e.target.result.transaction(['kv'], 'readwrite');
+  const store = tx.objectStore('kv');
+  const r = store.get('vip_ventas_v2_default');
+  r.onsuccess = ev => {
+    const ventas = ev.target.result.map(v => ({
+      ...v,
+      createdAt: Date.now() - 999999999  // poner en el pasado
+    }));
+    store.put(ventas, 'vip_ventas_v2_default');
+  };
+};</pre>
+          <p><strong>Solución:</strong> Los timestamps de ventas deben ser inmutables una vez creados, o validados contra el timestamp del sistema al momento de guardar. Considerar firmar cada venta con un hash que incluya su timestamp.</p>
+        </div>
+      </div>
+
+      <!-- VULN 6 -->
+      <div class="card card-orange finding">
+        <div class="finding-header">
+          <div class="finding-num">06</div>
+          <div>
+            <div class="finding-title">PIN de seguridad bypasseable — almacenado en localStorage</div>
+            <div class="finding-meta">
+              <span class="sev sev-h">ALTO</span>
+              <span class="sev" style="background:rgba(80,128,224,0.15);color:#80a8f0;border:1px solid rgba(80,128,224,0.3)">Auth</span>
+              <span class="sev" style="background:rgba(255,255,255,0.06);color:var(--text3);border:1px solid var(--border)">OWASP A07</span>
+            </div>
+          </div>
+        </div>
+        <div class="finding-body">
+          <p><strong>Descripción:</strong> El PIN protege el acceso a la app. El hash SHA-256 del PIN se guarda en <code>localStorage['pt_pin_hash']</code>. El mecanismo de lockout (<code>pt_pin_fails</code>, <code>pt_pin_lockout</code>) también está en localStorage. Cualquier persona con acceso a DevTools puede:</p>
+          <pre>// Bypass completo del PIN:
+localStorage.removeItem('pt_pin_hash')
+location.reload()
+// RESULTADO: la app asume que no hay PIN configurado y entra directamente.
+
+// Alternativa — resetear el contador de intentos fallidos:
+localStorage.removeItem('pt_pin_fails')
+localStorage.removeItem('pt_pin_lockout')
+// RESULTADO: lockout eliminado, se pueden hacer infinitos intentos.</pre>
+          <p><strong>Salt hardcodeado:</strong> El salt es <code>"pt_salt_2026_"</code> para todos los usuarios. Un atacante puede precomputar un rainbow table para PINs de 4-6 dígitos (solo 10^6 posibilidades) con este salt conocido y crackear cualquier PIN robado.</p>
+          <p><strong>Solución:</strong> El PIN solo puede proteger contra alguien que no tiene acceso a los DevTools del dispositivo. Para ese caso, es suficiente. Documentar esto como limitación conocida. Para una protección real, el PIN debería derivar una clave de cifrado AES que proteja los datos en reposo (los datos en IndexedDB deberían estar cifrados con esta clave).</p>
+        </div>
+      </div>
+
+      <!-- VULN 7 -->
+      <div class="card card-orange finding">
+        <div class="finding-header">
+          <div class="finding-num">07</div>
+          <div>
+            <div class="finding-title">Inyección de datos via backup cloud restaurado</div>
+            <div class="finding-meta">
+              <span class="sev sev-h">ALTO</span>
+              <span class="sev" style="background:rgba(80,128,224,0.15);color:#80a8f0;border:1px solid rgba(80,128,224,0.3)">Backend / Data</span>
+              <span class="sev" style="background:rgba(255,255,255,0.06);color:var(--text3);border:1px solid var(--border)">OWASP A03 - Injection</span>
+            </div>
+          </div>
+        </div>
+        <div class="finding-body">
+          <p><strong>Descripción:</strong> La validación del backup (<code>_validarSchemaBackup()</code>) solo verifica que los arrays sean arrays y que algunos campos numéricos no sean NaN. No hay límite de longitud en strings, no hay restricción de propiedades extra, no hay sanitización profunda. Un atacante que tenga acceso al backup (o lo intercepete en tránsito) puede inyectar objetos con propiedades maliciosas que se guardan en IndexedDB.</p>
+          <p><strong>Vectores:</strong> Si el servidor de backup es comprometido (aunque actualmente R2 no está activado), o si se explota el endpoint POST /backup con una licencia válida copiada, se pueden insertar datos maliciosos que persisten en el dispositivo.</p>
+          <p><strong>Solución:</strong> Validar exhaustivamente cada objeto venta/perfume/gasto antes de importar: maxLength en todos los strings (máx 500 chars), whitelist de propiedades permitidas (eliminar extras), rangos numéricos estrictos.</p>
+        </div>
+      </div>
+
+      <!-- VULNERABILIDADES MEDIAS -->
+      <div class="sh">🟡 Vulnerabilidades medias</div>
+
+      <div class="card card-warn finding">
+        <div class="finding-header">
+          <div class="finding-num">08</div>
+          <div>
+            <div class="finding-title">Sin Content Security Policy (CSP) — XSS amplificado</div>
+            <div class="finding-meta">
+              <span class="sev sev-m">MEDIO</span>
+              <span class="sev" style="background:rgba(255,255,255,0.06);color:var(--text3);border:1px solid var(--border)">OWASP A05 - Security Misconfiguration</span>
+            </div>
+          </div>
+        </div>
+        <div class="finding-body">
+          <p>El HTML no tiene headers <code>Content-Security-Policy</code> ni meta-tag CSP. Si se encuentra cualquier XSS (actualmente no hay evidencia de uno), no hay ninguna barrera adicional que limite lo que puede ejecutar el script inyectado. Un XSS podría exfiltrar localStorage completo, incluida la activación de licencia.</p>
+          <p><strong>Solución:</strong> Agregar header CSP via Cloudflare Pages (<code>_headers</code> file): <code>Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-...'; connect-src 'self' https://plausible.io ...</code></p>
+        </div>
+      </div>
+
+      <div class="card card-warn finding">
+        <div class="finding-header">
+          <div class="finding-num">09</div>
+          <div>
+            <div class="finding-title">Sin validación de longitud máxima en campos de venta</div>
+            <div class="finding-meta">
+              <span class="sev sev-m">MEDIO</span>
+              <span class="sev" style="background:rgba(255,255,255,0.06);color:var(--text3);border:1px solid var(--border)">Data Integrity</span>
+            </div>
+          </div>
+        </div>
+        <div class="finding-body">
+          <p><code>addVenta()</code> valida rangos numéricos pero no longitudes de strings. Un atacante puede guardar un nombre de perfume de 1MB que: (a) llena el storage del dispositivo, (b) causa lag en el render de la lista de ventas, (c) ocupa ancho de banda en el backup cloud.</p>
+          <pre>// Insertar venta con datos masivos:
+document.getElementById('inp-perfume').value = 'A'.repeat(500000)
+addVenta()  // pasa validación, se guarda</pre>
+          <p><strong>Solución:</strong> Agregar <code>maxlength</code> HTML en todos los inputs + validación JS: perfume max 200 chars, cliente max 150, nota max 1000.</p>
+        </div>
+      </div>
+
+      <div class="card card-warn finding">
+        <div class="finding-header">
+          <div class="finding-num">10</div>
+          <div>
+            <div class="finding-title">Salt de PIN hardcodeado y predecible</div>
+            <div class="finding-meta">
+              <span class="sev sev-m">MEDIO</span>
+              <span class="sev" style="background:rgba(255,255,255,0.06);color:var(--text3);border:1px solid var(--border)">Cryptographic Failure</span>
+            </div>
+          </div>
+        </div>
+        <div class="finding-body">
+          <p>El salt del hash SHA-256 del PIN es <code>"pt_salt_2026_"</code> — idéntico para todos los usuarios. Cualquier atacante que robe el hash (<code>pt_pin_hash</code>) puede precomputar todos los PINs de 4-6 dígitos con este salt conocido (10^6 combinaciones, &lt; 1 segundo en GPU) y crackear el PIN sin necesidad de intentos en la app.</p>
+          <p><strong>Solución:</strong> Generar un salt aleatorio de 16 bytes al crear el PIN y guardarlo junto al hash: <code>localStorage['pt_pin_salt'] = crypto.randomUUID()</code>.</p>
+        </div>
+      </div>
+
+      <div class="card card-warn finding">
+        <div class="finding-header">
+          <div class="finding-num">11</div>
+          <div>
+            <div class="finding-title">Service Worker cachea el HTML completo — bypass de hotfixes de seguridad</div>
+            <div class="finding-meta">
+              <span class="sev sev-m">MEDIO</span>
+              <span class="sev" style="background:rgba(255,255,255,0.06);color:var(--text3);border:1px solid var(--border)">PWA Security</span>
+            </div>
+          </div>
+        </div>
+        <div class="finding-body">
+          <p>El Service Worker implementa Network First para HTML, pero si la red no está disponible, sirve la versión cacheada. Si se descubre una vulnerabilidad crítica y se publica un fix urgente, los usuarios offline (o con conectividad mala) seguirán usando la versión vulnerable por un tiempo indeterminado.</p>
+          <p><strong>Solución:</strong> Implementar un <em>kill switch</em> de versión mínima: en cada carga online, consultar un endpoint <code>/min-version</code> y si la versión local es menor, forzar una recarga hard ignorando caché.</p>
+        </div>
+      </div>
+
+      <!-- VULNERABILIDADES BAJAS -->
+      <div class="sh">🟢 Vulnerabilidades bajas / hallazgos positivos</div>
+
+      <div class="card">
+        <table>
+          <thead><tr><th>#</th><th>Hallazgo</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>12</td><td>XSS en renderizado de ventas/clientes/perfumes</td><td><span class="sev sev-ok">✓ MITIGADO — escapeHTML() aplicado consistentemente</span></td></tr>
+            <tr><td>13</td><td>CORS en send-email.js</td><td><span class="sev sev-ok">✓ CORREGIDO — solo parfumtrack.pages.dev y .workers.dev</span></td></tr>
+            <tr><td>14</td><td>CORS en send-notification.js</td><td><span class="sev sev-ok">✓ CORREGIDO — restringido en audit sprint anterior</span></td></tr>
+            <tr><td>15</td><td>Rate limiting en /validate-license</td><td><span class="sev sev-ok">✓ CORREGIDO — 10 intentos/15min por IP</span></td></tr>
+            <tr><td>16</td><td>Rate limiting en /send-email</td><td><span class="sev sev-ok">✓ CORREGIDO — 5/hr IP, 3/24h por email</span></td></tr>
+            <tr><td>17</td><td>Inyección HTML en templates de email (data.name)</td><td><span class="sev sev-ok">✓ CORREGIDO — sanitize() aplicado</span></td></tr>
+            <tr><td>18</td><td>Backup HMAC authentication</td><td><span class="sev sev-ok">✓ SEGURO — timingSafeEqual() implementado</span></td></tr>
+            <tr><td>19</td><td>Brute-force en /validate-license</td><td><span class="sev sev-ok">✓ PROTEGIDO — delay 2s + rate limit KV</span></td></tr>
+            <tr><td>20</td><td>Secretos en código fuente</td><td><span class="sev sev-ok">✓ OK — ninguna API key hardcodeada. Env vars en Cloudflare</span></td></tr>
+            <tr><td>21</td><td>eval() / new Function() en código JS</td><td><span class="sev sev-ok">✓ NINGUNO ENCONTRADO</span></td></tr>
+            <tr><td>22</td><td>Aislamiento entre perfiles</td><td><span class="sev sev-ok">✓ SEGURO — profileKey() aísla correctamente por perfil</span></td></tr>
+            <tr><td>23</td><td>ECDSA P-256 para firma de licencias</td><td><span class="sev sev-ok">✓ CORRECTO — curva segura, implementación WebCrypto nativa</span></td></tr>
+            <tr><td>24</td><td>Clave privada ECDSA en Cloudflare env</td><td><span class="sev sev-ok">✓ CORRECTO — nunca en código fuente</span></td></tr>
+            <tr><td>25</td><td>Tokens HMAC para backup auth</td><td><span class="sev sev-ok">✓ CORRECTO — generados server-side, no forgeables</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- OWASP TOP 10 -->
+      <div class="sh">OWASP Top 10 — Evaluación completa</div>
+      <div class="card">
+        <div class="owasp-item">
+          <div class="owasp-n">A01</div>
+          <div>
+            <div class="owasp-name">Broken Access Control <span class="sev sev-c" style="margin-left:8px">CRÍTICO</span></div>
+            <div class="owasp-notes"><code>window._activationVerified = true</code> bypasea toda la autenticación. No hay control de acceso server-side para los datos de negocio.</div>
+          </div>
+        </div>
+        <div class="owasp-item">
+          <div class="owasp-n">A02</div>
+          <div>
+            <div class="owasp-name">Cryptographic Failures <span class="sev sev-m" style="margin-left:8px">MEDIO</span></div>
+            <div class="owasp-notes">ECDSA P-256 y HMAC-SHA256 correctamente implementados. Fallo: salt de PIN hardcodeado, datos en IndexedDB sin cifrar (sin AES).</div>
+          </div>
+        </div>
+        <div class="owasp-item">
+          <div class="owasp-n">A03</div>
+          <div>
+            <div class="owasp-name">Injection <span class="sev sev-l" style="margin-left:8px">BAJO</span></div>
+            <div class="owasp-notes">XSS mitigado con escapeHTML(). Sin SQL (app local). Inyección de backup parcialmente mitigada. No se encontró ningún vector XSS funcional.</div>
+          </div>
+        </div>
+        <div class="owasp-item">
+          <div class="owasp-n">A04</div>
+          <div>
+            <div class="owasp-name">Insecure Design <span class="sev sev-c" style="margin-left:8px">CRÍTICO</span></div>
+            <div class="owasp-notes">Diseño fundamentalmente inseguro: control de acceso vía variable global mutable. Toda la lógica de negocio y licencias es client-side. Sin server-side state para trial/licencia.</div>
+          </div>
+        </div>
+        <div class="owasp-item">
+          <div class="owasp-n">A05</div>
+          <div>
+            <div class="owasp-name">Security Misconfiguration <span class="sev sev-m" style="margin-left:8px">MEDIO</span></div>
+            <div class="owasp-notes">Sin CSP headers. <code>resetTrialYDatos()</code> en producción. R2 comentado hace que el backup falle. Resto de configuración de Cloudflare correcta.</div>
+          </div>
+        </div>
+        <div class="owasp-item">
+          <div class="owasp-n">A06</div>
+          <div>
+            <div class="owasp-name">Vulnerable Components <span class="sev sev-l" style="margin-left:8px">BAJO</span></div>
+            <div class="owasp-notes">Dependencias mínimas. Chart.js, Plausible (CDN externo). Sin npm packages en cliente. Riesgo bajo.</div>
+          </div>
+        </div>
+        <div class="owasp-item">
+          <div class="owasp-n">A07</div>
+          <div>
+            <div class="owasp-name">Auth &amp; Identification Failures <span class="sev sev-c" style="margin-left:8px">CRÍTICO</span></div>
+            <div class="owasp-notes">Licencias no revocables. Activación compartible entre dispositivos. PIN bypasseable via localStorage.removeItem. Sin MFA ni session management server-side.</div>
+          </div>
+        </div>
+        <div class="owasp-item">
+          <div class="owasp-n">A08</div>
+          <div>
+            <div class="owasp-name">Software &amp; Data Integrity Failures <span class="sev sev-h" style="margin-left:8px">ALTO</span></div>
+            <div class="owasp-notes">Datos de negocio sin checksums de integridad. Ventas pueden ser alteradas en IndexedDB sin detección. El backup carece de cifrado en reposo (R2 desactivado).</div>
+          </div>
+        </div>
+        <div class="owasp-item">
+          <div class="owasp-n">A09</div>
+          <div>
+            <div class="owasp-name">Logging &amp; Monitoring Failures <span class="sev sev-m" style="margin-left:8px">MEDIO</span></div>
+            <div class="owasp-notes">Las funciones Cloudflare logean errores. No hay alertas de activaciones sospechosas (ej: mismo código activado en 5 IPs distintas en 1 hora). Sin monitoring de anomalías.</div>
+          </div>
+        </div>
+        <div class="owasp-item">
+          <div class="owasp-n">A10</div>
+          <div>
+            <div class="owasp-name">Server-Side Request Forgery <span class="sev sev-ok" style="margin-left:8px">N/A</span></div>
+            <div class="owasp-notes">No aplica — las funciones Cloudflare solo hacen fetch a URLs hardcodeadas (Brevo, OneSignal, KV interno). Sin aceptación de URLs del cliente para fetch server-side.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIMULACIÓN DE ATAQUES -->
+      <div class="sh">Simulación de ataques — Red Team</div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;color:var(--danger2);margin-bottom:14px">🎯 Atacante 1: Usuario tech-savvy que quiere no pagar</div>
+        <div class="attack-step"><div class="attack-step-n">1</div><div class="attack-step-t">Abre DevTools (F12) cuando aparece el paywall o el banner de trial.</div></div>
+        <div class="attack-step"><div class="attack-step-n">2</div><div class="attack-step-t">Escribe en la consola: <code>window._activationVerified = true</code></div></div>
+        <div class="attack-step"><div class="attack-step-n">3</div><div class="attack-step-t"><strong>Resultado: acceso completo ilimitado.</strong> Exportar CSV, backup cloud, ventas sin límite. Todo disponible hasta el próximo reload de página.</div></div>
+        <div class="attack-step"><div class="attack-step-n">4</div><div class="attack-step-t">Para hacerlo persistente: crea un bookmarklet o extensión de Chrome que inyecte el script en cada carga.</div></div>
+        <div style="background:rgba(224,80,80,0.1);border:1px solid rgba(224,80,80,0.2);border-radius:8px;padding:10px 14px;margin-top:14px;font-size:12px;color:var(--danger2)">⏱ Tiempo total: 15 segundos. Dificultad: ninguna. Requiere: abrir DevTools.</div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:14px">🎯 Atacante 2: Trial infinito via limpieza de storage</div>
+        <div class="attack-step"><div class="attack-step-n">1</div><div class="attack-step-t">Usa la app durante 7 días gratis (trial legítimo).</div></div>
+        <div class="attack-step"><div class="attack-step-n">2</div><div class="attack-step-t">Al vencer el trial, va a Chrome → Ajustes → Privacidad → Borrar datos del sitio.</div></div>
+        <div class="attack-step"><div class="attack-step-n">3</div><div class="attack-step-t">Selecciona "Cookies, caché y datos de sitios" → Borrar.</div></div>
+        <div class="attack-step"><div class="attack-step-n">4</div><div class="attack-step-t"><strong>Resultado: trial reiniciado.</strong> La app no tiene forma de saber que ya hubo un trial previo.</div></div>
+        <div class="attack-step"><div class="attack-step-n">5</div><div class="attack-step-t">Repite indefinidamente. No hay límite de resets.</div></div>
+        <div style="background:rgba(224,120,48,0.1);border:1px solid rgba(224,120,48,0.2);border-radius:8px;padding:10px 14px;margin-top:14px;font-size:12px;color:#f09050">⏱ Tiempo total: 2 minutos. Dificultad: baja. Requiere: menú de ajustes del navegador.</div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;color:var(--warn);margin-bottom:14px">🎯 Atacante 3: Compartir una licencia con N usuarios</div>
+        <div class="attack-step"><div class="attack-step-n">1</div><div class="attack-step-t">Usuario A compra legítimamente una licencia.</div></div>
+        <div class="attack-step"><div class="attack-step-n">2</div><div class="attack-step-t">Extrae su activación: <code>JSON.stringify({ code: localStorage.getItem('pt_license_raw_code'), sig: localStorage.getItem('pt_activated_sig'), token: localStorage.getItem('pt_activated_code'), mode: localStorage.getItem('pt_activation_mode') })</code></div></div>
+        <div class="attack-step"><div class="attack-step-n">3</div><div class="attack-step-t">Publica el JSON en WhatsApp, Telegram o foro. Cualquier persona que lo pegue en su consola activa la licencia.</div></div>
+        <div class="attack-step"><div class="attack-step-n">4</div><div class="attack-step-t">El servidor no tiene forma de detectar que el mismo código está activo en 100 dispositivos simultáneamente.</div></div>
+        <div style="background:rgba(224,176,64,0.08);border:1px solid rgba(224,176,64,0.2);border-radius:8px;padding:10px 14px;margin-top:14px;font-size:12px;color:var(--warn)">⏱ Tiempo total: 5 minutos para configurarlo, infinito de uso. Dificultad: baja.</div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:14px">🛡 Atacante 4: Intentar XSS para robar datos</div>
+        <div class="attack-step"><div class="attack-step-n">1</div><div class="attack-step-t">Intenta registrar una venta con perfume name: <code>&lt;img src=x onerror=alert(1)&gt;</code></div></div>
+        <div class="attack-step"><div class="attack-step-n">2</div><div class="attack-step-t"><code>escapeHTML()</code> convierte los caracteres a entidades HTML.</div></div>
+        <div class="attack-step"><div class="attack-step-n">3</div><div class="attack-step-t"><strong>Resultado: ataque bloqueado.</strong> El texto se muestra como texto plano, no se ejecuta.</div></div>
+        <div style="background:rgba(92,184,122,0.08);border:1px solid rgba(92,184,122,0.2);border-radius:8px;padding:10px 14px;margin-top:14px;font-size:12px;color:var(--success)">✓ XSS resistente. escapeHTML() aplicado en todos los puntos de render.</div>
+      </div>
+
+      <!-- SCORES -->
+      <div class="sh">Scores de seguridad</div>
+      <div class="scores-grid">
+        <div class="score-card">
+          <div class="label">Seguridad Frontend</div>
+          <div class="val">3.5<span style="font-size:14px;color:var(--text3)">/10</span></div>
+          <div class="score-bar-wrap"><div class="score-bar bar-danger" style="width:35%"></div></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">window._activationVerified bypasseable. Trial resetteable. resetTrialYDatos() expuesta.</div>
+        </div>
+        <div class="score-card">
+          <div class="label">Seguridad de Datos</div>
+          <div class="val">4.0<span style="font-size:14px;color:var(--text3)">/10</span></div>
+          <div class="score-bar-wrap"><div class="score-bar bar-danger" style="width:40%"></div></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">Datos totalmente en cliente sin integridad verificable. Sin cifrado en reposo.</div>
+        </div>
+        <div class="score-card">
+          <div class="label">Seguridad de Licencias</div>
+          <div class="val">2.0<span style="font-size:14px;color:var(--text3)">/10</span></div>
+          <div class="score-bar-wrap"><div class="score-bar bar-danger" style="width:20%"></div></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">Bypass en 1 línea de consola. Trial resetteable. Licencias compartibles sin detección.</div>
+        </div>
+        <div class="score-card">
+          <div class="label">Seguridad PWA / Service Worker</div>
+          <div class="val">6.5<span style="font-size:14px;color:var(--text3)">/10</span></div>
+          <div class="score-bar-wrap"><div class="score-bar bar-warn" style="width:65%"></div></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">Network First correcto. Sin kill-switch de versión. Sin CSP.</div>
+        </div>
+        <div class="score-card">
+          <div class="label">Resistencia a DevTools</div>
+          <div class="val">1.0<span style="font-size:14px;color:var(--text3)">/10</span></div>
+          <div class="score-bar-wrap"><div class="score-bar bar-danger" style="width:10%"></div></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">Una línea en la consola bypasea todo. IndexedDB editable. PIN removible.</div>
+        </div>
+        <div class="score-card">
+          <div class="label">Seguridad Backend / APIs</div>
+          <div class="val">7.5<span style="font-size:14px;color:var(--text3)">/10</span></div>
+          <div class="score-bar-wrap"><div class="score-bar bar-warn" style="width:75%"></div></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">CORS correcto. Rate limiting OK. HMAC correcto. Sin revocación ni monitoring.</div>
+        </div>
+        <div class="score-card">
+          <div class="label">Protección contra XSS</div>
+          <div class="val">8.5<span style="font-size:14px;color:var(--text3)">/10</span></div>
+          <div class="score-bar-wrap"><div class="score-bar bar-ok" style="width:85%"></div></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">escapeHTML() consistente. Sin eval(). Sin innerHTML con datos sin escapar encontrados.</div>
+        </div>
+        <div class="score-card" style="border-color:rgba(224,80,80,0.5)">
+          <div class="label">⭐ Seguridad General</div>
+          <div class="val" style="color:var(--danger2)">3.8<span style="font-size:14px;color:var(--text3)">/10</span></div>
+          <div class="score-bar-wrap"><div class="score-bar bar-danger" style="width:38%"></div></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">Las 4 vulnerabilidades críticas pesan demasiado. No apto para producción en el estado actual.</div>
+        </div>
+      </div>
+
+      <!-- VEREDICTO -->
+      <div class="verdict">
+        <div class="v-icon">🚫</div>
+        <div class="v-title">NO lanzaría la app en el estado actual</div>
+        <div class="v-body">
+          El backend (Cloudflare Workers/Pages) es sólido y bien diseñado. Pero la arquitectura client-side tiene 4 vulnerabilidades críticas que cualquier usuario técnico puede explotar en minutos. El sistema de licencias — que es el corazón del negocio — puede ser bypasseado con una línea de código en la consola del navegador. El trial puede resetearse sin límites. Una licencia pagada puede compartirse con infinitos usuarios. <strong>Un solo video de 30 segundos en TikTok o Reddit podría anular completamente el modelo de monetización.</strong>
+        </div>
+      </div>
+
+      <!-- PLAN DE ACCIÓN -->
+      <div class="sh">Plan para alcanzar 8.5/10 de seguridad</div>
+      <div class="plan-grid">
+        <div class="plan-card" style="border-color:rgba(224,80,80,0.3)">
+          <div class="plan-label">⚡ 24 horas — Crítico</div>
+          <ul>
+            <li>Encapsular <code>_activationVerified</code> en closure (no window)</li>
+            <li>Eliminar <code>resetTrialYDatos()</code> del build de producción</li>
+            <li>Agregar maxlength a todos los inputs de formularios</li>
+            <li>Agregar header CSP via <code>_headers</code> de Cloudflare Pages</li>
+          </ul>
+        </div>
+        <div class="plan-card" style="border-color:rgba(224,120,48,0.3)">
+          <div class="plan-label">📅 7 días — Alto</div>
+          <ul>
+            <li>Registrar trial_start server-side en KV con fingerprint</li>
+            <li>Endpoint GET /trial-status para verificar en boot</li>
+            <li>Salt aleatorio para PIN hash (no hardcodeado)</li>
+            <li>Heartbeat de licencia cada 7 días al server</li>
+          </ul>
+        </div>
+        <div class="plan-card" style="border-color:rgba(224,176,64,0.3)">
+          <div class="plan-label">📅 30 días — Medio</div>
+          <ul>
+            <li>Activar R2 y cifrar backup con AES-256</li>
+            <li>Logging de anomalías (mismo código en 5+ IPs)</li>
+            <li>Revocación de licencias en KV con check periódico</li>
+            <li>Validación profunda de schema en restore de backup</li>
+          </ul>
+        </div>
+        <div class="plan-card" style="border-color:rgba(92,184,122,0.3)">
+          <div class="plan-label">📅 90 días — Ideal</div>
+          <ul>
+            <li>Considerar cifrado AES de IndexedDB con clave derivada del PIN</li>
+            <li>Kill-switch de versión mínima via Cloudflare</li>
+            <li>Dashboard de admin para ver licencias activas y anomalías</li>
+            <li>SIEM básico en Cloudflare Workers con alertas por email</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- FIX CRÍTICO #1 — CÓDIGO -->
+      <div class="sh">Fix prioritario #1 — Encapsular estado de licencia</div>
+      <div class="card" style="border-color:rgba(201,168,76,0.3)">
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Reemplazar el sistema de <code>window._activationVerified</code> con un módulo de licencia encapsulado que no expone ninguna variable a <code>window</code>:</div>
+        <pre>// ANTES (vulnerable):
+window._activationVerified = false;
+function isActivated() { return window._activationVerified === true; }
+
+// DESPUÉS (seguro):
+const LicenseManager = (() => {
+  let _verified = false;                  // No accesible desde window
+  let _verifiedAt = 0;                    // Timestamp de verificación
+  const MAX_AGE_MS = 5 * 60 * 1000;      // Re-verificar cada 5 min
+
+  return {
+    setVerified(val) {
+      _verified = !!val;
+      _verifiedAt = val ? Date.now() : 0;
+    },
+    isActivated() {
+      if (!_verified) return false;
+      // Expirar el flag si la pestaña lleva mucho tiempo abierta
+      // (fuerza re-verificación ECDSA periódica)
+      if (Date.now() - _verifiedAt > MAX_AGE_MS) {
+        // Lanzar re-verificación async
+        verifyStoredLicense().then(ok => LicenseManager.setVerified(ok));
+      }
+      return _verified;
+    }
+  };
+})();
+
+// Usar LicenseManager.isActivated() en lugar de isActivated()
+// Usar LicenseManager.setVerified(true/false) en lugar de asignación directa</pre>
+        <div style="font-size:12px;color:var(--text3);margin-top:8px">Con este cambio, <code>window._activationVerified</code> ya no existe. El estado de licencia es inaccesible desde la consola. El atacante no puede bypassearlo sin modificar el código fuente (lo que requiere una extensión de navegador más sofisticada).</div>
+      </div>
+
+      <!-- FIX CRÍTICO #2 — TRIAL SERVER-SIDE -->
+      <div class="sh">Fix prioritario #2 — Trial server-side</div>
+      <div class="card" style="border-color:rgba(201,168,76,0.3)">
+        <pre>// Agregar a validate-license.js — registrar primer uso en KV:
+const trialKey = `trial:ip:${ip}`;
+const existingTrial = await env.PT_LICENSES.get(trialKey);
+if (!existingTrial) {
+  // Primera vez que esta IP usa la app — registrar timestamp
+  await env.PT_LICENSES.put(trialKey, Date.now().toString(), {
+    expirationTtl: 60 * 60 * 24 * 90  // 90 días
+  });
+}
+
+// Nuevo endpoint GET /trial-status?ip=auto
+// El cliente llama esto en boot y compara con su localStorage
+// Si el server dice que el trial empezó hace 10 días pero
+// localStorage dice que empezó hoy → imposición del valor server-side</pre>
+        <div style="font-size:12px;color:var(--text3);margin-top:8px">Nota: la IP no es un identificador perfecto (VPNs, IPs compartidas). Para mayor robustez, combinar con fingerprint del dispositivo (WebGL hash, screen resolution, timezone) como salt adicional.</div>
+      </div>
+
+      <!-- FOOTER -->
+      <div style="text-align:center;margin-top:48px;padding-top:24px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--text3)">Parfum Track · Auditoría de Seguridad Ofensiva v1 · Junio 2026</div>
+        <div style="font-size:10px;color:var(--text3);opacity:0.5;margin-top:4px">Documento confidencial — uso interno</div>
+      </div>
+
+    </div>
+  </body>
+</html>
