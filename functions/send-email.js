@@ -197,6 +197,10 @@ export async function onRequestPost(context) {
     return new Response(JSON.stringify({ ok: false, error: 'Missing or invalid fields' }), { status: 400, headers });
   }
 
+  if (typeof to !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(to) || to.length > 320) {
+    return new Response(JSON.stringify({ ok: false, error: 'Invalid email address' }), { status: 400, headers });
+  }
+
   const apiKey = env.BREVO_API_KEY;
   const fromEmail = env.FROM_EMAIL || 'hola@parfumtrack.com';
   const fromName = env.FROM_NAME || 'Parfum Track';

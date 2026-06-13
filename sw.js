@@ -33,7 +33,7 @@ self.addEventListener('fetch', event => {
   if (url.hostname !== self.location.hostname) return;
 
   // Rutas API — dejar pasar sin interceptar (nunca cachear)
-  if (url.pathname === '/validate-license' || url.pathname === '/send-notification') return;
+  if (['/validate-license', '/send-notification', '/send-email', '/backup'].includes(url.pathname)) return;
 
   // HTML (navegación) — Network First: siempre intenta la red primero
   if (event.request.mode === 'navigate') {
