@@ -7644,7 +7644,29 @@
           .map((mes) => {
             const ms = porMes[mes];
             const saldoMes = ms.reduce((s, m) => s + (m.tipo === 'entrada' ? m.monto : -m.monto), 0);
-            return `<div class="mes-sep"><div class="mes-sep-line"></div><div class="mes-sep-label">${escapeHTML(mesLabel(mes))}</div><div class="mes-sep-line"></div></div><div class="mes-total"><span>${ms.length} movimientos</span><span style="color:${saldoMes >= 0 ? 'var(--success)' : 'var(--danger)'};font-weight:500">${fmt(saldoMes)}</span></div>${ms.map((m) => `<div class="mov-card ${m.tipo}"><div class="mov-info"><div class="mov-desc">${escapeHTML(m.desc)}</div><div class="mov-meta">📅 ${escapeHTML(m.fecha)}</div></div><div style="display:flex;align-items:center;gap:8px"><div class="mov-monto ${m.tipo}">${m.tipo === 'entrada' ? '+' : '-'}${fmt(m.monto)}</div><button onclick="delMovCaja(${m.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px" aria-label="Eliminar movimiento">🗑</button></div></div>`).join('')}`;
+            return `
+              <div class="mes-sep">
+                <div class="mes-sep-line"></div>
+                <div class="mes-sep-label">${escapeHTML(mesLabel(mes))}</div>
+                <div class="mes-sep-line"></div>
+              </div>
+              <div class="mes-total">
+                <span>${ms.length} movimientos</span>
+                <span style="color:${saldoMes >= 0 ? 'var(--success)' : 'var(--danger)'};font-weight:500">${fmt(saldoMes)}</span>
+              </div>
+              ${ms.map((m) => `
+                <div class="mov-card ${m.tipo}">
+                  <div class="mov-info">
+                    <div class="mov-desc">${escapeHTML(m.desc)}</div>
+                    <div class="mov-meta">📅 ${escapeHTML(m.fecha)}</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="mov-monto ${m.tipo}">${m.tipo === 'entrada' ? '+' : '-'}${fmt(m.monto)}</div>
+                    <button onclick="delMovCaja(${m.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px" aria-label="Eliminar movimiento">🗑</button>
+                  </div>
+                </div>
+              `).join('')}
+            `;
           })
           .join('');
       }
@@ -7701,7 +7723,36 @@
             const mlB = p.ml
               ? `<span style="font-size:10px;background:var(--gold-dim);color:var(--gold);border:0.5px solid var(--border);border-radius:20px;padding:1px 6px">${p.ml}ml</span>`
               : '';
-            return `<div class="perf-card"><div class="card-body"><div class="perf-thumb">${thumb}</div><div class="card-info"><div class="card-name">${escapeHTML(p.nombre)}</div><div style="display:flex;gap:4px;align-items:center;margin-top:2px;flex-wrap:wrap">${mlB}${p.proveedor ? `<span style="font-size:11px;color:var(--text2)">${escapeHTML(p.proveedor)}</span>` : ''}</div><div style="font-size:12px;color:var(--gold);margin-top:2px">${fmt(p.precio)}</div>${p.pVenta ? `<div style="font-size:11px;color:var(--success);margin-top:1px">Venta habitual: ${fmt(p.pVenta)}</div>` : ''} ${p.historialPrecios?.length > 1 ? `<div style="font-size:10px;color:var(--text3);margin-top:1px">Anterior: ${fmt(p.historialPrecios[p.historialPrecios.length - 2].precio)}</div>` : ''} ${(_velMap[p.nombre] || 0) > 0 ? `<div style="font-size:10px;color:var(--text3);margin-top:2px">📈 ${_velMap[p.nombre]}/mes${p.stock > 0 ? ` · ~${Math.round(p.stock / ((_velMap[p.nombre] || 1) / 30))}d stock` : ''}</div>` : ''}</div><div class="card-right">${pill}<div class="qty-ctrl"><button class="qty-btn" data-action="minus" data-idx="${idx}">−</button><span class="qty-num">${p.stock}</span><button class="qty-btn" data-action="plus" data-idx="${idx}">+</button></div></div></div><div class="perf-card-actions"><button class="pca-btn pca-edit" data-action="edit" data-idx="${idx}" aria-label="Editar ${escapeHTML(p.nombre)}">✏ Editar</button><button class="pca-btn pca-del" data-action="del" data-idx="${idx}" aria-label="Eliminar ${escapeHTML(p.nombre)}">🗑 Eliminar</button></div></div>`;
+            return `
+              <div class="perf-card">
+                <div class="card-body">
+                  <div class="perf-thumb">${thumb}</div>
+                  <div class="card-info">
+                    <div class="card-name">${escapeHTML(p.nombre)}</div>
+                    <div style="display:flex;gap:4px;align-items:center;margin-top:2px;flex-wrap:wrap">
+                      ${mlB}
+                      ${p.proveedor ? `<span style="font-size:11px;color:var(--text2)">${escapeHTML(p.proveedor)}</span>` : ''}
+                    </div>
+                    <div style="font-size:12px;color:var(--gold);margin-top:2px">${fmt(p.precio)}</div>
+                    ${p.pVenta ? `<div style="font-size:11px;color:var(--success);margin-top:1px">Venta habitual: ${fmt(p.pVenta)}</div>` : ''}
+                    ${p.historialPrecios?.length > 1 ? `<div style="font-size:10px;color:var(--text3);margin-top:1px">Anterior: ${fmt(p.historialPrecios[p.historialPrecios.length - 2].precio)}</div>` : ''}
+                    ${(_velMap[p.nombre] || 0) > 0 ? `<div style="font-size:10px;color:var(--text3);margin-top:2px">📈 ${_velMap[p.nombre]}/mes${p.stock > 0 ? ` · ~${Math.round(p.stock / ((_velMap[p.nombre] || 1) / 30))}d stock` : ''}</div>` : ''}
+                  </div>
+                  <div class="card-right">
+                    ${pill}
+                    <div class="qty-ctrl">
+                      <button class="qty-btn" data-action="minus" data-idx="${idx}">−</button>
+                      <span class="qty-num">${p.stock}</span>
+                      <button class="qty-btn" data-action="plus" data-idx="${idx}">+</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="perf-card-actions">
+                  <button class="pca-btn pca-edit" data-action="edit" data-idx="${idx}" aria-label="Editar ${escapeHTML(p.nombre)}">✏ Editar</button>
+                  <button class="pca-btn pca-del" data-action="del" data-idx="${idx}" aria-label="Eliminar ${escapeHTML(p.nombre)}">🗑 Eliminar</button>
+                </div>
+              </div>
+            `;
           })
           .join('');
         document.getElementById('low-alert').classList.toggle(
@@ -8046,7 +8097,17 @@
           .sort((a, b) => _cmpMesKey(b, a))
           .forEach((mes) => {
             const gs = porMes[mes];
-            html += `<div class="mes-sep"><div class="mes-sep-line"></div><div class="mes-sep-label">${escapeHTML(mesLabel(mes))}</div><div class="mes-sep-line"></div></div><div class="mes-total"><span>${gs.length} gasto${gs.length !== 1 ? 's' : ''}</span><span style="color:var(--danger);font-weight:500">${fmt(gs.reduce((s, g) => s + g.monto, 0))}</span></div>`;
+            html += `
+              <div class="mes-sep">
+                <div class="mes-sep-line"></div>
+                <div class="mes-sep-label">${escapeHTML(mesLabel(mes))}</div>
+                <div class="mes-sep-line"></div>
+              </div>
+              <div class="mes-total">
+                <span>${gs.length} gasto${gs.length !== 1 ? 's' : ''}</span>
+                <span style="color:var(--danger);font-weight:500">${fmt(gs.reduce((s, g) => s + g.monto, 0))}</span>
+              </div>
+            `;
             gs.forEach((g) => {
               const titulo =
                 g.categoria === 'otro' && g.nombreOtro
@@ -8059,7 +8120,22 @@
               const perf = g.perfumesEnvio?.length
                 ? `<div class="gc-row"><span>Perfumes</span><span style="text-align:right;max-width:55%">${g.perfumesEnvio.map(escapeHTML).join(', ')}</span></div>`
                 : '';
-              html += `<div class="gasto-card ${g.categoria}"><div class="gc-header"><div><div class="gc-cat">${titulo}</div>${g.descripcion ? `<div style="font-size:11px;color:var(--text2);margin-top:1px">${escapeHTML(g.descripcion)}</div>` : ''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><div class="gc-monto">${fmt(g.monto)}</div><div style="font-size:11px;color:var(--text2)">📅 ${escapeHTML(g.fecha)}</div><button onclick="openDeleteGastoModal(${g.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px" aria-label="Eliminar gasto">🗑</button></div></div>${cxp || perf ? `<div class="gc-body">${cxp}${perf}</div>` : ''}</div>`;
+              html += `
+                <div class="gasto-card ${g.categoria}">
+                  <div class="gc-header">
+                    <div>
+                      <div class="gc-cat">${titulo}</div>
+                      ${g.descripcion ? `<div style="font-size:11px;color:var(--text2);margin-top:1px">${escapeHTML(g.descripcion)}</div>` : ''}
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+                      <div class="gc-monto">${fmt(g.monto)}</div>
+                      <div style="font-size:11px;color:var(--text2)">📅 ${escapeHTML(g.fecha)}</div>
+                      <button onclick="openDeleteGastoModal(${g.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px" aria-label="Eliminar gasto">🗑</button>
+                    </div>
+                  </div>
+                  ${cxp || perf ? `<div class="gc-body">${cxp}${perf}</div>` : ''}
+                </div>
+              `;
             });
           });
         el.innerHTML = html;
