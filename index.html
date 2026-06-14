@@ -12295,119 +12295,29 @@
         }
 
         perfumes = [
-          {
-            nombre: "Haramain Gold",
-            precio: 3100,
-            stock: 12,
-            proveedor: "SCENTA",
-            foto: null,
-            pVenta: 3900,
-          },
-          {
-            nombre: "Bharara King",
-            precio: 3300,
-            stock: 8,
-            proveedor: "ESTEFANI",
-            foto: null,
-            pVenta: 3900,
-          },
-          {
-            nombre: "Yara Rosa",
-            precio: 1800,
-            stock: 2,
-            proveedor: "SCENTA",
-            foto: null,
-            pVenta: 2500,
-          },
-          {
-            nombre: "CDN Urban Elixir",
-            precio: 2650,
-            stock: 5,
-            proveedor: "ESTEFANI",
-            foto: null,
-            pVenta: 2900,
-          },
-          {
-            nombre: "Lattafa Asad",
-            precio: 2400,
-            stock: 0,
-            proveedor: "SCENTA",
-            foto: null,
-            pVenta: 3200,
-          },
+          { nombre: "Haramain Gold", precio: 3100, stock: 12, proveedor: "SCENTA", foto: null, pVenta: 3900, ml: "100" },
+          { nombre: "Bharara King", precio: 3300, stock: 8, proveedor: "ESTEFANI", foto: null, pVenta: 4200, ml: "100" },
+          { nombre: "Yara Rosa", precio: 1800, stock: 4, proveedor: "SCENTA", foto: null, pVenta: 2500, ml: "50" },
+          { nombre: "Lattafa Asad", precio: 2400, stock: 6, proveedor: "SCENTA", foto: null, pVenta: 3200, ml: "100" },
+          { nombre: "CDN Urban Elixir", precio: 2650, stock: 3, proveedor: "ESTEFANI", foto: null, pVenta: 3400, ml: "100" },
+          { nombre: "Zimaya Badee Al Oud", precio: 2900, stock: 5, proveedor: "SCENTA", foto: null, pVenta: 3800, ml: "100" },
+          { nombre: "Al Haramain L'Aventure", precio: 3500, stock: 2, proveedor: "ESTEFANI", foto: null, pVenta: 4500, ml: "100" },
+          { nombre: "Afnan 9PM", precio: 2200, stock: 9, proveedor: "SCENTA", foto: null, pVenta: 2900, ml: "100" },
         ];
 
         ventas = [
-          {
-            id: 1,
-            perfume: "Haramain Gold",
-            precioVenta: 3900,
-            precioCompra: 3100,
-            ganancia: 800,
-            cliente: "María G.",
-            vendedor: "",
-            fecha: fechaRel(2),
-            esCuotas: false,
-            cuotasPagos: [{ monto: 3900, fecha: fechaRel(2) }],
-            cuotasTotal: 1,
-            proveedor: "SCENTA",
-          },
-          {
-            id: 2,
-            perfume: "Bharara King",
-            precioVenta: 3900,
-            precioCompra: 3300,
-            ganancia: 600,
-            cliente: "José R.",
-            vendedor: "",
-            fecha: fechaRel(5),
-            esCuotas: true,
-            cuotasPagos: [{ monto: 1950, fecha: fechaRel(5) }],
-            cuotasTotal: 2,
-            proveedor: "ESTEFANI",
-          },
-          {
-            id: 3,
-            perfume: "Yara Rosa",
-            precioVenta: 2500,
-            precioCompra: 1800,
-            ganancia: 700,
-            cliente: "Lucía P.",
-            vendedor: "",
-            fecha: fechaRel(8),
-            esCuotas: false,
-            cuotasPagos: [{ monto: 2500, fecha: fechaRel(8) }],
-            cuotasTotal: 1,
-            proveedor: "SCENTA",
-          },
-          {
-            id: 4,
-            perfume: "CDN Urban Elixir",
-            precioVenta: 2900,
-            precioCompra: 2650,
-            ganancia: 250,
-            cliente: "Ana M.",
-            vendedor: "",
-            fecha: fechaRel(12),
-            esCuotas: true,
-            cuotasPagos: [{ monto: 1000, fecha: fechaRel(12) }],
-            cuotasTotal: 3,
-            proveedor: "ESTEFANI",
-          },
-          {
-            id: 5,
-            perfume: "Haramain Gold",
-            precioVenta: 3900,
-            precioCompra: 3100,
-            ganancia: 800,
-            cliente: "Carla S.",
-            vendedor: "",
-            fecha: fechaRel(15),
-            esCuotas: false,
-            cuotasPagos: [{ monto: 3900, fecha: fechaRel(15) }],
-            cuotasTotal: 1,
-            proveedor: "SCENTA",
-          },
+          { id: Date.now()-1, perfume: "Haramain Gold", precioVenta: 3900, precioCompra: 3100, ganancia: 800, cliente: "María G.", vendedor: "", fecha: fechaRel(1), esCuotas: false, cuotasPagos: [{ monto: 3900, fecha: fechaRel(1) }], cuotasTotal: 1, proveedor: "SCENTA" },
+          { id: Date.now()-2, perfume: "Bharara King", precioVenta: 4200, precioCompra: 3300, ganancia: 900, cliente: "Valentina R.", vendedor: "", fecha: fechaRel(3), esCuotas: true, cuotasPagos: [{ monto: 2100, fecha: fechaRel(3) }], cuotasTotal: 2, proveedor: "ESTEFANI" },
+          { id: Date.now()-3, perfume: "Yara Rosa", precioVenta: 2500, precioCompra: 1800, ganancia: 700, cliente: "Lucía P.", vendedor: "", fecha: fechaRel(5), esCuotas: false, cuotasPagos: [{ monto: 2500, fecha: fechaRel(5) }], cuotasTotal: 1, proveedor: "SCENTA" },
+          { id: Date.now()-4, perfume: "Afnan 9PM", precioVenta: 2900, precioCompra: 2200, ganancia: 700, cliente: "Ana M.", vendedor: "", fecha: fechaRel(7), esCuotas: true, cuotasPagos: [{ monto: 1450, fecha: fechaRel(7) }], cuotasTotal: 2, proveedor: "SCENTA" },
+          { id: Date.now()-5, perfume: "Haramain Gold", precioVenta: 3900, precioCompra: 3100, ganancia: 800, cliente: "Carla S.", vendedor: "", fecha: fechaRel(9), esCuotas: false, cuotasPagos: [{ monto: 3900, fecha: fechaRel(9) }], cuotasTotal: 1, proveedor: "SCENTA" },
+          { id: Date.now()-6, perfume: "Zimaya Badee Al Oud", precioVenta: 3800, precioCompra: 2900, ganancia: 900, cliente: "Sofía B.", vendedor: "", fecha: fechaRel(12), esCuotas: true, cuotasPagos: [{ monto: 1900, fecha: fechaRel(12) }], cuotasTotal: 2, proveedor: "SCENTA" },
+          { id: Date.now()-7, perfume: "CDN Urban Elixir", precioVenta: 3400, precioCompra: 2650, ganancia: 750, cliente: "Daniela F.", vendedor: "", fecha: fechaRel(14), esCuotas: false, cuotasPagos: [{ monto: 3400, fecha: fechaRel(14) }], cuotasTotal: 1, proveedor: "ESTEFANI" },
+          { id: Date.now()-8, perfume: "Al Haramain L'Aventure", precioVenta: 4500, precioCompra: 3500, ganancia: 1000, cliente: "Camila T.", vendedor: "", fecha: fechaRel(16), esCuotas: true, cuotasPagos: [{ monto: 1500, fecha: fechaRel(16) }], cuotasTotal: 3, proveedor: "ESTEFANI" },
+          { id: Date.now()-9, perfume: "Lattafa Asad", precioVenta: 3200, precioCompra: 2400, ganancia: 800, cliente: "Romina M.", vendedor: "", fecha: fechaRel(19), esCuotas: false, cuotasPagos: [{ monto: 3200, fecha: fechaRel(19) }], cuotasTotal: 1, proveedor: "SCENTA" },
+          { id: Date.now()-10, perfume: "Bharara King", precioVenta: 4200, precioCompra: 3300, ganancia: 900, cliente: "Alejandra V.", vendedor: "", fecha: fechaRel(22), esCuotas: false, cuotasPagos: [{ monto: 4200, fecha: fechaRel(22) }], cuotasTotal: 1, proveedor: "ESTEFANI" },
+          { id: Date.now()-11, perfume: "Yara Rosa", precioVenta: 2500, precioCompra: 1800, ganancia: 700, cliente: "Natalia C.", vendedor: "", fecha: fechaRel(25), esCuotas: true, cuotasPagos: [{ monto: 1250, fecha: fechaRel(25) }], cuotasTotal: 2, proveedor: "SCENTA" },
+          { id: Date.now()-12, perfume: "Haramain Gold", precioVenta: 3900, precioCompra: 3100, ganancia: 800, cliente: "Patricia L.", vendedor: "", fecha: fechaRel(28), esCuotas: false, cuotasPagos: [{ monto: 3900, fecha: fechaRel(28) }], cuotasTotal: 1, proveedor: "SCENTA" },
         ];
 
         gastos = [
@@ -12452,7 +12362,7 @@
           },
         ];
 
-        metaMensual = 12000;
+        metaMensual = 40000;
         // NO guardamos en localStorage los datos demo si es trial real (para no pisar datos del usuario)
         // En modo isDemo sí se mantienen en memoria
         if (!LICENSE.isDemo) {
@@ -14555,7 +14465,12 @@
         trackEvent("onboarding_paso_2_completado");
       }
 
-      function obSaltar() {
+      function obSaltarPedir() {
+        var warn = document.getElementById("ob-saltar-warn");
+        var btn = warn && warn.nextElementSibling;
+        if (warn) warn.style.display = warn.style.display === "none" ? "block" : "none";
+      }
+      function obSaltarFinal() {
         localStorage.setItem("pt_onboarding_done", "1");
         localStorage.removeItem("pt_ob_step");
         var el = document.getElementById("modal-onboarding");
@@ -16186,12 +16101,12 @@
           ctx.fillText(pieFinal, W / 2, footerY + 22);
         }
 
-        // Marca de agua sutil
+        // Marca de agua con URL — canal de adquisición viral
         ctx.textAlign = "center";
         ctx.fillStyle =
-          catTema === "dark" ? "rgba(201,168,76,0.25)" : "rgba(160,120,48,0.2)";
-        ctx.font = `300 9px 'DM Sans', Arial, sans-serif`;
-        ctx.fillText("Parfum Track", W / 2, H - 8);
+          catTema === "dark" ? "rgba(201,168,76,0.4)" : "rgba(140,100,30,0.35)";
+        ctx.font = `500 10px 'DM Sans', Arial, sans-serif`;
+        ctx.fillText("✦ Parfum Track · parfumtrack.pages.dev", W / 2, H - 8);
 
         loading.style.display = "none";
       }
@@ -17119,8 +17034,15 @@
           >
             Empezar →
           </button>
+          <div id="ob-saltar-warn" style="display:none;margin-top:10px;background:rgba(224,112,112,0.08);border:1px solid rgba(224,112,112,0.25);border-radius:8px;padding:10px 12px;font-size:12px;color:#e07070;line-height:1.5;">
+            ⚠️ Sin email no podrás recuperar tu cuenta ni sincronizar tus datos entre dispositivos.
+            <br>
+            <button onclick="obSaltarFinal()" style="margin-top:8px;background:none;border:none;color:#b05050;font-size:11px;cursor:pointer;text-decoration:underline;font-family:inherit;">
+              Entendí, continuar sin email →
+            </button>
+          </div>
           <button
-            onclick="obSaltar()"
+            onclick="obSaltarPedir()"
             style="
               margin-top: 10px;
               background: none;
