@@ -102,14 +102,19 @@ export async function onRequestPost(context) {
   if (!mpResp.ok) {
     const errText = await mpResp.text();
     console.error('[mp-create-subscription] MP respondió', mpResp.status, errText);
-    return json({ ok: false, error: 'Error al crear la suscripción en Mercado Pago' }, 500, headers);
+    // Devolver detalle del error MP para facilitar el diagnóstico
+    let mpErrMsg = `Error MP ${mpResp.status}`;
+    try { const e = JSON.parse(errText); mpErrMsg = e.message || e.error || mpErrMsg; } catch { /* */ }
+    return json({ ok: false, error: `Error al crear la suscripción: ${mpErrMsg}` }, 500, headers);
   }
 
   const mpData = await mpResp.json();
-  const { id: preapprovalId, init_point } = mpData;
+  // En sandbox MP devuelve sandbox_init_point; en producción devuelve init_point
+  const { id: preapprovalId, init_point, sandbox_init_point } = mpData;
+  const checkoutUrl = init_point || sandbox_init_point;
 
-  if (!init_point) {
-    console.error('[mp-create-subscription] Sin init_point:', JSON.stringify(mpData));
+  if (!checkoutUrl) {
+    console.error('[mp-create-subscription] Sin init_point ni sandbox_init_point:', JSON.stringify(mpData));
     return json({ ok: false, error: 'Respuesta inesperada de Mercado Pago' }, 500, headers);
   }
 
@@ -122,8 +127,8 @@ export async function onRequestPost(context) {
     );
   }
 
-  console.log(`[mp-create-subscription] Creado preapproval ${preapprovalId} para ${email} (${plan})`);
-  return json({ ok: true, initPoint: init_point }, 200, headers);
+  console.log(`[mp-create-subscription] Creado preapproval ${preapprovalId} para ${email} (${plan}) → ${checkoutUrl}`);
+  return json({ ok: true, initPoint: checkoutUrl }, 200, headers);
 }
 
 export async function onRequestOptions(context) {
