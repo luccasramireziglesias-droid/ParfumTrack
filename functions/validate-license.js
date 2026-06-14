@@ -108,7 +108,7 @@ export async function onRequestPost(context) {
     }
 
     if (license.expiresAt && new Date(license.expiresAt) < new Date()) {
-      await delay(200);
+      await delay(DELAY_ON_INVALID);
       return new Response(JSON.stringify({ valid: false, reason: "expired" }), {
         headers,
       });
@@ -118,7 +118,7 @@ export async function onRequestPost(context) {
       license.maxUses !== null &&
       (license.usedCount || 0) >= license.maxUses
     ) {
-      await delay(200);
+      await delay(DELAY_ON_INVALID);
       return new Response(
         JSON.stringify({ valid: false, reason: "limit_reached" }),
         { headers },

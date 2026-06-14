@@ -6,12 +6,15 @@
 import { onRequestPost as sendNotification }     from './functions/send-notification.js';
 import { onRequestPost as validateLicense }       from './functions/validate-license.js';
 import { onRequestPost as sendEmail }             from './functions/send-email.js';
+import { onRequestPost as backupPost, onRequestGet as backupGet } from './functions/backup.js';
+import { onRequestPost as trial }                 from './functions/trial.js';
+import { onRequestPost as syncPost, onRequestGet as syncGet } from './functions/sync.js';
 import { onRequestPost as mpCreateSubscription }  from './functions/mp-create-subscription.js';
 import { onRequestPost as mpWebhookPost, onRequestGet as mpWebhookGet } from './functions/mp-webhook.js';
 import { onRequestGet  as mpSubscriptionStatus }  from './functions/mp-subscription-status.js';
 
-const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/mp-create-subscription', '/mp-webhook'];
-const GET_ROUTES  = ['/mp-webhook', '/mp-subscription-status'];
+const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup', '/trial', '/sync', '/mp-create-subscription', '/mp-webhook'];
+const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status'];
 
 export default {
   async fetch(request, env, ctx) {
@@ -37,15 +40,20 @@ export default {
     }
 
     if (method === 'POST') {
-      if (path === '/send-notification')    return sendNotification(context);
-      if (path === '/validate-license')     return validateLicense(context);
-      if (path === '/send-email')           return sendEmail(context);
+      if (path === '/send-notification')      return sendNotification(context);
+      if (path === '/validate-license')       return validateLicense(context);
+      if (path === '/send-email')             return sendEmail(context);
+      if (path === '/backup')                 return backupPost(context);
+      if (path === '/trial')                  return trial(context);
+      if (path === '/sync')                   return syncPost(context);
       if (path === '/mp-create-subscription') return mpCreateSubscription(context);
-      if (path === '/mp-webhook')           return mpWebhookPost(context);
+      if (path === '/mp-webhook')             return mpWebhookPost(context);
     }
 
     if (method === 'GET') {
-      if (path === '/mp-webhook')           return mpWebhookGet(context);
+      if (path === '/backup')                 return backupGet(context);
+      if (path === '/sync')                   return syncGet(context);
+      if (path === '/mp-webhook')             return mpWebhookGet(context);
       if (path === '/mp-subscription-status') return mpSubscriptionStatus(context);
     }
 
