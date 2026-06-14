@@ -341,6 +341,9 @@ async function sendOtpEmail(email, otp, env) {
     console.error("[trial] BREVO_API_KEY not set — email not sent");
     return;
   }
+  console.log(
+    `[trial] Calling Brevo API, from: ${fromEmail}, to: ${email}, key length: ${apiKey.length}`,
+  );
 
   await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
@@ -376,9 +379,11 @@ async function sendOtpEmail(email, otp, env) {
     }),
     signal: AbortSignal.timeout(8000),
   }).then(async (res) => {
+    const body = await res.text().catch(() => "");
     if (!res.ok) {
-      const body = await res.text().catch(() => "");
       console.error(`[trial] Brevo error ${res.status}: ${body}`);
+    } else {
+      console.log(`[trial] Brevo OK ${res.status}: ${body.slice(0, 100)}`);
     }
   });
 }
