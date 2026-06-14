@@ -6869,8 +6869,8 @@
             <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">1. Qué es Parfum Track</p>
             <p style="margin:0 0 12px">Es una herramienta para registrar ventas, gastos, cuotas y estadísticas de un emprendimiento de venta de perfumes. Es una ayuda de gestión, no un sistema de facturación oficial ni un asesor contable o fiscal.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Prueba gratuita y licencia</p>
-            <p style="margin:0 0 12px">La app ofrece un período de prueba gratuito. Para seguir usando todas las funciones luego del vencimiento, necesitás activar una licencia. Las condiciones y el precio se informan dentro de la app al momento de activar.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Planes y licencia</p>
+            <p style="margin:0 0 12px">La app ofrece un plan Free gratuito y permanente con funciones básicas. Para acceder a funciones avanzadas (Básico Pro o Pro), podés activar una licencia con el código que recibirás por WhatsApp después de tu compra. Las condiciones y precios se informan dentro de la app.</p>
 
             <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">3. Uso responsable</p>
             <p style="margin:0 0 12px">Te comprometés a usar la app de forma legal, a no intentar vulnerar sus mecanismos de licencia o seguridad, y a no usarla para actividades ilícitas. El código de licencia es personal e intransferible.</p>
@@ -10019,7 +10019,7 @@
           if (getTrialVentasRestantes() <= 0) {
             abrirModalActivacion();
             _abort(
-              "🔒 Límite alcanzado. Activá tu licencia para seguir registrando ventas.",
+              "🔒 Límite alcanzado. Activá tu plan Básico Pro para continuar.",
             );
             return;
           }
@@ -10918,7 +10918,7 @@
       async function exportExcel() {
         if (!isActivated()) {
           toast(
-            "⚠ Exportar a Excel requiere plan Pro o superior. Activá tu licencia en Ajustes.",
+            "⚠ Exportar a Excel requiere plan Pro. Próximamente disponible — escribinos por WhatsApp.",
             3500,
           );
           return;
@@ -11725,9 +11725,9 @@
         clientName: "Demo",
         expiresAt: null,
         maxUses: null,
-        trialDays: 7,
+        trialDays: 36500,
         trialMinutes: null,
-        trialLimitedVentas: 5,
+        trialLimitedVentas: 999999,
         isDemo: false,
       });
 
@@ -11878,31 +11878,101 @@
         el.style.background =
           "linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.05))";
         const tierName = el.dataset.tier;
-        const labels = { starter: "Starter", pro: "Pro", business: "Business" };
+        const labels = { free: "Free", basic: "Básico Pro", pro: "Pro" };
         document.getElementById("tier-wa-msg").textContent = el.dataset.msg;
         const lbl = document.getElementById("tier-btn-label");
         if (lbl) lbl.textContent = labels[tierName] || tierName;
+
+        // Mostrar campo de email y usar botón MP para Básico Pro, WA para el resto
+        const emailSec = document.getElementById("mp-email-section");
+        const waBtn    = document.getElementById("tier-wa-btn");
+        if (emailSec) emailSec.style.display = tierName === "basic" ? "block" : "none";
+        if (waBtn) {
+          if (tierName === "basic") {
+            waBtn.style.background = "linear-gradient(135deg,#009ee3,#0070ba)";
+            waBtn.innerHTML = "Suscribirse con Mercado Pago →";
+          } else {
+            waBtn.style.background = "linear-gradient(135deg,#25d366,#1da851)";
+            waBtn.innerHTML = "📲 Consultar por WhatsApp";
+          }
+        }
+
         trackEvent("pricing_tier_seleccionado", { tier: tierName });
       }
-      function _consultarPlanSeleccionado() {
+      async function _consultarPlanSeleccionado() {
+        const tier = document.querySelector(".pricing-tier.tier-selected")?.dataset?.tier || "basic";
+
+        // Plan Básico Pro → checkout automático con Mercado Pago
+        if (tier === "basic") {
+          _iniciarCheckoutMP();
+          return;
+        }
+
+        // Otros planes (free o pro próximamente) → WhatsApp
         const n = getWANumber();
         if (!n) {
           toast("⚠ Configurá tu número de WhatsApp en Ajustes", 3500);
           return;
         }
         const msg = document.getElementById("tier-wa-msg").textContent;
-        trackEvent("paywall_wa_click", {
-          tier:
-            document.querySelector(".pricing-tier.tier-selected")?.dataset
-              ?.tier || "pro",
-        });
+        trackEvent("paywall_wa_click", { tier });
         openLink("https://wa.me/" + n + "?text=" + encodeURIComponent(msg));
+      }
+
+      async function _iniciarCheckoutMP() {
+        const emailEl = document.getElementById("mp-email-paywall");
+        const email   = emailEl?.value?.trim();
+        const errEl   = document.getElementById("mp-paywall-error");
+
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+          if (errEl) errEl.textContent = "Ingresá tu email para continuar";
+          if (emailEl) emailEl.focus();
+          return;
+        }
+
+        const btn = document.getElementById("tier-wa-btn");
+        if (btn) { btn.disabled = true; btn.textContent = "Conectando con MP…"; }
+        if (errEl) errEl.textContent = "";
+
+        const win = window.open("", "_blank");
+
+        try {
+          const resp = await fetch("/mp-create-subscription", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ email, plan: "monthly" }),
+          });
+          const data = await resp.json();
+
+          if (!data.ok) {
+            if (win) win.close();
+            if (errEl) errEl.textContent = data.error || "Error al crear la suscripción";
+            if (btn) { btn.disabled = false; btn.innerHTML = "📲 Quiero el plan <span id=\"tier-btn-label\">Básico Pro</span>"; }
+            return;
+          }
+
+          if (win) win.location.href = data.initPoint;
+          closeModal("modal-activacion");
+          trackEvent("mp_checkout_redirect", { tier: "basic" });
+        } catch (e) {
+          if (win) win.close();
+          if (errEl) errEl.textContent = "Error de conexión. Intentá de nuevo.";
+          if (btn) { btn.disabled = false; btn.innerHTML = "📲 Quiero el plan <span id=\"tier-btn-label\">Básico Pro</span>"; }
+        }
       }
 
       function abrirModalActivacion() {
         document.getElementById("modal-activacion").classList.add("open");
+        // Inicializar estado del tier seleccionado (Básico Pro por default)
+        const emailSec = document.getElementById("mp-email-section");
+        const waBtn    = document.getElementById("tier-wa-btn");
+        if (emailSec) emailSec.style.display = "block";
+        if (waBtn) {
+          waBtn.style.background = "linear-gradient(135deg,#009ee3,#0070ba)";
+          waBtn.innerHTML = "Suscribirse con Mercado Pago →";
+        }
         setTimeout(() => {
-          const inp = document.getElementById("activation-code-input");
+          const inp = document.getElementById("mp-email-paywall");
           if (inp) inp.focus();
         }, 200);
         trackEvent("paywall_visto");
@@ -12017,7 +12087,7 @@
       }
 
       // ══════════════════════════════════════════════
-      // SISTEMA DE TRIAL — 7 días completo → modo limitado
+      // SISTEMA DE TRIAL — Plan Free permanente → features premium con licencia
       // ══════════════════════════════════════════════
       // trial expired state managed by _sec module (not on window)
 
@@ -12442,6 +12512,8 @@
               2000,
             );
           }
+          // No mostrar banner si el plan Free tiene tiempo ilimitado (>30 días)
+          if (daysLeft > 30) return;
           mostrarBannerTrial(formatTrialTimeLeft(msLeft));
           // Si estamos en modo minutos, actualizar el banner cada segundo
           if (LICENSE.trialMinutes) {
@@ -12610,119 +12682,29 @@
         }
 
         perfumes = [
-          {
-            nombre: "Haramain Gold",
-            precio: 3100,
-            stock: 12,
-            proveedor: "SCENTA",
-            foto: null,
-            pVenta: 3900,
-          },
-          {
-            nombre: "Bharara King",
-            precio: 3300,
-            stock: 8,
-            proveedor: "ESTEFANI",
-            foto: null,
-            pVenta: 3900,
-          },
-          {
-            nombre: "Yara Rosa",
-            precio: 1800,
-            stock: 2,
-            proveedor: "SCENTA",
-            foto: null,
-            pVenta: 2500,
-          },
-          {
-            nombre: "CDN Urban Elixir",
-            precio: 2650,
-            stock: 5,
-            proveedor: "ESTEFANI",
-            foto: null,
-            pVenta: 2900,
-          },
-          {
-            nombre: "Lattafa Asad",
-            precio: 2400,
-            stock: 0,
-            proveedor: "SCENTA",
-            foto: null,
-            pVenta: 3200,
-          },
+          { nombre: "Haramain Gold", precio: 3100, stock: 12, proveedor: "SCENTA", foto: null, pVenta: 3900, ml: "100" },
+          { nombre: "Bharara King", precio: 3300, stock: 8, proveedor: "ESTEFANI", foto: null, pVenta: 4200, ml: "100" },
+          { nombre: "Yara Rosa", precio: 1800, stock: 4, proveedor: "SCENTA", foto: null, pVenta: 2500, ml: "50" },
+          { nombre: "Lattafa Asad", precio: 2400, stock: 6, proveedor: "SCENTA", foto: null, pVenta: 3200, ml: "100" },
+          { nombre: "CDN Urban Elixir", precio: 2650, stock: 3, proveedor: "ESTEFANI", foto: null, pVenta: 3400, ml: "100" },
+          { nombre: "Zimaya Badee Al Oud", precio: 2900, stock: 5, proveedor: "SCENTA", foto: null, pVenta: 3800, ml: "100" },
+          { nombre: "Al Haramain L'Aventure", precio: 3500, stock: 2, proveedor: "ESTEFANI", foto: null, pVenta: 4500, ml: "100" },
+          { nombre: "Afnan 9PM", precio: 2200, stock: 9, proveedor: "SCENTA", foto: null, pVenta: 2900, ml: "100" },
         ];
 
         ventas = [
-          {
-            id: 1,
-            perfume: "Haramain Gold",
-            precioVenta: 3900,
-            precioCompra: 3100,
-            ganancia: 800,
-            cliente: "María G.",
-            vendedor: "",
-            fecha: fechaRel(2),
-            esCuotas: false,
-            cuotasPagos: [{ monto: 3900, fecha: fechaRel(2) }],
-            cuotasTotal: 1,
-            proveedor: "SCENTA",
-          },
-          {
-            id: 2,
-            perfume: "Bharara King",
-            precioVenta: 3900,
-            precioCompra: 3300,
-            ganancia: 600,
-            cliente: "José R.",
-            vendedor: "",
-            fecha: fechaRel(5),
-            esCuotas: true,
-            cuotasPagos: [{ monto: 1950, fecha: fechaRel(5) }],
-            cuotasTotal: 2,
-            proveedor: "ESTEFANI",
-          },
-          {
-            id: 3,
-            perfume: "Yara Rosa",
-            precioVenta: 2500,
-            precioCompra: 1800,
-            ganancia: 700,
-            cliente: "Lucía P.",
-            vendedor: "",
-            fecha: fechaRel(8),
-            esCuotas: false,
-            cuotasPagos: [{ monto: 2500, fecha: fechaRel(8) }],
-            cuotasTotal: 1,
-            proveedor: "SCENTA",
-          },
-          {
-            id: 4,
-            perfume: "CDN Urban Elixir",
-            precioVenta: 2900,
-            precioCompra: 2650,
-            ganancia: 250,
-            cliente: "Ana M.",
-            vendedor: "",
-            fecha: fechaRel(12),
-            esCuotas: true,
-            cuotasPagos: [{ monto: 1000, fecha: fechaRel(12) }],
-            cuotasTotal: 3,
-            proveedor: "ESTEFANI",
-          },
-          {
-            id: 5,
-            perfume: "Haramain Gold",
-            precioVenta: 3900,
-            precioCompra: 3100,
-            ganancia: 800,
-            cliente: "Carla S.",
-            vendedor: "",
-            fecha: fechaRel(15),
-            esCuotas: false,
-            cuotasPagos: [{ monto: 3900, fecha: fechaRel(15) }],
-            cuotasTotal: 1,
-            proveedor: "SCENTA",
-          },
+          { id: Date.now()-1, perfume: "Haramain Gold", precioVenta: 3900, precioCompra: 3100, ganancia: 800, cliente: "María G.", vendedor: "", fecha: fechaRel(1), esCuotas: false, cuotasPagos: [{ monto: 3900, fecha: fechaRel(1) }], cuotasTotal: 1, proveedor: "SCENTA" },
+          { id: Date.now()-2, perfume: "Bharara King", precioVenta: 4200, precioCompra: 3300, ganancia: 900, cliente: "Valentina R.", vendedor: "", fecha: fechaRel(3), esCuotas: true, cuotasPagos: [{ monto: 2100, fecha: fechaRel(3) }], cuotasTotal: 2, proveedor: "ESTEFANI" },
+          { id: Date.now()-3, perfume: "Yara Rosa", precioVenta: 2500, precioCompra: 1800, ganancia: 700, cliente: "Lucía P.", vendedor: "", fecha: fechaRel(5), esCuotas: false, cuotasPagos: [{ monto: 2500, fecha: fechaRel(5) }], cuotasTotal: 1, proveedor: "SCENTA" },
+          { id: Date.now()-4, perfume: "Afnan 9PM", precioVenta: 2900, precioCompra: 2200, ganancia: 700, cliente: "Ana M.", vendedor: "", fecha: fechaRel(7), esCuotas: true, cuotasPagos: [{ monto: 1450, fecha: fechaRel(7) }], cuotasTotal: 2, proveedor: "SCENTA" },
+          { id: Date.now()-5, perfume: "Haramain Gold", precioVenta: 3900, precioCompra: 3100, ganancia: 800, cliente: "Carla S.", vendedor: "", fecha: fechaRel(9), esCuotas: false, cuotasPagos: [{ monto: 3900, fecha: fechaRel(9) }], cuotasTotal: 1, proveedor: "SCENTA" },
+          { id: Date.now()-6, perfume: "Zimaya Badee Al Oud", precioVenta: 3800, precioCompra: 2900, ganancia: 900, cliente: "Sofía B.", vendedor: "", fecha: fechaRel(12), esCuotas: true, cuotasPagos: [{ monto: 1900, fecha: fechaRel(12) }], cuotasTotal: 2, proveedor: "SCENTA" },
+          { id: Date.now()-7, perfume: "CDN Urban Elixir", precioVenta: 3400, precioCompra: 2650, ganancia: 750, cliente: "Daniela F.", vendedor: "", fecha: fechaRel(14), esCuotas: false, cuotasPagos: [{ monto: 3400, fecha: fechaRel(14) }], cuotasTotal: 1, proveedor: "ESTEFANI" },
+          { id: Date.now()-8, perfume: "Al Haramain L'Aventure", precioVenta: 4500, precioCompra: 3500, ganancia: 1000, cliente: "Camila T.", vendedor: "", fecha: fechaRel(16), esCuotas: true, cuotasPagos: [{ monto: 1500, fecha: fechaRel(16) }], cuotasTotal: 3, proveedor: "ESTEFANI" },
+          { id: Date.now()-9, perfume: "Lattafa Asad", precioVenta: 3200, precioCompra: 2400, ganancia: 800, cliente: "Romina M.", vendedor: "", fecha: fechaRel(19), esCuotas: false, cuotasPagos: [{ monto: 3200, fecha: fechaRel(19) }], cuotasTotal: 1, proveedor: "SCENTA" },
+          { id: Date.now()-10, perfume: "Bharara King", precioVenta: 4200, precioCompra: 3300, ganancia: 900, cliente: "Alejandra V.", vendedor: "", fecha: fechaRel(22), esCuotas: false, cuotasPagos: [{ monto: 4200, fecha: fechaRel(22) }], cuotasTotal: 1, proveedor: "ESTEFANI" },
+          { id: Date.now()-11, perfume: "Yara Rosa", precioVenta: 2500, precioCompra: 1800, ganancia: 700, cliente: "Natalia C.", vendedor: "", fecha: fechaRel(25), esCuotas: true, cuotasPagos: [{ monto: 1250, fecha: fechaRel(25) }], cuotasTotal: 2, proveedor: "SCENTA" },
+          { id: Date.now()-12, perfume: "Haramain Gold", precioVenta: 3900, precioCompra: 3100, ganancia: 800, cliente: "Patricia L.", vendedor: "", fecha: fechaRel(28), esCuotas: false, cuotasPagos: [{ monto: 3900, fecha: fechaRel(28) }], cuotasTotal: 1, proveedor: "SCENTA" },
         ];
 
         gastos = [
@@ -12767,7 +12749,7 @@
           },
         ];
 
-        metaMensual = 12000;
+        metaMensual = 40000;
         // NO guardamos en localStorage los datos demo si es trial real (para no pisar datos del usuario)
         // En modo isDemo sí se mantienen en memoria
         if (!LICENSE.isDemo) {
@@ -13515,30 +13497,16 @@
             html += `<div>👤 Perfil: <strong style="color:var(--text);">${escapeHTML(LICENSE.clientName)}</strong></div>`;
             html += `<div style="margin-top:8px;"><span style="font-size:11px;color:var(--text3);">Parfum Track desbloqueado sin restricciones ✓</span></div>`;
           } else {
-            // TRIAL o VENCIDO
+            // PLAN FREE (no activado)
             const trialStart = localStorage.getItem("pt_trial_start");
             if (trialStart) {
-              const msLeft = getTrialTimeLeft(trialStart);
-              const daysLeft = Math.floor(msLeft / 86400000);
-
-              if (msLeft > 0) {
-                const label = formatTrialTimeLeft(msLeft);
-                html += `<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;padding:9px 12px;background:var(--gold-dim);border:0.5px solid var(--border2);border-radius:10px;">
-                  <span style="font-size:22px;">⏳</span>
-                  <div><div style="font-size:13px;font-weight:600;color:var(--gold2);">Prueba gratuita</div>
-                  <div style="font-size:11px;color:var(--text3);">Quedan <strong style="color:var(--gold2);">${label}</strong> de prueba completa</div></div>
+                html += `<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;padding:9px 12px;background:rgba(112,201,160,0.08);border:0.5px solid rgba(112,201,160,0.25);border-radius:10px;">
+                  <span style="font-size:22px;">🌱</span>
+                  <div><div style="font-size:13px;font-weight:600;color:var(--success);">Plan Free</div>
+                  <div style="font-size:11px;color:var(--text3);">Gratis para siempre · Sin restricciones básicas</div></div>
                 </div>`;
-                html += `<div style="font-size:11px;color:var(--text2);margin-bottom:12px;">Todas las funciones están habilitadas durante el período de prueba.</div>`;
-              } else {
-                const restantes = getTrialVentasRestantes();
-                html += `<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;padding:9px 12px;background:rgba(224,112,112,0.1);border:0.5px solid rgba(224,112,112,0.3);border-radius:10px;">
-                  <span style="font-size:22px;">🔒</span>
-                  <div><div style="font-size:13px;font-weight:600;color:var(--danger);">Prueba finalizada</div>
-                  <div style="font-size:11px;color:var(--text3);">Podés registrar <strong style="color:var(--warn);">${restantes} venta${restantes !== 1 ? "s" : ""} más</strong> en modo limitado</div></div>
-                </div>`;
-                html += `<div style="font-size:11px;color:var(--text2);margin-bottom:12px;">Tus datos están intactos. Activá la licencia para seguir sin restricciones.</div>`;
-              }
-              html += `<button onclick="abrirModalActivacion()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.3px;">🔑 Activar licencia</button>`;
+                html += `<div style="font-size:11px;color:var(--text2);margin-bottom:12px;">Tenés acceso completo a las funciones del plan Free. Para desbloquear recordatorios automáticos, estadísticas avanzadas y más, activá el plan Básico Pro.</div>`;
+              html += `<button onclick="abrirModalActivacion()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.3px;">⭐ Activar Básico Pro</button>`;
             } else {
               html += `<div>Estado: <span style="color:var(--text3);">Sin inicializar</span></div>`;
             }
@@ -14870,7 +14838,12 @@
         trackEvent("onboarding_paso_2_completado");
       }
 
-      function obSaltar() {
+      function obSaltarPedir() {
+        var warn = document.getElementById("ob-saltar-warn");
+        var btn = warn && warn.nextElementSibling;
+        if (warn) warn.style.display = warn.style.display === "none" ? "block" : "none";
+      }
+      function obSaltarFinal() {
         localStorage.setItem("pt_onboarding_done", "1");
         localStorage.removeItem("pt_ob_step");
         var el = document.getElementById("modal-onboarding");
@@ -16501,12 +16474,12 @@
           ctx.fillText(pieFinal, W / 2, footerY + 22);
         }
 
-        // Marca de agua sutil
+        // Marca de agua con URL — canal de adquisición viral
         ctx.textAlign = "center";
         ctx.fillStyle =
-          catTema === "dark" ? "rgba(201,168,76,0.25)" : "rgba(160,120,48,0.2)";
-        ctx.font = `300 9px 'DM Sans', Arial, sans-serif`;
-        ctx.fillText("Parfum Track", W / 2, H - 8);
+          catTema === "dark" ? "rgba(201,168,76,0.4)" : "rgba(140,100,30,0.35)";
+        ctx.font = `500 10px 'DM Sans', Arial, sans-serif`;
+        ctx.fillText("✦ Parfum Track · parfumtrack.pages.dev", W / 2, H - 8);
 
         loading.style.display = "none";
       }
@@ -17434,8 +17407,15 @@
           >
             Empezar →
           </button>
+          <div id="ob-saltar-warn" style="display:none;margin-top:10px;background:rgba(224,112,112,0.08);border:1px solid rgba(224,112,112,0.25);border-radius:8px;padding:10px 12px;font-size:12px;color:#e07070;line-height:1.5;">
+            ⚠️ Sin email no podrás recuperar tu cuenta ni sincronizar tus datos entre dispositivos.
+            <br>
+            <button onclick="obSaltarFinal()" style="margin-top:8px;background:none;border:none;color:#b05050;font-size:11px;cursor:pointer;text-decoration:underline;font-family:inherit;">
+              Entendí, continuar sin email →
+            </button>
+          </div>
           <button
-            onclick="obSaltar()"
+            onclick="obSaltarPedir()"
             style="
               margin-top: 10px;
               background: none;
@@ -17862,11 +17842,11 @@
             margin-bottom: 14px;
           "
         >
-          <!-- STARTER -->
+          <!-- FREE -->
           <div
             class="pricing-tier"
-            data-tier="starter"
-            data-msg="Hola! Quiero el plan Starter de Parfum Track 🍶"
+            data-tier="free"
+            data-msg="Hola! Estoy usando el plan Free de Parfum Track 🍶"
             onclick="_selectTier(this)"
             style="
               background: var(--card);
@@ -17890,7 +17870,7 @@
               <div
                 style="font-size: 14px; font-weight: 600; color: var(--text)"
               >
-                🌱 Starter
+                🌱 Free
               </div>
               <div>
                 <span
@@ -17898,39 +17878,26 @@
                     font-family: &quot;Cormorant Garamond&quot;, serif;
                     font-size: 20px;
                     font-weight: 700;
-                    color: var(--gold2);
-                  "
-                >
-                  $5
-                </span>
-                <span style="font-size: 11px; color: var(--text3)">/mes</span>
-                <span
-                  style="
-                    font-size: 10px;
-                    background: rgba(112, 201, 160, 0.18);
                     color: var(--success);
-                    border-radius: 10px;
-                    padding: 1px 7px;
-                    margin-left: 6px;
-                    font-weight: 600;
                   "
                 >
-                  Anual: $39 🔥
+                  $0
                 </span>
+                <span style="font-size: 11px; color: var(--text3)">/siempre</span>
               </div>
             </div>
             <div style="font-size: 11px; color: var(--text3); line-height: 1.7">
-              ✓ 1 perfil · ✓ Ventas ilimitadas · ✓ Stock básico
+              ✓ Ventas ilimitadas · ✓ Stock básico · ✓ Cobros WA
               <br />
-              ✓ Backup manual · ✓ Catálogo WhatsApp
+              ✓ Ganancia visible · ✓ Offline
             </div>
           </div>
 
-          <!-- PRO (destacado — ancla psicológica) -->
+          <!-- BÁSICO PRO (destacado — ancla psicológica) -->
           <div
             class="pricing-tier tier-selected"
-            data-tier="pro"
-            data-msg="Hola! Quiero el plan Pro de Parfum Track 🍶"
+            data-tier="basic"
+            data-msg="Hola! Quiero activar el plan Básico Pro de Parfum Track 🍶"
             onclick="_selectTier(this)"
             style="
               background: linear-gradient(
@@ -17977,7 +17944,7 @@
               <div
                 style="font-size: 14px; font-weight: 600; color: var(--gold2)"
               >
-                ⭐ Pro
+                ⭐ Básico Pro
               </div>
               <div>
                 <span
@@ -17988,7 +17955,7 @@
                     color: var(--gold2);
                   "
                 >
-                  $12
+                  $9.99
                 </span>
                 <span style="font-size: 11px; color: var(--text3)">/mes</span>
                 <span
@@ -18002,22 +17969,22 @@
                     font-weight: 600;
                   "
                 >
-                  Anual: $99 🔥
+                  Anual: $7.99/mes 🔥
                 </span>
               </div>
             </div>
             <div style="font-size: 11px; color: var(--text2); line-height: 1.7">
-              ✓ Todo Starter + ✓ 3 perfiles · ✓ Análisis avanzado
+              ✓ Todo Free + ✓ Recordatorios WA · ✓ Stats avanzadas
               <br />
-              ✓ Backup automático · ✓ PDF recibos · ✓ Notificaciones push
+              ✓ Catálogo WA · ✓ Segmentación · ✓ Soporte prioritario
             </div>
           </div>
 
-          <!-- BUSINESS -->
+          <!-- PRO -->
           <div
             class="pricing-tier"
-            data-tier="business"
-            data-msg="Hola! Quiero el plan Business de Parfum Track 🍶"
+            data-tier="pro"
+            data-msg="Hola! Quiero saber más sobre el plan Pro de Parfum Track 🍶"
             onclick="_selectTier(this)"
             style="
               background: var(--card);
@@ -18025,6 +17992,7 @@
               border-radius: var(--radius);
               padding: 14px 16px;
               cursor: pointer;
+              opacity: 0.7;
               transition:
                 border-color 0.2s,
                 background 0.2s;
@@ -18041,7 +18009,7 @@
               <div
                 style="font-size: 14px; font-weight: 600; color: var(--text)"
               >
-                🏆 Business
+                🚧 Pro
               </div>
               <div>
                 <span
@@ -18052,28 +18020,28 @@
                     color: var(--gold2);
                   "
                 >
-                  $25
+                  $19.99
                 </span>
                 <span style="font-size: 11px; color: var(--text3)">/mes</span>
                 <span
                   style="
                     font-size: 10px;
-                    background: rgba(112, 201, 160, 0.18);
-                    color: var(--success);
+                    background: rgba(201,168,76,0.15);
+                    color: var(--gold2);
                     border-radius: 10px;
                     padding: 1px 7px;
                     margin-left: 6px;
                     font-weight: 600;
                   "
                 >
-                  Anual: $199 🔥
+                  Próximamente
                 </span>
               </div>
             </div>
             <div style="font-size: 11px; color: var(--text3); line-height: 1.7">
-              ✓ Todo Pro + ✓ Perfiles ilimitados · ✓ Exportar Excel
+              ✓ Todo Básico Pro + ✓ Excel · ✓ Múltiples perfiles
               <br />
-              ✓ Soporte prioritario · ✓ Funciones beta anticipadas
+              ✓ Backup nube · ✓ Sync multi-dispositivo
             </div>
           </div>
         </div>
@@ -18134,12 +18102,12 @@
                     style="
                       padding: 7px 6px;
                       text-align: center;
-                      color: var(--text3);
+                      color: var(--success);
                       font-weight: 600;
                       border-bottom: 0.5px solid var(--border);
                     "
                   >
-                    🌱
+                    Free
                   </th>
                   <th
                     style="
@@ -18150,7 +18118,7 @@
                       border-bottom: 0.5px solid var(--border);
                     "
                   >
-                    ⭐
+                    Básico Pro
                   </th>
                   <th
                     style="
@@ -18161,80 +18129,37 @@
                       border-bottom: 0.5px solid var(--border);
                     "
                   >
-                    🏆
+                    Pro 🚧
                   </th>
                 </tr>
               </thead>
               <tbody>
                 <tr style="border-bottom: 0.5px solid var(--border)">
                   <td style="padding: 6px 8px; color: var(--text2)">
-                    Perfiles
-                  </td>
-                  <td style="text-align: center; color: var(--text)">1</td>
-                  <td
-                    style="
-                      text-align: center;
-                      color: var(--gold2);
-                      font-weight: 600;
-                    "
-                  >
-                    3
-                  </td>
-                  <td style="text-align: center; color: var(--text)">∞</td>
-                </tr>
-                <tr
-                  style="
-                    border-bottom: 0.5px solid var(--border);
-                    background: var(--card);
-                  "
-                >
-                  <td style="padding: 6px 8px; color: var(--text2)">
                     Ventas ilimitadas
                   </td>
-                  <td style="text-align: center">✓</td>
+                  <td style="text-align: center; color: var(--success)">✓</td>
+                  <td style="text-align: center; color: var(--gold2); font-weight: 600">✓</td>
+                  <td style="text-align: center; color: var(--text)">✓</td>
+                </tr>
+                <tr style="border-bottom: 0.5px solid var(--border); background: var(--card);">
+                  <td style="padding: 6px 8px; color: var(--text2)">
+                    Stock y cobros
+                  </td>
+                  <td style="text-align: center; color: var(--success)">✓</td>
                   <td style="text-align: center; color: var(--gold2)">✓</td>
                   <td style="text-align: center">✓</td>
                 </tr>
                 <tr style="border-bottom: 0.5px solid var(--border)">
                   <td style="padding: 6px 8px; color: var(--text2)">
-                    Catálogo WhatsApp
-                  </td>
-                  <td style="text-align: center">✓</td>
-                  <td style="text-align: center; color: var(--gold2)">✓</td>
-                  <td style="text-align: center">✓</td>
-                </tr>
-                <tr
-                  style="
-                    border-bottom: 0.5px solid var(--border);
-                    background: var(--card);
-                  "
-                >
-                  <td style="padding: 6px 8px; color: var(--text2)">Backup</td>
-                  <td style="text-align: center; color: var(--text3)">
-                    Manual
-                  </td>
-                  <td style="text-align: center; color: var(--gold2)">Auto</td>
-                  <td style="text-align: center; color: var(--success)">
-                    Auto
-                  </td>
-                </tr>
-                <tr style="border-bottom: 0.5px solid var(--border)">
-                  <td style="padding: 6px 8px; color: var(--text2)">
-                    PDF recibos
+                    Recordatorios WA
                   </td>
                   <td style="text-align: center; color: var(--border2)">—</td>
                   <td style="text-align: center; color: var(--gold2)">✓</td>
                   <td style="text-align: center">✓</td>
                 </tr>
-                <tr
-                  style="
-                    border-bottom: 0.5px solid var(--border);
-                    background: var(--card);
-                  "
-                >
-                  <td style="padding: 6px 8px; color: var(--text2)">
-                    Notificaciones push
-                  </td>
+                <tr style="border-bottom: 0.5px solid var(--border); background: var(--card);">
+                  <td style="padding: 6px 8px; color: var(--text2)">Stats avanzadas</td>
                   <td style="text-align: center; color: var(--border2)">—</td>
                   <td style="text-align: center; color: var(--gold2)">✓</td>
                   <td style="text-align: center">✓</td>
@@ -18247,24 +18172,39 @@
                   <td style="text-align: center; color: var(--border2)">—</td>
                   <td style="text-align: center; color: var(--success)">✓</td>
                 </tr>
+                <tr style="border-bottom: 0.5px solid var(--border); background: var(--card);">
+                  <td style="padding: 6px 8px; color: var(--text2)">
+                    Múltiples perfiles
+                  </td>
+                  <td style="text-align: center; color: var(--border2)">—</td>
+                  <td style="text-align: center; color: var(--border2)">—</td>
+                  <td style="text-align: center; color: var(--success)">✓</td>
+                </tr>
                 <tr>
                   <td style="padding: 6px 8px; color: var(--text2)">Soporte</td>
-                  <td style="text-align: center; color: var(--text3)">
-                    Normal
-                  </td>
-                  <td style="text-align: center; color: var(--gold2)">
-                    Normal
-                  </td>
-                  <td style="text-align: center; color: var(--success)">
-                    Prioritario
-                  </td>
+                  <td style="text-align: center; color: var(--text3)">Básico</td>
+                  <td style="text-align: center; color: var(--gold2)">Prioritario</td>
+                  <td style="text-align: center; color: var(--success)">Preferencial</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        <!-- CTA: botón WA dinámico según tier seleccionado -->
+        <!-- Email para checkout MP (visible solo cuando Básico Pro está seleccionado) -->
+        <div id="mp-email-section" style="margin-bottom:10px;">
+          <input
+            id="mp-email-paywall"
+            type="email"
+            placeholder="Tu email para recibir el código"
+            autocomplete="email"
+            onkeydown="if(event.key==='Enter')_consultarPlanSeleccionado()"
+            style="width:100%;padding:10px 14px;background:var(--bg3);border:1.5px solid rgba(201,168,76,0.3);border-radius:10px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;margin-bottom:4px;"
+          />
+          <p id="mp-paywall-error" style="font-size:11px;color:var(--danger);min-height:14px;"></p>
+        </div>
+
+        <!-- CTA: botón dinámico según tier seleccionado -->
         <button
           id="tier-wa-btn"
           onclick="_consultarPlanSeleccionado()"
@@ -18287,10 +18227,10 @@
           "
         >
           📲 Quiero el plan
-          <span id="tier-btn-label">Pro</span>
+          <span id="tier-btn-label">Básico Pro</span>
         </button>
         <span id="tier-wa-msg" style="display: none"
-          >Hola! Quiero el plan Pro de Parfum Track 🍶</span
+          >Hola! Quiero activar el plan Básico Pro de Parfum Track 🍶</span
         >
 
         <!-- Separador con código -->
@@ -18408,7 +18348,7 @@
           ¡Bienvenida a Parfum Track!
         </h3>
         <p style="font-size: 12px; color: var(--text3); margin-bottom: 18px">
-          7 días de prueba gratuita · Todas las funciones
+          Plan Free — gratis para siempre · Sin tarjeta
         </p>
 
         <!-- 3 features clave -->

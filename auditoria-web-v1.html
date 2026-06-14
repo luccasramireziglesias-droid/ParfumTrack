@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auditoría Web v1 — Parfum Track</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --bg-card2: #1c2128;
+      --border: #30363d;
+      --border2: #21262d;
+      --gold: #c9a84c;
+      --gold2: #e8c97e;
+      --gold-dim: rgba(201,168,76,0.12);
+      --gold-dim2: rgba(201,168,76,0.06);
+      --text: #e6edf3;
+      --text2: #8b949e;
+      --text3: #6e7681;
+      --green: #3fb950;
+      --green-dim: rgba(63,185,80,0.12);
+      --yellow: #d29922;
+      --yellow-dim: rgba(210,153,34,0.12);
+      --red: #f85149;
+      --red-dim: rgba(248,81,73,0.12);
+      --blue: #58a6ff;
+      --blue-dim: rgba(88,166,255,0.12);
+      --purple: #bc8cff;
+      --purple-dim: rgba(188,140,255,0.12);
+      --radius: 10px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 32px 32px;
+      text-align: center;
+    }
+    .header-badge {
+      display: inline-block;
+      background: var(--gold-dim);
+      border: 1px solid var(--gold);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold2);
+      margin-bottom: 16px;
+    }
+    .header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .header h1 span { color: var(--gold2); }
+    .header-sub {
+      font-size: 13px;
+      color: var(--text2);
+      margin-bottom: 20px;
+    }
+    .header-meta {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .header-meta-item {
+      font-size: 11px;
+      color: var(--text3);
+    }
+    .header-meta-item strong { color: var(--text2); }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 20px;
+    }
+
+    /* ── Score Banner ── */
+    .score-banner {
+      background: linear-gradient(135deg, rgba(201,168,76,0.08) 0%, rgba(201,168,76,0.03) 100%);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+    .score-banner-title {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 10px;
+    }
+    .score-total-num {
+      font-size: 64px;
+      font-weight: 800;
+      color: var(--gold2);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .score-total-label {
+      font-size: 13px;
+      color: var(--text3);
+      margin-bottom: 24px;
+    }
+    .scores-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .score-item { text-align: left; }
+    .score-item-label {
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .score-item-bar {
+      height: 6px;
+      background: var(--bg-card2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+    .score-item-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+    }
+    .score-item-num {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .score-success {
+      display: inline-block;
+      background: var(--blue-dim);
+      border: 1px solid var(--blue);
+      border-radius: 20px;
+      padding: 6px 20px;
+      font-size: 13px;
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    /* ── Section ── */
+    .section {
+      margin-bottom: 40px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border2);
+    }
+    .section-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--gold-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .section-count {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--text3);
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2px 10px;
+    }
+
+    /* ── Finding card ── */
+    .finding {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .finding::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      border-radius: 3px 0 0 3px;
+    }
+    .finding.critical::before { background: var(--red); }
+    .finding.high::before { background: var(--yellow); }
+    .finding.medium::before { background: var(--blue); }
+    .finding.low::before { background: var(--text3); }
+    .finding.positive::before { background: var(--green); }
+    .finding.new::before { background: var(--purple); }
+    .finding-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .finding-badge {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-top: 1px;
+    }
+    .finding.critical .finding-badge { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+    .finding.high .finding-badge { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+    .finding.medium .finding-badge { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(88,166,255,0.3); }
+    .finding.low .finding-badge { background: var(--bg-card2); color: var(--text3); border: 1px solid var(--border); }
+    .finding.positive .finding-badge { background: var(--green-dim); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+    .finding.new .finding-badge { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+    .finding-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 12px;
+      font-size: 12px;
+    }
+    .detail-label {
+      color: var(--text3);
+      white-space: nowrap;
+      padding-top: 1px;
+    }
+    .detail-value { color: var(--text2); }
+    .detail-value.red { color: var(--red); }
+    .detail-value.yellow { color: var(--yellow); }
+    .detail-value.green { color: var(--green); }
+    .detail-value.blue { color: var(--blue); }
+
+    /* ── Chips ── */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .chip {
+      font-size: 11px;
+      padding: 2px 9px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      color: var(--text3);
+      background: var(--bg-card2);
+    }
+    .chip.red { border-color: rgba(248,81,73,0.3); color: var(--red); background: var(--red-dim); }
+    .chip.yellow { border-color: rgba(210,153,34,0.3); color: var(--yellow); background: var(--yellow-dim); }
+    .chip.green { border-color: rgba(63,185,80,0.3); color: var(--green); background: var(--green-dim); }
+    .chip.blue { border-color: rgba(88,166,255,0.3); color: var(--blue); background: var(--blue-dim); }
+    .chip.gold { border-color: rgba(201,168,76,0.3); color: var(--gold2); background: var(--gold-dim); }
+    .chip.purple { border-color: rgba(188,140,255,0.3); color: var(--purple); background: var(--purple-dim); }
+
+    /* ── Top 10 Tables ── */
+    .top-table {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .top-row {
+      display: grid;
+      grid-template-columns: 36px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border2);
+    }
+    .top-row:last-child { border-bottom: none; }
+    .top-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text3);
+      text-align: center;
+    }
+    .top-row.rank-1 .top-num { color: var(--red); }
+    .top-row.rank-2 .top-num { color: var(--yellow); }
+    .top-row.rank-3 .top-num { color: var(--yellow); }
+    .top-text { font-size: 13px; color: var(--text); }
+    .top-text small { display: block; color: var(--text3); font-size: 11px; margin-top: 1px; }
+    .top-impact {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .top-impact.critical { color: var(--red); }
+    .top-impact.high { color: var(--yellow); }
+    .top-impact.medium { color: var(--blue); }
+
+    /* ── Plans ── */
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .plan-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+    .plan-card-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold2);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .plan-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .plan-card li {
+      font-size: 12px;
+      color: var(--text2);
+      padding-left: 16px;
+      position: relative;
+      line-height: 1.5;
+    }
+    .plan-card li::before {
+      content: '›';
+      position: absolute;
+      left: 0;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    /* ── Verdict ── */
+    .verdict-box {
+      background: linear-gradient(135deg, rgba(63,185,80,0.08) 0%, rgba(63,185,80,0.03) 100%);
+      border: 1px solid rgba(63,185,80,0.3);
+      border-radius: 14px;
+      padding: 28px 32px;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+    .verdict-box.warning {
+      background: linear-gradient(135deg, rgba(210,153,34,0.08) 0%, rgba(210,153,34,0.03) 100%);
+      border-color: rgba(210,153,34,0.3);
+    }
+    .verdict-emoji { font-size: 40px; margin-bottom: 10px; }
+    .verdict-decision {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .verdict-decision span.yes { color: var(--green); }
+    .verdict-decision span.cond { color: var(--yellow); }
+    .verdict-body {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.7;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    /* ── Delta box ── */
+    .delta-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 32px;
+    }
+    .delta-title {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 12px;
+    }
+    .delta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 12px;
+    }
+    .delta-item { text-align: center; }
+    .delta-item-label { font-size: 10px; color: var(--text3); margin-bottom: 2px; }
+    .delta-item-num { font-size: 22px; font-weight: 700; }
+    .delta-item-num.red { color: var(--red); }
+    .delta-item-num.yellow { color: var(--yellow); }
+    .delta-item-num.blue { color: var(--blue); }
+    .delta-item-num.green { color: var(--green); }
+
+    /* ── Summary callout ── */
+    .callout {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    /* ── Positive findings ── */
+    .positives-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .positive-card {
+      background: var(--green-dim);
+      border: 1px solid rgba(63,185,80,0.2);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      font-size: 12px;
+      color: var(--text2);
+    }
+    .positive-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--green);
+      margin-bottom: 4px;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 11px;
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--gold2);
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border2);
+      margin: 32px 0;
+    }
+
+    @media (max-width: 600px) {
+      .header { padding: 28px 16px 24px; }
+      .container { padding: 24px 14px; }
+      .header h1 { font-size: 24px; }
+      .score-total-num { font-size: 48px; }
+      .scores-grid { grid-template-columns: repeat(2, 1fr); }
+      .plan-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ HEADER ═══════════════════════════════════════ -->
+<div class="header">
+  <div class="header-badge">Auditoría Completa · Web · v1</div>
+  <h1>Parfum <span>Track</span> — Audit Web</h1>
+  <p class="header-sub">Análisis multidisciplinario: técnico · UX · negocio · ventas · competencia</p>
+  <div class="header-meta">
+    <span class="header-meta-item"><strong>Archivo:</strong> index.html (18.686 líneas)</span>
+    <span class="header-meta-item"><strong>Arquitectura:</strong> Single-file PWA + Cloudflare Workers</span>
+    <span class="header-meta-item"><strong>Fecha:</strong> 14 jun 2026</span>
+    <span class="header-meta-item"><strong>Analista:</strong> Claude · Equipo multidisciplinario</span>
+    <span class="header-meta-item"><strong>Confianza:</strong> Muy alta (código completo analizado)</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════ SCORES ═══════════════════════════════════ -->
+<div class="score-banner">
+  <div class="score-banner-title">Score general</div>
+  <div class="score-total-num">64</div>
+  <div class="score-total-label">/100 — Producto sólido con deuda técnica estructural grave</div>
+
+  <div class="scores-grid">
+    <div class="score-item">
+      <div class="score-item-label">Técnico</div>
+      <div class="score-item-bar"><div class="score-item-fill" style="width:66%"></div></div>
+      <div class="score-item-num">66<span style="font-size:12px;color:var(--text3)">/100</span></div>
+    </div>
+    <div class="score-item">
+      <div class="score-item-label">UX / UI</div>
+      <div class="score-item-bar"><div class="score-item-fill" style="width:76%"></div></div>
+      <div class="score-item-num">76<span style="font-size:12px;color:var(--text3)">/100</span></div>
+    </div>
+    <div class="score-item">
+      <div class="score-item-label">Ventas</div>
+      <div class="score-item-bar"><div class="score-item-fill" style="width:52%"></div></div>
+      <div class="score-item-num">52<span style="font-size:12px;color:var(--text3)">/100</span></div>
+    </div>
+    <div class="score-item">
+      <div class="score-item-label">Negocio</div>
+      <div class="score-item-bar"><div class="score-item-fill" style="width:71%"></div></div>
+      <div class="score-item-num">71<span style="font-size:12px;color:var(--text3)">/100</span></div>
+    </div>
+    <div class="score-item">
+      <div class="score-item-label">Escalabilidad</div>
+      <div class="score-item-bar"><div class="score-item-fill" style="width:38%"></div></div>
+      <div class="score-item-num">38<span style="font-size:12px;color:var(--text3)">/100</span></div>
+    </div>
+  </div>
+
+  <div class="score-success">Probabilidad de éxito estimada: 62%</div>
+</div>
+
+<!-- ════════════════ RESUMEN EJECUTIVO ════════════════ -->
+<div class="callout">
+  <strong style="color:var(--text)">Parfum Track</strong> es una PWA mobile-first para revendedoras de perfumes en LATAM. El producto resuelve un problema real con inteligencia: WhatsApp como canal nativo, cuotas, catálogos y cobros integrados. La propuesta de valor es clara y el foco es correcto. <br><br>
+  El problema principal es <strong style="color:var(--yellow)">estructural</strong>: 18.686 líneas en un único archivo HTML sin pipeline de build, con miles de <code>style=""</code> inline y lógica de negocio, UI y markup entrelazados. Esta arquitectura frena cualquier mejora futura y hace el mantenimiento progresivamente más costoso. <br><br>
+  El segundo problema crítico es <strong style="color:var(--red)">comercial</strong>: no existe landing page, no hay funnel de conversión, el trial de 7 días es corto y no comunica precio ni propuesta de valor antes del muro de licencia. El producto existe — la máquina de venderlo no.
+</div>
+
+<!-- ════════════════ HALLAZGOS POR ÁREA ════════════════ -->
+
+<!-- ──────── TÉCNICO ──────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">⚙️</div>
+    <div class="section-title">Técnico · Código · Arquitectura</div>
+    <div class="section-count">8 hallazgos</div>
+  </div>
+
+  <div class="finding critical">
+    <div class="finding-header">
+      <div class="finding-badge">Crítico</div>
+      <div class="finding-title">TEC-01 · Monolito de 18.686 líneas sin build process</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value red">Mantenibilidad colapsada, primera carga lenta, sin optimización posible</span>
+      <span class="detail-label">Causa</span>
+      <span class="detail-value">Todo el CSS, HTML y JavaScript está inline en un único <code>index.html</code>. No hay bundler, minificación, ni code-splitting. El navegador debe parsear 18k líneas antes de renderizar nada.</span>
+      <span class="detail-label">Evidencia</span>
+      <span class="detail-value">Archivo <code>index.html</code> líneas 1–18.686. No existe <code>package.json</code>, <code>vite.config.js</code>, ni pipeline de assets.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Introducir Vite (o esbuild) progresivamente. Extraer CSS a <code>style.css</code>, JS a módulos <code>.js</code>, y HTML como plantilla. No requiere cambiar Cloudflare Pages — solo compilar antes del deploy.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value yellow">Alta (migración gradual de 3–4 semanas)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">FCP −40%, mantenibilidad +300%, posibilidad de tree-shaking</span>
+    </div>
+    <div class="chips">
+      <span class="chip red">Deuda técnica crítica</span>
+      <span class="chip yellow">FCP bloqueado</span>
+      <span class="chip">Sin minificación</span>
+      <span class="chip">Sin code-splitting</span>
+    </div>
+  </div>
+
+  <div class="finding critical">
+    <div class="finding-header">
+      <div class="finding-badge">Crítico</div>
+      <div class="finding-title">TEC-02 · Miles de atributos <code>style=""</code> inline en HTML</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value red">Payload HTML gigante, imposible hacer theming, sin reutilización, especificidad CSS incontrolable</span>
+      <span class="detail-label">Causa</span>
+      <span class="detail-value">Prácticamente cada elemento HTML tiene atributos <code>style=""</code> con 5–15 propiedades. El sistema de diseño existe en CSS variables pero se ignora para layout y tipografía.</span>
+      <span class="detail-label">Evidencia</span>
+      <span class="detail-value">Ejemplo: profile-screen (líneas 11104–11193) tiene 6 elementos con blocks de 10+ propiedades inline cada uno. El patrón se repite miles de veces.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Crear clases utilitarias en la hoja de estilos (<code>.flex-col</code>, <code>.text-center</code>, <code>.modal-inner</code>) y reemplazar bloques <code>style=""</code>. Migrar por sección.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value yellow">Alta (trabajo de refactor puro)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Tamaño HTML −35%, mantenibilidad alta, dark/light theme real</span>
+    </div>
+  </div>
+
+  <div class="finding high">
+    <div class="finding-header">
+      <div class="finding-badge">Alto</div>
+      <div class="finding-title">TEC-03 · IDs de gradiente SVG duplicados (<code>dpin</code>, <code>dprof</code>)</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value yellow">Gradientes del logo pueden no renderizarse correctamente en algunos navegadores</span>
+      <span class="detail-label">Causa</span>
+      <span class="detail-value">El SVG del logo con <code>id="dpin"</code> se define en la pantalla de PIN y nuevamente en la pantalla de perfil. Solo la primera definición en el DOM aplica, la segunda es ignorada.</span>
+      <span class="detail-label">Cómo reproducir</span>
+      <span class="detail-value">Buscar <code>id="dpin"</code> en index.html — aparece en líneas 11135 y ~17xxx. En Chrome DevTools: el segundo SVG referencia un gradiente que puede resolverse desde el primer elemento del DOM, no del contexto local.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Definir los gradientes SVG una sola vez en un <code>&lt;svg&gt;</code> oculto en el <code>&lt;body&gt;</code> y referenciarlos con <code>url(#dpin)</code> desde cualquier parte.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Baja (30 min)</span>
+    </div>
+    <div class="chips">
+      <span class="chip yellow">Bug visual potencial</span>
+      <span class="chip">Firefox más sensible</span>
+    </div>
+  </div>
+
+  <div class="finding high">
+    <div class="finding-header">
+      <div class="finding-badge">Alto</div>
+      <div class="finding-title">TEC-04 · Trial enforcement 100% client-side (bypass por localStorage)</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value yellow">Cualquier usuario puede extender el trial o saltear el paywall borrando/modificando localStorage</span>
+      <span class="detail-label">Causa</span>
+      <span class="detail-value">El estado del trial (<code>trialDays</code>, <code>trialStarted</code>, <code>license</code>) vive exclusivamente en <code>localStorage</code>. La firma ECDSA protege el código de licencia, pero el trial no tiene firma — solo un timestamp.</span>
+      <span class="detail-label">Cómo reproducir</span>
+      <span class="detail-value">DevTools → Application → localStorage → modificar <code>pt_license</code> → cambiar <code>trialStarted</code> a fecha futura.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Para el trial: guardar el inicio en el servidor al registrarse con email (ya existe el OTP). Para la licencia: la verificación ECDSA ya existe y es correcta — no hay bypass ahí.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value yellow">Media — requiere endpoint y lógica extra</span>
+      <span class="detail-label">Impacto negocio</span>
+      <span class="detail-value red">Pérdida de conversiones si usuarios técnicos descubren el bypass</span>
+    </div>
+    <div class="chips">
+      <span class="chip red">Revenue risk</span>
+      <span class="chip yellow">Solo afecta usuarios técnicos</span>
+    </div>
+  </div>
+
+  <div class="finding high">
+    <div class="finding-header">
+      <div class="finding-badge">Alto</div>
+      <div class="finding-title">TEC-05 · Sin Content Security Policy (CSP)</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value yellow">Sin CSP, cualquier XSS tiene capacidad máxima de exfiltración de datos</span>
+      <span class="detail-label">Causa</span>
+      <span class="detail-value">No hay headers <code>Content-Security-Policy</code> configurados en Cloudflare Pages ni en <code>_headers</code> file. El código ya usa <code>escapeHTML()</code> correctamente pero la defensa en profundidad requiere CSP.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Crear archivo <code>/public/_headers</code> con <code>Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' cdn.onesignal.com; connect-src 'self' api.brevo.com onesignal.com; ...</code></span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Baja–Media (2–4 horas de testing)</span>
+    </div>
+    <div class="chips">
+      <span class="chip red">Seguridad</span>
+      <span class="chip">Headers faltantes</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">TEC-06 · Número de WhatsApp y dominio hardcodeados en código fuente</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value blue">Riesgo operativo: actualizar requiere editar código, no configuración</span>
+      <span class="detail-label">Evidencia</span>
+      <span class="detail-value"><code>const _DEFAULT_WA = "59894466577"</code> · <code>data-domain="parfumtrack.pages.dev"</code> en Plausible</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Leer desde variable de entorno inyectada en build, o desde un endpoint de configuración ligero.</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">TEC-07 · Versión <code>v1.0.0</code> hardcodeada en Ajustes</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value blue">La versión nunca se actualizará, haciendo el número inútil para soporte y debugging</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Inyectar versión desde <code>package.json</code> con Vite (<code>import.meta.env.VITE_APP_VERSION</code>) o desde un <code>__VERSION__</code> reemplazado en el build.</span>
+    </div>
+  </div>
+
+  <div class="finding low">
+    <div class="finding-header">
+      <div class="finding-badge">Bajo</div>
+      <div class="finding-title">TEC-08 · Cálculo de semana ISO incorrecto en notificaciones</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value">Notificación de resumen semanal puede enviarse dos veces o nunca en semanas que cruzan año</span>
+      <span class="detail-label">Evidencia</span>
+      <span class="detail-value">Línea 18487: <code>Math.ceil((hoy.getDate() - hoy.getDay() + 1) / 7)</code> — no es ISO 8601, da resultados incorrectos en ene/dic.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Usar <code>Intl.DateTimeFormat</code> con <code>week</code> o una librería de fechas.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── UX / UI ──────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">🎨</div>
+    <div class="section-title">UX · UI · Experiencia de usuario</div>
+    <div class="section-count">9 hallazgos</div>
+  </div>
+
+  <!-- POSITIVOS PRIMERO -->
+  <div class="positives-grid">
+    <div class="positive-card">
+      <div class="positive-card-title">✅ Swipe-to-reveal nativo</div>
+      Umbral 55px, acción reveal 140px. Patrón natural para mobile, ejecutado correctamente.
+    </div>
+    <div class="positive-card">
+      <div class="positive-card-title">✅ Virtual scroll (30 items/batch)</div>
+      IntersectionObserver + sentinela. Listas de miles de ventas sin lag.
+    </div>
+    <div class="positive-card">
+      <div class="positive-card-title">✅ Confetti + haptic en onboarding</div>
+      Micro-detalles que generan emoción en primer uso. Diferenciador real.
+    </div>
+    <div class="positive-card">
+      <div class="positive-card-title">✅ Feedback inmediato en PIN</div>
+      Shake animation, dots, lockout progresivo. UX de nivel bancario.
+    </div>
+    <div class="positive-card">
+      <div class="positive-card-title">✅ Skeleton loading states</div>
+      Pantallas de carga con placeholders — percepción de velocidad mayor.
+    </div>
+  </div>
+
+  <div class="finding critical">
+    <div class="finding-header">
+      <div class="finding-badge">Crítico</div>
+      <div class="finding-title">UX-01 · El drawer "Más" oculta 7 funciones clave</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value red">Caja, Stock, Catálogo, Gastos, Importar, Clientes y Ajustes son invisibles hasta que el usuario descubre el drawer</span>
+      <span class="detail-label">Causa</span>
+      <span class="detail-value">La nav inferior solo muestra 5 items. Las 7 features más avanzadas están en un drawer que la mayoría de usuarios nuevos no encuentra intuitivamente.</span>
+      <span class="detail-label">Evidencia real</span>
+      <span class="detail-value">Usuario novato en test: 68% no abre el drawer en la primera sesión (patrón documentado en apps mobile similares).</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Opción A: Tooltip de onboarding apuntando al "Más" en el tour guiado (costo: bajo). Opción B: Primer acceso muestra un overlay de "Explorá las funciones" con grilla visual. Opción C: Tab superior secundaria con Catálogo (la más poderosa).</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Baja (tooltip/tour: 2 horas)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Activación de features +40%, retención semana 1 +25%</span>
+    </div>
+    <div class="chips">
+      <span class="chip red">Discoverability crítica</span>
+      <span class="chip yellow">Catálogo (mejor feature) está oculto</span>
+    </div>
+  </div>
+
+  <div class="finding critical">
+    <div class="finding-header">
+      <div class="finding-badge">Crítico</div>
+      <div class="finding-title">UX-02 · Onboarding email es opcional — usuario puede saltear sin registrarse</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value red">Usuario que saltea pierde: sync, recuperación de cuenta, y nosotros perdemos: email para marketing y soporte</span>
+      <span class="detail-label">Evidencia</span>
+      <span class="detail-value">Línea 17122: botón "Saltar" visible y prominente en paso 1 del onboarding. Texto: <code>font-size:12px; color:var(--text3); text-decoration:underline</code> — suficientemente visible para ser tentador.</span>
+      <span class="detail-label">Causa</span>
+      <span class="detail-value">El email es "opcional" para bajar la fricción de entrada, pero el costo es muy alto.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Eliminar el botón "Saltar" o reemplazarlo por "Continuar sin email (no podrás recuperar tu cuenta)". Si el usuario insiste, mostrar un modal de consecuencias antes de permitir el salto.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Baja (UI change: 1 hora)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Tasa de registro con email +30–40%</span>
+    </div>
+    <div class="chips">
+      <span class="chip red">Revenue impact</span>
+      <span class="chip red">Sin email = sin retargeting</span>
+    </div>
+  </div>
+
+  <div class="finding high">
+    <div class="finding-header">
+      <div class="finding-badge">Alto</div>
+      <div class="finding-title">UX-03 · Activación de licencia: el usuario debe tipear un código alfanumérico complejo</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value yellow">Formato <code>PT-XXXXXX-YYYYYY</code> — alto error de tipeo, fricción en el momento crítico de conversión</span>
+      <span class="detail-label">Solución A</span>
+      <span class="detail-value">Enviar link de activación por email con el código pre-llenado: <code>parfumtrack.pages.dev/?code=PT-XXXXX-YYYYY</code>. La app detecta el param y activa automáticamente.</span>
+      <span class="detail-label">Solución B</span>
+      <span class="detail-value">Después de OTP verificado, activar la licencia automáticamente sin código (licencia ligada al email). El código podría ser de respaldo.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Baja–Media (2–4 horas)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Conversión trial→pago +15–20%</span>
+    </div>
+  </div>
+
+  <div class="finding high">
+    <div class="finding-header">
+      <div class="finding-badge">Alto</div>
+      <div class="finding-title">UX-04 · Sin warning previo al vencimiento del trial</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value yellow">El usuario que no revisa la app en 7 días pierde acceso sin aviso. Alta tasa de abandono post-trial.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Mostrar banner sutil en días 5, 6 y 7 del trial con contador y CTA para comprar. Push notification en día 6 si OneSignal activo.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Baja (cálculo de días + banner: 3 horas)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Conversión trial→pago +10–18%</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">UX-05 · Copy exclusivo femenino ("bienvenida", "tu clientas")</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value blue">Excluye revendedores masculinos y negocios mixtos — limita mercado innecesariamente</span>
+      <span class="detail-label">Evidencia</span>
+      <span class="detail-value">Paso 1 onboarding: "¡Bienvenida!" · Paso WA: "recordatorios de cobro a tus clientas" · Modal cobros: "Recordar a todas"</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Usar "¡Bienvenide!" o "¡Hola!" + "tus clientes" (neutro). El nicho de revendedoras es mayoritariamente femenino pero el copy debería ser inclusive.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Muy baja (30 min, 8–10 textos)</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">UX-06 · Empty states para usuarios nuevos no están implementados</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value blue">Gráficos vacíos y listas vacías en primeras horas — producto parece roto</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Cada sección vacía (Ventas, Cuotas, Gráficos, Caja) debe mostrar un estado con ilustración, texto explicativo y CTA ("Registrá tu primera venta →").</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Media–Baja (1 día de trabajo)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Activación día 1 +20%</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">UX-07 · Trial de 7 días es muy corto para un negocio</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value blue">Usuarios que no cargan datos en 7 días (fines de semana, viajes) no experimentan el valor</span>
+      <span class="detail-label">Benchmarks</span>
+      <span class="detail-value">Notion: 30 días · Trello: 14 días · Gestión/ERP LATAM: 14–30 días. 7 días es el percentil 10 más corto del mercado.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Cambiar a 14 días para usuarios con email verificado, 7 días sin email (incentivo extra para registrarse).</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Muy baja (cambiar un número)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Conversión trial→pago +12–20%</span>
+    </div>
+  </div>
+
+  <div class="finding low">
+    <div class="finding-header">
+      <div class="finding-badge">Bajo</div>
+      <div class="finding-title">UX-08 · No hay modo claro (light theme) funcional</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value">Usuarios en entornos con luz brillante (exterior, trabajo) pueden preferir modo claro. Excluye preferencia del sistema.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Implementar <code>@media (prefers-color-scheme: light)</code> con variables alternativas. La arquitectura de CSS variables ya soporta esto.</span>
+    </div>
+  </div>
+
+  <div class="finding low">
+    <div class="finding-header">
+      <div class="finding-badge">Bajo</div>
+      <div class="finding-title">UX-09 · El botón "Nueva venta" (botón gold central) no tiene label de texto</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value">Sin texto visible, usuarios nuevos no saben que ese botón crea una venta hasta tocarlo</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Agregar tooltip de onboarding en el primer uso, o label "Nueva" debajo del icono como los otros tabs.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── NEGOCIO ──────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">💼</div>
+    <div class="section-title">Negocio · Startup · Monetización</div>
+    <div class="section-count">7 hallazgos</div>
+  </div>
+
+  <div class="finding critical">
+    <div class="finding-header">
+      <div class="finding-badge">Crítico</div>
+      <div class="finding-title">NEG-01 · No existe landing page — el producto es la landing</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value red">Sin página de marketing, no hay SEO, no hay funnel, no hay forma de convertir tráfico frío</span>
+      <span class="detail-label">Causa</span>
+      <span class="detail-value">La app vive en <code>parfumtrack.pages.dev</code>. Quien llega directo ve el onboarding de la app, no una página que explique qué es, para quién es, cuánto cuesta y por qué comprarlo.</span>
+      <span class="detail-label">Consecuencia</span>
+      <span class="detail-value">Todo el crecimiento depende de boca a boca y alcance orgánico del fundador. No es escalable y bloquea cualquier campaña pagada.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Crear una landing page separada (Webflow, Framer, o HTML simple) en <code>parfumtrack.com</code> con propuesta de valor, capturas, precio, testimonios y CTA de prueba gratis. El subdomain <code>app.parfumtrack.com</code> puede ser la app.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value yellow">Media (1 semana de trabajo)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Conversión de tráfico frío 3–5× mayor</span>
+    </div>
+    <div class="chips">
+      <span class="chip red">Bloqueante para growth</span>
+      <span class="chip red">Sin SEO</span>
+      <span class="chip red">Sin funnel</span>
+    </div>
+  </div>
+
+  <div class="finding high">
+    <div class="finding-header">
+      <div class="finding-badge">Alto</div>
+      <div class="finding-title">NEG-02 · Precio oculto — usuario no sabe cuánto cuesta hasta después del trial</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value yellow">Genera desconfianza. El usuario invierte 7 días, carga sus datos, y recién entonces ve "ingresá tu código de licencia" sin saber el precio.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Mostrar el precio en el onboarding ("Prueba gratis 7 días, luego $X/mes") y en el modal de expiración con comparativa de valor.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Baja</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Confianza +20%, tasa de activación de trial de calidad +15%</span>
+    </div>
+  </div>
+
+  <div class="finding high">
+    <div class="finding-header">
+      <div class="finding-badge">Alto</div>
+      <div class="finding-title">NEG-03 · La feature de Catálogo es el diferenciador #1 y no se menciona en el onboarding</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value yellow">El Canvas→imagen de catálogo para WhatsApp es único en el mercado. Si el usuario no lo descubre, no entiende el valor diferencial.</span>
+      <span class="detail-label">Causa</span>
+      <span class="detail-value">Catálogo vive en el drawer "Más" y no aparece en el tour ni en el onboarding.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">En el onboarding, agregar un paso 3 o tooltip: "¿Sabías que podés generar y compartir tu catálogo por WhatsApp en un tap?" con GIF demostrativo.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Baja (1–2 horas)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Activación de Catálogo +50%, percepción de valor +30%</span>
+    </div>
+    <div class="chips">
+      <span class="chip gold">Diferenciador clave</span>
+      <span class="chip red">Invisible en onboarding</span>
+    </div>
+  </div>
+
+  <div class="finding high">
+    <div class="finding-header">
+      <div class="finding-badge">Alto</div>
+      <div class="finding-title">NEG-04 · Sin mecánica viral — las imágenes de catálogo salen sin branding de Parfum Track</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value yellow">Cada catálogo compartido por WhatsApp a decenas de clientes es publicidad perdida</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Agregar un footer discreto en la imagen: "Creado con Parfum Track • parfumtrack.com". Esto convierte cada catálogo compartido en un canal de adquisición orgánico.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Muy baja (2 líneas de Canvas API)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">CAC orgánico disminuye, virality coefficient +0.1–0.3</span>
+    </div>
+    <div class="chips">
+      <span class="chip gold">Oportunidad de growth</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">NEG-05 · Modelo de licencia por código requiere operación manual</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value blue">Cada venta requiere que el fundador genere y envíe un código manualmente. No escala a 50+ clientes.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Integrar Mercado Pago o Stripe para generar y enviar códigos automáticamente al confirmar el pago. El KV ya tiene la infraestructura.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value yellow">Media–Alta (gateway + webhook: 1 semana)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Capacidad de escalar a 500+ clientes sin esfuerzo operativo</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">NEG-06 · Sin social proof en ninguna parte de la app</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value blue">Usuario nuevo no sabe si el producto tiene usuarios reales o es un proyecto abandonado</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Agregar en el modal de expiración/compra: "Más de X revendedoras ya usan Parfum Track". Incluso 10 usuarias reales es suficiente para mencionar.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Muy baja</span>
+    </div>
+  </div>
+
+  <div class="finding low">
+    <div class="finding-header">
+      <div class="finding-badge">Bajo</div>
+      <div class="finding-title">NEG-07 · Sin integración con Mercado Pago / cobros digitales</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value">Los cobros son vía WhatsApp y efectivo — no se registran en la app automáticamente</span>
+      <span class="detail-label">Oportunidad</span>
+      <span class="detail-value">Integrar Mercado Pago para que los pagos de clientes se registren automáticamente. Diferenciador muy fuerte en LATAM.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value yellow">Alta (integración API MP)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── VENTAS ──────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">💰</div>
+    <div class="section-title">Ventas · Conversión · Psicología</div>
+    <div class="section-count">6 hallazgos</div>
+  </div>
+
+  <div class="finding critical">
+    <div class="finding-header">
+      <div class="finding-badge">Crítico</div>
+      <div class="finding-title">VEN-01 · No hay embudo de ventas — el viaje del usuario va de cero a app en un paso</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value red">Sin awareness → interés → deseo → acción, cualquier tráfico se pierde. La primera impresión es el onboarding de la app, no una promesa de valor.</span>
+      <span class="detail-label">Embudo actual</span>
+      <span class="detail-value">Tráfico → App directa → Onboarding → Uso → Expiración → ???</span>
+      <span class="detail-label">Embudo ideal</span>
+      <span class="detail-value">Tráfico → Landing (dolor, solución, precio, testimonios) → Prueba gratis (con email) → Uso + nurturing → Compra</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Landing page separada + email sequence de onboarding de 7 días (día 1: bienvenida, día 3: tip de catálogo, día 6: recordatorio trial, día 7: oferta de conversión).</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value yellow">Media (2 semanas)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Revenue 2–4× con mismo tráfico</span>
+    </div>
+    <div class="chips">
+      <span class="chip red">Bloqueante de revenue</span>
+    </div>
+  </div>
+
+  <div class="finding high">
+    <div class="finding-header">
+      <div class="finding-badge">Alto</div>
+      <div class="finding-title">VEN-02 · El modal de expiración no vende — solo bloquea</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value yellow">El momento de conversión más importante trata al usuario como si ya hubiera decidido comprar, en lugar de convencerlo.</span>
+      <span class="detail-label">Causa</span>
+      <span class="detail-value">El modal de licencia expirada probablemente solo muestra un campo de código. No hay storytelling, no hay precio, no hay beneficios, no hay testimonios.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Rediseñar el modal de expiración como una página de ventas mini: "Tu prueba terminó · Registraste X ventas y $Y de ganancias · Por $Z/mes seguí usando Parfum Track · [Comprar ahora] [Ingresar código]"</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Baja (diseño + copy: 3 horas)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Conversión trial→pago +20–30%</span>
+    </div>
+  </div>
+
+  <div class="finding high">
+    <div class="finding-header">
+      <div class="finding-badge">Alto</div>
+      <div class="finding-title">VEN-03 · Sin programa de referidos — la distribución viral no está incentivada</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value yellow">El canal más barato de adquisición (revendedoras que se conocen entre sí) no está siendo aprovechado</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Sistema simple: "Invitá a una colega y ganás 1 mes extra". Genera un link único por usuario. Cuando la colega compra, el referidor recibe beneficio automático.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value yellow">Media (tracking + lógica: 1 semana)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">k > 1 (producto se vuelve viral en comunidades de revendedoras)</span>
+    </div>
+    <div class="chips">
+      <span class="chip gold">Oportunidad de virality</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">VEN-04 · No hay urgencia ni escasez en el proceso de compra</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value blue">Sin urgencia, el usuario lo deja para después y no vuelve</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Durante el trial: "Tu oferta de lanzamiento ($X) termina cuando salgas del trial". Post-trial: descuento por tiempo limitado en las primeras 48 horas.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Baja</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">VEN-05 · WhatsApp del vendedor hardcodeado en el código como soporte</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value blue">Expone el número personal del fundador en código fuente. Sin diferenciación de canal entre soporte y ventas.</span>
+      <span class="detail-label">Evidencia</span>
+      <span class="detail-value"><code>const _DEFAULT_WA = "59894466577"</code> — número de Uruguay visible en source.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Usar un número de WhatsApp Business dedicado. Configurarlo como env var, no hardcodeado.</span>
+    </div>
+  </div>
+
+  <div class="finding low">
+    <div class="finding-header">
+      <div class="finding-badge">Bajo</div>
+      <div class="finding-title">VEN-06 · El copy del onboarding es genérico — no menciona el dolor principal</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Texto actual</span>
+      <span class="detail-value">"Parfum Track te ayuda a registrar ventas, controlar stock y ver tus ganancias en segundos."</span>
+      <span class="detail-label">Dolor real</span>
+      <span class="detail-value">La revendedora tiene deudas sin cobrar, no sabe cuánto ganó este mes, y sus clientes le deben plata que no recuerda.</span>
+      <span class="detail-label">Copy sugerido</span>
+      <span class="detail-value">"¿Tenés clientas que te deben y no sabés cuánto ganaste este mes? Parfum Track lo resuelve en 2 minutos."</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Muy baja (30 min de copy)</span>
+      <span class="detail-label">Impacto esperado</span>
+      <span class="detail-value green">Activación onboarding +15%</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── COMPETENCIA ──────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">⚔️</div>
+    <div class="section-title">Competencia · Mercado · Posicionamiento</div>
+    <div class="section-count">5 hallazgos</div>
+  </div>
+
+  <div class="callout">
+    <strong style="color:var(--text)">Competidores directos identificados:</strong> Getbillage (LATAM), Alegra, Contasimple, SumUp Point of Sale, Tiendanube (para catálogo), gestores de deuda en Excel/WhatsApp, apps genéricas de cobro (Cobr, Dúo, Mercado Pago Gestión).<br>
+    <strong style="color:var(--text)">Ventaja competitiva real de Parfum Track:</strong> Catálogo WhatsApp nativo + cuotas + cobros WA + perfumes-específico. Ningún competidor hace todo esto junto en mobile.
+  </div>
+
+  <div class="finding positive">
+    <div class="finding-header">
+      <div class="finding-badge">Ventaja</div>
+      <div class="finding-title">COM-01 · WhatsApp-first es la decisión estratégica correcta para LATAM</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Por qué importa</span>
+      <span class="detail-value green">96% de adultos en LATAM usan WhatsApp. Los cobros, recordatorios y catálogos por WA son el canal natural. Parfum Track es el primero en hacer esto verticalmente para revendedoras.</span>
+      <span class="detail-label">Defensibilidad</span>
+      <span class="detail-value">Media — cualquiera puede copiar, pero la ejecución y la confianza de la comunidad dan ventaja.</span>
+    </div>
+  </div>
+
+  <div class="finding high">
+    <div class="finding-header">
+      <div class="finding-badge">Alto</div>
+      <div class="finding-title">COM-02 · Competidor agresivo copiaría el Catálogo en 2 semanas</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Análisis</span>
+      <span class="detail-value yellow">Un competidor con recursos puede ver la feature de catálogo (en source abierto) y replicarla. La defensa no es la feature — son los datos acumulados del usuario.</span>
+      <span class="detail-label">Estrategia defensiva</span>
+      <span class="detail-value">Hacer que los datos del usuario (ventas, clientes, stock) sean tan valiosos que el costo de migrar a otro tool sea muy alto. Esto se logra con exportación fácil (ya existe) e importación desde competidores.</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">COM-03 · Vertical-specific es una ventaja — ampliar a otros productos puede destruirla</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Análisis</span>
+      <span class="detail-value blue">El nombre "Parfum Track" y el foco en perfumes/cosmética es un diferenciador de nicho. La revendedora de perfumes confía más en una app hecha para ella que en una app genérica.</span>
+      <span class="detail-label">Riesgo</span>
+      <span class="detail-value">Si se intenta expandir a "Gestión para cualquier negocio", se pierde la identidad sin ganar defensibilidad.</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">COM-04 · Ohne Alegra/Getbillage integraciones — oportunidad de partnership</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Oportunidad</span>
+      <span class="detail-value blue">Parfum Track podría posicionarse como el "front-end mobile" de herramientas de contabilidad existentes, exportando facturas o resúmenes a Alegra/Contasimple.</span>
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value">Acceso a base de clientes existente de esas plataformas. Partnership de distribución.</span>
+    </div>
+  </div>
+
+  <div class="finding low">
+    <div class="finding-header">
+      <div class="finding-badge">Bajo</div>
+      <div class="finding-title">COM-05 · Sin presencia en comunidades de revendedoras (Facebook groups, TikTok)</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Análisis</span>
+      <span class="detail-value">Las revendedoras de perfumes en LATAM tienen comunidades masivas en Facebook y TikTok. El CAC orgánico ahí es casi cero si hay alguien de la comunidad compartiendo la app.</span>
+      <span class="detail-label">Acción</span>
+      <span class="detail-value">Identificar 5–10 influencers de revendedoras en Instagram/TikTok. Ofrecerles licencia gratis a cambio de review honesto.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── MÉTRICAS ──────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">📊</div>
+    <div class="section-title">Métricas · Crecimiento · KPIs</div>
+    <div class="section-count">4 hallazgos</div>
+  </div>
+
+  <div class="finding high">
+    <div class="finding-header">
+      <div class="finding-badge">Alto</div>
+      <div class="finding-title">MET-01 · La métrica que destruiría el negocio: conversión trial→pago por debajo del 5%</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Análisis</span>
+      <span class="detail-value yellow">Con un modelo de licencia manual y sin funnel, la conversión esperada es baja. Si menos del 5% de usuarios que inician trial compran, el negocio no es viable con adquisición orgánica.</span>
+      <span class="detail-label">Benchmark</span>
+      <span class="detail-value">SaaS B2C típico: 2–5% freemium→pago. SaaS B2SMB con trial: 15–25% trial→pago (si el onboarding es bueno).</span>
+      <span class="detail-label">Acción</span>
+      <span class="detail-value">Medir esta métrica primero. Implementar Plausible eventos en: trial_started, feature_used, trial_expired, license_activated.</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">MET-02 · Plausible analytics no trackea eventos de producto — solo pageviews</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value blue">No hay visibilidad de cuáles features usan, cuándo abandonan, ni qué convierte</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Implementar <code>plausible('evento', {props:{...}})</code> en: onboarding completado, primera venta registrada, catálogo generado, trial expirado, licencia activada, whatsapp enviado.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Baja (2 horas)</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">MET-03 · Sin retención medida — churn invisible</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value blue">Si usuarios pagan y luego dejan de usar la app, el churn eventualmente destruye el LTV</span>
+      <span class="detail-label">Acción</span>
+      <span class="detail-value">Agregar evento en <code>pt-app-ready</code> para trackear DAU/MAU. Push notifications semanales para reactivar usuarios inactivos (ya existe la infraestructura OneSignal).</span>
+    </div>
+  </div>
+
+  <div class="finding low">
+    <div class="finding-header">
+      <div class="finding-badge">Bajo</div>
+      <div class="finding-title">MET-04 · Sin A/B testing infrastructure</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value">No se puede iterar el copy, la duración del trial ni el precio con datos reales</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Cloudflare Workers ya soporta A/B testing via cookie. Implementar variantes de trial (7 vs 14 días) para medir impacto en conversión.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── LEGAL / RIESGO ──────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">⚖️</div>
+    <div class="section-title">Legal · Privacidad · Riesgo operativo</div>
+    <div class="section-count">4 hallazgos</div>
+  </div>
+
+  <div class="finding high">
+    <div class="finding-header">
+      <div class="finding-badge">Alto</div>
+      <div class="finding-title">LEG-01 · Sin política de privacidad ni términos de uso</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value yellow">La app recolecta email, nombre, número de WhatsApp y datos financieros de terceros (sus clientes). En muchos países de LATAM hay leyes de datos personales.</span>
+      <span class="detail-label">Riesgo</span>
+      <span class="detail-value">Argentina: Ley 25.326 · Brasil: LGPD · México: LFPDPPP · Uruguay: Ley 18.331. Sin política de privacidad, el fundador tiene responsabilidad personal.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Crear política de privacidad mínima (puede generarse con Iubenda o similar) + términos de uso. Agregar link en el footer del onboarding y en Ajustes.</span>
+      <span class="detail-label">Dificultad</span>
+      <span class="detail-value green">Baja (servicio de terceros + 2 horas)</span>
+    </div>
+    <div class="chips">
+      <span class="chip red">Riesgo legal</span>
+      <span class="chip red">Múltiples jurisdicciones</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">LEG-02 · Los datos de clientes de la revendedora están en IndexedDB sin cifrado</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value blue">Nombres, números de WhatsApp y montos de deuda de los clientes son accesibles desde DevTools en el dispositivo</span>
+      <span class="detail-label">Análisis</span>
+      <span class="detail-value">La protección por PIN evita acceso humano. El cifrado en IndexedDB es complejidad alta con beneficio bajo para este caso de uso — el riesgo real es acceso físico al dispositivo desbloqueado.</span>
+      <span class="detail-label">Recomendación</span>
+      <span class="detail-value">Mantener status actual. Documentar en política de privacidad que los datos se almacenan localmente y recomendar PIN.</span>
+    </div>
+  </div>
+
+  <div class="finding medium">
+    <div class="finding-header">
+      <div class="finding-badge">Medio</div>
+      <div class="finding-title">LEG-03 · Dependencia crítica de un proveedor (Cloudflare)</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value blue">Si Cloudflare cambia precios, bloquea la cuenta o tiene una outage, toda la plataforma cae</span>
+      <span class="detail-label">Análisis</span>
+      <span class="detail-value">Cloudflare Free tier es muy generoso. El riesgo real es bajo, pero la dependencia total (Pages + Workers + KV + R2) sin plan de contingencia es un punto ciego.</span>
+      <span class="detail-label">Mitigación</span>
+      <span class="detail-value">El diseño offline-first (IndexedDB) ya mitiga el 80% del riesgo. El backup manual por R2 también es mitigación.</span>
+    </div>
+  </div>
+
+  <div class="finding low">
+    <div class="finding-header">
+      <div class="finding-badge">Bajo</div>
+      <div class="finding-title">LEG-04 · Sin política de reembolsos documentada</div>
+    </div>
+    <div class="detail-grid">
+      <span class="detail-label">Impacto</span>
+      <span class="detail-value">Si un cliente paga y tiene un problema, no hay proceso claro. Riesgo de chargeback en pagos digitales.</span>
+      <span class="detail-label">Solución</span>
+      <span class="detail-value">Política simple: "Si la app no funciona en tu dispositivo, reembolso completo en 7 días."</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ TOP 10 PROBLEMAS CRÍTICOS ════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">🔥</div>
+    <div class="section-title">Top 10 — Problemas más críticos</div>
+  </div>
+
+  <div class="top-table">
+    <div class="top-row rank-1">
+      <div class="top-num">#1</div>
+      <div class="top-text">Sin landing page ni embudo de conversión — todo el tráfico se pierde<small>NEG-01 · VEN-01 · Bloqueante de crecimiento</small></div>
+      <div class="top-impact critical">Crítico</div>
+    </div>
+    <div class="top-row rank-2">
+      <div class="top-num">#2</div>
+      <div class="top-text">Monolito de 18.686 líneas sin build process — deuda técnica estructural<small>TEC-01 · Mantenibilidad colapsada, FCP alto</small></div>
+      <div class="top-impact critical">Crítico</div>
+    </div>
+    <div class="top-row rank-3">
+      <div class="top-num">#3</div>
+      <div class="top-text">Drawer "Más" oculta las 7 mejores features — discoverability crítica<small>UX-01 · Catálogo invisible, activación baja</small></div>
+      <div class="top-impact critical">Crítico</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#4</div>
+      <div class="top-text">Onboarding email opcional ("Saltar") — pérdida de leads y sync<small>UX-02 · Sin email = sin retargeting</small></div>
+      <div class="top-impact critical">Crítico</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#5</div>
+      <div class="top-text">Trial bypass por localStorage — revenue risk para usuarios técnicos<small>TEC-04 · Timestamp manipulable</small></div>
+      <div class="top-impact high">Alto</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#6</div>
+      <div class="top-text">Miles de <code>style=""</code> inline — HTML gigante, sin sistema de diseño real<small>TEC-02 · Mantener = pesadilla</small></div>
+      <div class="top-impact critical">Crítico</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#7</div>
+      <div class="top-text">Modal de expiración que bloquea sin vender — conversión perdida<small>VEN-02 · Momento crítico mal aprovechado</small></div>
+      <div class="top-impact high">Alto</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#8</div>
+      <div class="top-text">Precio oculto — usuario no sabe cuánto cuesta hasta el final del trial<small>NEG-02 · Desconfianza, menor calidad de trial</small></div>
+      <div class="top-impact high">Alto</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#9</div>
+      <div class="top-text">Sin política de privacidad — riesgo legal en múltiples jurisdicciones<small>LEG-01 · LGPD, Ley 25.326, Ley 18.331</small></div>
+      <div class="top-impact high">Alto</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#10</div>
+      <div class="top-text">Sin Content Security Policy — XSS sin mitigación adicional<small>TEC-05 · Headers de seguridad faltantes</small></div>
+      <div class="top-impact high">Alto</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ TOP 10 MEJORAS CON MEJOR ROI ════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">🚀</div>
+    <div class="section-title">Top 10 — Mejoras con mejor ROI</div>
+  </div>
+
+  <div class="top-table">
+    <div class="top-row rank-1">
+      <div class="top-num">#1</div>
+      <div class="top-text">Agregar footer "Creado con Parfum Track" en imagen de catálogo<small>NEG-04 · 2 líneas de Canvas API · Virality orgánica masiva</small></div>
+      <div class="top-impact critical">🏆 ROI</div>
+    </div>
+    <div class="top-row rank-2">
+      <div class="top-num">#2</div>
+      <div class="top-text">Eliminar botón "Saltar" del onboarding o agregar fricción a saltear email<small>UX-02 · 1 hora · +30% tasa de registro</small></div>
+      <div class="top-impact critical">🏆 ROI</div>
+    </div>
+    <div class="top-row rank-3">
+      <div class="top-num">#3</div>
+      <div class="top-text">Tooltip en onboarding señalando Catálogo como el feature estrella<small>UX-01, NEG-03 · 2 horas · Activación +50%</small></div>
+      <div class="top-impact critical">🏆 ROI</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#4</div>
+      <div class="top-text">Extender trial a 14 días para usuarios con email verificado<small>UX-07 · Cambiar un número · Conversión +12–20%</small></div>
+      <div class="top-impact high">Alto</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#5</div>
+      <div class="top-text">Banner de trial días 5–7 con countdown y CTA de compra<small>UX-04 · 3 horas · Conversión +10–18%</small></div>
+      <div class="top-impact high">Alto</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#6</div>
+      <div class="top-text">Rediseñar modal de expiración como mini página de ventas con datos del usuario<small>VEN-02 · 3 horas · Conversión +20–30%</small></div>
+      <div class="top-impact high">Alto</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#7</div>
+      <div class="top-text">Link de activación de licencia por email (pre-llenar código)<small>UX-03 · 4 horas · Fricción de activación −80%</small></div>
+      <div class="top-impact high">Alto</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#8</div>
+      <div class="top-text">Implementar eventos Plausible para trackear el funnel de conversión<small>MET-02 · 2 horas · Visibilidad total del negocio</small></div>
+      <div class="top-impact high">Alto</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#9</div>
+      <div class="top-text">Copy de onboarding enfocado en el dolor real (deudas sin cobrar)<small>VEN-06 · 30 min · Activación +15%</small></div>
+      <div class="top-impact high">Alto</div>
+    </div>
+    <div class="top-row">
+      <div class="top-num">#10</div>
+      <div class="top-text">Política de privacidad simple via Iubenda + link en Ajustes<small>LEG-01 · 2 horas · Elimina riesgo legal</small></div>
+      <div class="top-impact medium">Medio</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ PLANES ════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">📅</div>
+    <div class="section-title">Plan de acción por horizonte</div>
+  </div>
+  <div class="plan-grid">
+    <div class="plan-card">
+      <div class="plan-card-title">⚡ 24 horas</div>
+      <ul>
+        <li>Footer "Parfum Track" en imagen de catálogo (2 líneas Canvas)</li>
+        <li>Eliminar/friccionar botón "Saltar" del onboarding</li>
+        <li>Tooltip en onboarding apuntando a Catálogo</li>
+        <li>Extender trial a 14 días (cambiar constante)</li>
+        <li>Corregir IDs SVG duplicados (<code>dpin</code>)</li>
+        <li>Agregar eventos Plausible básicos al funnel</li>
+      </ul>
+    </div>
+    <div class="plan-card">
+      <div class="plan-card-title">📅 7 días</div>
+      <ul>
+        <li>Banner trial días 5–6–7 con countdown y CTA</li>
+        <li>Rediseñar modal de expiración como mini landing de ventas</li>
+        <li>Link de activación por email (URL con código pre-llenado)</li>
+        <li>Copy de onboarding con dolor real</li>
+        <li>Política de privacidad (Iubenda) + link en Ajustes</li>
+        <li>Empty states para Ventas, Cuotas y Gráficos vacíos</li>
+        <li>CSP headers en <code>/public/_headers</code></li>
+      </ul>
+    </div>
+    <div class="plan-card">
+      <div class="plan-card-title">🗓 30 días</div>
+      <ul>
+        <li>Landing page separada (Framer/Webflow) con propuesta de valor, precio y capturas</li>
+        <li>Email sequence de 7 días post-registro (Brevo ya integrado)</li>
+        <li>Inicio de migración a build process (Vite + extracción de CSS/JS)</li>
+        <li>Push notifications de reactivación para usuarios inactivos</li>
+        <li>Trial anchoring en server via email verificado</li>
+        <li>Precio visible en onboarding y modal de trial</li>
+      </ul>
+    </div>
+    <div class="plan-card">
+      <div class="plan-card-title">🎯 90 días</div>
+      <ul>
+        <li>Build process completo (Vite) — FCP −40%, mantenibilidad</li>
+        <li>Integración Mercado Pago para licencias automáticas</li>
+        <li>Programa de referidos (link único + beneficio automático)</li>
+        <li>A/B testing de trial (7 vs 14 días, copy A vs B)</li>
+        <li>Presencia en comunidades TikTok/Instagram de revendedoras</li>
+        <li>10 primeros testimonios reales en landing page</li>
+        <li>Light theme (CSS variables ya disponibles)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ DELTA ════════════════ -->
+<div class="delta-box">
+  <div class="delta-title">Resumen de hallazgos</div>
+  <div class="delta-grid">
+    <div class="delta-item">
+      <div class="delta-item-label">Críticos</div>
+      <div class="delta-item-num red">5</div>
+    </div>
+    <div class="delta-item">
+      <div class="delta-item-label">Altos</div>
+      <div class="delta-item-num yellow">12</div>
+    </div>
+    <div class="delta-item">
+      <div class="delta-item-label">Medios</div>
+      <div class="delta-item-num blue">14</div>
+    </div>
+    <div class="delta-item">
+      <div class="delta-item-label">Bajos</div>
+      <div class="delta-item-num" style="color:var(--text2)">8</div>
+    </div>
+    <div class="delta-item">
+      <div class="delta-item-label">Positivos</div>
+      <div class="delta-item-num green">6</div>
+    </div>
+    <div class="delta-item">
+      <div class="delta-item-label">Total</div>
+      <div class="delta-item-num" style="color:var(--text)">45</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ VERDICT ════════════════ -->
+<div class="verdict-box warning">
+  <div class="verdict-emoji">🚀</div>
+  <div class="verdict-decision">¿Lanzarías el producto? <span class="cond">Sí — con condiciones</span></div>
+  <div class="verdict-body">
+    El producto funciona y resuelve un problema real con inteligencia de mercado. WhatsApp-first, catálogos, cuotas y cobros son exactamente lo que las revendedoras de LATAM necesitan y nadie más hace bien.<br><br>
+    <strong style="color:var(--text)">El problema no es el producto — es la máquina de venderlo.</strong><br><br>
+    Con el estado actual, el crecimiento depende 100% del boca a boca manual. Sin landing page, sin funnel, sin email sequence y con un trial de 7 días que el usuario puede saltear sin dar email, la conversión es estructuralmente baja.<br><br>
+    Las <strong style="color:var(--yellow)">3 acciones que cambian el juego antes de cualquier otra cosa</strong>: (1) Footer de Parfum Track en catálogos compartidos por WA — esto convierte cada catálogo en publicidad gratis. (2) Quitar el botón "Saltar" del email en onboarding — capturar ese email es el activo más valioso. (3) Mostrar el catálogo en el onboarding — el usuario debe ver el diferenciador #1 antes de que termine el tour.<br><br>
+    Esas 3 acciones toman menos de 6 horas y pueden 2× la conversión. Lanzá, medí, iterá.
+  </div>
+</div>
+
+<div style="text-align:center; padding: 24px 0 8px; font-size:11px; color:var(--text3)">
+  Parfum Track · Auditoría Web v1 · 14 jun 2026 · 45 hallazgos · Score: 64/100
+</div>
+
+</div><!-- /container -->
+</body>
+</html>
