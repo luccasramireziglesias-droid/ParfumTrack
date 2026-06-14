@@ -13,8 +13,7 @@
 //   MP_AMOUNT_ANNUAL   — Monto anual en la moneda configurada. Default: 95.88
 // ══════════════════════════════════════════════════════════════
 
-const BACK_URL_BASE = 'https://parfumtrack.pages.dev';
-const WA_NUMBER    = '59894466577';
+const WA_NUMBER = '59894466577';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -85,7 +84,7 @@ export async function onRequestPost(context) {
       },
       body: JSON.stringify({
         reason,
-        back_url:  `${BACK_URL_BASE}/checkout-success.html`,
+        back_url:  `${env.APP_URL || 'https://parfumtrack.workers.dev'}/checkout-success.html`,
         payer_email: email,
         auto_recurring: {
           frequency,

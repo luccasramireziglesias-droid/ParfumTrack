@@ -17,7 +17,8 @@
 //   license:{code}                   → JSON licenseData
 // ══════════════════════════════════════════════════════════════
 
-const APP_URL = 'https://parfumtrack.pages.dev';
+// APP_URL se configura en Cloudflare Dashboard → Workers → Settings → Variables
+// Debe apuntar a la URL real del Worker (ej: https://parfumtrack.workers.dev)
 
 // MP verifica el endpoint con un GET antes de empezar a enviar webhooks
 export async function onRequestGet() {
@@ -334,7 +335,8 @@ async function sendEmail(env, to, template, data) {
   const tpl = EMAIL_TEMPLATES[template];
   if (!tpl) { console.warn('[mp-webhook] Template desconocido:', template); return; }
 
-  const { subject, html, text } = tpl(data);
+  const appUrl = env.APP_URL || 'https://parfumtrack.workers.dev';
+  const { subject, html, text } = tpl({ ...data, appUrl });
   try {
     const resp = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
@@ -362,7 +364,7 @@ function jsonResp(body, status = 200) {
 // ── Email templates ───────────────────────────────────────────────
 
 const EMAIL_TEMPLATES = {
-  subscription_activated: ({ code, expiresAt }) => ({
+  subscription_activated: ({ code, expiresAt, appUrl }) => ({
     subject: '🌸 Tu plan Básico Pro está activo — acá está tu código',
     html: `<!DOCTYPE html>
 <html lang="es">
@@ -389,20 +391,20 @@ const EMAIL_TEMPLATES = {
       ✓ Se renueva automáticamente cada mes via Mercado Pago<br>
       ✓ Podés cancelar cuando querás escribiéndonos por WhatsApp
     </p>
-    <a href="${APP_URL}" style="display:block;text-align:center;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;">
+    <a href="${appUrl}" style="display:block;text-align:center;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;">
       Abrir Parfum Track y activar →
     </a>
   </div>
   <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;">
-    <a href="${APP_URL}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
+    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a>
   </p>
 </div>
 </body>
 </html>`,
-    text: `¡Tu plan Básico Pro de Parfum Track está activo! Tu código: ${code}. Ingresalo en Ajustes → Licencia. Válido hasta: ${expiresAt}. Abrí la app: ${APP_URL}`,
+    text: `¡Tu plan Básico Pro de Parfum Track está activo! Tu código: ${code}. Ingresalo en Ajustes → Licencia. Válido hasta: ${expiresAt}. Abrí la app: ${appUrl}`,
   }),
 
-  subscription_renewed: ({ expiresAt }) => ({
+  subscription_renewed: ({ expiresAt, appUrl }) => ({
     subject: '✅ Tu suscripción a Parfum Track se renovó',
     html: `<!DOCTYPE html>
 <html lang="es">
@@ -421,20 +423,20 @@ const EMAIL_TEMPLATES = {
     <div style="background:rgba(112,201,160,0.1);border:0.5px solid rgba(112,201,160,0.3);border-radius:10px;padding:14px;margin-bottom:20px;">
       <p style="color:#70c9a0;margin:0;">✓ Activo hasta: <strong>${expiresAt}</strong></p>
     </div>
-    <a href="${APP_URL}" style="display:block;text-align:center;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;">
+    <a href="${appUrl}" style="display:block;text-align:center;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;">
       Abrir Parfum Track →
     </a>
   </div>
   <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;">
-    <a href="${APP_URL}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
+    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a>
   </p>
 </div>
 </body>
 </html>`,
-    text: `Tu plan Básico Pro de Parfum Track se renovó. Activo hasta: ${expiresAt}. ${APP_URL}`,
+    text: `Tu plan Básico Pro de Parfum Track se renovó. Activo hasta: ${expiresAt}. ${appUrl}`,
   }),
 
-  payment_failed: () => ({
+  payment_failed: ({ appUrl } = {}) => ({
     subject: '⚠ Problema con el pago de Parfum Track',
     html: `<!DOCTYPE html>
 <html lang="es">
@@ -460,7 +462,7 @@ const EMAIL_TEMPLATES = {
     </a>
   </div>
   <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;">
-    <a href="${APP_URL}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
+    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a>
   </p>
 </div>
 </body>
@@ -468,7 +470,7 @@ const EMAIL_TEMPLATES = {
     text: `Hubo un problema con el pago de tu suscripción a Parfum Track. MP reintentará el cobro. ¿Necesitás ayuda? Escribinos: https://wa.me/59894466577`,
   }),
 
-  subscription_cancelled: ({ expiresAt }) => ({
+  subscription_cancelled: ({ expiresAt, appUrl }) => ({
     subject: 'Tu suscripción a Parfum Track fue cancelada',
     html: `<!DOCTYPE html>
 <html lang="es">
@@ -494,11 +496,11 @@ const EMAIL_TEMPLATES = {
     </a>
   </div>
   <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;">
-    <a href="${APP_URL}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
+    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a>
   </p>
 </div>
 </body>
 </html>`,
-    text: `Tu suscripción a Parfum Track fue cancelada. Seguís con acceso hasta ${expiresAt}. Después pasás al plan Free. Podés reactivar cuando quieras. ${APP_URL}`,
+    text: `Tu suscripción a Parfum Track fue cancelada. Seguís con acceso hasta ${expiresAt}. Después pasás al plan Free. Podés reactivar cuando quieras. ${appUrl}`,
   }),
 };
