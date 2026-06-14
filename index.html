@@ -3064,13 +3064,6 @@
               <div class="sync-status-dot"></div>
               <span id="sync-status-label">Backup</span>
             </div>
-            <button
-              class="icon-btn"
-              onclick="backupData()"
-              title="Backup datos"
-            >
-              💾
-            </button>
             <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">
               🌙
             </button>
@@ -4689,76 +4682,6 @@
                     Guardar
                   </button>
                 </div>
-              </div>
-            </div>
-
-            <!-- CLOUD BACKUP -->
-            <div
-              id="cloud-backup-card"
-              class="card"
-              style="padding: 20px; display: none"
-            >
-              <div
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 8px;
-                  margin-bottom: 4px;
-                "
-              >
-                <span
-                  style="font-size: 13px; font-weight: 600; color: var(--text)"
-                  >☁️ Backup en la nube</span
-                >
-                <span
-                  style="
-                    font-size: 10px;
-                    padding: 2px 8px;
-                    background: rgba(201, 168, 76, 0.12);
-                    border: 0.5px solid rgba(201, 168, 76, 0.3);
-                    border-radius: 20px;
-                    color: var(--gold);
-                    font-weight: 600;
-                  "
-                >
-                  PRO
-                </span>
-              </div>
-              <div
-                style="font-size: 12px; color: var(--text3); margin-bottom: 6px"
-              >
-                Guardá tus datos en nuestra nube segura. Restauralos en
-                cualquier celular usando tu código de licencia.
-              </div>
-              <div
-                style="
-                  font-size: 11px;
-                  color: var(--text3);
-                  margin-bottom: 14px;
-                "
-              >
-                Último backup en la nube:
-                <span id="cloud-backup-date" style="color: var(--text2)"
-                  >Nunca</span
-                >
-              </div>
-              <div style="display: flex; flex-wrap: wrap; gap: 8px">
-                <button
-                  id="btn-cloud-save"
-                  class="btn-primary"
-                  onclick="cloudBackupSave()"
-                  style="max-width: 200px"
-                >
-                  ☁️ Guardar en la nube
-                </button>
-                <button
-                  id="btn-cloud-restore"
-                  class="btn-outline"
-                  onclick="cloudBackupRestore()"
-                  style="max-width: 200px; margin-top: 0"
-                >
-                  📥 Restaurar desde la nube
-                </button>
               </div>
             </div>
 
@@ -6836,12 +6759,9 @@
             <p style="margin:0 0 12px">Parfum Track es una aplicación para registrar las ventas de tu emprendimiento de perfumes. Tu privacidad nos importa. Esta política explica qué datos se manejan y cómo.</p>
 
             <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">1. Datos guardados en tu dispositivo</p>
-            <p style="margin:0 0 12px">Todas tus ventas, perfumes, gastos, caja y clientes se guardan <strong>localmente en tu celular o computadora</strong> (IndexedDB y almacenamiento local del navegador). No salen de tu dispositivo a menos que actives el backup en la nube. No tenemos acceso a esos datos.</p>
+            <p style="margin:0 0 12px">Todas tus ventas, perfumes, gastos, caja y clientes se guardan <strong>localmente en tu celular o computadora</strong> (IndexedDB y almacenamiento local del navegador). No tenemos acceso a esos datos.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Backup en la nube (opcional)</p>
-            <p style="margin:0 0 12px">Si activás el backup en la nube, una copia de tus datos de negocio se envía a nuestros servidores (Cloudflare) para que puedas restaurarla. El backup se asocia a tu código de licencia mediante un token de autenticación. Podés no usar esta función y trabajar 100% offline.</p>
-
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">3. Email</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Email</p>
             <p style="margin:0 0 12px">Si ingresás tu email, lo usamos únicamente para enviarte mensajes relacionados con tu prueba gratuita y la activación de tu licencia (mediante el servicio Brevo). No lo compartimos ni lo vendemos a terceros.</p>
 
             <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">4. Notificaciones push (opcional)</p>
@@ -7191,169 +7111,6 @@
             });
         }
       })();
-
-      // ── CLOUD BACKUP ─────────────────────────────────────────────
-      let _backupInFlight = false;
-      async function cloudBackupSave() {
-        if (_backupInFlight) return;
-        const code = localStorage.getItem("pt_license_raw_code");
-        const token = localStorage.getItem("pt_activated_code");
-        if (!code || !token) {
-          toast(
-            "⚠ Activá tu licencia para usar el backup en la nube.",
-            3000,
-            "warning",
-          );
-          return;
-        }
-        _backupInFlight = true;
-        const btn = document.getElementById("btn-cloud-save");
-        if (btn) {
-          btn.disabled = true;
-          btn.textContent = "Guardando...";
-        }
-        try {
-          const data = {
-            ventas,
-            perfumes,
-            gastos,
-            caja,
-            meta: metaMensual,
-            fecha: hoy(),
-            version: "vip_v2",
-          };
-          const resp = await fetch("/backup", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code, token, data }),
-            signal: AbortSignal.timeout(15000),
-          });
-          const result = await resp.json();
-          if (result.ok) {
-            localStorage.setItem("pt_cloud_backup_at", result.savedAt);
-            renderCloudBackupStatus();
-            trackEvent("backup_guardado");
-            toast("☁️ Backup guardado en la nube.", 3000);
-          } else {
-            toast(
-              "⚠ " + (result.error || "Error al guardar backup."),
-              3500,
-              "warning",
-            );
-          }
-        } catch (e) {
-          toast("📶 Sin conexión. Verificá tu internet.", 3000, "warning");
-        } finally {
-          _backupInFlight = false;
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = "☁️ Guardar en la nube";
-          }
-        }
-      }
-
-      async function cloudBackupRestore() {
-        if (_backupInFlight) return;
-        const code = localStorage.getItem("pt_license_raw_code");
-        const token = localStorage.getItem("pt_activated_code");
-        if (!code || !token) {
-          toast(
-            "⚠ Activá tu licencia para usar el backup en la nube.",
-            3000,
-            "warning",
-          );
-          return;
-        }
-        _backupInFlight = true;
-        const btn = document.getElementById("btn-cloud-restore");
-        if (btn) {
-          btn.disabled = true;
-          btn.textContent = "Buscando...";
-        }
-        let result;
-        try {
-          const resp = await fetch(
-            `/backup?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`,
-            {
-              signal: AbortSignal.timeout(15000),
-            },
-          );
-          result = await resp.json();
-        } catch (e) {
-          toast("📶 Sin conexión. Verificá tu internet.", 3000, "warning");
-          _backupInFlight = false;
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = "📥 Restaurar desde la nube";
-          }
-          return;
-        } finally {
-          _backupInFlight = false;
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = "📥 Restaurar desde la nube";
-          }
-        }
-        if (!result.ok) {
-          toast(
-            result.error === "No backup found"
-              ? "☁️ No hay backup en la nube todavía."
-              : "⚠ " + result.error,
-            3500,
-            "warning",
-          );
-          return;
-        }
-        const data = result.data;
-        const errMsg = _validarSchemaBackup(data);
-        if (errMsg) {
-          toast(errMsg, 4000, "warning");
-          return;
-        }
-        const fechaBackup = result.savedAt
-          ? new Date(result.savedAt).toLocaleDateString("es-UY")
-          : data.fecha || "la nube";
-        showConfirm(
-          "Restaurar desde la nube",
-          `Esto reemplazará tus ${ventas.length} ventas actuales con las ${(data.ventas || []).length} del backup del ${fechaBackup}. Se descargará un respaldo local automáticamente.`,
-          async () => {
-            backupData();
-            await new Promise((r) => setTimeout(r, 600));
-            ventas = data.ventas || [];
-            perfumes = data.perfumes || perfumes;
-            gastos = data.gastos || gastos;
-            caja = data.caja || caja;
-            if (data.meta) metaMensual = data.meta;
-            save();
-            renderAll();
-            trackEvent("backup_restaurado");
-            toast("✅ Backup restaurado desde la nube.", 3500);
-          },
-        );
-      }
-
-      function renderCloudBackupStatus() {
-        const el = document.getElementById("cloud-backup-date");
-        if (!el) return;
-        const at = localStorage.getItem("pt_cloud_backup_at");
-        if (!at) {
-          el.textContent = "Nunca";
-          el.style.color = "var(--text3)";
-          return;
-        }
-        try {
-          const d = new Date(at);
-          const days = Math.floor((Date.now() - d.getTime()) / 86400000);
-          el.textContent =
-            d.toLocaleDateString("es-UY") +
-            (days === 0
-              ? " (hoy)"
-              : ` (hace ${days} día${days !== 1 ? "s" : ""})`);
-          el.style.color = days >= 7 ? "var(--warn)" : "var(--success)";
-        } catch {
-          el.textContent = at;
-        }
-      }
 
       // ── BACKUP ───────────────────────────────────────────────────
       // backupData ya registra timestamp y snooze — no necesita override
@@ -11821,7 +11578,6 @@
         }
 
         if (valid && serverToken && serverSig) {
-          localStorage.setItem("pt_activated_code", serverToken); // HMAC token (backup auth)
           localStorage.setItem("pt_activated_sig", serverSig); // ECDSA sig (client verification)
           localStorage.setItem("pt_activation_mode", "server");
           localStorage.setItem("pt_activated_at", Date.now().toString());
@@ -11915,7 +11671,6 @@
       // _addVentaEnProceso: mutex for addVenta(). Prevents double-submit on fast taps.
       // _addingStock: mutex for agregarStock(). Same purpose.
       // _addingCaja: mutex for addMovCaja(). Same purpose.
-      // _backupInFlight: mutex for cloudBackupSave/Restore(). Prevents concurrent cloud operations.
 
       // Capture Date.now before any external code can monkey-patch it.
       const _realDateNow = Date.now.bind(Date);
@@ -13487,12 +13242,6 @@
             })
             .join("");
         }
-
-        // Cloud backup card — solo para usuarios activados
-        const cloudCard = document.getElementById("cloud-backup-card");
-        if (cloudCard)
-          cloudCard.style.display = isActivated() ? "block" : "none";
-        renderCloudBackupStatus();
 
         // Licencia
         const licEl = document.getElementById("ajustes-licencia-info");
