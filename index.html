@@ -6658,6 +6658,7 @@
             PTDB.set(profileKey("vip_caja_v1"), caja),
             PTDB.set(profileKey("vip_meta_v1"), metaMensual),
           ]);
+          _triggerAutoSync();
         } finally {
           _saveRunning = false;
           if (_savePendingRetry) _saveNow();
@@ -12190,6 +12191,24 @@
               localStorage.setItem("pt_trial_start", ts);
               PTDB.set("pt_trial_start", ts);
             }
+            if (data.syncCode && data.syncToken) {
+              localStorage.setItem("pt_sync_code", data.syncCode);
+              localStorage.setItem("pt_sync_token", data.syncToken);
+              const cloudData = await _syncCargarNube(
+                data.syncCode,
+                data.syncToken,
+              );
+              if (
+                cloudData &&
+                (cloudData.ventas?.length > 0 || cloudData.perfumes?.length > 0)
+              ) {
+                document
+                  .getElementById("modal-trial-email")
+                  .classList.remove("open");
+                _ofrecerRestoreNube(cloudData);
+                return;
+              }
+            }
             document
               .getElementById("modal-trial-email")
               .classList.remove("open");
@@ -12219,6 +12238,119 @@
           () => document.getElementById("trial-email-input")?.focus(),
           100,
         );
+      }
+
+      // ── Cloud auto-sync ───────────────────────────────────────
+      let _syncTimer = null;
+      let _syncBusy = false;
+      let _nubeRestorePendingData = null;
+
+      function _triggerAutoSync() {
+        const code = localStorage.getItem("pt_sync_code");
+        const token = localStorage.getItem("pt_sync_token");
+        if (!code || !token) return;
+        clearTimeout(_syncTimer);
+        _syncTimer = setTimeout(() => _syncGuardarNube(code, token), 10000);
+      }
+
+      async function _syncGuardarNube(code, token) {
+        if (_syncBusy) return;
+        _syncBusy = true;
+        try {
+          const payload = {
+            version: SCHEMA_VERSION,
+            ventas,
+            perfumes,
+            gastos,
+            caja,
+            meta: metaMensual,
+            fecha: hoy(),
+          };
+          const resp = await fetch("/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code, token, data: payload }),
+            signal: AbortSignal.timeout(15000),
+          });
+          if (resp.ok)
+            localStorage.setItem("pt_last_cloud_sync", Date.now().toString());
+        } catch {
+          /* silent — will retry on next save */
+        } finally {
+          _syncBusy = false;
+        }
+      }
+
+      async function _syncCargarNube(code, token) {
+        try {
+          const resp = await fetch(
+            `/sync?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`,
+            { signal: AbortSignal.timeout(10000) },
+          );
+          if (!resp.ok) return null;
+          const result = await resp.json();
+          return result.ok ? result.data : null;
+        } catch {
+          return null;
+        }
+      }
+
+      function _ofrecerRestoreNube(cloudData) {
+        _nubeRestorePendingData = cloudData;
+        const v = cloudData.ventas?.length || 0;
+        const p = cloudData.perfumes?.length || 0;
+        const desc = document.getElementById("nube-restore-desc");
+        if (desc) {
+          desc.textContent = `Encontramos ${v} venta${v !== 1 ? "s" : ""} y ${p} perfume${p !== 1 ? "s" : ""} guardados en tu cuenta. ¿Querés restaurarlos?`;
+        }
+        document.getElementById("modal-nube-restore").classList.add("open");
+      }
+
+      function _nubeRestoreCancelar() {
+        _nubeRestorePendingData = null;
+        document.getElementById("modal-nube-restore").classList.remove("open");
+        // Upload current (empty) local data as the new cloud state
+        const code = localStorage.getItem("pt_sync_code");
+        const token = localStorage.getItem("pt_sync_token");
+        if (code && token)
+          setTimeout(() => _syncGuardarNube(code, token), 2000);
+        checkTrial();
+      }
+
+      async function _nubeRestoreConfirmar() {
+        const data = _nubeRestorePendingData;
+        _nubeRestorePendingData = null;
+        document.getElementById("modal-nube-restore").classList.remove("open");
+        if (!data) {
+          checkTrial();
+          return;
+        }
+        const btn = document.getElementById("btn-nube-restore");
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "Restaurando...";
+        }
+        const schemaError = _validarSchemaBackup(data);
+        if (schemaError) {
+          toast(schemaError, 4000);
+          checkTrial();
+          return;
+        }
+        try {
+          await Promise.all([
+            PTDB.set(profileKey("vip_ventas_v2"), data.ventas ?? []),
+            PTDB.set(profileKey("vip_stock_v2"), data.perfumes ?? []),
+            PTDB.set(profileKey("vip_gastos_v1"), data.gastos ?? []),
+            PTDB.set(profileKey("vip_caja_v1"), data.caja ?? []),
+            PTDB.set(profileKey("vip_meta_v1"), data.meta ?? 0),
+          ]);
+          localStorage.setItem("pt_last_cloud_sync", Date.now().toString());
+          toast("☁️ Datos restaurados. Recargando...", 2000);
+          setTimeout(() => location.reload(), 1500);
+        } catch {
+          toast("⚠ Error al restaurar. Intentá de nuevo.", 4000);
+          checkTrial();
+        }
       }
 
       function checkTrial() {
@@ -17453,6 +17585,47 @@
             style="width: 100%; padding: 13px"
           >
             Registrar mi primera venta →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ MODAL RESTAURAR DESDE NUBE ═══════ -->
+    <div
+      id="modal-nube-restore"
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      style="z-index: 10002"
+    >
+      <div class="modal" style="max-width: 360px; padding: 28px 24px 32px">
+        <div style="text-align: center; margin-bottom: 20px">
+          <div style="font-size: 36px; margin-bottom: 6px">☁️</div>
+          <h3
+            style="
+              font-family: &quot;Cormorant Garamond&quot;, serif;
+              font-size: 21px;
+              color: var(--gold2);
+              margin-bottom: 6px;
+            "
+          >
+            Datos encontrados
+          </h3>
+          <p
+            id="nube-restore-desc"
+            style="font-size: 13px; color: var(--text2); line-height: 1.6"
+          ></p>
+        </div>
+        <div class="modal-btns">
+          <button class="btn-cancel" onclick="_nubeRestoreCancelar()">
+            Empezar en blanco
+          </button>
+          <button
+            class="btn-confirm-ok"
+            onclick="_nubeRestoreConfirmar()"
+            id="btn-nube-restore"
+          >
+            ☁️ Restaurar
           </button>
         </div>
       </div>

@@ -222,10 +222,35 @@ async function handleVerify(body, ip, env, headers) {
   }
   await Promise.all(saves);
 
+  // Generate sync token — same HMAC mechanism as /backup auth
+  // Client uses (syncCode=emailHash, syncToken) to read/write cloud data in /sync
+  let syncCode = null;
+  let syncToken = null;
+  const secret = env.LICENSE_SERVER_SECRET;
+  if (secret) {
+    syncCode = emailHash;
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const sig = await crypto.subtle.sign(
+      "HMAC",
+      key,
+      encoder.encode(emailHash),
+    );
+    syncToken = Array.from(new Uint8Array(sig))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
   console.log(
     `[trial] Verified: ***@${emailLower.split("@")[1]} → startAt ${new Date(startAt).toISOString()}`,
   );
-  return json({ startAt, verified: true }, 200, headers);
+  return json({ startAt, verified: true, syncCode, syncToken }, 200, headers);
 }
 
 // ── Legacy: { deviceId } with no step ────────────────────────

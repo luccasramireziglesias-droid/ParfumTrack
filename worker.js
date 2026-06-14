@@ -6,8 +6,15 @@
 import { onRequestPost as sendNotification } from "./functions/send-notification.js";
 import { onRequestPost as validateLicense } from "./functions/validate-license.js";
 import { onRequestPost as sendEmail } from "./functions/send-email.js";
-import { onRequestPost as backup } from "./functions/backup.js";
+import {
+  onRequestPost as backupPost,
+  onRequestGet as backupGet,
+} from "./functions/backup.js";
 import { onRequestPost as trial } from "./functions/trial.js";
+import {
+  onRequestPost as syncPost,
+  onRequestGet as syncGet,
+} from "./functions/sync.js";
 
 const API_ROUTES = [
   "/send-notification",
@@ -15,6 +22,7 @@ const API_ROUTES = [
   "/send-email",
   "/backup",
   "/trial",
+  "/sync",
 ];
 
 export default {
@@ -22,7 +30,6 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // Rutas de API
     if (API_ROUTES.includes(path)) {
       const context = { request, env, ctx };
 
@@ -38,21 +45,30 @@ export default {
           status: 204,
           headers: {
             "Access-Control-Allow-Origin": allowed,
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type",
           },
         });
       }
 
-      if (request.method !== "POST") {
-        return new Response("Method Not Allowed", { status: 405 });
-      }
-
       if (path === "/send-notification") return sendNotification(context);
       if (path === "/validate-license") return validateLicense(context);
       if (path === "/send-email") return sendEmail(context);
-      if (path === "/backup") return backup(context);
       if (path === "/trial") return trial(context);
+
+      if (path === "/backup") {
+        if (request.method === "POST") return backupPost(context);
+        if (request.method === "GET") return backupGet(context);
+        return new Response("Method Not Allowed", { status: 405 });
+      }
+
+      if (path === "/sync") {
+        if (request.method === "POST") return syncPost(context);
+        if (request.method === "GET") return syncGet(context);
+        return new Response("Method Not Allowed", { status: 405 });
+      }
+
+      return new Response("Method Not Allowed", { status: 405 });
     }
 
     // Todo lo demás → servir assets estáticos (index.html, sw.js, etc.)

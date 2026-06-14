@@ -48,6 +48,7 @@ self.addEventListener("fetch", (event) => {
       "/send-email",
       "/backup",
       "/trial",
+      "/sync",
     ].includes(url.pathname)
   )
     return;
