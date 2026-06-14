@@ -11889,8 +11889,8 @@
         if (emailSec) emailSec.style.display = tierName === "basic" ? "block" : "none";
         if (waBtn) {
           if (tierName === "basic") {
-            waBtn.style.background = "linear-gradient(135deg,#635bff,#4f46e5)";
-            waBtn.innerHTML = "Suscribirse con Stripe →";
+            waBtn.style.background = "linear-gradient(135deg,#009ee3,#0070ba)";
+            waBtn.innerHTML = "Suscribirse con Mercado Pago →";
           } else {
             waBtn.style.background = "linear-gradient(135deg,#25d366,#1da851)";
             waBtn.innerHTML = "📲 Consultar por WhatsApp";
@@ -11902,9 +11902,9 @@
       async function _consultarPlanSeleccionado() {
         const tier = document.querySelector(".pricing-tier.tier-selected")?.dataset?.tier || "basic";
 
-        // Plan Básico Pro → checkout automático con Stripe
+        // Plan Básico Pro → checkout automático con Mercado Pago
         if (tier === "basic") {
-          _iniciarCheckoutStripe();
+          _iniciarCheckoutMP();
           return;
         }
 
@@ -11919,7 +11919,7 @@
         openLink("https://wa.me/" + n + "?text=" + encodeURIComponent(msg));
       }
 
-      async function _iniciarCheckoutStripe() {
+      async function _iniciarCheckoutMP() {
         const emailEl = document.getElementById("mp-email-paywall");
         const email   = emailEl?.value?.trim();
         const errEl   = document.getElementById("mp-paywall-error");
@@ -11931,13 +11931,13 @@
         }
 
         const btn = document.getElementById("tier-wa-btn");
-        if (btn) { btn.disabled = true; btn.textContent = "Conectando con Stripe…"; }
+        if (btn) { btn.disabled = true; btn.textContent = "Conectando con MP…"; }
         if (errEl) errEl.textContent = "";
 
         const win = window.open("", "_blank");
 
         try {
-          const resp = await fetch("/stripe-create-checkout", {
+          const resp = await fetch("/mp-create-preference", {
             method:  "POST",
             headers: { "Content-Type": "application/json" },
             body:    JSON.stringify({ email, plan: "monthly" }),
@@ -11946,18 +11946,18 @@
 
           if (!data.ok) {
             if (win) win.close();
-            if (errEl) errEl.textContent = data.error || "Error al crear la suscripción";
-            if (btn) { btn.disabled = false; btn.innerHTML = "Suscribirse con Stripe →"; }
+            if (errEl) errEl.textContent = data.error || "Error al crear el pago";
+            if (btn) { btn.disabled = false; btn.innerHTML = "Suscribirse con Mercado Pago →"; }
             return;
           }
 
-          if (win) win.location.href = data.url;
+          if (win) win.location.href = data.initPoint;
           closeModal("modal-activacion");
-          trackEvent("stripe_checkout_redirect", { tier: "basic" });
+          trackEvent("mp_checkout_redirect", { tier: "basic" });
         } catch (e) {
           if (win) win.close();
           if (errEl) errEl.textContent = "Error de conexión. Intentá de nuevo.";
-          if (btn) { btn.disabled = false; btn.innerHTML = "Suscribirse con Stripe →"; }
+          if (btn) { btn.disabled = false; btn.innerHTML = "Suscribirse con Mercado Pago →"; }
         }
       }
 
@@ -11968,8 +11968,8 @@
         const waBtn    = document.getElementById("tier-wa-btn");
         if (emailSec) emailSec.style.display = "block";
         if (waBtn) {
-          waBtn.style.background = "linear-gradient(135deg,#635bff,#4f46e5)";
-          waBtn.innerHTML = "Suscribirse con Stripe →";
+          waBtn.style.background = "linear-gradient(135deg,#009ee3,#0070ba)";
+          waBtn.innerHTML = "Suscribirse con Mercado Pago →";
         }
         setTimeout(() => {
           const inp = document.getElementById("mp-email-paywall");

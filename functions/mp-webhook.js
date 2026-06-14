@@ -28,21 +28,35 @@ export async function onRequestGet() {
 export async function onRequestPost(context) {
   const { request, env, ctx } = context;
 
-  // 1. Verificar firma MP (Signed Notifications)
-  const sigError = await verifyMPSignature(request.clone(), env);
-  if (sigError) {
-    console.warn('[mp-webhook] Firma inválida:', sigError);
-    // Devolvemos 200 para que MP no reintente payloads malformados
-    return jsonResp({ ok: false, error: 'invalid_signature' });
+  const url        = new URL(request.url);
+  const xSig       = request.headers.get('x-signature');
+  const bodyText   = await request.text();
+
+  // 1. Verificar firma MP solo si viene el header (webhooks nuevos).
+  //    Las notificaciones IPN vía notification_url en preferencias no envían firma.
+  if (xSig) {
+    const sigError = await verifyMPSignatureFromText(bodyText, xSig, url, env);
+    if (sigError) {
+      console.warn('[mp-webhook] Firma inválida:', sigError);
+      return jsonResp({ ok: false, error: 'invalid_signature' });
+    }
+  } else {
+    console.warn('[mp-webhook] Sin x-signature — IPN o request manual, aceptando');
   }
 
-  // 2. Parsear body
-  let body;
-  try { body = await request.json(); }
-  catch { return jsonResp({ ok: false, error: 'bad_request' }); }
+  // 2. Parsear tipo e ID del evento (JSON nuevo o query params IPN antiguo)
+  let type, resourceId;
 
-  const { type, data } = body;
-  const resourceId = data?.id?.toString();
+  if (bodyText.trim().startsWith('{')) {
+    try {
+      const body = JSON.parse(bodyText);
+      type       = body.type;
+      resourceId = body.data?.id?.toString();
+    } catch { /* */ }
+  }
+  // Fallback a query params IPN: ?type=payment&data.id=123 o ?topic=payment&id=123
+  if (!type)       type       = url.searchParams.get('type') || url.searchParams.get('topic');
+  if (!resourceId) resourceId = url.searchParams.get('data.id') || url.searchParams.get('id');
 
   console.log(`[mp-webhook] type=${type} id=${resourceId}`);
 
@@ -73,20 +87,16 @@ export async function onRequestPost(context) {
 
 // ── Verificación de firma MP ──────────────────────────────────────
 
-async function verifyMPSignature(request, env) {
+async function verifyMPSignatureFromText(bodyText, xSignature, url, env) {
   const secret = env.MP_WEBHOOK_SECRET;
   if (!secret) {
-    // Sin secreto → solo advertir, no bloquear (permite sandbox sin firma)
     console.warn('[mp-webhook] MP_WEBHOOK_SECRET no configurado — saltando verificación');
     return null;
   }
 
-  const xSignature  = request.headers.get('x-signature')  || '';
-  const xRequestId  = request.headers.get('x-request-id') || '';
-  const url         = new URL(request.url);
-  const dataId      = url.searchParams.get('id') || '';
+  const xRequestId = ''; // MP no siempre lo envía en notificaciones de preferencias
+  const dataId     = url.searchParams.get('id') || '';
 
-  // Parsear "ts=TIMESTAMP,v1=HASH"
   const parts = {};
   for (const part of xSignature.split(',')) {
     const [k, v] = part.split('=', 2);
@@ -95,14 +105,11 @@ async function verifyMPSignature(request, env) {
   const { ts, v1 } = parts;
   if (!ts || !v1) return 'Falta ts o v1 en x-signature';
 
-  // Anti-replay: máximo 5 minutos de diferencia
   if (Math.abs(Date.now() - parseInt(ts, 10) * 1000) > 300_000) {
     return 'Timestamp muy viejo (posible replay attack)';
   }
 
-  // String a firmar: "id:{data.id};request-id:{x-request-id};ts:{ts};"
   const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
-
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
     'raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
@@ -111,13 +118,12 @@ async function verifyMPSignature(request, env) {
   const computed = Array.from(new Uint8Array(sigBytes))
     .map(b => b.toString(16).padStart(2, '0')).join('');
 
-  // Comparación en tiempo constante (anti-timing attack)
   if (computed.length !== v1.length) return 'Longitud de firma incorrecta';
   let diff = 0;
   for (let i = 0; i < computed.length; i++) diff |= computed.charCodeAt(i) ^ v1.charCodeAt(i);
   if (diff !== 0) return 'Firma incorrecta';
 
-  return null; // OK
+  return null;
 }
 
 // ── Dispatcher de eventos ─────────────────────────────────────────
@@ -154,7 +160,8 @@ async function handlePaymentEvent(paymentId, env) {
 
   const preapprovalId = payment.preapproval_id;
   if (!preapprovalId) {
-    console.log('[mp-webhook] Pago sin preapproval_id — pago único, ignorando');
+    // Pago único via Checkout Pro (preferencias) — manejar normalmente
+    await handleSinglePayment(paymentId, payment, env);
     return;
   }
 
@@ -168,6 +175,92 @@ async function handlePaymentEvent(paymentId, env) {
   } else if (payment.status === 'rejected') {
     await handlePaymentFailed(preapprovalId, payment, env);
   }
+}
+
+// ── Pago único via Checkout Pro ───────────────────────────────────
+
+async function handleSinglePayment(paymentId, payment, env) {
+  if (payment.status !== 'approved') {
+    console.log(`[mp-webhook] Pago único no aprobado: status=${payment.status}`);
+    return;
+  }
+
+  // Obtener email y plan desde external_reference
+  let email, plan;
+  try {
+    const ref = JSON.parse(payment.external_reference || '{}');
+    email = ref.email;
+    plan  = ref.plan || 'monthly';
+  } catch {
+    email = payment.payer?.email;
+    plan  = 'monthly';
+  }
+
+  if (!email) {
+    console.error('[mp-webhook] Pago único sin email, paymentId:', paymentId);
+    return;
+  }
+
+  const TTL_3Y    = 94608000;
+  const emailHash = await hashEmail(email);
+
+  // Si ya tiene licencia activa, renovar
+  const existingCode = await env.PT_LICENSES.get(`email_license:${emailHash}`);
+  if (existingCode) {
+    const licRaw = await env.PT_LICENSES.get(`license:${existingCode}`);
+    if (licRaw) {
+      const lic      = JSON.parse(licRaw);
+      const isAnnual = plan === 'annual' || lic.plan === 'basic_annual';
+      const base     = new Date(Math.max(Date.now(), new Date(lic.expiresAt || Date.now()).getTime()));
+      base.setDate(base.getDate() + (isAnnual ? 366 : 31));
+      const expiresAt = base.toISOString().split('T')[0];
+
+      lic.expiresAt   = expiresAt;
+      lic.renewsAt    = expiresAt;
+      lic.status      = 'active';
+      lic.suspendedAt = null;
+
+      await env.PT_LICENSES.put(`license:${existingCode}`, JSON.stringify(lic));
+      await env.PT_LICENSES.put(`mp_pay:${paymentId}`, existingCode, { expirationTtl: TTL_3Y });
+      console.log(`[mp-webhook] Licencia renovada (pago único): ${existingCode} hasta ${expiresAt}`);
+
+      if (lic.clientEmail) {
+        await sendEmail(env, lic.clientEmail, 'subscription_renewed', { expiresAt });
+      }
+      return;
+    }
+  }
+
+  // Primera licencia para este email
+  const code     = await generateLicenseCode(env);
+  const isAnnual = plan === 'annual';
+  const now      = new Date();
+  const expiry   = new Date(now);
+  expiry.setDate(expiry.getDate() + (isAnnual ? 366 : 31));
+  const expiresAt = expiry.toISOString().split('T')[0];
+
+  const licenseData = {
+    clientName:      email.split('@')[0],
+    clientEmail:     email,
+    expiresAt,
+    maxUses:         null,
+    usedCount:       0,
+    createdAt:       now.toISOString().split('T')[0],
+    lastActivatedAt: null,
+    plan:            isAnnual ? 'basic_annual' : 'basic_monthly',
+    status:          'active',
+    mpPaymentId:     paymentId,
+    renewsAt:        expiresAt,
+    suspendedAt:     null,
+    cancelledAt:     null,
+  };
+
+  await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(licenseData));
+  await env.PT_LICENSES.put(`email_license:${emailHash}`, code, { expirationTtl: TTL_3Y });
+  await env.PT_LICENSES.put(`mp_pay:${paymentId}`, code, { expirationTtl: TTL_3Y });
+
+  console.log(`[mp-webhook] Licencia creada (pago único): ${code} para ${email}`);
+  await sendEmail(env, email, 'subscription_activated', { code, expiresAt });
 }
 
 // ── Primer pago: crear licencia ───────────────────────────────────
