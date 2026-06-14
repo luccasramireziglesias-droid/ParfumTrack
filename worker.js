@@ -10,10 +10,13 @@ import { onRequestPost as backupPost, onRequestGet as backupGet } from './functi
 import { onRequestPost as trial }                 from './functions/trial.js';
 import { onRequestPost as syncPost, onRequestGet as syncGet } from './functions/sync.js';
 import { onRequestPost as mpCreateSubscription }  from './functions/mp-create-subscription.js';
+import { onRequestPost as mpCreatePreference }    from './functions/mp-create-preference.js';
 import { onRequestPost as mpWebhookPost, onRequestGet as mpWebhookGet } from './functions/mp-webhook.js';
 import { onRequestGet  as mpSubscriptionStatus }  from './functions/mp-subscription-status.js';
+import { onRequestPost as stripeCreateCheckout }  from './functions/stripe-create-checkout.js';
+import { onRequestPost as stripeWebhook }         from './functions/stripe-webhook.js';
 
-const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup', '/trial', '/sync', '/mp-create-subscription', '/mp-webhook'];
+const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup', '/trial', '/sync', '/mp-create-subscription', '/mp-create-preference', '/mp-webhook', '/stripe-create-checkout', '/stripe-webhook'];
 const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status'];
 
 export default {
@@ -46,8 +49,11 @@ export default {
       if (path === '/backup')                 return backupPost(context);
       if (path === '/trial')                  return trial(context);
       if (path === '/sync')                   return syncPost(context);
-      if (path === '/mp-create-subscription') return mpCreateSubscription(context);
-      if (path === '/mp-webhook')             return mpWebhookPost(context);
+      if (path === '/mp-create-subscription')  return mpCreateSubscription(context);
+      if (path === '/mp-create-preference')   return mpCreatePreference(context);
+      if (path === '/mp-webhook')              return mpWebhookPost(context);
+      if (path === '/stripe-create-checkout') return stripeCreateCheckout(context);
+      if (path === '/stripe-webhook')         return stripeWebhook(context);
     }
 
     if (method === 'GET') {

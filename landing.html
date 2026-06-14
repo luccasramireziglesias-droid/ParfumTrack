@@ -2286,7 +2286,7 @@ async function iniciarCheckoutMP() {
   const win = window.open('', '_blank');
 
   try {
-    const resp = await fetch('/mp-create-subscription', {
+    const resp = await fetch('/mp-create-preference', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email, plan }),
@@ -2295,13 +2295,13 @@ async function iniciarCheckoutMP() {
 
     if (!data.ok) {
       if (win) win.close();
-      errEl.textContent = data.error || 'Error al crear la suscripción. Intentá de nuevo.';
+      errEl.textContent = data.error || 'Error al crear el pago. Intentá de nuevo.';
       btn.disabled    = false;
       btn.textContent = 'Ir a pagar →';
       return;
     }
 
-    // Redirigir la ventana ya abierta a MP
+    // Redirigir la ventana ya abierta a MP Checkout
     if (win) win.location.href = data.initPoint;
     cerrarCheckoutMP();
     if (window.plausible) plausible('mp_checkout_redirect', { props: { plan } });
@@ -2362,8 +2362,8 @@ window.addEventListener('scroll', () => {
     <button onclick="cerrarCheckoutMP()" style="float:right;background:none;border:none;color:var(--text3,#7a7870);font-size:22px;cursor:pointer;line-height:1;">✕</button>
     <div style="text-align:center;margin-bottom:20px;">
       <img src="/icon-192.png" alt="Parfum Track" style="width:48px;height:48px;border-radius:12px;margin-bottom:8px;">
-      <h3 style="color:#e8cc7a;font-size:19px;font-weight:700;margin:0 0 6px;">Suscribirse — Plan Básico Pro</h3>
-      <p style="font-size:13px;color:#7a7870;">$9.99/mes · Se cobra via Mercado Pago · Cancelás cuando querés</p>
+      <h3 style="color:#e8cc7a;font-size:19px;font-weight:700;margin:0 0 6px;">Pagar — Plan Básico Pro</h3>
+      <p style="font-size:13px;color:#7a7870;">$9.99/mes · Se cobra via Mercado Pago · Tu código llega por email</p>
     </div>
     <label style="display:block;font-size:13px;color:#b8b4a8;margin-bottom:6px;">Tu email</label>
     <input id="mp-email-input" type="email" placeholder="hola@ejemplo.com" autocomplete="email"
@@ -2375,7 +2375,7 @@ window.addEventListener('scroll', () => {
       Ir a pagar con Mercado Pago →
     </button>
     <p style="font-size:11px;color:#4a4848;text-align:center;line-height:1.6;">
-      🔒 Pago procesado por Mercado Pago · Tu código llega por email en minutos
+      🔒 Pago seguro · Tu código de activación llega por email en minutos
     </p>
   </div>
 </div>

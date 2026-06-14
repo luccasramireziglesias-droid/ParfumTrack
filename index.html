@@ -11937,7 +11937,7 @@
         const win = window.open("", "_blank");
 
         try {
-          const resp = await fetch("/mp-create-subscription", {
+          const resp = await fetch("/mp-create-preference", {
             method:  "POST",
             headers: { "Content-Type": "application/json" },
             body:    JSON.stringify({ email, plan: "monthly" }),
@@ -11946,8 +11946,8 @@
 
           if (!data.ok) {
             if (win) win.close();
-            if (errEl) errEl.textContent = data.error || "Error al crear la suscripción";
-            if (btn) { btn.disabled = false; btn.innerHTML = "📲 Quiero el plan <span id=\"tier-btn-label\">Básico Pro</span>"; }
+            if (errEl) errEl.textContent = data.error || "Error al crear el pago";
+            if (btn) { btn.disabled = false; btn.innerHTML = "Suscribirse con Mercado Pago →"; }
             return;
           }
 
@@ -11957,7 +11957,7 @@
         } catch (e) {
           if (win) win.close();
           if (errEl) errEl.textContent = "Error de conexión. Intentá de nuevo.";
-          if (btn) { btn.disabled = false; btn.innerHTML = "📲 Quiero el plan <span id=\"tier-btn-label\">Básico Pro</span>"; }
+          if (btn) { btn.disabled = false; btn.innerHTML = "Suscribirse con Mercado Pago →"; }
         }
       }
 
