@@ -1983,6 +1983,18 @@ body.annual-mode [data-annual] { display: block; }
     <h2 class="section-h2">Simple, claro<br>y <span class="hl">sin sorpresas</span></h2>
     <p class="section-sub" style="max-width:480px;margin:0 auto;">Empezá gratis para siempre. Sin tarjeta, sin compromiso.</p>
 
+    <!-- Toggle mensual / anual -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:24px 0 32px;">
+      <button class="ptog-btn" data-mode="monthly" onclick="togglePricing('monthly')"
+        style="padding:9px 22px;border-radius:50px;border:1.5px solid #e8cc7a;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;">
+        Mensual
+      </button>
+      <button class="ptog-btn" data-mode="annual" onclick="togglePricing('annual')"
+        style="padding:9px 22px;border-radius:50px;border:1.5px solid rgba(201,168,76,0.35);background:#1e1e35;color:#b8b4a8;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;">
+        Anual <span style="background:rgba(112,201,160,0.2);color:#70c9a0;font-size:10px;font-weight:700;padding:2px 7px;border-radius:50px;margin-left:4px;">-20%</span>
+      </button>
+    </div>
+
     <div class="pricing-grid">
       <!-- Free -->
       <div class="price-card reveal">
@@ -2015,10 +2027,13 @@ body.annual-mode [data-annual] { display: block; }
         <div class="price-name">Básico Pro</div>
         <div class="price-amount">
           <span class="price-currency">USD</span>
-          <span class="price-num">9<span style="font-size:22px">.99</span></span>
+          <span class="price-num" data-monthly>9<span style="font-size:22px">.99</span></span>
+          <span class="price-num" data-annual style="display:none;">7<span style="font-size:22px">.99</span></span>
         </div>
-        <div class="price-period">por mes · o USD 7.99/mes anual</div>
-        <div class="price-annual-note">✓ Ahorrás USD 24 por año con pago anual</div>
+        <div class="price-period" data-monthly>por mes</div>
+        <div class="price-period" data-annual style="display:none;">por mes · facturado USD 95.88/año</div>
+        <div class="price-annual-note" data-monthly>o USD 7.99/mes eligiendo el plan anual</div>
+        <div class="price-annual-note" data-annual style="display:none;">✓ Ahorrás USD 24 por año vs mensual</div>
         <hr class="price-divider">
         <ul class="price-features-list">
           <li><span class="pfl-check">✓</span> Todo lo de Free</li>
@@ -2030,8 +2045,9 @@ body.annual-mode [data-annual] { display: block; }
           <li><span class="pfl-check">✓</span> Meta mensual de ventas</li>
           <li><span class="pfl-check">✓</span> Soporte prioritario</li>
         </ul>
-        <button class="btn-price primary" onclick="abrirCheckoutMP(); if(window.plausible)plausible('pricing_cta',{props:{tier:'basic'}})">
-          Suscribirse — $9.99/mes →
+        <button class="btn-price primary" onclick="abrirCheckoutMP(document.body.classList.contains('annual-mode')?'annual':'monthly'); if(window.plausible)plausible('pricing_cta',{props:{tier:'basic',mode:document.body.classList.contains('annual-mode')?'annual':'monthly'}})">
+          <span data-monthly>Suscribirse — $9.99/mes →</span>
+          <span data-annual style="display:none;">Suscribirse — $7.99/mes →</span>
         </button>
         <a href="https://wa.me/59894466577?text=Hola!%20Quiero%20activar%20el%20plan%20Básico%20Pro%20de%20Parfum%20Track"
            target="_blank" rel="noopener"
@@ -2242,15 +2258,19 @@ document.querySelectorAll('.faq-question').forEach(q => {
 
 // ── Pricing Toggle ──
 function togglePricing(mode) {
-  const body = document.body;
-  const buttons = document.querySelectorAll('.ptog-btn');
-  buttons.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  document.querySelectorAll('.ptog-btn').forEach(b => {
+    const active = b.dataset.mode === mode;
+    b.style.background    = active ? 'linear-gradient(135deg,#c9a84c,#e8cc7a)' : '#1e1e35';
+    b.style.color         = active ? '#1a1a2e' : '#b8b4a8';
+    b.style.borderColor   = active ? '#e8cc7a' : 'rgba(201,168,76,0.35)';
+    b.style.fontWeight    = active ? '700' : '600';
+  });
   if (mode === 'annual') {
-    body.classList.add('annual-mode');
+    document.body.classList.add('annual-mode');
     document.querySelectorAll('[data-annual]').forEach(el => el.style.display = '');
     document.querySelectorAll('[data-monthly]').forEach(el => el.style.display = 'none');
   } else {
-    body.classList.remove('annual-mode');
+    document.body.classList.remove('annual-mode');
     document.querySelectorAll('[data-monthly]').forEach(el => el.style.display = '');
     document.querySelectorAll('[data-annual]').forEach(el => el.style.display = 'none');
   }
@@ -2258,10 +2278,15 @@ function togglePricing(mode) {
 
 // ── Checkout MP ──
 function abrirCheckoutMP(plan) {
+  const resolvedPlan = plan || (document.body.classList.contains('annual-mode') ? 'annual' : 'monthly');
   document.getElementById('mp-checkout-modal').style.display = 'flex';
-  document.getElementById('mp-checkout-modal').dataset.plan = plan || 'monthly';
+  document.getElementById('mp-checkout-modal').dataset.plan = resolvedPlan;
   document.getElementById('mp-email-input').focus();
   document.getElementById('mp-checkout-error').textContent = '';
+  const sub = document.getElementById('mp-modal-subtitle');
+  if (sub) sub.textContent = resolvedPlan === 'annual'
+    ? '$7.99/mes · Se factura USD 95.88/año via Mercado Pago'
+    : '$9.99/mes · Se cobra via Mercado Pago · Tu código llega por email';
 }
 function cerrarCheckoutMP() {
   document.getElementById('mp-checkout-modal').style.display = 'none';
@@ -2363,7 +2388,7 @@ window.addEventListener('scroll', () => {
     <div style="text-align:center;margin-bottom:20px;">
       <img src="/icon-192.png" alt="Parfum Track" style="width:48px;height:48px;border-radius:12px;margin-bottom:8px;">
       <h3 style="color:#e8cc7a;font-size:19px;font-weight:700;margin:0 0 6px;">Pagar — Plan Básico Pro</h3>
-      <p style="font-size:13px;color:#7a7870;">$9.99/mes · Se cobra via Mercado Pago · Tu código llega por email</p>
+      <p id="mp-modal-subtitle" style="font-size:13px;color:#7a7870;">$9.99/mes · Se cobra via Mercado Pago · Tu código llega por email</p>
     </div>
     <label style="display:block;font-size:13px;color:#b8b4a8;margin-bottom:6px;">Tu email</label>
     <input id="mp-email-input" type="email" placeholder="hola@ejemplo.com" autocomplete="email"
