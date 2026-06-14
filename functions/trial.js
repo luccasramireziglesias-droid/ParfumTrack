@@ -335,7 +335,10 @@ async function sendOtpEmail(email, otp, env) {
   const apiKey = env.BREVO_API_KEY;
   const fromEmail = env.FROM_EMAIL || "noreply@parfumtrack.com";
   const fromName = env.FROM_NAME || "Parfum Track";
-  if (!apiKey) return;
+  if (!apiKey) {
+    console.error("[trial] BREVO_API_KEY not set — email not sent");
+    return;
+  }
 
   await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
@@ -370,6 +373,11 @@ async function sendOtpEmail(email, otp, env) {
 </html>`,
     }),
     signal: AbortSignal.timeout(8000),
+  }).then(async (res) => {
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(`[trial] Brevo error ${res.status}: ${body}`);
+    }
   });
 }
 
