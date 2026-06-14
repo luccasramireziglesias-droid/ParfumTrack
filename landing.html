@@ -2030,7 +2030,7 @@ body.annual-mode [data-annual] { display: block; }
           <li><span class="pfl-check">✓</span> Meta mensual de ventas</li>
           <li><span class="pfl-check">✓</span> Soporte prioritario</li>
         </ul>
-        <button class="btn-price primary" onclick="abrirCheckoutMP(); if(window.plausible)plausible('pricing_cta',{props:{tier:'basic'}})">
+        <button class="btn-price primary" onclick="abrirCheckoutStripe(); if(window.plausible)plausible('pricing_cta',{props:{tier:'basic'}})">
           Suscribirse — $9.99/mes →
         </button>
         <a href="https://wa.me/59894466577?text=Hola!%20Quiero%20activar%20el%20plan%20Básico%20Pro%20de%20Parfum%20Track"
@@ -2256,37 +2256,37 @@ function togglePricing(mode) {
   }
 }
 
-// ── Checkout MP ──
-function abrirCheckoutMP(plan) {
-  document.getElementById('mp-checkout-modal').style.display = 'flex';
-  document.getElementById('mp-checkout-modal').dataset.plan = plan || 'monthly';
-  document.getElementById('mp-email-input').focus();
-  document.getElementById('mp-checkout-error').textContent = '';
+// ── Checkout Stripe ──
+function abrirCheckoutStripe(plan) {
+  document.getElementById('stripe-checkout-modal').style.display = 'flex';
+  document.getElementById('stripe-checkout-modal').dataset.plan = plan || 'monthly';
+  document.getElementById('stripe-email-input').focus();
+  document.getElementById('stripe-checkout-error').textContent = '';
 }
-function cerrarCheckoutMP() {
-  document.getElementById('mp-checkout-modal').style.display = 'none';
-  document.getElementById('mp-email-input').value = '';
+function cerrarCheckoutStripe() {
+  document.getElementById('stripe-checkout-modal').style.display = 'none';
+  document.getElementById('stripe-email-input').value = '';
 }
-async function iniciarCheckoutMP() {
-  const modal  = document.getElementById('mp-checkout-modal');
-  const email  = document.getElementById('mp-email-input').value.trim();
+async function iniciarCheckoutStripe() {
+  const modal  = document.getElementById('stripe-checkout-modal');
+  const email  = document.getElementById('stripe-email-input').value.trim();
   const plan   = modal.dataset.plan || 'monthly';
-  const errEl  = document.getElementById('mp-checkout-error');
-  const btn    = document.getElementById('mp-checkout-btn');
+  const errEl  = document.getElementById('stripe-checkout-error');
+  const btn    = document.getElementById('stripe-checkout-btn');
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
     errEl.textContent = 'Ingresá un email válido';
     return;
   }
   btn.disabled    = true;
-  btn.textContent = 'Conectando con Mercado Pago…';
+  btn.textContent = 'Conectando con Stripe…';
   errEl.textContent = '';
 
   // Abrir ventana vacía en sincrónico para no ser bloqueada por el popup blocker
   const win = window.open('', '_blank');
 
   try {
-    const resp = await fetch('/mp-create-subscription', {
+    const resp = await fetch('/stripe-create-checkout', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email, plan }),
@@ -2301,10 +2301,10 @@ async function iniciarCheckoutMP() {
       return;
     }
 
-    // Redirigir la ventana ya abierta a MP
-    if (win) win.location.href = data.initPoint;
-    cerrarCheckoutMP();
-    if (window.plausible) plausible('mp_checkout_redirect', { props: { plan } });
+    // Redirigir la ventana ya abierta a Stripe Checkout
+    if (win) win.location.href = data.url;
+    cerrarCheckoutStripe();
+    if (window.plausible) plausible('stripe_checkout_redirect', { props: { plan } });
   } catch (e) {
     if (win) win.close();
     errEl.textContent = 'Error de conexión. Intentá de nuevo.';
@@ -2356,26 +2356,26 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 </script>
 
-<!-- ── Modal checkout Mercado Pago ── -->
-<div id="mp-checkout-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)cerrarCheckoutMP()">
+<!-- ── Modal checkout Stripe ── -->
+<div id="stripe-checkout-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)cerrarCheckoutStripe()">
   <div style="background:#1e1e35;border:1px solid rgba(201,168,76,0.3);border-radius:20px;padding:32px 28px;max-width:400px;width:100%;">
-    <button onclick="cerrarCheckoutMP()" style="float:right;background:none;border:none;color:var(--text3,#7a7870);font-size:22px;cursor:pointer;line-height:1;">✕</button>
+    <button onclick="cerrarCheckoutStripe()" style="float:right;background:none;border:none;color:var(--text3,#7a7870);font-size:22px;cursor:pointer;line-height:1;">✕</button>
     <div style="text-align:center;margin-bottom:20px;">
       <img src="/icon-192.png" alt="Parfum Track" style="width:48px;height:48px;border-radius:12px;margin-bottom:8px;">
       <h3 style="color:#e8cc7a;font-size:19px;font-weight:700;margin:0 0 6px;">Suscribirse — Plan Básico Pro</h3>
-      <p style="font-size:13px;color:#7a7870;">$9.99/mes · Se cobra via Mercado Pago · Cancelás cuando querés</p>
+      <p style="font-size:13px;color:#7a7870;">$9.99/mes · Se cobra via Stripe · Cancelás cuando querés</p>
     </div>
     <label style="display:block;font-size:13px;color:#b8b4a8;margin-bottom:6px;">Tu email</label>
-    <input id="mp-email-input" type="email" placeholder="hola@ejemplo.com" autocomplete="email"
-      onkeydown="if(event.key==='Enter')iniciarCheckoutMP()"
+    <input id="stripe-email-input" type="email" placeholder="hola@ejemplo.com" autocomplete="email"
+      onkeydown="if(event.key==='Enter')iniciarCheckoutStripe()"
       style="width:100%;padding:12px 16px;background:#13132a;border:1.5px solid rgba(201,168,76,0.3);border-radius:10px;color:#f0eee8;font-size:15px;margin-bottom:8px;outline:none;font-family:inherit;">
-    <p id="mp-checkout-error" style="font-size:12px;color:#e07070;min-height:16px;margin-bottom:12px;"></p>
-    <button id="mp-checkout-btn" onclick="iniciarCheckoutMP()"
-      style="width:100%;padding:14px;background:linear-gradient(135deg,#009ee3,#0070ba);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">
-      Ir a pagar con Mercado Pago →
+    <p id="stripe-checkout-error" style="font-size:12px;color:#e07070;min-height:16px;margin-bottom:12px;"></p>
+    <button id="stripe-checkout-btn" onclick="iniciarCheckoutStripe()"
+      style="width:100%;padding:14px;background:linear-gradient(135deg,#635bff,#4f46e5);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">
+      Ir a pagar con Stripe →
     </button>
     <p style="font-size:11px;color:#4a4848;text-align:center;line-height:1.6;">
-      🔒 Pago procesado por Mercado Pago · Tu código llega por email en minutos
+      🔒 Pago procesado por Stripe · Tu código llega por email en minutos
     </p>
   </div>
 </div>
