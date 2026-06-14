@@ -1,0 +1,10 @@
+node_modules/
+functions/
+.github/
+scripts/
+netlify/
+inservible/
+worker.js
+wrangler.jsonc
+netlify.toml
+*.log
