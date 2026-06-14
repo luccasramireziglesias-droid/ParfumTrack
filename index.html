@@ -6868,8 +6868,8 @@
             <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">1. Qué es Parfum Track</p>
             <p style="margin:0 0 12px">Es una herramienta para registrar ventas, gastos, cuotas y estadísticas de un emprendimiento de venta de perfumes. Es una ayuda de gestión, no un sistema de facturación oficial ni un asesor contable o fiscal.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Prueba gratuita y licencia</p>
-            <p style="margin:0 0 12px">La app ofrece un período de prueba gratuito. Para seguir usando todas las funciones luego del vencimiento, necesitás activar una licencia. Las condiciones y el precio se informan dentro de la app al momento de activar.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Planes y licencia</p>
+            <p style="margin:0 0 12px">La app ofrece un plan Free gratuito y permanente con funciones básicas. Para acceder a funciones avanzadas (Básico Pro o Pro), podés activar una licencia con el código que recibirás por WhatsApp después de tu compra. Las condiciones y precios se informan dentro de la app.</p>
 
             <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">3. Uso responsable</p>
             <p style="margin:0 0 12px">Te comprometés a usar la app de forma legal, a no intentar vulnerar sus mecanismos de licencia o seguridad, y a no usarla para actividades ilícitas. El código de licencia es personal e intransferible.</p>
@@ -9979,7 +9979,7 @@
           if (getTrialVentasRestantes() <= 0) {
             abrirModalActivacion();
             _abort(
-              "🔒 Límite alcanzado. Activá tu licencia para seguir registrando ventas.",
+              "🔒 Límite alcanzado. Activá tu plan Básico Pro para continuar.",
             );
             return;
           }
@@ -10878,7 +10878,7 @@
       async function exportExcel() {
         if (!isActivated()) {
           toast(
-            "⚠ Exportar a Excel requiere plan Pro o superior. Activá tu licencia en Ajustes.",
+            "⚠ Exportar a Excel requiere plan Pro. Próximamente disponible — escribinos por WhatsApp.",
             3500,
           );
           return;
@@ -11685,9 +11685,9 @@
         clientName: "Demo", // Nombre del cliente
         expiresAt: null, // null = sin vencimiento. Formato: 'YYYY-MM-DD'
         maxUses: null, // null = usos ilimitados
-        trialDays: 7, // Días de prueba gratuita completa
+        trialDays: 36500, // Plan Free: acceso gratuito permanente (100 años)
         trialMinutes: null, // Solo para demo — setear a un número (ej: 1) para pruebas rápidas
-        trialLimitedVentas: 5, // Ventas nuevas permitidas tras vencer el trial
+        trialLimitedVentas: 999999, // Free: ventas ilimitadas
         isDemo: false, // true = modo demostración con datos de ejemplo
       };
 
@@ -11835,7 +11835,7 @@
         el.style.background =
           "linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.05))";
         const tierName = el.dataset.tier;
-        const labels = { starter: "Starter", pro: "Pro", business: "Business" };
+        const labels = { free: "Free", basic: "Básico Pro", pro: "Pro" };
         document.getElementById("tier-wa-msg").textContent = el.dataset.msg;
         const lbl = document.getElementById("tier-btn-label");
         if (lbl) lbl.textContent = labels[tierName] || tierName;
@@ -11961,7 +11961,7 @@
       }
 
       // ══════════════════════════════════════════════
-      // SISTEMA DE TRIAL — 7 días completo → modo limitado
+      // SISTEMA DE TRIAL — Plan Free permanente → features premium con licencia
       // ══════════════════════════════════════════════
       // trial expired state managed by _sec module (not on window)
 
@@ -12126,6 +12126,8 @@
               2000,
             );
           }
+          // No mostrar banner si el plan Free tiene tiempo ilimitado (>30 días)
+          if (daysLeft > 30) return;
           mostrarBannerTrial(formatTrialTimeLeft(msLeft));
           // Si estamos en modo minutos, actualizar el banner cada segundo
           if (LICENSE.trialMinutes) {
@@ -13110,30 +13112,16 @@
             html += `<div>👤 Perfil: <strong style="color:var(--text);">${escapeHTML(LICENSE.clientName)}</strong></div>`;
             html += `<div style="margin-top:8px;"><span style="font-size:11px;color:var(--text3);">Parfum Track desbloqueado sin restricciones ✓</span></div>`;
           } else {
-            // TRIAL o VENCIDO
+            // PLAN FREE (no activado)
             const trialStart = localStorage.getItem("pt_trial_start");
             if (trialStart) {
-              const msLeft = getTrialTimeLeft(trialStart);
-              const daysLeft = Math.floor(msLeft / 86400000);
-
-              if (msLeft > 0) {
-                const label = formatTrialTimeLeft(msLeft);
-                html += `<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;padding:9px 12px;background:var(--gold-dim);border:0.5px solid var(--border2);border-radius:10px;">
-                  <span style="font-size:22px;">⏳</span>
-                  <div><div style="font-size:13px;font-weight:600;color:var(--gold2);">Prueba gratuita</div>
-                  <div style="font-size:11px;color:var(--text3);">Quedan <strong style="color:var(--gold2);">${label}</strong> de prueba completa</div></div>
+                html += `<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;padding:9px 12px;background:rgba(112,201,160,0.08);border:0.5px solid rgba(112,201,160,0.25);border-radius:10px;">
+                  <span style="font-size:22px;">🌱</span>
+                  <div><div style="font-size:13px;font-weight:600;color:var(--success);">Plan Free</div>
+                  <div style="font-size:11px;color:var(--text3);">Gratis para siempre · Sin restricciones básicas</div></div>
                 </div>`;
-                html += `<div style="font-size:11px;color:var(--text2);margin-bottom:12px;">Todas las funciones están habilitadas durante el período de prueba.</div>`;
-              } else {
-                const restantes = getTrialVentasRestantes();
-                html += `<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;padding:9px 12px;background:rgba(224,112,112,0.1);border:0.5px solid rgba(224,112,112,0.3);border-radius:10px;">
-                  <span style="font-size:22px;">🔒</span>
-                  <div><div style="font-size:13px;font-weight:600;color:var(--danger);">Prueba finalizada</div>
-                  <div style="font-size:11px;color:var(--text3);">Podés registrar <strong style="color:var(--warn);">${restantes} venta${restantes !== 1 ? "s" : ""} más</strong> en modo limitado</div></div>
-                </div>`;
-                html += `<div style="font-size:11px;color:var(--text2);margin-bottom:12px;">Tus datos están intactos. Activá la licencia para seguir sin restricciones.</div>`;
-              }
-              html += `<button onclick="abrirModalActivacion()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.3px;">🔑 Activar licencia</button>`;
+                html += `<div style="font-size:11px;color:var(--text2);margin-bottom:12px;">Tenés acceso completo a las funciones del plan Free. Para desbloquear recordatorios automáticos, estadísticas avanzadas y más, activá el plan Básico Pro.</div>`;
+              html += `<button onclick="abrirModalActivacion()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.3px;">⭐ Activar Básico Pro</button>`;
             } else {
               html += `<div>Estado: <span style="color:var(--text3);">Sin inicializar</span></div>`;
             }
@@ -17234,11 +17222,11 @@
             margin-bottom: 14px;
           "
         >
-          <!-- STARTER -->
+          <!-- FREE -->
           <div
             class="pricing-tier"
-            data-tier="starter"
-            data-msg="Hola! Quiero el plan Starter de Parfum Track 🍶"
+            data-tier="free"
+            data-msg="Hola! Estoy usando el plan Free de Parfum Track 🍶"
             onclick="_selectTier(this)"
             style="
               background: var(--card);
@@ -17262,7 +17250,7 @@
               <div
                 style="font-size: 14px; font-weight: 600; color: var(--text)"
               >
-                🌱 Starter
+                🌱 Free
               </div>
               <div>
                 <span
@@ -17270,39 +17258,26 @@
                     font-family: &quot;Cormorant Garamond&quot;, serif;
                     font-size: 20px;
                     font-weight: 700;
-                    color: var(--gold2);
-                  "
-                >
-                  $5
-                </span>
-                <span style="font-size: 11px; color: var(--text3)">/mes</span>
-                <span
-                  style="
-                    font-size: 10px;
-                    background: rgba(112, 201, 160, 0.18);
                     color: var(--success);
-                    border-radius: 10px;
-                    padding: 1px 7px;
-                    margin-left: 6px;
-                    font-weight: 600;
                   "
                 >
-                  Anual: $39 🔥
+                  $0
                 </span>
+                <span style="font-size: 11px; color: var(--text3)">/siempre</span>
               </div>
             </div>
             <div style="font-size: 11px; color: var(--text3); line-height: 1.7">
-              ✓ 1 perfil · ✓ Ventas ilimitadas · ✓ Stock básico
+              ✓ Ventas ilimitadas · ✓ Stock básico · ✓ Cobros WA
               <br />
-              ✓ Backup manual · ✓ Catálogo WhatsApp
+              ✓ Ganancia visible · ✓ Offline
             </div>
           </div>
 
-          <!-- PRO (destacado — ancla psicológica) -->
+          <!-- BÁSICO PRO (destacado — ancla psicológica) -->
           <div
             class="pricing-tier tier-selected"
-            data-tier="pro"
-            data-msg="Hola! Quiero el plan Pro de Parfum Track 🍶"
+            data-tier="basic"
+            data-msg="Hola! Quiero activar el plan Básico Pro de Parfum Track 🍶"
             onclick="_selectTier(this)"
             style="
               background: linear-gradient(
@@ -17349,7 +17324,7 @@
               <div
                 style="font-size: 14px; font-weight: 600; color: var(--gold2)"
               >
-                ⭐ Pro
+                ⭐ Básico Pro
               </div>
               <div>
                 <span
@@ -17360,7 +17335,7 @@
                     color: var(--gold2);
                   "
                 >
-                  $12
+                  $9.99
                 </span>
                 <span style="font-size: 11px; color: var(--text3)">/mes</span>
                 <span
@@ -17374,22 +17349,22 @@
                     font-weight: 600;
                   "
                 >
-                  Anual: $99 🔥
+                  Anual: $7.99/mes 🔥
                 </span>
               </div>
             </div>
             <div style="font-size: 11px; color: var(--text2); line-height: 1.7">
-              ✓ Todo Starter + ✓ 3 perfiles · ✓ Análisis avanzado
+              ✓ Todo Free + ✓ Recordatorios WA · ✓ Stats avanzadas
               <br />
-              ✓ Backup automático · ✓ PDF recibos · ✓ Notificaciones push
+              ✓ Catálogo WA · ✓ Segmentación · ✓ Soporte prioritario
             </div>
           </div>
 
-          <!-- BUSINESS -->
+          <!-- PRO -->
           <div
             class="pricing-tier"
-            data-tier="business"
-            data-msg="Hola! Quiero el plan Business de Parfum Track 🍶"
+            data-tier="pro"
+            data-msg="Hola! Quiero saber más sobre el plan Pro de Parfum Track 🍶"
             onclick="_selectTier(this)"
             style="
               background: var(--card);
@@ -17397,6 +17372,7 @@
               border-radius: var(--radius);
               padding: 14px 16px;
               cursor: pointer;
+              opacity: 0.7;
               transition:
                 border-color 0.2s,
                 background 0.2s;
@@ -17413,7 +17389,7 @@
               <div
                 style="font-size: 14px; font-weight: 600; color: var(--text)"
               >
-                🏆 Business
+                🚧 Pro
               </div>
               <div>
                 <span
@@ -17424,28 +17400,28 @@
                     color: var(--gold2);
                   "
                 >
-                  $25
+                  $19.99
                 </span>
                 <span style="font-size: 11px; color: var(--text3)">/mes</span>
                 <span
                   style="
                     font-size: 10px;
-                    background: rgba(112, 201, 160, 0.18);
-                    color: var(--success);
+                    background: rgba(201,168,76,0.15);
+                    color: var(--gold2);
                     border-radius: 10px;
                     padding: 1px 7px;
                     margin-left: 6px;
                     font-weight: 600;
                   "
                 >
-                  Anual: $199 🔥
+                  Próximamente
                 </span>
               </div>
             </div>
             <div style="font-size: 11px; color: var(--text3); line-height: 1.7">
-              ✓ Todo Pro + ✓ Perfiles ilimitados · ✓ Exportar Excel
+              ✓ Todo Básico Pro + ✓ Excel · ✓ Múltiples perfiles
               <br />
-              ✓ Soporte prioritario · ✓ Funciones beta anticipadas
+              ✓ Backup nube · ✓ Sync multi-dispositivo
             </div>
           </div>
         </div>
@@ -17506,12 +17482,12 @@
                     style="
                       padding: 7px 6px;
                       text-align: center;
-                      color: var(--text3);
+                      color: var(--success);
                       font-weight: 600;
                       border-bottom: 0.5px solid var(--border);
                     "
                   >
-                    🌱
+                    Free
                   </th>
                   <th
                     style="
@@ -17522,7 +17498,7 @@
                       border-bottom: 0.5px solid var(--border);
                     "
                   >
-                    ⭐
+                    Básico Pro
                   </th>
                   <th
                     style="
@@ -17533,80 +17509,37 @@
                       border-bottom: 0.5px solid var(--border);
                     "
                   >
-                    🏆
+                    Pro 🚧
                   </th>
                 </tr>
               </thead>
               <tbody>
                 <tr style="border-bottom: 0.5px solid var(--border)">
                   <td style="padding: 6px 8px; color: var(--text2)">
-                    Perfiles
-                  </td>
-                  <td style="text-align: center; color: var(--text)">1</td>
-                  <td
-                    style="
-                      text-align: center;
-                      color: var(--gold2);
-                      font-weight: 600;
-                    "
-                  >
-                    3
-                  </td>
-                  <td style="text-align: center; color: var(--text)">∞</td>
-                </tr>
-                <tr
-                  style="
-                    border-bottom: 0.5px solid var(--border);
-                    background: var(--card);
-                  "
-                >
-                  <td style="padding: 6px 8px; color: var(--text2)">
                     Ventas ilimitadas
                   </td>
-                  <td style="text-align: center">✓</td>
+                  <td style="text-align: center; color: var(--success)">✓</td>
+                  <td style="text-align: center; color: var(--gold2); font-weight: 600">✓</td>
+                  <td style="text-align: center; color: var(--text)">✓</td>
+                </tr>
+                <tr style="border-bottom: 0.5px solid var(--border); background: var(--card);">
+                  <td style="padding: 6px 8px; color: var(--text2)">
+                    Stock y cobros
+                  </td>
+                  <td style="text-align: center; color: var(--success)">✓</td>
                   <td style="text-align: center; color: var(--gold2)">✓</td>
                   <td style="text-align: center">✓</td>
                 </tr>
                 <tr style="border-bottom: 0.5px solid var(--border)">
                   <td style="padding: 6px 8px; color: var(--text2)">
-                    Catálogo WhatsApp
-                  </td>
-                  <td style="text-align: center">✓</td>
-                  <td style="text-align: center; color: var(--gold2)">✓</td>
-                  <td style="text-align: center">✓</td>
-                </tr>
-                <tr
-                  style="
-                    border-bottom: 0.5px solid var(--border);
-                    background: var(--card);
-                  "
-                >
-                  <td style="padding: 6px 8px; color: var(--text2)">Backup</td>
-                  <td style="text-align: center; color: var(--text3)">
-                    Manual
-                  </td>
-                  <td style="text-align: center; color: var(--gold2)">Auto</td>
-                  <td style="text-align: center; color: var(--success)">
-                    Auto
-                  </td>
-                </tr>
-                <tr style="border-bottom: 0.5px solid var(--border)">
-                  <td style="padding: 6px 8px; color: var(--text2)">
-                    PDF recibos
+                    Recordatorios WA
                   </td>
                   <td style="text-align: center; color: var(--border2)">—</td>
                   <td style="text-align: center; color: var(--gold2)">✓</td>
                   <td style="text-align: center">✓</td>
                 </tr>
-                <tr
-                  style="
-                    border-bottom: 0.5px solid var(--border);
-                    background: var(--card);
-                  "
-                >
-                  <td style="padding: 6px 8px; color: var(--text2)">
-                    Notificaciones push
-                  </td>
+                <tr style="border-bottom: 0.5px solid var(--border); background: var(--card);">
+                  <td style="padding: 6px 8px; color: var(--text2)">Stats avanzadas</td>
                   <td style="text-align: center; color: var(--border2)">—</td>
                   <td style="text-align: center; color: var(--gold2)">✓</td>
                   <td style="text-align: center">✓</td>
@@ -17619,17 +17552,19 @@
                   <td style="text-align: center; color: var(--border2)">—</td>
                   <td style="text-align: center; color: var(--success)">✓</td>
                 </tr>
+                <tr style="border-bottom: 0.5px solid var(--border); background: var(--card);">
+                  <td style="padding: 6px 8px; color: var(--text2)">
+                    Múltiples perfiles
+                  </td>
+                  <td style="text-align: center; color: var(--border2)">—</td>
+                  <td style="text-align: center; color: var(--border2)">—</td>
+                  <td style="text-align: center; color: var(--success)">✓</td>
+                </tr>
                 <tr>
                   <td style="padding: 6px 8px; color: var(--text2)">Soporte</td>
-                  <td style="text-align: center; color: var(--text3)">
-                    Normal
-                  </td>
-                  <td style="text-align: center; color: var(--gold2)">
-                    Normal
-                  </td>
-                  <td style="text-align: center; color: var(--success)">
-                    Prioritario
-                  </td>
+                  <td style="text-align: center; color: var(--text3)">Básico</td>
+                  <td style="text-align: center; color: var(--gold2)">Prioritario</td>
+                  <td style="text-align: center; color: var(--success)">Preferencial</td>
                 </tr>
               </tbody>
             </table>
@@ -17659,10 +17594,10 @@
           "
         >
           📲 Quiero el plan
-          <span id="tier-btn-label">Pro</span>
+          <span id="tier-btn-label">Básico Pro</span>
         </button>
         <span id="tier-wa-msg" style="display: none"
-          >Hola! Quiero el plan Pro de Parfum Track 🍶</span
+          >Hola! Quiero activar el plan Básico Pro de Parfum Track 🍶</span
         >
 
         <!-- Separador con código -->
@@ -17780,7 +17715,7 @@
           ¡Bienvenida a Parfum Track!
         </h3>
         <p style="font-size: 12px; color: var(--text3); margin-bottom: 18px">
-          7 días de prueba gratuita · Todas las funciones
+          Plan Free — gratis para siempre · Sin tarjeta
         </p>
 
         <!-- 3 features clave -->
