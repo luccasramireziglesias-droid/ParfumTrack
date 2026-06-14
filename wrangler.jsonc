@@ -14,7 +14,7 @@
     "nodejs_compat"
   ],
   "vars": {
-    "FROM_EMAIL": "parfumtrack@gmail.com",
+    "FROM_EMAIL": "luccasramireziglesias@gmail.com",
     "FROM_NAME": "Parfum Track"
   },
   // KV namespace para licencias.
