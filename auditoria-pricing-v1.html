@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auditoría de Pricing — Parfum Track v1</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a12;--bg2:#0f0f1e;--bg3:#141428;--card:#181830;--card2:#1e1e3a;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --gold:#c9a84c;--gold2:#e8cc7a;--gold3:rgba(201,168,76,0.12);
+  --text:#f0ede8;--text2:#a8a49c;--text3:#6a6660;
+  --red:#f87171;--red2:rgba(248,113,113,0.1);
+  --orange:#fb923c;--orange2:rgba(251,146,60,0.1);
+  --green:#4ade80;--green2:rgba(74,222,128,0.1);
+  --blue:#60a5fa;--blue2:rgba(96,165,250,0.1);
+  --purple:#a78bfa;--purple2:rgba(167,139,250,0.1);
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+
+.report-header{background:linear-gradient(135deg,var(--bg2),var(--bg3));border-bottom:1px solid var(--border2);padding:56px 32px 48px;text-align:center;position:relative;overflow:hidden}
+.report-header::before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse,rgba(201,168,76,0.08),transparent 65%);pointer-events:none}
+.report-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:50px;background:var(--gold3);border:1px solid rgba(201,168,76,0.25);font-size:11px;font-weight:700;color:var(--gold2);letter-spacing:1px;text-transform:uppercase;margin-bottom:20px}
+.report-title{font-size:clamp(28px,4vw,44px);font-weight:800;letter-spacing:-0.8px;margin-bottom:10px}
+.report-title span{background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.report-meta{font-size:13px;color:var(--text3);margin-top:16px;display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap}
+
+.main{max-width:1100px;margin:0 auto;padding:48px 24px}
+.section-block{margin-bottom:56px}
+.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.h2{font-size:22px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:24px;line-height:1.6}
+
+/* VALUE BOX */
+.value-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:32px}
+.value-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden}
+.value-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--vc-color,var(--gold))}
+.vc-icon{font-size:28px;margin-bottom:12px}
+.vc-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}
+.vc-value{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.vc-desc{font-size:12px;color:var(--text2);line-height:1.5}
+
+/* PRICE BAND */
+.price-band{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:40px}
+.pb-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 16px;text-align:center;position:relative;transition:all 0.2s}
+.pb-item.recommended{background:linear-gradient(135deg,rgba(201,168,76,0.1),var(--card));border-color:rgba(201,168,76,0.4);transform:scale(1.04)}
+.pb-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),var(--gold2));color:#1a1400;font-size:9px;font-weight:800;padding:3px 12px;border-radius:50px;white-space:nowrap;letter-spacing:0.5px;text-transform:uppercase}
+.pb-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px}
+.pb-price{font-size:28px;font-weight:900;color:var(--text);line-height:1;margin-bottom:6px}
+.pb-price span{font-size:13px;font-weight:500;color:var(--text3)}
+.pb-verdict{font-size:11px;color:var(--text2);line-height:1.5;margin-top:8px}
+.pb-tag{display:inline-block;padding:3px 8px;border-radius:50px;font-size:10px;font-weight:700;margin-top:8px}
+.tag-red{background:var(--red2);color:var(--red);border:1px solid rgba(248,113,113,0.2)}
+.tag-green{background:var(--green2);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.tag-gold{background:var(--gold3);color:var(--gold2);border:1px solid rgba(201,168,76,0.2)}
+.tag-orange{background:var(--orange2);color:var(--orange);border:1px solid rgba(251,146,60,0.2)}
+
+/* PLANS GRID */
+.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:32px}
+.plan-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;position:relative}
+.plan-card.featured{background:linear-gradient(135deg,rgba(201,168,76,0.08),var(--card));border-color:rgba(201,168,76,0.35)}
+.plan-head{padding:24px 22px 20px;border-bottom:1px solid var(--border)}
+.plan-tier{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:10px}
+.plan-name{font-size:20px;font-weight:800;color:var(--text);margin-bottom:14px}
+.plan-price-row{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
+.plan-currency{font-size:14px;color:var(--text2);font-weight:600}
+.plan-price-num{font-size:40px;font-weight:900;color:var(--text);line-height:1}
+.plan-period{font-size:11px;color:var(--text3)}
+.plan-desc{font-size:12px;color:var(--text2);margin-top:10px;line-height:1.5}
+.plan-body{padding:20px 22px}
+.plan-feature{display:flex;align-items:flex-start;gap:9px;padding:7px 0;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border)}
+.plan-feature:last-child{border-bottom:none}
+.pf-check{color:var(--green);flex-shrink:0;font-size:13px}
+.pf-lock{color:var(--text3);flex-shrink:0;font-size:13px}
+.plan-cta-note{margin-top:18px;font-size:11px;color:var(--text3);text-align:center;line-height:1.5}
+.plan-target{display:inline-block;padding:3px 10px;background:var(--blue2);color:var(--blue);border:1px solid rgba(96,165,250,0.2);border-radius:50px;font-size:10px;font-weight:700;margin-top:6px}
+.plan-star{display:inline-block;padding:3px 10px;background:var(--gold3);color:var(--gold2);border:1px solid rgba(201,168,76,0.2);border-radius:50px;font-size:10px;font-weight:700;margin-top:6px}
+
+/* REVENUE TABLE */
+.rev-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:32px;border-radius:12px;overflow:hidden}
+.rev-table th{background:var(--bg3);padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3)}
+.rev-table td{padding:14px 16px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top}
+.rev-table tr:last-child td{border-bottom:none}
+.rev-table tr:hover td{background:rgba(255,255,255,0.015)}
+.rev-highlight{color:var(--gold2);font-weight:700}
+.rev-green{color:var(--green);font-weight:600}
+.rev-blue{color:var(--blue);font-weight:600}
+
+/* COMPETITOR TABLE */
+.comp-table{width:100%;border-collapse:collapse;font-size:13px}
+.comp-table th{background:var(--bg3);padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3)}
+.comp-table td{padding:13px 16px;border-bottom:1px solid var(--border);color:var(--text2);line-height:1.4}
+.comp-table tr:last-child td{border-bottom:none}
+.comp-name{color:var(--text);font-weight:600}
+.comp-win{color:var(--green);font-weight:600}
+.comp-lose{color:var(--red)}
+.comp-pt{background:rgba(201,168,76,0.04)}
+
+/* INSIGHT CARDS */
+.insight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.insight-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.ic-num{font-size:40px;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:6px}
+.ic-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px}
+.ic-desc{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* VERDICT */
+.verdict-box{background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.03));border:1px solid rgba(201,168,76,0.25);border-radius:16px;padding:32px;margin-top:40px}
+.vb-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:20px}
+.vb-q{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;margin-top:18px}
+.vb-a{font-size:13px;color:var(--text2);line-height:1.65}
+.vb-a strong{color:var(--gold2)}
+
+/* ROI BOX */
+.roi-box{background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:24px;margin:20px 0}
+.roi-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:16px}
+.roi-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.roi-row:last-child{border-bottom:none;font-weight:700;font-size:15px;color:var(--gold2)}
+.roi-label{color:var(--text2)}
+.roi-value{font-weight:700;color:var(--text)}
+
+/* FEATURE MATRIX */
+.feature-section{margin-top:8px}
+.fs-label{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px;margin-top:12px}
+.feature-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;margin:3px;cursor:default}
+.ft-core{background:var(--green2);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.ft-premium{background:var(--gold3);color:var(--gold2);border:1px solid rgba(201,168,76,0.2)}
+.ft-diff{background:var(--purple2);color:var(--purple);border:1px solid rgba(167,139,250,0.2)}
+.ft-future{background:rgba(255,255,255,0.04);color:var(--text3);border:1px solid var(--border)}
+
+/* SCENARIOS */
+.scenario-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.scenario-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.sc-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.sc-conservative{color:var(--text3)}
+.sc-optimistic{color:var(--green)}
+.sc-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid var(--border)}
+.sc-row:last-child{border-bottom:none;font-weight:700;padding-top:10px}
+
+@media(max-width:640px){
+  .price-band{grid-template-columns:1fr 1fr}
+  .plans-grid{grid-template-columns:1fr}
+  .scenario-grid{grid-template-columns:1fr}
+  .pb-item.recommended{transform:none}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="report-header">
+  <div class="report-badge">💰 Auditoría de Pricing · SaaS · Parfum Track</div>
+  <h1 class="report-title">Estrategia de <span>Monetización</span></h1>
+  <p style="color:var(--text2);font-size:15px;margin-top:10px;max-width:540px;margin-inline:auto;line-height:1.6">Valoración profesional de precio · Planes de suscripción · Proyecciones de ingresos · Veredicto</p>
+  <div class="report-meta">
+    <span>🎯 Parfum Track</span>
+    <span>📅 Junio 2026</span>
+    <span>🌎 Mercado LATAM</span>
+    <span>📊 SaaS B2B Nicho</span>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ══════════════════════════════
+     ANÁLISIS DEL PRODUCTO
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">1. Análisis del producto</div>
+
+  <div class="value-grid">
+    <div class="value-card" style="--vc-color:var(--green)">
+      <div class="vc-icon">🎯</div>
+      <div class="vc-title">Qué hace</div>
+      <div class="vc-desc">App PWA para revendedoras de perfumes: ventas en 10 seg, cuotas con recordatorio WA, stock, estadísticas, catálogo WhatsApp. 100% offline.</div>
+    </div>
+    <div class="value-card" style="--vc-color:var(--red)">
+      <div class="vc-icon">🔥</div>
+      <div class="vc-title">Problema que resuelve</div>
+      <div class="vc-desc">La revendedora no sabe cuánto gana, pierde cobros olvidados, no tiene visibilidad de su negocio. El problema ocurre TODOS los días y cuesta dinero real.</div>
+    </div>
+    <div class="value-card" style="--vc-color:var(--purple)">
+      <div class="vc-icon">💡</div>
+      <div class="vc-title">Diferenciador clave</div>
+      <div class="vc-desc">Único software especializado en revendedoras de perfumes árabes en LATAM. No es genérico — es hecho para este nicho específico. Cero competencia directa.</div>
+    </div>
+    <div class="value-card" style="--vc-color:var(--gold)">
+      <div class="vc-icon">📱</div>
+      <div class="vc-title">Ventaja técnica</div>
+      <div class="vc-desc">PWA offline-first, catálogo generado con Canvas, integración nativa WhatsApp, ECDSA de licencias, funciona sin Play Store ni App Store.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     ANÁLISIS DEL CLIENTE
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">2. Análisis del cliente ideal</div>
+
+  <div class="roi-box">
+    <div class="roi-title">Perfil de la revendedora tipo</div>
+    <div class="roi-row"><span class="roi-label">Edad promedio</span><span class="roi-value">25–45 años, mujer</span></div>
+    <div class="roi-row"><span class="roi-label">País</span><span class="roi-value">Argentina (60%), Uruguay (15%), Chile (10%), otros LATAM (15%)</span></div>
+    <div class="roi-row"><span class="roi-label">Canal de venta</span><span class="roi-value">WhatsApp, Instagram, ferias, boca a boca</span></div>
+    <div class="roi-row"><span class="roi-label">Volumen mensual típico</span><span class="roi-value">10–40 ventas/mes · ARS 50.000–200.000 facturación bruta</span></div>
+    <div class="roi-row"><span class="roi-label">Margen neto estimado</span><span class="roi-value">25–40% → ARS 12.500–80.000 ganancia real/mes</span></div>
+    <div class="roi-row"><span class="roi-label">Capacidad de pago en USD</span><span class="roi-value">USD 5–20/mes sin fricción · USD 20–40 con justificación clara de ROI</span></div>
+    <div class="roi-row"><span class="roi-label">Sensibilidad al precio</span><span class="roi-value">ALTA en Argentina por inflación. MEDIA en Uruguay/Chile</span></div>
+    <div class="roi-row"><span class="roi-label">Urgencia del problema</span><span class="roi-value">MUY ALTA — pierde dinero todos los meses por cobros olvidados</span></div>
+  </div>
+
+  <div class="roi-box">
+    <div class="roi-title">Valor económico real generado por mes (cálculo conservador)</div>
+    <div class="roi-row"><span class="roi-label">Tiempo ahorrado (3h × valor hora USD 3)</span><span class="roi-value">USD 9/mes</span></div>
+    <div class="roi-row"><span class="roi-label">Cobros recuperados (5% de ARS 50.000 = ARS 2.500 ÷ tasa)</span><span class="roi-value">USD 2–15/mes</span></div>
+    <div class="roi-row"><span class="roi-label">Mejor gestión de stock (evitar sobrecompra)</span><span class="roi-value">USD 5–20/mes</span></div>
+    <div class="roi-row"><span class="roi-label">Catálogo WA → más ventas estimadas (5%)</span><span class="roi-value">USD 5–30/mes</span></div>
+    <div class="roi-row"><span class="roi-label">Visibilidad de margen → compra más inteligente</span><span class="roi-value">USD 3–10/mes</span></div>
+    <div class="roi-row"><span class="roi-label">TOTAL VALOR GENERADO CONSERVADOR</span><span class="roi-value" style="color:var(--green)">USD 24–84/mes</span></div>
+  </div>
+
+  <p style="font-size:13px;color:var(--text2);line-height:1.65;padding:16px;background:var(--gold3);border:1px solid rgba(201,168,76,0.2);border-radius:10px">
+    <strong style="color:var(--gold2)">Regla de oro del pricing SaaS:</strong> El precio mensual debe ser 1/10 del valor mensual generado para asegurar retención. Si genera USD 24–84/mes en valor, el precio óptimo es <strong style="color:var(--gold2)">USD 2.40–8.40</strong> en el extremo conservador. Para el segmento alto (USD 84/mes de valor), el precio puede llegar a <strong style="color:var(--gold2)">USD 8–15 sin fricción</strong>.
+  </p>
+</div>
+
+<!-- ══════════════════════════════
+     ANÁLISIS DE FUNCIONALIDADES
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">3. Análisis de funcionalidades por valor</div>
+
+  <div class="insight-grid" style="margin-bottom:24px">
+    <div class="insight-card">
+      <div class="fs-label">🟢 Funciones core (valor básico — deben estar en todo plan de pago)</div>
+      <div class="feature-section">
+        <span class="feature-tag ft-core">💰 Ventas ilimitadas</span>
+        <span class="feature-tag ft-core">📲 Recordatorios WA</span>
+        <span class="feature-tag ft-core">📦 Control de stock</span>
+        <span class="feature-tag ft-core">📊 Estadísticas mensuales</span>
+        <span class="feature-tag ft-core">🔒 PIN + datos locales</span>
+        <span class="feature-tag ft-core">💳 Control de cuotas</span>
+        <span class="feature-tag ft-core">🔔 Notificaciones push</span>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="fs-label">✨ Funciones premium (valor percibido alto — anclan el plan Pro)</div>
+      <div class="feature-section">
+        <span class="feature-tag ft-premium">🖼 Catálogo WhatsApp</span>
+        <span class="feature-tag ft-premium">📈 Estadísticas avanzadas</span>
+        <span class="feature-tag ft-premium">📤 Exportar a Excel</span>
+        <span class="feature-tag ft-premium">👥 Segmentación de clientes</span>
+        <span class="feature-tag ft-premium">📊 Comparativa mensual</span>
+        <span class="feature-tag ft-premium">🎯 Meta mensual visual</span>
+        <span class="feature-tag ft-premium">📋 Historial completo</span>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="fs-label">💎 Funciones diferenciadoras (únicas del producto — justifican premium)</div>
+      <div class="feature-section">
+        <span class="feature-tag ft-diff">🌐 100% offline-first</span>
+        <span class="feature-tag ft-diff">🌸 Especializado en perfumes</span>
+        <span class="feature-tag ft-diff">🖨 Catálogo con Canvas API</span>
+        <span class="feature-tag ft-diff">💬 WA deep links nativos</span>
+        <span class="feature-tag ft-diff">🔐 ECDSA licencias</span>
+        <span class="feature-tag ft-diff">📱 PWA sin App Store</span>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="fs-label">🔮 Funciones futuras (desbloquean pricing más alto)</div>
+      <div class="feature-section">
+        <span class="feature-tag ft-future">☁️ Backup nube automático</span>
+        <span class="feature-tag ft-future">🔄 Sync multi-dispositivo</span>
+        <span class="feature-tag ft-future">👥 Múltiples perfiles</span>
+        <span class="feature-tag ft-future">🤖 IA de recompra</span>
+        <span class="feature-tag ft-future">📊 Dashboard web</span>
+        <span class="feature-tag ft-future">💳 Integración de pagos</span>
+        <span class="feature-tag ft-future">🛒 Tienda online</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     ANÁLISIS DE COMPETENCIA
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">4. Análisis de competencia</div>
+
+  <table class="comp-table">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Precio/mes</th>
+        <th>Target</th>
+        <th>Vs Parfum Track</th>
+        <th>Ventaja PT</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="comp-name">Google Sheets</span></td>
+        <td class="comp-win">Gratis</td>
+        <td>General</td>
+        <td><span class="comp-lose">Sin automatizaciones, sin WA, sin offline</span></td>
+        <td>PT tiene todo lo que Sheets no tiene y no requiere configuración</td>
+      </tr>
+      <tr>
+        <td><span class="comp-name">Vendty</span></td>
+        <td>USD 12–35</td>
+        <td>Tiendas físicas / ecommerce</td>
+        <td><span class="comp-lose">No está hecho para revendedoras, no tiene WA nativo</span></td>
+        <td>PT es 5x más específico para el problema</td>
+      </tr>
+      <tr>
+        <td><span class="comp-name">Siigo Nube</span></td>
+        <td>USD 25–70</td>
+        <td>PYME con contabilidad</td>
+        <td><span class="comp-lose">Complejo, requiere conocimientos contables, no es mobile-first</span></td>
+        <td>PT es 10x más simple y accesible</td>
+      </tr>
+      <tr>
+        <td><span class="comp-name">Alegra</span></td>
+        <td>USD 10–45</td>
+        <td>Facturación / contabilidad</td>
+        <td><span class="comp-lose">Orientado a facturación legal, no al control personal de revendedora</span></td>
+        <td>PT no requiere conocimientos fiscales</td>
+      </tr>
+      <tr>
+        <td><span class="comp-name">Cuaderno + Calculadora</span></td>
+        <td>Gratis</td>
+        <td>Revendedoras tradicionales</td>
+        <td><span class="comp-lose">Manual, sin alertas, sin estadísticas, se pierde con el celular</span></td>
+        <td>PT hace todo automático en 10 seg/venta</td>
+      </tr>
+      <tr>
+        <td><span class="comp-name">WhatsApp Business</span></td>
+        <td>Gratis / USD 15</td>
+        <td>Negocios en WA</td>
+        <td><span class="comp-lose">Solo catálogo básico, sin ventas, sin cuotas, sin estadísticas</span></td>
+        <td>PT complementa y amplifica WA Business</td>
+      </tr>
+      <tr class="comp-pt">
+        <td><strong style="color:var(--gold2)">Parfum Track</strong></td>
+        <td><strong style="color:var(--gold2)">USD 5–25</strong></td>
+        <td>Revendedoras perfumes</td>
+        <td><span class="comp-win">El único específico para este nicho</span></td>
+        <td class="comp-win">Especialización total · WA nativo · Offline · Sin App Store</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top:16px;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text2);line-height:1.6">
+    <strong style="color:var(--gold2)">Conclusión de competencia:</strong> Parfum Track no tiene competencia directa en su nicho. Los competidores más cercanos cobran USD 12–70/mes y son más complejos, más genéricos, o no tienen integración WA nativa. Esto significa que PT puede justificar USD 9–25/mes sin resistencia de precio comparativa.
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     BANDA DE PRECIOS
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">5. Banda de precios · Plan mensual (plan principal)</div>
+
+  <div class="price-band">
+    <div class="pb-item">
+      <div class="pb-label">Demasiado barato</div>
+      <div class="pb-price">USD <span></span>2–3</div>
+      <div class="pb-verdict">Destruye percepción de valor. El cliente asume que la app no sirve o va a desaparecer. Ingresos insuficientes para sostener el negocio.</div>
+      <span class="pb-tag tag-red">❌ Evitar</span>
+    </div>
+    <div class="pb-item">
+      <div class="pb-label">Precio competitivo bajo</div>
+      <div class="pb-price">USD <span></span>5</div>
+      <div class="pb-verdict">Precio actual del plan Starter. Bajo riesgo de rechazo, alta adopción. Problema: ARPU muy bajo, ingresos insuficientes a escala razonable.</div>
+      <span class="pb-tag tag-orange">⚠ Actual / Bajo</span>
+    </div>
+    <div class="pb-item recommended">
+      <div class="pb-badge">⭐ RECOMENDADO</div>
+      <div class="pb-label">Precio óptimo</div>
+      <div class="pb-price">USD <span></span>9</div>
+      <div class="pb-verdict">Maximiza conversiones manteniendo buen ARPU. La regla "1/10 del valor" lo justifica (valor = USD 90+). Precio redondo, memorable, sin fricción.</div>
+      <span class="pb-tag tag-green">✓ Punto dulce</span>
+    </div>
+    <div class="pb-item">
+      <div class="pb-label">Precio premium</div>
+      <div class="pb-price">USD <span></span>19</div>
+      <div class="pb-verdict">Justificable para plan Pro con catálogo + stats avanzadas + exportar Excel. Comparable a Vendty/Alegra que son más genéricos. Target: revendedoras activas.</div>
+      <span class="pb-tag tag-gold">✓ Pro justificado</span>
+    </div>
+    <div class="pb-item">
+      <div class="pb-label">Precio máximo</div>
+      <div class="pb-price">USD <span></span>39</div>
+      <div class="pb-verdict">Solo justificable con multi-dispositivo, sync en nube, equipo, reportes avanzados. Target: revendedoras grandes o distribuidoras con equipo de venta.</div>
+      <span class="pb-tag tag-orange">⚠ Con features extra</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PLANES RECOMENDADOS
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">6. Estructura de planes recomendada</div>
+
+  <div class="plans-grid">
+
+    <!-- FREE -->
+    <div class="plan-card">
+      <div class="plan-head">
+        <div class="plan-tier">Plan 1</div>
+        <div class="plan-name">Free</div>
+        <div class="plan-price-row">
+          <span class="plan-currency">USD</span>
+          <span class="plan-price-num">0</span>
+        </div>
+        <div class="plan-period">para siempre</div>
+        <div class="plan-desc">Prueba real del producto sin límite de tiempo. El objetivo NO es monetizar — es adquisición. El free tier alimenta el funnel de conversión a Pro.</div>
+        <span class="plan-target">🎯 Nuevas usuarias · Indecisos</span>
+      </div>
+      <div class="plan-body">
+        <div class="plan-feature"><span class="pf-check">✓</span> Hasta 15 ventas por mes</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Control de cuotas (3 activas)</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Stock básico (10 productos)</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Funciona 100% offline</div>
+        <div class="plan-feature"><span class="pf-lock">–</span> Sin estadísticas</div>
+        <div class="plan-feature"><span class="pf-lock">–</span> Sin catálogo WhatsApp</div>
+        <div class="plan-feature"><span class="pf-lock">–</span> Sin recordatorios push</div>
+        <div class="plan-feature"><span class="pf-lock">–</span> Sin exportar datos</div>
+        <div class="plan-cta-note">Estrategia: limitar por volumen, no por tiempo. Revendedoras con más de 15 ventas/mes ya tienen un negocio real y pagan.</div>
+      </div>
+    </div>
+
+    <!-- STARTER -->
+    <div class="plan-card">
+      <div class="plan-head">
+        <div class="plan-tier">Plan 2</div>
+        <div class="plan-name">Starter</div>
+        <div class="plan-price-row">
+          <span class="plan-currency">USD</span>
+          <span class="plan-price-num">9</span>
+        </div>
+        <div class="plan-period">/ mes · facturación mensual</div>
+        <div class="plan-desc">Para revendedoras que ya venden regularmente y necesitan orden. El precio de un cafecito por semana. Bajo riesgo de abandono, alta retención.</div>
+        <span class="plan-target">🎯 Revendedoras activas · 10–30 ventas/mes</span>
+      </div>
+      <div class="plan-body">
+        <div class="plan-feature"><span class="pf-check">✓</span> Ventas ilimitadas</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Cuotas y cobros WhatsApp</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Stock ilimitado</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Estadísticas mensuales</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Notificaciones push</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Control de gastos y caja</div>
+        <div class="plan-feature"><span class="pf-lock">–</span> Sin catálogo WhatsApp</div>
+        <div class="plan-feature"><span class="pf-lock">–</span> Sin exportar a Excel</div>
+        <div class="plan-feature"><span class="pf-lock">–</span> Sin segmentación avanzada</div>
+        <div class="plan-cta-note">Precio ancla: USD 9 parece "mucho menos" que USD 12 psicológicamente, y retiene más que USD 5 (que parece insostenible para el negocio).</div>
+      </div>
+    </div>
+
+    <!-- PRO -->
+    <div class="plan-card featured">
+      <div class="plan-head" style="position:relative">
+        <div style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),var(--gold2));color:#1a1400;font-size:9px;font-weight:800;padding:3px 12px;border-radius:0 0 8px 8px;white-space:nowrap;letter-spacing:0.5px;text-transform:uppercase">⭐ MÁS POPULAR</div>
+        <div class="plan-tier" style="margin-top:12px">Plan 3</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price-row">
+          <span class="plan-currency">USD</span>
+          <span class="plan-price-num">19</span>
+        </div>
+        <div class="plan-period">/ mes · facturación mensual</div>
+        <div class="plan-desc">El plan de la revendedora seria. El catálogo WhatsApp por sí solo genera más ventas que el costo del plan. ROI claro en la primera semana.</div>
+        <span class="plan-star">💎 Punto dulce de ingresos</span>
+      </div>
+      <div class="plan-body">
+        <div class="plan-feature"><span class="pf-check">✓</span> Todo lo del plan Starter</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Catálogo WhatsApp profesional</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Estadísticas avanzadas + comparativa</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Exportar a Excel/CSV</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Segmentación de clientes</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Historial completo y búsqueda</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Soporte prioritario WhatsApp</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Backup manual + restauración</div>
+        <div class="plan-cta-note">Ancla psicológica: USD 19 es el precio de 4 cafés. Cuando el catálogo WA genera una venta extra de USD 30+, el plan se paga solo.</div>
+      </div>
+    </div>
+
+    <!-- BUSINESS -->
+    <div class="plan-card">
+      <div class="plan-head">
+        <div class="plan-tier">Plan 4</div>
+        <div class="plan-name">Business</div>
+        <div class="plan-price-row">
+          <span class="plan-currency">USD</span>
+          <span class="plan-price-num">39</span>
+        </div>
+        <div class="plan-period">/ mes · facturación mensual</div>
+        <div class="plan-desc">Para distribuidoras o revendedoras con equipo propio. Perfiles múltiples, sincronización y consultoría de negocio. Requiere features adicionales.</div>
+        <span class="plan-target">🎯 Distribuidoras · Equipos de venta</span>
+      </div>
+      <div class="plan-body">
+        <div class="plan-feature"><span class="pf-check">✓</span> Todo lo del plan Pro</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Perfiles ilimitados (equipo)</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Backup automático en nube</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Sincronización multi-dispositivo</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Dashboard web (acceso desktop)</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Onboarding personalizado</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Consultoría de negocio (1/mes)</div>
+        <div class="plan-feature"><span class="pf-check">✓</span> Soporte VIP + respuesta en 1h</div>
+        <div class="plan-cta-note">Nota: Este plan requiere implementar sync multi-dispositivo primero. Sin esa feature, justificar USD 39 es difícil. Lanzarlo solo cuando esté lista.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:16px 20px;background:var(--card2);border:1px solid var(--border2);border-radius:12px;font-size:13px;color:var(--text2);line-height:1.65">
+    <strong style="color:var(--gold2)">Pricing anual recomendado:</strong> Ofrecer 2 meses gratis (= 16.7% de descuento) para pago anual. Esto mejora el flujo de caja y reduce el churn. Precios anuales: Free $0 · Starter USD 90/año (=USD 7.50/mes) · Pro USD 190/año (=USD 15.83/mes) · Business USD 390/año (=USD 32.50/mes).
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     ANÁLISIS DE INGRESOS
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">7. Proyecciones de ingresos</div>
+
+  <p class="subtitle">Supuestos: mix de planes 20% Free · 45% Starter (USD 9) · 30% Pro (USD 19) · 5% Business (USD 39). ARPU ponderado = USD 12.75/mes. Churn mensual: 5% (conservador) / 2.5% (optimista).</p>
+
+  <table class="rev-table">
+    <thead>
+      <tr>
+        <th>Clientes totales</th>
+        <th>Clientes pagadores</th>
+        <th>MRR</th>
+        <th>ARR</th>
+        <th>Con descuento anual (+15%)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>100</td>
+        <td>80</td>
+        <td class="rev-highlight">USD 1.020</td>
+        <td class="rev-highlight">USD 12.240</td>
+        <td class="rev-green">USD 14.076/año</td>
+      </tr>
+      <tr>
+        <td>500</td>
+        <td>400</td>
+        <td class="rev-highlight">USD 5.100</td>
+        <td class="rev-highlight">USD 61.200</td>
+        <td class="rev-green">USD 70.380/año</td>
+      </tr>
+      <tr>
+        <td>1.000</td>
+        <td>800</td>
+        <td class="rev-highlight">USD 10.200</td>
+        <td class="rev-highlight">USD 122.400</td>
+        <td class="rev-green">USD 140.760/año</td>
+      </tr>
+      <tr>
+        <td>5.000</td>
+        <td>4.000</td>
+        <td class="rev-highlight">USD 51.000</td>
+        <td class="rev-highlight">USD 612.000</td>
+        <td class="rev-green">USD 703.800/año</td>
+      </tr>
+      <tr>
+        <td style="color:var(--gold2);font-weight:700">10.000</td>
+        <td style="color:var(--gold2);font-weight:700">8.000</td>
+        <td class="rev-highlight" style="font-size:16px">USD 102.000</td>
+        <td class="rev-highlight" style="font-size:16px">USD 1.224.000</td>
+        <td class="rev-green" style="font-size:15px">USD 1.407.600/año</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="scenario-grid">
+    <div class="scenario-card">
+      <div class="sc-label sc-conservative">📉 Escenario Conservador — 18 meses</div>
+      <div class="sc-row"><span style="color:var(--text2)">Mes 1</span><span style="color:var(--text2)">50 clientes · USD 510 MRR</span></div>
+      <div class="sc-row"><span style="color:var(--text2)">Mes 6</span><span style="color:var(--text2)">200 clientes · USD 2.040 MRR</span></div>
+      <div class="sc-row"><span style="color:var(--text2)">Mes 12</span><span style="color:var(--text2)">400 clientes · USD 4.080 MRR</span></div>
+      <div class="sc-row"><span style="color:var(--text2)">Mes 18</span><span style="color:var(--text2)">700 clientes · USD 7.140 MRR</span></div>
+      <div class="sc-row"><span>ARR a 18 meses</span><span style="color:var(--text)">USD 85.680</span></div>
+    </div>
+    <div class="scenario-card">
+      <div class="sc-label sc-optimistic">📈 Escenario Optimista — 18 meses</div>
+      <div class="sc-row"><span style="color:var(--text2)">Mes 1</span><span style="color:var(--text2)">150 clientes · USD 1.530 MRR</span></div>
+      <div class="sc-row"><span style="color:var(--text2)">Mes 6</span><span style="color:var(--text2)">800 clientes · USD 8.160 MRR</span></div>
+      <div class="sc-row"><span style="color:var(--text2)">Mes 12</span><span style="color:var(--text2)">2.000 clientes · USD 20.400 MRR</span></div>
+      <div class="sc-row"><span style="color:var(--text2)">Mes 18</span><span style="color:var(--text2)">4.000 clientes · USD 40.800 MRR</span></div>
+      <div class="sc-row"><span>ARR a 18 meses</span><span style="color:var(--green)">USD 489.600</span></div>
+    </div>
+  </div>
+
+  <div style="padding:16px 20px;background:var(--card);border:1px solid var(--border);border-radius:12px;font-size:13px;color:var(--text2);line-height:1.65;margin-top:8px">
+    <strong style="color:var(--gold2)">Palanca más poderosa para escalar ingresos:</strong> No es conseguir más clientes — es subir el ARPU. Si el 50% de Starters hace upgrade a Pro (USD 9 → USD 19), el MRR crece +50% sin un solo cliente nuevo. La estrategia de upsell (catálogo WA como feature Pro) es la mayor oportunidad de ingresos del negocio.
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     VEREDICTO FINAL
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">8. Veredicto final</div>
+
+  <div class="verdict-box">
+    <div class="vb-title">Las 7 preguntas de pricing respondidas</div>
+
+    <div class="vb-q">1. ¿Cuál sería el precio mensual ideal?</div>
+    <div class="vb-a"><strong>USD 9/mes para Starter y USD 19/mes para Pro.</strong> El Starter actual de USD 5 está bien para adquisición pero el ARPU resultante (USD 6.4 ponderado) es demasiado bajo para construir un negocio sostenible. USD 9 es psicológicamente el primer precio "de producto real" y genera el doble de ingresos sin perder conversiones significativas.</div>
+
+    <div class="vb-q">2. ¿Cuál maximizaría las conversiones?</div>
+    <div class="vb-a"><strong>Un plan Free genuino (no trial de 7 días) + Starter a USD 7–9.</strong> El freemium verdadero —limitado por volumen (15 ventas/mes), no por tiempo— genera confianza real. La usuaria usa el producto, ve el valor, y convierte orgánicamente cuando supera el límite. Esta estrategia tiene tasas de conversión del 3–8% (vs 1–3% del trial de tiempo limitado). Notion, Trello, Canva siguen este modelo exacto.</div>
+
+    <div class="vb-q">3. ¿Cuál maximizaría los ingresos?</div>
+    <div class="vb-a"><strong>Forzar la mayoría de usuarios al plan Pro (USD 19).</strong> Si el plan Pro tiene el catálogo de WA, las estadísticas avanzadas y la exportación de Excel como exclusivos, y el Starter se percibe como "básico", el mix se desplaza hacia Pro. Con 60% de usuarios pagadores en Pro y 40% en Starter, el ARPU sube a USD 15+ — un 70% más que el ARPU actual.</div>
+
+    <div class="vb-q">4. ¿Cuál cobraría una startup profesional?</div>
+    <div class="vb-a"><strong>Starter USD 9 · Pro USD 19 · Business USD 39.</strong> Este es el pricing de un producto SaaS B2B de nicho con diferenciación clara. Es exactamente lo que cobra Vendty, Alegra o cualquier SaaS de gestión para pequeñas empresas LATAM — y Parfum Track tiene más especialización que todos ellos para este segmento.</div>
+
+    <div class="vb-q">5. ¿Cuál cobraría una empresa líder del mercado?</div>
+    <div class="vb-a"><strong>Starter USD 15 · Pro USD 29 · Business USD 59 + plan Enterprise USD 99.</strong> Una empresa líder con marca establecida, 10.000+ clientes, testimonios verificados, y funciones avanzadas (IA, analytics, integraciones) puede cobrar estos precios. En 5 años, con la base correcta, Parfum Track podría estar en estos rangos.</div>
+
+    <div class="vb-q">6. ¿Estoy cobrando demasiado barato?</div>
+    <div class="vb-a"><strong>Sí. El plan Starter actual de USD 5 está subpreciado en un 40–80%.</strong> El valor generado conservador es USD 24–84/mes. La regla del 10x indica un precio justo de USD 2.40–8.40. USD 5 está en el límite inferior del rango. Pero el problema principal no es el precio — es el MIX: sin plan Pro bien diferenciado, el 90% de usuarios se queda en Starter y el ARPU es demasiado bajo. La solución es hacer el Pro más atractivo, no solo subir el Starter.</div>
+
+    <div class="vb-q">7. ¿Qué debería agregar para poder cobrar más?</div>
+    <div class="vb-a">En orden de impacto en precio: <strong>(1) Backup automático + sync multi-dispositivo</strong> → justifica USD 39 Business. <strong>(2) Dashboard web</strong> (acceso desde computadora) → aumenta percepción de "herramienta profesional". <strong>(3) IA de recomendación de recompra</strong> → "Esta semana deberías reponer Haramain Gold — se te acaba en 3 días". <strong>(4) Reportes PDF profesionales</strong> → la usuaria los muestra a su distribuidor o familia como "mi negocio en números". <strong>(5) Tienda online embebida</strong> → pasar de herramienta de gestión a plataforma de ventas completa. Cada una de estas features mueve el techo del precio USD 10–20 hacia arriba.</div>
+  </div>
+
+  <div style="margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px">Precio actual (Starter)</div>
+      <div style="font-size:32px;font-weight:900;color:var(--red)">USD 5</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Subpreciado 40-80%</div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px">Precio recomendado</div>
+      <div style="font-size:32px;font-weight:900;color:var(--green)">USD 9</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Starter · Punto dulce</div>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(201,168,76,0.1),var(--card));border:1px solid rgba(201,168,76,0.3);border-radius:12px;padding:18px;text-align:center">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:8px">Precio que maximiza ingresos</div>
+      <div style="font-size:32px;font-weight:900;color:var(--gold2)">USD 19</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Pro · Foco de monetización</div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px">Precio empresa líder (5 años)</div>
+      <div style="font-size:32px;font-weight:900;color:var(--purple)">USD 29</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Pro · Con brand y tracción</div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px">ARPU objetivo</div>
+      <div style="font-size:32px;font-weight:900;color:var(--blue)">USD 15</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Con 60% en Pro</div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:40px 0 20px;border-top:1px solid var(--border);margin-top:48px">
+  <div style="font-size:12px;color:var(--text3)">Auditoría de Pricing · Parfum Track · Junio 2026</div>
+  <div style="font-size:11px;color:var(--text3);margin-top:6px">SaaS B2B Nicho · Mercado LATAM · Especialización perfumes</div>
+</div>
+
+</div>
+</body>
+</html>
