@@ -70,18 +70,18 @@ async function handleRegister(body, ip, env, headers) {
   const emailLower = email.toLowerCase().trim();
   const emailHash = await sha256(emailLower);
 
-  // Rate limit: 3 OTP requests per IP per hour
+  // Rate limit: 10 OTP requests per IP per hour
   const rlIp = await checkRateLimit(
     env,
     `rl_otp_ip_${await sha256(ip)}`,
-    3,
+    10,
     3600,
   );
   if (rlIp)
     return json({ error: "Demasiados intentos. Esperá 1 hora." }, 429, headers);
 
-  // Rate limit: 3 OTP requests per email per hour
-  const rlEmail = await checkRateLimit(env, `rl_otp_em_${emailHash}`, 3, 3600);
+  // Rate limit: 10 OTP requests per email per hour
+  const rlEmail = await checkRateLimit(env, `rl_otp_em_${emailHash}`, 10, 3600);
   if (rlEmail)
     return json(
       { error: "Demasiados intentos para este email. Esperá 1 hora." },
