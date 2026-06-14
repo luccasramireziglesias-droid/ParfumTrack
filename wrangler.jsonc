@@ -18,7 +18,7 @@
     "FROM_NAME": "Parfum Track",
     // URL pública del Worker — actualizar en Cloudflare Dashboard → Workers → parfumtrack → Settings → Variables
     // Ejemplo: https://parfumtrack.tusubdominio.workers.dev  (ver en CF Dashboard → Workers & Pages → parfumtrack → Domains & Routes)
-    "APP_URL": "https://parfumtrack.workers.dev",
+    "APP_URL": "https://parfumtrack.luccasramireziglesias.workers.dev",
     // Moneda de Mercado Pago según tu cuenta (ARS=Argentina, UYU=Uruguay, CLP=Chile, USD=Internacional)
     // Cambiar según el país de tu cuenta MP. Secrets: MP_ACCESS_TOKEN y MP_WEBHOOK_SECRET en Dashboard.
     "MP_CURRENCY_ID": "ARS",
