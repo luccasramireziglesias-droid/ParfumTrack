@@ -16,3 +16,9 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --config wrangler.jsonc
+          secrets: |
+            BREVO_API_KEY
+            LICENSE_SERVER_SECRET
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          LICENSE_SERVER_SECRET: ${{ secrets.LICENSE_SERVER_SECRET }}
