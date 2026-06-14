@@ -101,8 +101,10 @@ async function handleRegister(body, ip, env, headers) {
     { expirationTtl: OTP_TTL_SECS },
   );
 
-  // Send OTP email (non-blocking failure — OTP is in KV regardless)
-  sendOtpEmail(emailLower, otp, env).catch(() => {});
+  // Await email send — non-blocking caused Worker to terminate before Brevo got the request
+  await sendOtpEmail(emailLower, otp, env).catch((e) =>
+    console.error("[trial] email error:", e?.message),
+  );
 
   console.log(`[trial] OTP sent to ***@${emailLower.split("@")[1]}`);
   return json({ sent: true }, 200, headers);
