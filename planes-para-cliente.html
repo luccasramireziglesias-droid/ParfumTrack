@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Planes — Parfum Track</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a12;--bg2:#0f0f1e;--bg3:#141428;--card:#181830;--card2:#1e1e3a;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--border3:rgba(255,255,255,0.18);
+  --gold:#c9a84c;--gold2:#e8cc7a;--gold3:rgba(201,168,76,0.12);--gold4:rgba(201,168,76,0.06);
+  --text:#f0ede8;--text2:#a8a49c;--text3:#6a6660;
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.08);
+  --red:#f87171;
+  --radius:16px;--shadow:0 20px 60px rgba(0,0,0,0.6);
+}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* HEADER */
+.header{text-align:center;padding:64px 24px 48px;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:800px;height:600px;background:radial-gradient(ellipse,rgba(201,168,76,0.07),transparent 65%);pointer-events:none}
+.logo{display:inline-flex;align-items:center;gap:9px;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:32px;text-decoration:none}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;padding:5px 14px;border-radius:50px;background:var(--gold3);border:1px solid rgba(201,168,76,0.2);font-size:11px;font-weight:700;color:var(--gold2);letter-spacing:1px;text-transform:uppercase;margin-bottom:20px}
+.header h1{font-size:clamp(32px,5vw,52px);font-weight:900;letter-spacing:-1px;line-height:1.05;margin-bottom:14px}
+.header h1 span{background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header-sub{font-size:17px;color:var(--text2);max-width:500px;margin:0 auto;line-height:1.65}
+
+/* PLANS */
+.plans-wrap{max-width:1060px;margin:0 auto;padding:0 20px 80px}
+.plans-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;align-items:start}
+
+.plan{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s}
+.plan:hover{transform:translateY(-4px);box-shadow:0 24px 60px rgba(0,0,0,0.5)}
+
+.plan-pro{background:linear-gradient(160deg,rgba(201,168,76,0.07) 0%,var(--card) 60%);border-color:rgba(201,168,76,0.35);position:relative}
+.plan-pro::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,0.06),transparent 60%);pointer-events:none}
+
+/* PLAN HEADER */
+.plan-head{padding:28px 26px 24px;border-bottom:1px solid var(--border)}
+.plan-badge{display:inline-block;padding:3px 12px;border-radius:50px;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+.badge-free{background:rgba(74,222,128,0.1);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.badge-basic{background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.2)}
+.badge-pro{background:var(--gold3);color:var(--gold2);border:1px solid rgba(201,168,76,0.3)}
+.plan-recommended{position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),var(--gold2));color:#1a1400;font-size:9px;font-weight:800;padding:4px 14px;border-radius:0 0 10px 10px;white-space:nowrap;letter-spacing:0.5px;text-transform:uppercase}
+
+.plan-name{font-size:22px;font-weight:800;color:var(--text);margin-bottom:16px}
+
+.plan-price-area{margin-bottom:14px}
+.plan-price-main{display:flex;align-items:baseline;gap:3px;line-height:1}
+.plan-currency{font-size:18px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.plan-amount{font-size:52px;font-weight:900;color:var(--text)}
+.plan-period{font-size:13px;color:var(--text3);margin-top:5px}
+.plan-annual{font-size:12px;color:var(--green);font-weight:600;margin-top:4px}
+
+.plan-tagline{font-size:14px;color:var(--text2);line-height:1.55;margin-top:12px}
+
+/* PLAN BODY */
+.plan-body{padding:24px 26px}
+
+.feat-section{margin-bottom:24px}
+.feat-section:last-child{margin-bottom:0}
+.feat-section-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.feat-section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.feat-item{display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:1px solid var(--border)}
+.feat-item:last-child{border-bottom:none;padding-bottom:0}
+.feat-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:12px}
+.fi-yes{background:var(--green-dim);border:1px solid rgba(74,222,128,0.2);color:var(--green)}
+.fi-no{background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--text3)}
+.feat-text{}
+.feat-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:3px}
+.feat-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.feat-locked .feat-title{color:var(--text3)}
+.feat-locked .feat-desc{color:var(--text3)}
+
+/* CTA */
+.plan-cta{padding:0 26px 26px}
+.btn-cta{display:block;width:100%;padding:14px;border-radius:50px;font-size:15px;font-weight:700;text-align:center;text-decoration:none;cursor:pointer;font-family:inherit;border:none;transition:all 0.2s}
+.btn-free{background:rgba(74,222,128,0.1);border:1.5px solid rgba(74,222,128,0.25);color:var(--green)}
+.btn-free:hover{background:rgba(74,222,128,0.15);border-color:rgba(74,222,128,0.4)}
+.btn-basic{background:rgba(96,165,250,0.1);border:1.5px solid rgba(96,165,250,0.25);color:#60a5fa}
+.btn-basic:hover{background:rgba(96,165,250,0.15);border-color:rgba(96,165,250,0.4)}
+.btn-pro{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1400;box-shadow:0 6px 28px rgba(201,168,76,0.35)}
+.btn-pro:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 10px 40px rgba(201,168,76,0.45)}
+.btn-sub{display:block;text-align:center;font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5}
+
+/* HIGHLIGHT PILL */
+.highlight-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:50px;font-size:10px;font-weight:700;margin-top:4px}
+.hp-gold{background:var(--gold3);color:var(--gold2);border:1px solid rgba(201,168,76,0.2)}
+.hp-green{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.15)}
+
+/* COMPARE NOTE */
+.compare-note{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:28px 24px;margin:0 0 48px;text-align:center}
+.compare-note p{font-size:14px;color:var(--text2);max-width:560px;margin:0 auto;line-height:1.65}
+.compare-note strong{color:var(--gold2)}
+
+/* FAQ QUICK */
+.faq-wrap{max-width:680px;margin:0 auto;padding:0 24px 64px}
+.faq-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);text-align:center;margin-bottom:28px}
+.faq-item{border-bottom:1px solid var(--border);padding:18px 0}
+.faq-q{font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px}
+.faq-a{font-size:13px;color:var(--text2);line-height:1.7}
+
+/* RESPONSIVE */
+@media(max-width:900px){.plans-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto}}
+@media(max-width:480px){.header{padding:48px 20px 36px}.plan-head{padding:24px 20px 20px}.plan-body{padding:20px}.plan-cta{padding:0 20px 20px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="eyebrow">✨ Planes y precios</div>
+  </div>
+  <h1>Elegí el plan que<br>se adapta a <span>tu negocio</span></h1>
+  <p class="header-sub">Todos los planes incluyen 7 días gratis para que pruebes sin riesgo. Sin tarjeta de crédito. Sin compromiso.</p>
+</div>
+
+<div class="plans-wrap">
+
+  <div class="plans-grid">
+
+    <!-- ════════════════
+         PLAN GRATIS (7 días)
+    ════════════════ -->
+    <div class="plan">
+      <div class="plan-head">
+        <div class="plan-badge badge-free">Gratis</div>
+        <div class="plan-name">Prueba gratuita</div>
+        <div class="plan-price-area">
+          <div class="plan-price-main">
+            <span class="plan-currency" style="font-size:22px;margin-bottom:0">USD</span>
+            <span class="plan-amount">0</span>
+          </div>
+          <div class="plan-period">durante 7 días · sin tarjeta</div>
+          <div class="plan-annual" style="color:var(--green)">✓ Acceso completo al plan Pro</div>
+        </div>
+        <p class="plan-tagline">Probás todo Parfum Track por 7 días sin pagar nada. Después decidís si querés seguir — y si seguís, elegís el plan que te conviene.</p>
+      </div>
+
+      <div class="plan-body">
+        <div class="feat-section">
+          <div class="feat-section-label">Qué tenés durante los 7 días</div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Todas las funciones desbloqueadas</div>
+              <div class="feat-desc">Usás el plan Pro completo durante 7 días. Nada oculto, nada bloqueado — todo disponible desde el primer minuto.</div>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Cargás tus perfumes y tus clientas reales</div>
+              <div class="feat-desc">No es un demo con datos inventados. Usás la app con tu negocio real desde el día 1 para que veas el valor concreto.</div>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Tus datos quedan guardados</div>
+              <div class="feat-desc">Todo lo que cargás durante el trial se guarda. Si decidís activar un plan pago, continuás desde donde dejaste — sin perder nada.</div>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Soporte por WhatsApp incluido</div>
+              <div class="feat-desc">Si tenés alguna duda durante la prueba, te respondemos por WhatsApp. Te ayudamos a configurar la app para tu negocio.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feat-section">
+          <div class="feat-section-label">Qué pasa al vencer los 7 días</div>
+
+          <div class="feat-item">
+            <div class="feat-icon" style="background:rgba(250,204,21,0.08);border:1px solid rgba(250,204,21,0.2);color:#facc15;border-radius:6px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:12px">!</div>
+            <div class="feat-text">
+              <div class="feat-title">La app pasa a modo limitado</div>
+              <div class="feat-desc">Podés ver todos tus datos y registrar hasta 5 ventas nuevas por mes. Tus datos nunca se borran. Para volver al modo completo, activás el plan que prefieras.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-cta">
+        <a href="/index.html" class="btn-cta btn-free">Empezar prueba gratis →</a>
+        <div class="btn-sub">Sin tarjeta · Sin instalación · Listo en 2 minutos</div>
+      </div>
+    </div>
+
+    <!-- ════════════════
+         PLAN BÁSICO $9.99
+    ════════════════ -->
+    <div class="plan">
+      <div class="plan-head">
+        <div class="plan-badge badge-basic">Plan Básico</div>
+        <div class="plan-name">Básico</div>
+        <div class="plan-price-area">
+          <div class="plan-price-main">
+            <span class="plan-currency">USD</span>
+            <span class="plan-amount">9</span>
+            <span style="font-size:24px;font-weight:700;color:var(--text);line-height:1;padding-bottom:6px">.99</span>
+          </div>
+          <div class="plan-period">por mes · podés cancelar cuando querás</div>
+          <div class="plan-annual">↓ USD 7.99/mes si pagás anual (ahorrás USD 24)</div>
+        </div>
+        <p class="plan-tagline">Para la revendedora que ya vende seguido y necesita tener su negocio organizado sin complicaciones. Todo lo esencial, al precio de un café por semana.</p>
+      </div>
+
+      <div class="plan-body">
+        <div class="feat-section">
+          <div class="feat-section-label">Ventas y cobros</div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Ventas ilimitadas sin límite de monto</div>
+              <div class="feat-desc">Registrás cada venta en 10 segundos: perfume, precio, clienta, forma de pago. Sin tope mensual, sin importar cuánto vendés.</div>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Ventas en cuotas con seguimiento automático</div>
+              <div class="feat-desc">Registrás las cuotas y la app lleva la cuenta por vos. Sabés exactamente cuánto pagó cada clienta, cuánto debe y cuándo vence la próxima cuota.</div>
+              <span class="highlight-pill hp-green">✓ Ilimitadas</span>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Recordatorio de cobro listo para enviar por WhatsApp</div>
+              <div class="feat-desc">Cuando una cuota vence, la app te avisa. Con un toque abrís WhatsApp con el mensaje ya escrito con el nombre de la clienta y el monto. Vos solo lo enviás.</div>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Notificaciones push para cobros vencidos</div>
+              <div class="feat-desc">La app te avisa automáticamente en tu celular cuando una cuota vence. No necesitás acordarte — Parfum Track te recuerda.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feat-section">
+          <div class="feat-section-label">Stock y gastos</div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Control de stock en tiempo real</div>
+              <div class="feat-desc">Cargás tu inventario y cada vez que registrás una venta el stock se descuenta solo. Sabés exactamente cuántas unidades te quedan de cada perfume sin contar nada.</div>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Registro de gastos y control de caja</div>
+              <div class="feat-desc">Anotás los gastos del negocio (bolsas, envíos, compras de stock) y la app los descuenta de tu ganancia real. El número que ves es lo que realmente te queda.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feat-section">
+          <div class="feat-section-label">Estadísticas de tu negocio</div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Tu ganancia real del mes, siempre visible</div>
+              <div class="feat-desc">Cada venta que registrás actualiza el número en tiempo real. Abrís la app y ya sabés cuánto ganaste — sin hacer cuentas, sin esperar al fin de mes.</div>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Meta mensual con seguimiento visual</div>
+              <div class="feat-desc">Ponés tu meta de ganancia mensual y la app te muestra qué porcentaje alcanzaste. Sabés en todo momento si vas bien encaminada o necesitás vender más.</div>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Historial de clientas y sus compras</div>
+              <div class="feat-desc">Ves el historial completo de cada clienta: qué compró, cuánto pagó, si debe algo. Sabés quiénes son tus mejores clientas y quiénes no compran hace tiempo.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feat-section">
+          <div class="feat-section-label">No incluido en este plan</div>
+
+          <div class="feat-item feat-locked">
+            <div class="feat-icon fi-no">—</div>
+            <div class="feat-text">
+              <div class="feat-title">Catálogo de perfumes para WhatsApp</div>
+              <div class="feat-desc">Disponible en el plan Pro.</div>
+            </div>
+          </div>
+
+          <div class="feat-item feat-locked">
+            <div class="feat-icon fi-no">—</div>
+            <div class="feat-text">
+              <div class="feat-title">Estadísticas avanzadas y comparativa mensual</div>
+              <div class="feat-desc">Disponible en el plan Pro.</div>
+            </div>
+          </div>
+
+          <div class="feat-item feat-locked">
+            <div class="feat-icon fi-no">—</div>
+            <div class="feat-text">
+              <div class="feat-title">Exportar datos a Excel</div>
+              <div class="feat-desc">Disponible en el plan Pro.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-cta">
+        <a href="https://wa.me/59894466577?text=Hola!%20Quiero%20activar%20el%20plan%20Básico%20de%20Parfum%20Track%20🌸" target="_blank" rel="noopener" class="btn-cta btn-basic">Activar plan Básico →</a>
+        <div class="btn-sub">Cancelás cuando querás · Sin contrato · Tus datos siempre seguros</div>
+      </div>
+    </div>
+
+    <!-- ════════════════
+         PLAN PRO $19.99
+    ════════════════ -->
+    <div class="plan plan-pro" style="position:relative">
+      <div class="plan-recommended">⭐ EL COMPLETO</div>
+
+      <div class="plan-head" style="padding-top:40px">
+        <div class="plan-badge badge-pro">Plan Pro</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price-area">
+          <div class="plan-price-main">
+            <span class="plan-currency">USD</span>
+            <span class="plan-amount" style="background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">19</span>
+            <span style="font-size:24px;font-weight:700;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;padding-bottom:6px">.99</span>
+          </div>
+          <div class="plan-period">por mes · podés cancelar cuando querás</div>
+          <div class="plan-annual">↓ USD 15.99/mes si pagás anual (ahorrás USD 48)</div>
+        </div>
+        <p class="plan-tagline">Todo lo del plan Básico más las herramientas que hacen crecer tu negocio. El catálogo para WhatsApp solo ya genera más ventas que lo que cuesta el plan.</p>
+      </div>
+
+      <div class="plan-body">
+        <div class="feat-section">
+          <div class="feat-section-label">Todo lo del plan Básico, más...</div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Catálogo profesional para compartir por WhatsApp</div>
+              <div class="feat-desc">Generás una imagen hermosa con todos tus perfumes, precios y nombre de tu negocio. La compartís en WhatsApp, grupos o Instagram en un toque. Sin Canva, sin diseñador — listo en segundos.</div>
+              <span class="highlight-pill hp-gold">★ Exclusivo Pro</span>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Estadísticas avanzadas de tu negocio</div>
+              <div class="feat-desc">Ves cuáles son los perfumes que más te conviene vender (por margen real, no solo por cantidad), cómo evolucionó tu ganancia mes a mes y cuáles clientas te generan más ingresos.</div>
+              <span class="highlight-pill hp-gold">★ Exclusivo Pro</span>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Comparativa mes anterior vs mes actual</div>
+              <div class="feat-desc">Ves de un vistazo si tu negocio está creciendo o achicándose respecto al mes pasado. Ventas, ganancia, cobros pendientes — todo comparado automáticamente.</div>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Ranking de perfumes más vendidos y más rentables</div>
+              <div class="feat-desc">Sabés exactamente cuáles perfumes te conviene siempre tener en stock porque son los que más ganancia te dejan. Tomás decisiones de compra basadas en números, no en intuición.</div>
+              <span class="highlight-pill hp-gold">★ Exclusivo Pro</span>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Exportar todo a Excel con un toque</div>
+              <div class="feat-desc">Si necesitás llevar tus números a una planilla, mostrarle algo a tu contador, o simplemente tener un respaldo en Excel, lo exportás en segundos. Todas tus ventas, gastos y cobros en un archivo.</div>
+              <span class="highlight-pill hp-gold">★ Exclusivo Pro</span>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Segmentación de clientas</div>
+              <div class="feat-desc">Filtrás tus clientas por lo que gastaron, cuántas veces compraron, si deben, o si hace mucho que no compran. Podés armar campañas de reactivación o saber a quién ofrecerle el catálogo nuevo.</div>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Backup manual y restauración de datos</div>
+              <div class="feat-desc">Generás un archivo de respaldo de todo tu negocio y lo guardás donde quieras (Google Drive, WhatsApp contigo misma, email). Si cambiás de celular, restaurás todo en segundos.</div>
+            </div>
+          </div>
+
+          <div class="feat-item">
+            <div class="feat-icon fi-yes">✓</div>
+            <div class="feat-text">
+              <div class="feat-title">Soporte prioritario por WhatsApp</div>
+              <div class="feat-desc">Tenés prioridad en las respuestas. Si algo no funciona o tenés una duda, te respondemos antes que a los demás usuarios — sin esperar.</div>
+              <span class="highlight-pill hp-gold">★ Exclusivo Pro</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-cta">
+        <a href="https://wa.me/59894466577?text=Hola!%20Quiero%20activar%20el%20plan%20Pro%20de%20Parfum%20Track%20🌸" target="_blank" rel="noopener" class="btn-cta btn-pro">Activar plan Pro →</a>
+        <div class="btn-sub">Cancelás cuando querás · Sin contrato · Tus datos siempre seguros</div>
+      </div>
+    </div>
+
+  </div><!-- /plans-grid -->
+
+</div><!-- /plans-wrap -->
+
+<!-- COMPARE NOTE -->
+<div class="compare-note">
+  <p>
+    ¿No sabés cuál elegir? <strong>Empezá con la prueba gratis de 7 días</strong> y usá la app con tu negocio real.
+    Vas a saber exactamente qué plan necesitás — sin presión, sin apuro.
+    <br><br>
+    Si tenés alguna duda, <strong>escribinos por WhatsApp</strong> y te ayudamos a elegir el plan ideal según cómo es tu negocio.
+  </p>
+</div>
+
+<!-- FAQ -->
+<div class="faq-wrap">
+  <div class="faq-title">Preguntas frecuentes sobre los planes</div>
+
+  <div class="faq-item">
+    <div class="faq-q">¿Tengo que poner la tarjeta de crédito para la prueba gratis?</div>
+    <div class="faq-a">No. La prueba de 7 días es completamente gratis y sin ningún dato de pago. Cuando vencen los 7 días, te contactamos por WhatsApp si querés continuar y ahí elegís cómo pagar.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">¿Puedo cambiar de plan en cualquier momento?</div>
+    <div class="faq-a">Sí, podés subir o bajar de plan cuando querás. Si pasás del Básico al Pro, el catálogo de WhatsApp y las estadísticas avanzadas se desbloquean en el momento. Si bajás, nada de lo que cargaste se borra.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">¿Cómo funciona el pago? ¿Es automático?</div>
+    <div class="faq-a">No es automático. No hay débito automático ni cobro sorpresa. Cada mes te avisamos por WhatsApp y vos decidís si renovás o no. Podés pagar por transferencia, Mercado Pago, PayPal, tarjeta o efectivo.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">¿Qué pasa si cancelo? ¿Pierdo mis datos?</div>
+    <div class="faq-a">Tus datos quedan guardados en tu celular — no los perdés nunca. La app pasa a modo limitado (hasta 5 ventas nuevas por mes) pero podés seguir viendo todo tu historial, tus clientas y tus estadísticas anteriores.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">¿La diferencia entre Básico y Pro vale la pena?</div>
+    <div class="faq-a">Depende de cómo es tu negocio. Si compartís tu catálogo por WhatsApp regularmente o querés saber cuáles perfumes te conviene vender más, el Pro se paga solo. Si solo necesitás llevar las cuentas y los cobros, el Básico alcanza.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">¿La app funciona si no tengo internet?</div>
+    <div class="faq-a">Sí, al 100%. Podés registrar ventas, ver estadísticas, consultar cobros pendientes y gestionar el stock sin ninguna conexión a internet. Solo necesitás internet para enviar los mensajes de WhatsApp o hacer backup en la nube.</div>
+  </div>
+</div>
+
+</body>
+</html>
