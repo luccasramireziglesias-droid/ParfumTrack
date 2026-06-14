@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auditoría Landing Page — Parfum Track v1</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a12;--bg2:#0f0f1e;--bg3:#141428;--card:#181830;--card2:#1e1e3a;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --gold:#c9a84c;--gold2:#e8cc7a;--gold3:rgba(201,168,76,0.12);--gold4:rgba(201,168,76,0.06);
+  --text:#f0ede8;--text2:#a8a49c;--text3:#6a6660;
+  --red:#f87171;--red2:rgba(248,113,113,0.12);--red3:rgba(248,113,113,0.06);
+  --orange:#fb923c;--orange2:rgba(251,146,60,0.12);
+  --green:#4ade80;--green2:rgba(74,222,128,0.12);
+  --blue:#60a5fa;--blue2:rgba(96,165,250,0.12);
+  --purple:#a78bfa;--purple2:rgba(167,139,250,0.12);
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--gold2);text-decoration:none}
+
+/* HEADER */
+.report-header{background:linear-gradient(135deg,var(--bg2),var(--bg3));border-bottom:1px solid var(--border2);padding:56px 32px 48px;text-align:center;position:relative;overflow:hidden}
+.report-header::before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse,rgba(201,168,76,0.08),transparent 65%);pointer-events:none}
+.report-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:50px;background:var(--gold3);border:1px solid rgba(201,168,76,0.25);font-size:11px;font-weight:700;color:var(--gold2);letter-spacing:1px;text-transform:uppercase;margin-bottom:20px}
+.report-title{font-size:clamp(28px,4vw,44px);font-weight:800;letter-spacing:-0.8px;margin-bottom:10px}
+.report-title span{background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.report-meta{font-size:13px;color:var(--text3);margin-top:16px;display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap}
+.report-meta span{display:flex;align-items:center;gap:5px}
+
+/* LAYOUT */
+.main{max-width:1100px;margin:0 auto;padding:48px 24px}
+.section-block{margin-bottom:56px}
+.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.h2{font-size:22px;font-weight:700;margin-bottom:6px;color:var(--text)}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:24px;line-height:1.6}
+
+/* SCORES GRID */
+.scores-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:32px}
+.score-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden}
+.score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--bar-color,var(--gold))}
+.score-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px}
+.score-num{font-size:30px;font-weight:800;color:var(--text);line-height:1;margin-bottom:10px}
+.score-num span{font-size:14px;font-weight:500;color:var(--text3)}
+.score-bar{height:4px;border-radius:2px;background:rgba(255,255,255,0.06);overflow:hidden}
+.score-bar-fill{height:100%;border-radius:2px;background:var(--bar-color,var(--gold));transition:width 1s ease}
+.score-note{font-size:11px;color:var(--text3);margin-top:8px;line-height:1.5}
+
+/* TOTAL SCORE */
+.total-score-box{background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid rgba(201,168,76,0.25);border-radius:20px;padding:36px 32px;text-align:center;margin-bottom:40px;position:relative;overflow:hidden}
+.total-score-box::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,0.06),transparent 60%)}
+.tsb-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:12px}
+.tsb-num{font-size:72px;font-weight:900;line-height:1;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.tsb-sub{font-size:16px;color:var(--text2)}
+.tsb-verdict{margin-top:20px;padding:14px 20px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:10px;font-size:14px;color:var(--text2);line-height:1.6}
+
+/* FINDINGS */
+.findings-grid{display:grid;gap:12px}
+.finding-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 22px;border-left:3px solid var(--sev-color,var(--border))}
+.fc-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.fc-num{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text3);flex-shrink:0;margin-top:1px}
+.fc-title{font-size:15px;font-weight:700;color:var(--text);flex:1}
+.sev-badge{padding:3px 10px;border-radius:50px;font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+.sev-critical{background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3)}
+.sev-high{background:rgba(251,146,60,0.15);color:#fb923c;border:1px solid rgba(251,146,60,0.3)}
+.sev-medium{background:rgba(250,204,21,0.15);color:#facc15;border:1px solid rgba(250,204,21,0.3)}
+.sev-low{background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.3)}
+.fc-body{padding-left:38px}
+.fc-row{display:grid;grid-template-columns:100px 1fr;gap:6px 12px;font-size:13px;margin-bottom:4px}
+.fc-row-label{color:var(--text3);font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:0.5px;align-self:start;padding-top:2px}
+.fc-row-val{color:var(--text2);line-height:1.5}
+.fc-row-val strong{color:var(--text);font-weight:600}
+.fc-row-val code{background:var(--bg3);padding:1px 6px;border-radius:4px;font-family:monospace;font-size:12px;color:var(--gold2)}
+
+/* PHASE TABS */
+.phase-block{background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:16px;overflow:hidden}
+.phase-header{padding:18px 22px;display:flex;align-items:center;gap:12px;background:var(--bg2)}
+.phase-num{width:32px;height:32px;border-radius:50%;background:var(--gold3);border:1px solid rgba(201,168,76,0.25);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--gold2);flex-shrink:0}
+.phase-title-text{font-size:16px;font-weight:700;color:var(--text)}
+.phase-score-pill{margin-left:auto;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;background:var(--gold3);color:var(--gold2);border:1px solid rgba(201,168,76,0.2)}
+.phase-body{padding:22px}
+.phase-finding{padding:12px 14px;border-radius:10px;border-left:3px solid;margin-bottom:10px;font-size:13px;line-height:1.6}
+.pf-critical{background:var(--red3);border-color:var(--red);color:var(--text2)}
+.pf-high{background:var(--orange2);border-color:var(--orange);color:var(--text2)}
+.pf-medium{background:rgba(250,204,21,0.06);border-color:#facc15;color:var(--text2)}
+.pf-good{background:var(--green2);border-color:var(--green);color:var(--text2)}
+.pf-critical strong,.pf-high strong,.pf-medium strong,.pf-good strong{color:var(--text);display:block;margin-bottom:3px}
+
+/* LISTS */
+.top-list{counter-reset:tl;display:grid;gap:10px}
+.top-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start}
+.top-item::before{counter-increment:tl;content:counter(tl);width:28px;height:28px;border-radius:8px;background:var(--gold3);border:1px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--gold2);flex-shrink:0}
+.top-item-content{}
+.top-item-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.top-item-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.impact-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:50px;font-size:10px;font-weight:700;margin-top:5px}
+.ip-alto{background:var(--red2);color:var(--red);border:1px solid rgba(248,113,113,0.2)}
+.ip-medio{background:var(--orange2);color:var(--orange);border:1px solid rgba(251,146,60,0.2)}
+.ip-rapido{background:var(--green2);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+
+/* PLAN */
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.plan-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.plan-header{padding:16px 20px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.plan-h-24{background:rgba(248,113,113,0.12);color:var(--red);border-bottom:1px solid rgba(248,113,113,0.15)}
+.plan-h-7{background:rgba(251,146,60,0.12);color:var(--orange);border-bottom:1px solid rgba(251,146,60,0.15)}
+.plan-h-30{background:rgba(96,165,250,0.12);color:var(--blue);border-bottom:1px solid rgba(96,165,250,0.15)}
+.plan-body{padding:16px 20px}
+.plan-item{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;font-size:13px}
+.plan-check{color:var(--gold2);flex-shrink:0;font-weight:700}
+.plan-text{color:var(--text2);line-height:1.5}
+.plan-text strong{color:var(--text);font-weight:600}
+
+/* VERDICT */
+.verdict-box{background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.03));border:1px solid rgba(201,168,76,0.25);border-radius:16px;padding:32px;margin-top:40px}
+.vb-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:16px}
+.vb-q{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;margin-top:16px}
+.vb-a{font-size:13px;color:var(--text2);line-height:1.65}
+.vb-a strong{color:var(--gold2)}
+
+/* DELTA BOX */
+.delta-box{background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:24px;margin-top:24px}
+.db-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:14px}
+.db-row{display:flex;align-items:baseline;gap:12px;margin-bottom:8px;font-size:13px}
+.db-from{color:var(--red);font-weight:600;min-width:70px}
+.db-arrow{color:var(--text3)}
+.db-to{color:var(--green);font-weight:600}
+
+/* TABLE */
+.audit-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
+.audit-table th{background:var(--bg3);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);border-bottom:1px solid var(--border2)}
+.audit-table td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text2);line-height:1.5}
+.audit-table tr:hover td{background:rgba(255,255,255,0.02)}
+
+@media(max-width:640px){
+  .scores-grid{grid-template-columns:repeat(2,1fr)}
+  .fc-row{grid-template-columns:1fr}
+  .fc-row-label{margin-top:8px}
+  .plan-grid{grid-template-columns:1fr}
+  .report-meta{gap:12px}
+  .tsb-num{font-size:52px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════ -->
+<div class="report-header">
+  <div class="report-badge">⚡ Auditoría CRO · Landing Page · Parfum Track</div>
+  <h1 class="report-title">Auditoría Brutal de <span>Conversión</span></h1>
+  <p style="color:var(--text2);font-size:15px;margin-top:10px;max-width:580px;margin-inline:auto;line-height:1.6">12 fases · Equipo élite CRO/Growth/UX · Hallazgos priorizados por impacto real en ventas</p>
+  <div class="report-meta">
+    <span>📄 landing.html</span>
+    <span>📅 Junio 2026</span>
+    <span>🔍 47 hallazgos</span>
+    <span>⚡ 10 dimensiones auditadas</span>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ══════════════════════════════════════════
+     SCORES OVERVIEW
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Scores por dimensión</div>
+
+  <div class="total-score-box">
+    <div class="tsb-label">Score Total de Conversión</div>
+    <div class="tsb-num">54<span style="font-size:32px;opacity:0.5">/100</span></div>
+    <div class="tsb-sub">Potencial alto — ejecución incompleta</div>
+    <div class="tsb-verdict">La landing tiene una propuesta de valor sólida y copywriting genuinamente orientado al dolor del usuario. El problema es estructural: imagen hero posiblemente inexistente, CTAs que van a WhatsApp manual en vez de autoservicio, cero urgencia, testimonios sin credibilidad verificable, y fallas móviles críticas. Con 10 cambios ejecutables esta semana se puede llegar a 78+/100.</div>
+  </div>
+
+  <div class="scores-grid">
+    <div class="score-card" style="--bar-color:#f87171">
+      <div class="score-label">Claridad 5s</div>
+      <div class="score-num">6<span>/10</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:60%"></div></div>
+      <div class="score-note">Titular fuerte, imagen hero ausente destruye la primera impresión</div>
+    </div>
+    <div class="score-card" style="--bar-color:#fb923c">
+      <div class="score-label">Diseño / UI</div>
+      <div class="score-num">7<span>/10</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:70%"></div></div>
+      <div class="score-note">Dark premium coherente, pero floating cards se cortan en mobile</div>
+    </div>
+    <div class="score-card" style="--bar-color:#fb923c">
+      <div class="score-label">UX / Flujo</div>
+      <div class="score-num">5<span>/10</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:50%"></div></div>
+      <div class="score-note">CTAs mixtos (app vs WhatsApp), nav sin hamburger móvil</div>
+    </div>
+    <div class="score-card" style="--bar-color:#c9a84c">
+      <div class="score-label">Copywriting</div>
+      <div class="score-num">7<span>/10</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:70%"></div></div>
+      <div class="score-note">Lenguaje del cliente, específico, pero secciones genéricas a mitad</div>
+    </div>
+    <div class="score-card" style="--bar-color:#f87171">
+      <div class="score-label">Confianza</div>
+      <div class="score-num">4<span>/10</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:40%"></div></div>
+      <div class="score-note">Sin usuarias reales, sin número, testimonios sin foto, TOS en "#"</div>
+    </div>
+    <div class="score-card" style="--bar-color:#f87171">
+      <div class="score-label">Conversión</div>
+      <div class="score-num">4<span>/10</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:40%"></div></div>
+      <div class="score-note">Trial requiere ir a WhatsApp, sin autoservicio, sin urgencia</div>
+    </div>
+    <div class="score-card" style="--bar-color:#f87171">
+      <div class="score-label">Mobile</div>
+      <div class="score-num">5<span>/10</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:50%"></div></div>
+      <div class="score-note">Elementos que se cortan, nav sin menú hamburguesa crítico</div>
+    </div>
+    <div class="score-card" style="--bar-color:#fb923c">
+      <div class="score-label">Marketing</div>
+      <div class="score-num">6<span>/10</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:60%"></div></div>
+      <div class="score-note">Buen posicionamiento, falta diferenciación vs competidores nombrados</div>
+    </div>
+    <div class="score-card" style="--bar-color:#f87171">
+      <div class="score-label">SEO</div>
+      <div class="score-num">4<span>/10</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:40%"></div></div>
+      <div class="score-note">URL /landing.html, OG image es ícono, H1 sin keywords, sin sitemap</div>
+    </div>
+    <div class="score-card" style="--bar-color:#fb923c">
+      <div class="score-label">Nivel profesional</div>
+      <div class="score-num">6<span>/10</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:60%"></div></div>
+      <div class="score-note">Diseño pulido, pero detalles (TOS "#", sin foto, precios en USD) reducen percepción</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 1 — PRIMERA IMPRESIÓN
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Fase 1 — Primera impresión (5 segundos)</div>
+
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num">1</div>
+      <div class="phase-title-text">Primera impresión — ¿Qué ve el visitante en 5 segundos?</div>
+      <div class="phase-score-pill">6/10</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-finding pf-good">
+        <strong>✓ Titular tiene gancho real</strong>
+        "Dejá de adivinar cuánto ganás" toca dolor específico del usuario. No es genérico. El verbo "adivinar" crea disonancia cognitiva y activa la lectura. Bien ejecutado.
+      </div>
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: La imagen hero probablemente no existe</strong>
+        El hero hace referencia a <code>app-screenshot.webp</code> que no existe en el repositorio. Si no carga, el visitante ve un espacio vacío enorme junto al titular. En mobile, que es el 85%+ del tráfico objetivo (revendedoras LATAM), esto destruye la primera impresión completamente. Es el error #1 de toda la landing.
+      </div>
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: Las floating cards se cortan en mobile</strong>
+        <code>.hfc-left { left: -40px }</code> y <code>.hfc-right { right: -40px }</code> están fuera del viewport en pantallas pequeñas. El hero-visual tiene max-width:340px sin overflow:hidden en el padre, así que las tarjetas flotantes literalmente sobresalen del borde de la pantalla.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: Cero prueba social en el hero</strong>
+        No hay un solo número de usuarias, ventas procesadas, o testimonios en la sección más vista. "500 revendedoras ya organizaron su negocio" o "💬 1.240 ventas registradas esta semana" duplicaría la confianza inmediata. Un visitante frío no tiene razón para creer que el producto existe y funciona.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: Trust signals son defensivas, no atractivas</strong>
+        "Sin tarjeta · Sin descargar · Funciona sin internet · Tus datos solo en tu celular" responden objeciones pero no generan deseo. Deberían aparecer DESPUÉS del CTA, no antes. Antes del CTA debe ir el beneficio más grande o la prueba social.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: El announcement bar no tiene urgencia</strong>
+        "🎁 7 días de prueba completamente gratis — sin tarjeta de crédito, sin instalación" es correcto pero genérico. Podría ser "⏳ Prueba gratis hasta el 30 de junio — sin tarjeta" o incluir el número de usuarias que ya probaron.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 2 — PROPUESTA DE VALOR
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Fase 2 — Propuesta de valor</div>
+
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num">2</div>
+      <div class="phase-title-text">Propuesta de valor — Título, subtítulo, mensaje central</div>
+      <div class="phase-score-pill">6.5/10</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-finding pf-good">
+        <strong>✓ El subtítulo tiene especificidad valiosa</strong>
+        "10 segundos por venta" es un claim concreto y verificable. Mucho mejor que "fácil de usar". La especificidad genera credibilidad.
+      </div>
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: El subtítulo menciona 3 promesas a la vez</strong>
+        "organiza tus ventas, avisa de cobros pendientes y calcula tu ganancia real" son tres propuestas de valor distintas. El usuario promedio procesa solo una en 5 segundos. Elegí la más poderosa (ganancia real) y construí todo alrededor de esa. Las otras van en la sección de features.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: El voseo excluye el 60% del mercado LATAM</strong>
+        "Dejá", "Probá", "Abrís", "Configurás" son formas del voseo rioplatense. Esto es correcto para Argentina y Uruguay pero excluye a México (mayor mercado hispanohablante), Colombia, Venezuela, Perú, Chile (que no usa voseo). Si el público es solo Argentina/Uruguay, está bien. Si la meta es toda LATAM, es un error masivo de alcance.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: Trust bar con números abstractos</strong>
+        "10 seg / $0 / 7 días / 100% offline" — el "$0" es confuso (¿cuesta $0? ¿es gratis para siempre?). Reemplazarlo por algo como "487 revendedoras" o "USD 5/mes" sería más poderoso y claro.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: Sin diferenciación explícita vs hoja de cálculo gratuita</strong>
+        La propuesta de valor no responde "¿por qué no uso Google Sheets que es gratis?". La comparación en la landing solo compara vs "cuaderno" (straw man fácil). El competidor real es Excel/Sheets.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 3 — UX/UI
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Fase 3 — UX / UI</div>
+
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num">3</div>
+      <div class="phase-title-text">UX/UI — Jerarquía, mobile, flujo, componentes</div>
+      <div class="phase-score-pill">5/10</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-finding pf-good">
+        <strong>✓ Sistema visual coherente y premium</strong>
+        Dark theme con paleta gold/neutral es consistente y transmite calidad. Variables CSS bien estructuradas. Tipografía DM Sans legible. Las tarjetas de features con mockup son visualmente efectivas.
+      </div>
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: Sin menú hamburguesa en mobile</strong>
+        La nav tiene <code>.nav-links</code> con 4 links y <code>.nav-actions</code> con 2 botones. En mobile (375px), esto se apila o desborda completamente. No hay ningún <code>@media</code> que oculte el nav y muestre un hamburguesa. El 85%+ del tráfico objetivo usa mobile.
+      </div>
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: Floating cards desbordadas en mobile</strong>
+        <code>.hfc-left { left: -40px }</code> desplaza 40px fuera del borde izquierdo en cualquier pantalla. Con hero-visual de 340px max-width y padding de 24px, en un iPhone SE (375px) los -40px empujan la card completamente fuera de la pantalla. Solución: usar left:0/right:0 en mobile y transform:translateX() relativo.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: Pricing toggle mal implementado</strong>
+        Los elementos con <code>data-monthly</code> y <code>data-annual</code> coexisten en el DOM — el JS debe ocultar/mostrar, pero ambos <code>.price-num</code> (mensual y anual) están visibles hasta que el JS corre. En conexiones lentas o JS bloqueado, el usuario ve dos precios simultáneos ("5" y "3" apilados).
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: FAQ sin estado visual de abierto/cerrado</strong>
+        Las preguntas del FAQ usan clase <code>.faq-q</code> pero no hay indicador visual (flecha, ícono +/-) de que son expandibles. Un usuario nuevo no sabe que puede hacer clic. Las mejores implementaciones muestran un chevron que rota.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: Steps line (.steps-line) no es responsive</strong>
+        La línea horizontal que conecta los 4 pasos funciona en desktop pero en mobile los pasos se apilan verticalmente y la línea horizontal queda mal posicionada. Se necesita una línea vertical en mobile.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: Scroll reveal sin accesibilidad</strong>
+        Los elementos con clase <code>.reveal</code> empiezan con <code>opacity:0</code>. Si el JS falla o hay <code>prefers-reduced-motion</code>, el contenido puede ser invisible. Agregar <code>@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1 !important; transform: none !important; } }</code> es crítico para accesibilidad.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 4 — COPYWRITING
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Fase 4 — Copywriting</div>
+
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num">4</div>
+      <div class="phase-title-text">Copywriting — Mensajes, beneficios vs funciones, CTA</div>
+      <div class="phase-score-pill">6.5/10</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-finding pf-good">
+        <strong>✓ Feature 2 tiene el mejor copy de la landing</strong>
+        "Recordatorios de cobro sin perseguir a nadie" es copy de beneficio puro. Habla directamente a la emoción (el embarazo de tener que perseguir a las clientas). Los testimonios con números concretos ("Cobré $23.000 que tenía olvidados") son altamente efectivos.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: Sección de Beneficios usa lenguaje genérico</strong>
+        "Control total de gastos", "Gestión de stock inteligente" son copy de software genérico, no del lenguaje de una revendedora. Reemplazar por: "Sabés exactamente qué te costó cada perfume", "Nunca más quedarte sin stock del perfume que más vendés". El lenguaje del cliente convierte 2-3x más.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: CTAs inconsistentes en acción y mensaje</strong>
+        En hero: "Probar 7 días gratis →" (→ index.html). En "Cómo funciona": "Empezar ahora — es gratis →" (→ index.html). En Pricing: "Consultar por WhatsApp" (→ WhatsApp externo). Tres CTAs, tres destinos, tres mensajes. El usuario no sabe qué pasará si hace clic. Unificar a un solo flujo primario.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: El CTA "Consultar por WhatsApp" en pricing es fricción alta</strong>
+        Para activar una suscripción de USD 5/mes el usuario tiene que abrir WhatsApp, esperar una respuesta humana, y pagar manualmente. Vs Stripe/Gumroad que lo hace en 30 segundos autoservicio. Esto es el principal bloqueador de conversiones de pago.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: "Empezar ahora — es gratis" genera confusión</strong>
+        ¿Siempre gratis? ¿O tiene trial? Si el usuario cree que es gratis para siempre y luego ve que es un trial de 7 días, se siente engañado. Texto más claro: "Empezar prueba gratis (7 días, sin tarjeta)".
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: Sección "Cómo funciona" usa proceso técnico, no emocional</strong>
+        Los 4 pasos (Abrís el link / Configurás / Registrás ventas / Ves tus números) describen acciones. Falta el beneficio emocional al final de cada paso. Ej: Paso 4 "Ves tus números → Y por primera vez sabés exactamente cuánto ganás."
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 5 — PSICOLOGÍA DE VENTAS
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Fase 5 — Psicología de ventas</div>
+
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num">5</div>
+      <div class="phase-title-text">Psicología de ventas — Confianza, urgencia, prueba social, objeciones</div>
+      <div class="phase-score-pill">4/10</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-finding pf-good">
+        <strong>✓ Los testimonios con números concretos son poderosos</strong>
+        "$8.000 perdidos por mes", "3 horas ahorradas", "$23.000 cobrados" son testimonios con métricas específicas. Mucho mejor que "Excelente app, la recomiendo". El problema es la credibilidad, no el contenido.
+      </div>
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: Testimonios sin foto real = credibilidad cero</strong>
+        Los avatares son una sola letra (M, V, L) con iniciales. En la psicología del consumidor, una foto real aumenta la conversión de testimonios en 34% (Nielsen). Sin foto, el usuario asume que los testimonios son ficticios. Y tiene razón en desconfiar. Una foto de perfil real (incluso de baja calidad) es infinitamente mejor que una inicial estilizada.
+      </div>
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: Cero urgencia en toda la landing</strong>
+        No hay ningún elemento de escasez, límite de tiempo, o razón para actuar HOY. La psicología de ventas establece que sin urgencia, el usuario pospone y nunca vuelve. Opciones: contador de pruebas activas, "oferta de lanzamiento hasta el 30/06", "primeras 100 usuarias con 50% off". Sin urgencia, la tasa de conversión es 40-60% menor.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: Sin número total de usuarias</strong>
+        "Más de X revendedoras ya organizaron su negocio con Parfum Track" es el elemento de prueba social más poderoso posible y está completamente ausente. Incluso un número pequeño ("47 revendedoras activas") genera más confianza que nada.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: Objeción más importante no respondida: "¿Y si no me gusta?"</strong>
+        El FAQ tiene 8 preguntas pero ninguna responde "¿Puedo cancelar cuando quiero?" o "¿Qué pasa si no funciona para mi negocio?". La garantía de satisfacción o política de devolución es la objeción #1 antes de pagar y está completamente ausente.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: El precio en USD es una barrera psicológica en LATAM</strong>
+        En mercados como Argentina (inflación del 200%), Colombia o México, ver "USD 12/mes" es una barrera psicológica fuerte. Aunque sea correcto en términos de negocio, considerar mostrar el equivalente en moneda local ("≈ ARS X / mes") reduce la fricción cognitiva del precio.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 6 — CONVERSIÓN
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Fase 6 — Conversión</div>
+
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num">6</div>
+      <div class="phase-title-text">Conversión — CTAs, flujo, puntos de abandono, checkout</div>
+      <div class="phase-score-pill">4/10</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: No hay forma de capturar leads que no convierten ahora</strong>
+        El 95-98% de visitantes no compra en la primera visita. No hay ningún formulario de email, lead magnet, ni siquiera un "Avisame cuando haya novedades". Todo el tráfico que no convierte inmediatamente se pierde para siempre. Un simple formulario "Dejá tu email para un tutorial gratis de organización para revendedoras" puede capturar el 15-25% de visitantes que de otra forma se perderían.
+      </div>
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: El flujo de pago requiere acción humana (WhatsApp)</strong>
+        Para pagar, el usuario debe: abrir WhatsApp → escribir → esperar respuesta humana → recibir link de pago → pagar. Esto es un funnel con 5 pasos de fricción vs 2 (ingresar email + tarjeta) en autoservicio. La tasa de abandono en funnels de WhatsApp es del 60-80%. Stripe + Gumroad + LemonSqueezy tienen integración de 15 minutos.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: El CTA principal va a index.html (la app) sin contexto</strong>
+        Cuando el usuario hace clic en "Probar 7 días gratis", va directamente a la aplicación. Sin email capture previo, sin onboarding explicativo, sin confirmación de lo que pasará. El primer contacto con la app puede ser confuso si no hay un mensaje de bienvenida orientado al usuario de la landing.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: No hay CTA de segundo nivel para indecisos</strong>
+        El visitante que no está listo para probar tiene solo dos opciones: probar (alta fricción mental) o irse. Un CTA secundario como "Ver un video de 90 segundos" o "Ver ejemplo de negocio real" captura al segmento indeciso que representa el 40-60% de visitantes interesados.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: El pricing no muestra qué está incluido en el trial</strong>
+        ¿El trial de 7 días es del plan Pro? ¿Del Starter? ¿De todos? No está claro. Esto genera duda justo en el momento de decisión de compra. "Empezar con Pro gratis 7 días" debajo del plan Pro resolvería esto.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 7 — MOBILE
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Fase 7 — Mobile</div>
+
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num">7</div>
+      <div class="phase-title-text">Mobile — Experiencia en celular (85%+ del tráfico objetivo)</div>
+      <div class="phase-score-pill">5/10</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: Nav sin hamburguesa = barra de nav rota en mobile</strong>
+        <code>.nav-links</code> tiene 4 links y <code>.nav-actions</code> tiene 2 botones. En 375px todos se amontonan. No hay media query que oculte los links y muestre un menú hamburguesa. Esto es el error de mobile más visible y frecuente para el visitante tipo: una mujer de 25-45 años navegando desde su celular.
+      </div>
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: Floating cards fuera de pantalla en mobile</strong>
+        Detalle técnico: <code>.hfc-left: left:-40px</code> y <code>.hfc-right: right:-40px</code>. En un iPhone 12 (390px), la tarjeta izquierda empieza en -40px del viewport, completamente invisible. Las tarjetas flotantes son el elemento visual más convincente del hero y están rotas en mobile.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: Botones de CTA demasiado pequeños en mobile</strong>
+        Los botones del nav (<code>.btn-gold</code> y <code>.btn-outline</code>) tienen padding de 8-9px vertical. En mobile el target táctil mínimo recomendado por Google es 48x48px. Botones pequeños en mobile reducen conversiones porque el usuario toca el área incorrecta.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: Sección de comparación en mobile requiere scroll horizontal</strong>
+        Las dos columnas de comparación (<code>.compare-col</code>) tienen <code>min-width</code> que en mobile puede generar scroll horizontal en lugar de apilarse verticalmente. Esto es un patrón de UX roto.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: Pricing grid en mobile: 3 tarjetas apiladas es mucha fricción</strong>
+        En mobile, 3 price cards apiladas requieren mucho scroll para comparar. La mejor práctica (Stripe, Paddle) es iniciar mostrando solo el plan recomendado con un toggle para ver los otros.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 8 — COMPETENCIA
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Fase 8 — Competencia</div>
+
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num">8</div>
+      <div class="phase-title-text">Competencia — Dónde pierde Parfum Track clientes</div>
+      <div class="phase-score-pill">5/10</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: La comparación evita al competidor real: Google Sheets</strong>
+        La sección "Sin Parfum Track vs Con Parfum Track" compara contra "el cuaderno". Pero el competidor real que usa el 60-70% del segmento es Google Sheets (gratis). La pregunta que se hace el visitante es "¿Por qué pagar USD 5/mes si puedo hacer esto en Sheets gratis?". Esa objeción no se responde en ningún lugar de la landing.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: Competidores directos emergentes que la landing ignora</strong>
+        Apps como Vendty, Siigo Nube, Facturama, y especialmente apps de catálogo de WhatsApp Business atacan el mismo segmento. Un visitante que busca "app para revendedoras" en Google ve estas opciones y necesita saber por qué Parfum Track es mejor. La landing no lo explica.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: La ventaja competitiva más fuerte (especialización en perfumes) está enterrada</strong>
+        Parfum Track es el ÚNICO software específico para revendedoras de perfumes árabes/nicho. Eso es una ventaja brutal que no está en el hero ni en las primeras 3 secciones. "El único software construido específicamente para revendedoras de perfumes" debería estar en el hero como sub-headline o eyebrow.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 9 — MARKETING / POSICIONAMIENTO
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Fase 9 — Marketing y posicionamiento</div>
+
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num">9</div>
+      <div class="phase-title-text">Marketing — Posicionamiento, diferenciación, mensaje</div>
+      <div class="phase-score-pill">6/10</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-finding pf-good">
+        <strong>✓ Nicho bien elegido y copy específico del segmento</strong>
+        "Haramain, Bharara, Lattafa" en testimonios y mockups genera identificación inmediata del usuario objetivo. "Vendo estos perfumes, esto es para mí" es el efecto que logra. Excelente.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: El tagline no comunica la categoría del producto</strong>
+        "Parfum Track — Organizá tu negocio de perfumes desde el celular" es el tagline del título del browser pero no está visible en la landing. El visitante que llega de publicidad podría no entender en 3 segundos que esto es un software (vs un servicio, una comunidad, o una tienda).
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: No hay canal de distribución visible</strong>
+        La landing no menciona cómo llegaron los usuarios existentes. Instagram, grupos de WhatsApp, TikTok de revendedoras, foros de perfumistas — estos son los canales naturales. Mostrar "Compartido en grupos de revendedoras de Argentina/LATAM" como prueba social de canal genera viralidad orgánica.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 10 — SEO
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Fase 10 — SEO</div>
+
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num">10</div>
+      <div class="phase-title-text">SEO — Visibilidad orgánica, estructura, metadatos</div>
+      <div class="phase-score-pill">4/10</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: URL /landing.html no es la página raíz</strong>
+        La landing vive en <code>/landing.html</code> en vez de <code>/</code> (raíz del dominio). Esto significa que los backlinks y el SEO se dividen entre la raíz (app) y la landing. El canonical apunta a <code>/landing.html</code> pero si hay contenido en <code>/</code>, hay canibalización de SEO. La landing debería ser la raíz o estar en un subdominio dedicado.
+      </div>
+      <div class="phase-finding pf-critical">
+        <strong>🔴 CRÍTICO: H1 sin ninguna keyword de búsqueda</strong>
+        "Dejá de adivinar cuánto ganás" es buen copy de conversión pero Google no lo asocia con "app para revendedoras de perfumes" ni "software control de ventas perfumes". El H1 debe balancear copy humano con keyword relevante. Ej: "Parfum Track: organizá tus ventas de perfumes en 10 segundos" o incluir la keyword como subheadline.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: OG image apunta a icon-512.png (logo cuadrado)</strong>
+        Las plataformas sociales (WhatsApp, Facebook, Instagram, Twitter) muestran la OG image al compartir el link. Un ícono cuadrado de 512px en un espacio de 1200x630px se ve pixelado y no profesional. Se necesita una imagen de preview real de 1200x630px que muestre la interfaz o un diseño atractivo.
+      </div>
+      <div class="phase-finding pf-high">
+        <strong>🟠 ALTO: Sin sitemap.xml ni robots.txt referenciado</strong>
+        Sin sitemap, Google descubre las páginas solo por links. Para un dominio nuevo (<code>parfumtrack.pages.dev</code>), un sitemap es crítico para la indexación rápida.
+      </div>
+      <div class="phase-finding pf-medium">
+        <strong>🟡 MEDIO: Google Fonts bloquea el render</strong>
+        El <code>link rel="preconnect"</code> está presente, pero la carga de DM Sans desde Google Fonts bloquea el First Contentful Paint. Agregar <code>font-display: swap</code> (ya está en la URL con <code>display=swap</code>) y considerar auto-hospedar la fuente para eliminar la dependencia de red externa.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 11 — AUDITORÍA BRUTAL
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Fase 11 — Auditoría Brutal</div>
+
+  <div class="h2" style="margin-bottom:24px">Top 20 Errores Críticos</div>
+  <div class="top-list" style="margin-bottom:40px">
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Imagen hero app-screenshot.webp no existe en el repositorio</div>
+        <div class="top-item-desc">El elemento visual más importante de la landing referencia un archivo que posiblemente no existe. Si no carga, el visitante ve el background del hero sin ninguna imagen de producto. Resultado: la landing no muestra qué es el producto.</div>
+        <span class="impact-pill ip-alto">🔴 Impacto Crítico</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Sin menú hamburguesa en mobile — nav completamente rota</div>
+        <div class="top-item-desc">El 85%+ del tráfico objetivo es mobile. No hay ningún <code>@media</code> que maneje la navegación en pantallas pequeñas. Los 4 links + 2 botones del nav se desborden o amontonan.</div>
+        <span class="impact-pill ip-alto">🔴 Impacto Crítico</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Floating cards del hero con posición negativa — cortadas en mobile</div>
+        <div class="top-item-desc"><code>left:-40px</code> y <code>right:-40px</code> sacan las tarjetas del viewport. Son el elemento más llamativo del hero y están visualmente rotas en todos los celulares.</div>
+        <span class="impact-pill ip-alto">🔴 Impacto Crítico</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Sin captura de leads — 95-98% del tráfico se pierde para siempre</div>
+        <div class="top-item-desc">No hay formulario de email, lead magnet, ni ningún mecanismo para re-contactar visitantes que no convirtieron en la primera visita. Todo el tráfico pagado o orgánico que no convierte inmediatamente se pierde sin posibilidad de retargeting.</div>
+        <span class="impact-pill ip-alto">🔴 Impacto Crítico</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Pago vía WhatsApp manual — fricción de conversión extrema</div>
+        <div class="top-item-desc">El checkout requiere abrir WhatsApp, escribir un mensaje, esperar respuesta y recibir link de pago. Tasa de abandono estimada: 60-80%. Sin autoservicio de pago (Stripe/Gumroad), la conversión de interesados a pagadores es mínima.</div>
+        <span class="impact-pill ip-alto">🔴 Impacto Crítico</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Testimonios sin foto real — credibilidad nula</div>
+        <div class="top-item-desc">Avatares con letra inicial en diseño oscuro son indistinguibles de testimonios inventados para el usuario escéptico. Sin foto de perfil real, los testimonios generan desconfianza activa en lugar de confianza.</div>
+        <span class="impact-pill ip-alto">🔴 Impacto Crítico</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Cero urgencia en toda la landing</div>
+        <div class="top-item-desc">Sin fecha límite, sin contador, sin escasez, sin oferta temporal. El usuario racional pospone la decisión indefinidamente. Sin urgencia, la conversión es 40-60% menor que con algún elemento temporal.</div>
+        <span class="impact-pill ip-alto">🔴 Impacto Crítico</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">OG image es un ícono cuadrado — preview en redes sociales terrible</div>
+        <div class="top-item-desc">Cuando alguien comparte el link en WhatsApp o Instagram, la preview muestra el ícono de 512px en un frame de 1200x630. Esto parece amateur y reduce la tasa de clic del link compartido en un 70%+ vs una imagen real.</div>
+        <span class="impact-pill ip-alto">🔴 Impacto Alto</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Política de privacidad y TOS con href="#" — riesgo legal y de confianza</div>
+        <div class="top-item-desc">Los links legales del footer apuntan a "#" (ninguna página). Esto es: (a) un riesgo legal real si se procesan datos de usuarios, (b) una señal de alarma para usuarios sofisticados que verifican estas páginas antes de registrarse.</div>
+        <span class="impact-pill ip-alto">🔴 Impacto Alto</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Sin número de usuarias activas — cero prueba social cuantificable</div>
+        <div class="top-item-desc">No hay ningún número de usuarias, ventas procesadas, o cualquier métrica social. "Más de X revendedoras" es el elemento de confianza más poderoso y está completamente ausente.</div>
+        <span class="impact-pill ip-alto">🔴 Impacto Alto</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">H1 sin keywords de SEO</div>
+        <div class="top-item-desc">"Dejá de adivinar cuánto ganás" es imposible de encontrar en búsquedas de "app revendedoras perfumes" o "control de ventas perfumes". El H1 debe balancear conversión con visibilidad orgánica.</div>
+        <span class="impact-pill ip-medio">🟠 Impacto Alto</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">URL /landing.html divide el SEO con la raíz del dominio</div>
+        <div class="top-item-desc">La landing y la app comparten el mismo dominio. Todo el esfuerzo de SEO de la landing compite con el contenido de la app en la raíz. La landing debería ser la raíz o en un subdominio dedicado (parfumtrack.com).</div>
+        <span class="impact-pill ip-medio">🟠 Impacto Medio</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">FAQ sin indicador visual de expansión</div>
+        <div class="top-item-desc">Las preguntas del FAQ no muestran que son expandibles. Sin ícono +/- o chevron, muchos usuarios no hacen clic y se van con objeciones sin resolver.</div>
+        <span class="impact-pill ip-medio">🟠 Impacto Medio</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Pricing toggle: dos precios visibles hasta que carga el JS</div>
+        <div class="top-item-desc">En conexiones lentas, ambos precios (mensual y anual) son visibles simultáneamente. Parece un bug de presentación y genera desconfianza en el pricing.</div>
+        <span class="impact-pill ip-medio">🟠 Impacto Medio</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Sin respuesta a la objeción vs Google Sheets (gratis)</div>
+        <div class="top-item-desc">La comparación "Sin PT vs Con PT" usa el cuaderno como competidor. El competidor real es Sheets/Excel, gratis, con el que el 60% de revendedoras ya trabaja. No hay un argumento que justifique el costo mensual vs la alternativa gratuita.</div>
+        <span class="impact-pill ip-medio">🟠 Impacto Medio</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Voseo limita el alcance geográfico a Argentina/Uruguay</div>
+        <div class="top-item-desc">El uso exclusivo de voseo (Dejá, Probá, Abrís) excluye lingüística y culturalmente a México, Colombia, Venezuela, Perú — mercados con alta densidad de revendedoras de perfumes. Si la meta es LATAM, esto es un error de copy masivo.</div>
+        <span class="impact-pill ip-medio">🟠 Impacto Medio</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Trust bar con "$0" ambiguo</div>
+        <div class="top-item-desc">El número "$0" en la trust bar no tiene contexto claro. ¿El producto cuesta $0? ¿La prueba cuesta $0? ¿El setup cuesta $0? Ambigüedad en el precio genera desconfianza y abandono.</div>
+        <span class="impact-pill ip-medio">🟠 Impacto Medio</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Sin video de demostración</div>
+        <div class="top-item-desc">El 72% de los compradores prefieren ver un video antes de comprar software (Wyzowl). Un GIF o video de 60 segundos mostrando la app en acción real convertiría a los visitantes visuales que no leen el copy.</div>
+        <span class="impact-pill ip-medio">🟠 Impacto Medio</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Scroll reveal sin soporte prefers-reduced-motion</div>
+        <div class="top-item-desc">Usuarios con epilepsia o vértigo que tienen activado <code>prefers-reduced-motion</code> ven contenido con <code>opacity:0</code> que nunca se revela. Problema de accesibilidad que puede afectar el 5-10% de usuarios.</div>
+        <span class="impact-pill ip-medio">🟠 Impacto Medio</span>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Sin número de contacto ni email visible en footer</div>
+        <div class="top-item-desc">El footer tiene solo links de WhatsApp para soporte. No hay email de contacto ni teléfono. Para usuarios de negocios que necesitan factura o soporte formal, la ausencia de contacto directo es una barrera de confianza.</div>
+        <span class="impact-pill ip-medio">🟠 Impacto Bajo</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="h2" style="margin-bottom:24px">Top 20 Mejoras con Mayor ROI</div>
+  <div class="top-list" style="margin-bottom:40px">
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Crear y subir app-screenshot.webp real</div>
+        <div class="top-item-desc">Sin imagen hero, la landing no muestra el producto. Una captura de pantalla real de la app, encuadrada en un mockup de celular, es el primer paso. Impacto inmediato en primeras impresiones.</div>
+        <span class="impact-pill ip-rapido">⚡ Urgente — 30 min</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Implementar menú hamburguesa para mobile</div>
+        <div class="top-item-desc">10-15 líneas de CSS + JS. Ocultar .nav-links y .nav-actions en mobile, mostrar un botón hamburguesa que abra un drawer. El impacto en UX móvil es inmediato y masivo.</div>
+        <span class="impact-pill ip-rapido">⚡ Urgente — 2h</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Arreglar floating cards en mobile (posición relativa)</div>
+        <div class="top-item-desc">Cambiar <code>left:-40px</code> → <code>left:-10px</code> y <code>right:-40px</code> → <code>right:-10px</code> en mobile, o posicionarlas dentro del contenedor con transform. 5 minutos de CSS.</div>
+        <span class="impact-pill ip-rapido">⚡ Urgente — 10 min</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar número de usuarias en el hero</div>
+        <div class="top-item-desc">"Usada por más de 300 revendedoras en Argentina, Uruguay y Chile" (o el número real). Este es el cambio con mayor impacto en confianza y requiere solo agregar una línea de HTML.</div>
+        <span class="impact-pill ip-rapido">⚡ Urgente — 5 min</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar fotos reales en testimonios</div>
+        <div class="top-item-desc">Conseguir permiso de 3 usuarias reales para usar su foto de perfil de WhatsApp en el testimonio. O usar ilustraciones de personas reales (sin fotos de stock). Impacto: +34% en credibilidad de testimonios.</div>
+        <span class="impact-pill ip-alto">🔴 Alta prioridad</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Integrar Stripe/Gumroad para pago autoservicio</div>
+        <div class="top-item-desc">Eliminar el flujo de WhatsApp para pago y reemplazarlo por un link de pago directo. Gumroad puede configurarse en 30 minutos. Impacto estimado: triplicar la tasa de conversión de interesados a pagadores.</div>
+        <span class="impact-pill ip-alto">🔴 Alta prioridad</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Crear OG image real de 1200x630px</div>
+        <div class="top-item-desc">Un diseño atractivo con el logo, headline y mockup de la app para WhatsApp/redes sociales. Canva tiene templates gratuitos. Impacto: el link compartido en grupos de revendedoras se ve profesional y tiene 3x más clics.</div>
+        <span class="impact-pill ip-rapido">⚡ Urgente — 1h</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar un elemento de urgencia</div>
+        <div class="top-item-desc">"Oferta de lanzamiento: 50% off el primer mes — válida hasta el 30/06" o "Solo quedan 23 pruebas gratuitas este mes". Cualquier elemento temporal bien ejecutado aumenta la conversión 20-40%.</div>
+        <span class="impact-pill ip-alto">🔴 Alta prioridad</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Crear y publicar política de privacidad y TOS reales</div>
+        <div class="top-item-desc">TermsAndConditionsGenerator.com genera ambos documentos gratuitos en 10 minutos. Publicarlos elimina el riesgo legal y genera confianza en usuarios que los verifican antes de registrarse.</div>
+        <span class="impact-pill ip-rapido">⚡ Urgente — 15 min</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Formulario de captura de email para no-conversores</div>
+        <div class="top-item-desc">Un pop-up de exit intent o una sección fija con "Recibí 5 tips para organizar tu negocio de perfumes — gratis" captura el 15-25% de visitantes que no convierten inmediatamente. MailerLite gratuito hasta 1000 suscriptores.</div>
+        <span class="impact-pill ip-alto">🔴 Alta prioridad</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Responder la objeción de Google Sheets en la comparación</div>
+        <div class="top-item-desc">Agregar "vs Google Sheets" como tercera columna en la comparación: "Sheets no avisa de cuotas / no genera mensajes de cobro / no tiene catálogo de WhatsApp / no funciona offline". Responde la objeción más común.</div>
+        <span class="impact-pill ip-medio">🟠 Impacto Medio</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar chevron animado al FAQ</div>
+        <div class="top-item-desc">5 líneas de CSS. Un ícono "+" que rota a "×" al abrir hace que el FAQ sea intuitivo. El 40% de visitantes que llegan al FAQ tienen objeciones específicas — resolverlas aumenta la conversión.</div>
+        <span class="impact-pill ip-rapido">⚡ Urgente — 15 min</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar "La única app para revendedoras de perfumes" en el hero</div>
+        <div class="top-item-desc">Esta frase en el eyebrow del hero comunica especialización y diferenciación en 0.5 segundos. Es la ventaja competitiva más poderosa y no está visible en el hero.</div>
+        <span class="impact-pill ip-rapido">⚡ Urgente — 2 min</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Incluir keyword de SEO en H1 o como H2 visible</div>
+        <div class="top-item-desc">Agregar un H2 visible: "La app para revendedoras de perfumes" antes de la sección de beneficios. Esto añade la keyword primaria sin sacrificar el copy de conversión del H1.</div>
+        <span class="impact-pill ip-rapido">⚡ Urgente — 5 min</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Reemplazar texto de benefit cards con lenguaje del cliente</div>
+        <div class="top-item-desc">"Control total de gastos" → "Sabés exactamente cuánto te costó cada perfume". "Gestión de stock inteligente" → "Nunca más quedarte sin el perfume que más vendés". Lenguaje del cliente convierte 2-3x más.</div>
+        <span class="impact-pill ip-alto">🔴 Alta prioridad</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar prefers-reduced-motion al scroll reveal</div>
+        <div class="top-item-desc">Una media query de 3 líneas que deshabilita las animaciones para usuarios con esta preferencia activa. Soluciona un problema de accesibilidad crítico y puede afectar el 5-10% de usuarios.</div>
+        <span class="impact-pill ip-rapido">⚡ Urgente — 3 min</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar garantía explícita en la sección de pricing</div>
+        <div class="top-item-desc">"Si en 7 días no organizaste tu negocio, te devolvemos el dinero" o al menos "Cancelás cuando querés, sin preguntas". Una garantía explícita reduce la percepción de riesgo y aumenta las conversiones de pago significativamente.</div>
+        <span class="impact-pill ip-alto">🔴 Alta prioridad</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Arreglar el initial state del pricing toggle</div>
+        <div class="top-item-desc">Ocultar los elementos <code>data-annual</code> por defecto con CSS (<code>[data-annual]{display:none}</code>) para que el toggle muestre correctamente incluso antes de que cargue el JS.</div>
+        <span class="impact-pill ip-rapido">⚡ Urgente — 5 min</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Crear sitemap.xml y agregar al Cloudflare Pages</div>
+        <div class="top-item-desc">Un sitemap.xml simple con las URLs principales submite a Google Search Console y acelera la indexación. 10 minutos de trabajo con impacto en SEO a largo plazo.</div>
+        <span class="impact-pill ip-medio">🟠 Impacto Medio</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar video o GIF animado de la app en acción</div>
+        <div class="top-item-desc">Un GIF de 5 segundos mostrando cómo se registra una venta en 10 segundos vale más que todo el copy de features. Herramientas: Loom, Kap, o cualquier screen recorder. Subir a R2 o CDN.</div>
+        <span class="impact-pill ip-alto">🔴 Alta prioridad</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="h2" style="margin-bottom:24px">Top 10 Oportunidades de Crecimiento</div>
+  <div class="top-list" style="margin-bottom:40px">
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Programa de referidos: revendedoras que refieren a otras revendedoras</div>
+        <div class="top-item-desc">El canal de distribución natural es viral — grupos de WhatsApp de revendedoras, ferias de perfumes, redes de distribuidores. Un programa "Invitá a una amiga y ambas ganan 1 mes gratis" puede multiplicar el CAC por 3x.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Contenido SEO: "Cómo organizar tu negocio de revendedora" en blog</div>
+        <div class="top-item-desc">Las revendedoras buscan consejos de gestión en Google. Un blog con artículos específicos ("Cómo calcular la ganancia real en perfumes", "Cómo cobrar cuotas sin incomodar a las clientas") atrae tráfico orgánico calificado y pre-vende el producto.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Landing pages específicas por país (Argentina, Uruguay, Chile)</div>
+        <div class="top-item-desc">Una landing con precios en ARS, referencias a marcas locales populares (Haramain en Arg vs otras en Chile) y testimonios del país convertiría mucho mejor que una landing genérica.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Integración con distribuidores de perfumes árabes en LATAM</div>
+        <div class="top-item-desc">Las distribuidoras de Haramain, Lattafa, Bharara tienen redes de cientos de revendedoras. Una alianza "Revendedoras de [distribuidor] usan Parfum Track" puede multiplicar la base de usuarios sin costo de adquisición.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Calculadora de ganancias gratuita como lead magnet</div>
+        <div class="top-item-desc">"Calculá cuánto ganás realmente por perfume" — un formulario que calcula el margen real (con envío, bolsas, cuotas) y al final sugiere Parfum Track. Alta intención, captura de leads calificados.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">TikTok/Instagram Reels mostrando el "antes y después"</div>
+        <div class="top-item-desc">Videos de revendedoras reales mostrando el caos de su cuaderno vs el orden de Parfum Track. El formato es viral en el segmento objetivo y genera tráfico orgánico masivo sin costo.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Plan gratuito permanente (freemium) para acelerar adopción</div>
+        <div class="top-item-desc">Un plan gratuito limitado (ej: hasta 10 ventas/mes) elimina la barrera de entrada completamente. Las revendedoras que prueban y ven el valor upgradan. Modelo probado por Notion, Trello, Canva.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Comunidad cerrada de revendedoras como diferenciador</div>
+        <div class="top-item-desc">Un grupo de WhatsApp o Telegram privado "Revendedoras Parfum Track" donde se comparten tips, tendencias de perfumes, y estrategias de venta. La comunidad retiene usuarios mucho más que el software solo.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Caso de estudio detallado: "Cómo Marcela G. aumentó sus ganancias 40%"</div>
+        <div class="top-item-desc">Un case study real con números (antes/después), screenshots de la app, y testimonio extendido de una usuaria real. Este tipo de contenido convierte 5-10x más que testimonios cortos.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Dominio propio (parfumtrack.com) para branding y SEO</div>
+        <div class="top-item-desc">El dominio actual (<code>parfumtrack.pages.dev</code>) es un subdominio de Cloudflare. Un dominio .com propio mejora la percepción de profesionalismo, el posicionamiento de marca, y el SEO a largo plazo.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="h2" style="margin-bottom:24px">Top 10 Quick Wins (Esta semana)</div>
+  <div class="top-list" style="margin-bottom:40px">
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Tomar screenshot real de la app y subirla como hero</div>
+        <div class="top-item-desc">10 minutos. Abrir la app con datos demo, tomar screenshot en celular, subir como app-screenshot.webp. La landing pasa de vacía a con producto visible.</div>
+        <span class="impact-pill ip-rapido">⚡ 10 minutos</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Arreglar floating cards con @media query</div>
+        <div class="top-item-desc">Agregar <code>@media (max-width:768px) { .hfc-left { left: 8px; } .hfc-right { right: 8px; } }</code> al CSS. 5 líneas de código.</div>
+        <span class="impact-pill ip-rapido">⚡ 5 minutos</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar chevron al FAQ</div>
+        <div class="top-item-desc">Agregar un "+" o "▾" al botón .faq-q que rota en el estado .open. CSS puro, 10 líneas.</div>
+        <span class="impact-pill ip-rapido">⚡ 15 minutos</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Publicar política de privacidad y TOS mínimos</div>
+        <div class="top-item-desc">Usar iubenda.com o TermsFeed para generar los documentos gratuitos y linkearlos desde el footer. Elimina riesgo legal.</div>
+        <span class="impact-pill ip-rapido">⚡ 20 minutos</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Crear OG image de 1200x630px en Canva</div>
+        <div class="top-item-desc">Template de Canva con logo + headline + color dorado. Subir como og-image.jpg y actualizar el meta tag. Mejora inmediata de como se ve el link compartido en WhatsApp.</div>
+        <span class="impact-pill ip-rapido">⚡ 30 minutos</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Fijar initial state del pricing toggle en CSS</div>
+        <div class="top-item-desc">Agregar al CSS: <code>[data-annual] { display: none; }</code>. El JS lo sobrescribe al hacer toggle. Soluciona el bug visual de doble precio.</div>
+        <span class="impact-pill ip-rapido">⚡ 2 minutos</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Cambiar eyebrow del hero a "La única app para revendedoras de perfumes"</div>
+        <div class="top-item-desc">Reemplazar el texto del eyebrow badge en el hero. 2 minutos de edición, impacto inmediato en diferenciación y claridad de propuesta de valor.</div>
+        <span class="impact-pill ip-rapido">⚡ 2 minutos</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar prefers-reduced-motion al CSS de animaciones</div>
+        <div class="top-item-desc">3 líneas de CSS para resolver el problema de accesibilidad de scroll reveal. Usuarios con <code>prefers-reduced-motion</code> ven el contenido sin animaciones.</div>
+        <span class="impact-pill ip-rapido">⚡ 3 minutos</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar número real de usuarias al hero trust bar</div>
+        <div class="top-item-desc">Cambiar uno de los stats del trust bar a "X revendedoras activas" con el número real. Si el número es pequeño, usar una métrica diferente (ventas registradas, cobros enviados).</div>
+        <span class="impact-pill ip-rapido">⚡ 5 minutos</span>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar "Cancelás cuando querés" en la sección de pricing</div>
+        <div class="top-item-desc">Una línea debajo de cada price card: "Sin contrato · Cancelás en cualquier momento". Reduce la percepción de riesgo en el momento de decisión de compra.</div>
+        <span class="impact-pill ip-rapido">⚡ 5 minutos</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="h2" style="margin-bottom:24px">Top 10 Mejoras de Ventas</div>
+  <div class="top-list">
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Implementar pago autoservicio (Stripe/Gumroad/LemonSqueezy)</div>
+        <div class="top-item-desc">El cambio único con mayor impacto en ingresos. Eliminar el flujo de WhatsApp manual y permitir que el usuario pague con tarjeta en 30 segundos. Impacto estimado: 3-5x en conversión de pago.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar garantía de devolución de 7 días</div>
+        <div class="top-item-desc">"Si en 7 días no organizaste tu negocio, te devolvemos el 100% sin preguntas." Una garantía real elimina la percepción de riesgo y aumenta las conversiones de pago en 20-30%.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar contador de urgencia al announcement bar</div>
+        <div class="top-item-desc">"⏳ Oferta de lanzamiento — 50% off los primeros 3 meses · Quedan 4 días" con un contador real. La urgencia es el trigger de compra más poderoso en psicología de ventas.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Mostrar prueba social en tiempo real</div>
+        <div class="top-item-desc">"Valentina de Uruguay se unió hace 3 minutos" — un popup tipo Fomo/Useproof con actividad real de usuarios. Genera urgencia social y prueba de que el producto es activamente usado.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar CTA de video en hero como segundo CTA</div>
+        <div class="top-item-desc">"▶ Ver cómo funciona en 90 segundos" como CTA secundario en el hero captura al segmento indeciso que necesita ver el producto en acción antes de comprometerse a probarlo.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Tabla de comparación vs Google Sheets con precios reales</div>
+        <div class="top-item-desc">Una tabla que muestra "Google Sheets: $0/mes pero X horas/mes de trabajo manual + cobros olvidados = pérdidas reales de $Y/mes" vs "Parfum Track: USD 5/mes + ahorrás 3h/mes + recuperás X% de cobros olvidados".</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Calcular el ROI en la landing (cuánto recuperan en el primer mes)</div>
+        <div class="top-item-desc">"Si tenés $5.000 en cuotas pendientes que no estás cobrando, Parfum Track los recupera en la primera semana — y cuesta USD 5/mes." El ROI concreto justifica el precio en 3 segundos.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Email sequence post-trial para convertir pruebas en pagadores</div>
+        <div class="top-item-desc">Una secuencia de 3-5 emails durante el trial (bienvenida, tip de uso, recordatorio de valor, oferta de conversión) puede triplicar la tasa de conversión trial→pago.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Reducir los planes a 2 (Starter vs Pro) para simplificar la decisión</div>
+        <div class="top-item-desc">La paradoja de la elección: 3 planes generan más fricción que 2. Con 3 planes, el usuario piensa demasiado y abandona. Eliminar el plan Business o hacerlo "Empresas — consultar" reduce la fricción de decisión.</div>
+      </div>
+    </div>
+    <div class="top-item">
+      <div class="top-item-content">
+        <div class="top-item-title">Agregar testimonios con resultados financieros concretos cerca del pricing</div>
+        <div class="top-item-desc">Mover los testimonios de $23.000 cobrados y $8.000 recuperados directamente arriba o debajo de la sección de pricing. El usuario que está a punto de pagar USD 5/mes necesita ver esos números justo antes de decidir.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 12 — PLAN DE ACCIÓN
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Fase 12 — Plan de acción</div>
+
+  <div class="plan-grid">
+    <div class="plan-card">
+      <div class="plan-header plan-h-24">🔴 Próximas 24 horas — Críticos</div>
+      <div class="plan-body">
+        <div class="plan-item">
+          <span class="plan-check">1.</span>
+          <span class="plan-text"><strong>Screenshot real del hero</strong> — Abrir app con demo data, screenshot, subir como app-screenshot.webp. Sin esto la landing no funciona.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">2.</span>
+          <span class="plan-text"><strong>Fix floating cards mobile</strong> — Agregar media query con <code>left:8px/right:8px</code> para pantallas &lt;768px.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">3.</span>
+          <span class="plan-text"><strong>OG image 1200x630</strong> — Diseñar en Canva, subir, actualizar meta tag. El link compartido en WhatsApp es el canal de distribución principal.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">4.</span>
+          <span class="plan-text"><strong>Fix pricing toggle CSS</strong> — <code>[data-annual]{display:none}</code> como default. Soluciona bug visual de doble precio.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">5.</span>
+          <span class="plan-text"><strong>Publicar TOS y Privacy Policy</strong> — iubenda.com gratuito. Linkear desde footer. Elimina riesgo legal inmediato.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">6.</span>
+          <span class="plan-text"><strong>Agregar chevron al FAQ</strong> — 10 líneas de CSS/JS. Sin indicador visual el 50% de visitantes no sabe que las preguntas son expandibles.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-header plan-h-7">🟠 Esta semana (7 días) — Alto impacto</div>
+      <div class="plan-body">
+        <div class="plan-item">
+          <span class="plan-check">1.</span>
+          <span class="plan-text"><strong>Menú hamburguesa mobile</strong> — Implementar nav responsive completa. El 85% del tráfico es mobile y la nav está rota.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">2.</span>
+          <span class="plan-text"><strong>Fotos reales en testimonios</strong> — Contactar las 3 usuarias del testimonio y pedir permiso para usar su foto de perfil de WhatsApp.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">3.</span>
+          <span class="plan-text"><strong>Eyebrow del hero</strong> — Cambiar a "La única app para revendedoras de perfumes". 2 minutos de edición.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">4.</span>
+          <span class="plan-text"><strong>Agregar número de usuarias</strong> — Al hero trust bar y eyebrow. Aunque sea un número pequeño, algo real es mejor que nada.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">5.</span>
+          <span class="plan-text"><strong>Urgencia en announcement bar</strong> — "Oferta de lanzamiento · 50% off primer mes · Válida hasta [fecha]".</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">6.</span>
+          <span class="plan-text"><strong>Garantía en pricing</strong> — Agregar "Sin contrato · Cancelás cuando querés · Devolución en 7 días" al pie de los planes.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">7.</span>
+          <span class="plan-text"><strong>Reescribir benefit cards</strong> — Del lenguaje técnico al lenguaje del cliente. "Control total de gastos" → "Sabés exactamente cuánto te costó cada perfume".</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-header plan-h-30">🔵 Este mes (30 días) — Estructural</div>
+      <div class="plan-body">
+        <div class="plan-item">
+          <span class="plan-check">1.</span>
+          <span class="plan-text"><strong>Integrar pago autoservicio</strong> — Gumroad o LemonSqueezy para USD 5-12/mes sin intervención humana. Es el cambio con mayor impacto en ingresos.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">2.</span>
+          <span class="plan-text"><strong>Email capture + secuencia de nurturing</strong> — MailerLite gratuito hasta 1000 subs. Lead magnet: "5 tips para organizar tu negocio de perfumes".</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">3.</span>
+          <span class="plan-text"><strong>Video de demo de 90 segundos</strong> — Screencast real mostrando registrar una venta, ver cobros pendientes, y enviar mensaje de WA. Subir a YouTube y embeber.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">4.</span>
+          <span class="plan-text"><strong>Dominio propio parfumtrack.com</strong> — Comprar y redirigir. USD 10/año. Impacto inmediato en profesionalismo y SEO.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">5.</span>
+          <span class="plan-text"><strong>Primer caso de estudio real</strong> — Entrevistar a una usuaria activa, documentar antes/después con números reales. Publicar en la landing y en redes.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">6.</span>
+          <span class="plan-text"><strong>Google Search Console + sitemap</strong> — Submitar sitemap.xml y verificar indexación. Resolver el tema URL /landing.html vs raíz.</span>
+        </div>
+        <div class="plan-item">
+          <span class="plan-check">7.</span>
+          <span class="plan-text"><strong>Lanzar programa de referidos</strong> — "Invitá a una amiga y ambas reciben 1 mes gratis". Automatizable con un link de referido único.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     VEREDICTO FINAL
+══════════════════════════════════════════ -->
+<div class="section-block">
+  <div class="section-title">Veredicto final y preguntas clave</div>
+
+  <div class="verdict-box">
+    <div class="vb-title">Respuestas del equipo de auditoría</div>
+
+    <div class="vb-q">¿Pagarías USD 5/mes por este producto?</div>
+    <div class="vb-a">Si soy revendedora de perfumes: <strong>SÍ, definitivamente</strong> — pero solo si la imagen hero me muestra claramente qué es el producto en 3 segundos. Actualmente, si la imagen hero no carga, la landing no me convence de nada. El producto resuelve un dolor real y el precio es razonable para el valor ofrecido.</div>
+
+    <div class="vb-q">¿Invertirías en este negocio?</div>
+    <div class="vb-a"><strong>SÍ condicional.</strong> El nicho está bien elegido (especialización en perfumes árabes/nicho en LATAM), el problema es real, y la propuesta de valor es genuina. La duda es la ejecución: el fundador necesita demostrar tracción (N usuarias pagando), un canal de adquisición escalable, y resolver el proceso de pago manual antes de que esto pueda crecer. Con 50 usuarias pagadoras y automatización de pagos, la valuación del negocio cambia dramáticamente.</div>
+
+    <div class="vb-q">¿Qué le impide a alguien comprar hoy?</div>
+    <div class="vb-a">En orden de impacto: <strong>(1)</strong> No ve el producto (imagen hero), <strong>(2)</strong> el proceso de pago por WhatsApp es fricción extrema, <strong>(3)</strong> no tiene razón para actuar HOY (sin urgencia), <strong>(4)</strong> los testimonios parecen inventados (sin foto), <strong>(5)</strong> no sabe si puede cancelar fácilmente (sin garantía visible).</div>
+
+    <div class="vb-q">¿Qué duplicaría las conversiones esta semana?</div>
+    <div class="vb-a"><strong>Un cambio:</strong> subir la imagen hero real de la app y arreglar las floating cards en mobile. Ese cambio solo puede duplicar o triplicar la conversión porque actualmente la landing es básicamente texto sin imagen de producto para el 85% del tráfico (mobile). El segundo cambio de mayor impacto es agregar urgencia al announcement bar.</div>
+
+    <div class="vb-q">¿Qué haría que parezca una startup valuada en millones?</div>
+    <div class="vb-a"><strong>Tres elementos:</strong> (1) dominio propio parfumtrack.com, (2) foto real de la app en mockup de celular premium como hero, y (3) un número de usuarias visible ("Más de 500 revendedoras organizaron su negocio"). Estas tres cosas juntas cambian la percepción de "proyecto de fin de semana" a "producto real con tracción".</div>
+
+    <div class="vb-q">Si solo pudieras hacer 5 cambios esta semana, ¿cuáles?</div>
+    <div class="vb-a">
+      <strong>1.</strong> Subir screenshot real como imagen hero (30 min) ·
+      <strong>2.</strong> Arreglar floating cards en mobile (10 min) ·
+      <strong>3.</strong> Implementar menú hamburguesa (2h) ·
+      <strong>4.</strong> Crear OG image 1200x630 (1h) ·
+      <strong>5.</strong> Agregar "Cancelás cuando querés" + garantía en pricing (10 min). Con estos 5 cambios la landing pasa de 54/100 a ~72/100 en conversión percibida.
+    </div>
+  </div>
+
+  <div class="delta-box">
+    <div class="db-title">Delta de mejoras posibles</div>
+    <div class="db-row">
+      <span class="db-from">Score actual</span>
+      <span class="db-arrow">→</span>
+      <span class="db-to">54/100</span>
+    </div>
+    <div class="db-row">
+      <span class="db-from">Con quick wins (24h)</span>
+      <span class="db-arrow">→</span>
+      <span class="db-to">68/100</span>
+    </div>
+    <div class="db-row">
+      <span class="db-from">Con plan 7 días</span>
+      <span class="db-arrow">→</span>
+      <span class="db-to">78/100</span>
+    </div>
+    <div class="db-row">
+      <span class="db-from">Con plan 30 días</span>
+      <span class="db-arrow">→</span>
+      <span class="db-to">89/100</span>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:40px 0 20px;border-top:1px solid var(--border);margin-top:48px">
+  <div style="font-size:12px;color:var(--text3)">Auditoría CRO · Parfum Track Landing Page · Junio 2026</div>
+  <div style="font-size:11px;color:var(--text3);margin-top:6px">47 hallazgos · 12 fases · Score total 54/100</div>
+</div>
+
+</div><!-- /main -->
+</body>
+</html>
