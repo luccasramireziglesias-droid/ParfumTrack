@@ -1,6 +1,8 @@
 node_modules/
 functions/
 .github/
+.git/
+.wrangler/
 scripts/
 netlify/
 inservible/
