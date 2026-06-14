@@ -21,10 +21,10 @@
     "APP_URL": "https://parfumtrack.luccasramireziglesias.workers.dev",
     // Moneda de Mercado Pago según tu cuenta (ARS=Argentina, UYU=Uruguay, CLP=Chile, USD=Internacional)
     // Cambiar según el país de tu cuenta MP. Secrets: MP_ACCESS_TOKEN y MP_WEBHOOK_SECRET en Dashboard.
-    "MP_CURRENCY_ID": "ARS",
-    // Montos en la moneda configurada arriba
-    "MP_AMOUNT_MONTHLY": "9.99",
-    "MP_AMOUNT_ANNUAL": "95.88"
+    "MP_CURRENCY_ID": "UYU",
+    // Montos en UYU (pesos uruguayos). Ajustar según precio final.
+    "MP_AMOUNT_MONTHLY": "399",
+    "MP_AMOUNT_ANNUAL": "3990"
   },
   // KV namespace para licencias.
   // Para obtener el ID: npx wrangler kv namespace create PT_LICENSES
