@@ -11839,27 +11839,97 @@
         document.getElementById("tier-wa-msg").textContent = el.dataset.msg;
         const lbl = document.getElementById("tier-btn-label");
         if (lbl) lbl.textContent = labels[tierName] || tierName;
+
+        // Mostrar campo de email y usar botón MP para Básico Pro, WA para el resto
+        const emailSec = document.getElementById("mp-email-section");
+        const waBtn    = document.getElementById("tier-wa-btn");
+        if (emailSec) emailSec.style.display = tierName === "basic" ? "block" : "none";
+        if (waBtn) {
+          if (tierName === "basic") {
+            waBtn.style.background = "linear-gradient(135deg,#009ee3,#0070ba)";
+            waBtn.innerHTML = "Suscribirse con Mercado Pago →";
+          } else {
+            waBtn.style.background = "linear-gradient(135deg,#25d366,#1da851)";
+            waBtn.innerHTML = "📲 Consultar por WhatsApp";
+          }
+        }
+
         trackEvent("pricing_tier_seleccionado", { tier: tierName });
       }
-      function _consultarPlanSeleccionado() {
+      async function _consultarPlanSeleccionado() {
+        const tier = document.querySelector(".pricing-tier.tier-selected")?.dataset?.tier || "basic";
+
+        // Plan Básico Pro → checkout automático con Mercado Pago
+        if (tier === "basic") {
+          _iniciarCheckoutMP();
+          return;
+        }
+
+        // Otros planes (free o pro próximamente) → WhatsApp
         const n = getWANumber();
         if (!n) {
           toast("⚠ Configurá tu número de WhatsApp en Ajustes", 3500);
           return;
         }
         const msg = document.getElementById("tier-wa-msg").textContent;
-        trackEvent("paywall_wa_click", {
-          tier:
-            document.querySelector(".pricing-tier.tier-selected")?.dataset
-              ?.tier || "pro",
-        });
+        trackEvent("paywall_wa_click", { tier });
         openLink("https://wa.me/" + n + "?text=" + encodeURIComponent(msg));
+      }
+
+      async function _iniciarCheckoutMP() {
+        const emailEl = document.getElementById("mp-email-paywall");
+        const email   = emailEl?.value?.trim();
+        const errEl   = document.getElementById("mp-paywall-error");
+
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+          if (errEl) errEl.textContent = "Ingresá tu email para continuar";
+          if (emailEl) emailEl.focus();
+          return;
+        }
+
+        const btn = document.getElementById("tier-wa-btn");
+        if (btn) { btn.disabled = true; btn.textContent = "Conectando con MP…"; }
+        if (errEl) errEl.textContent = "";
+
+        const win = window.open("", "_blank");
+
+        try {
+          const resp = await fetch("/mp-create-subscription", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ email, plan: "monthly" }),
+          });
+          const data = await resp.json();
+
+          if (!data.ok) {
+            if (win) win.close();
+            if (errEl) errEl.textContent = data.error || "Error al crear la suscripción";
+            if (btn) { btn.disabled = false; btn.innerHTML = "📲 Quiero el plan <span id=\"tier-btn-label\">Básico Pro</span>"; }
+            return;
+          }
+
+          if (win) win.location.href = data.initPoint;
+          closeModal("modal-activacion");
+          trackEvent("mp_checkout_redirect", { tier: "basic" });
+        } catch (e) {
+          if (win) win.close();
+          if (errEl) errEl.textContent = "Error de conexión. Intentá de nuevo.";
+          if (btn) { btn.disabled = false; btn.innerHTML = "📲 Quiero el plan <span id=\"tier-btn-label\">Básico Pro</span>"; }
+        }
       }
 
       function abrirModalActivacion() {
         document.getElementById("modal-activacion").classList.add("open");
+        // Inicializar estado del tier seleccionado (Básico Pro por default)
+        const emailSec = document.getElementById("mp-email-section");
+        const waBtn    = document.getElementById("tier-wa-btn");
+        if (emailSec) emailSec.style.display = "block";
+        if (waBtn) {
+          waBtn.style.background = "linear-gradient(135deg,#009ee3,#0070ba)";
+          waBtn.innerHTML = "Suscribirse con Mercado Pago →";
+        }
         setTimeout(() => {
-          const inp = document.getElementById("activation-code-input");
+          const inp = document.getElementById("mp-email-paywall");
           if (inp) inp.focus();
         }, 200);
         trackEvent("paywall_visto");
@@ -17571,7 +17641,20 @@
           </div>
         </div>
 
-        <!-- CTA: botón WA dinámico según tier seleccionado -->
+        <!-- Email para checkout MP (visible solo cuando Básico Pro está seleccionado) -->
+        <div id="mp-email-section" style="margin-bottom:10px;">
+          <input
+            id="mp-email-paywall"
+            type="email"
+            placeholder="Tu email para recibir el código"
+            autocomplete="email"
+            onkeydown="if(event.key==='Enter')_consultarPlanSeleccionado()"
+            style="width:100%;padding:10px 14px;background:var(--bg3);border:1.5px solid rgba(201,168,76,0.3);border-radius:10px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;margin-bottom:4px;"
+          />
+          <p id="mp-paywall-error" style="font-size:11px;color:var(--danger);min-height:14px;"></p>
+        </div>
+
+        <!-- CTA: botón dinámico según tier seleccionado -->
         <button
           id="tier-wa-btn"
           onclick="_consultarPlanSeleccionado()"

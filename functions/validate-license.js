@@ -100,6 +100,13 @@ export async function onRequestPost(context) {
       });
     }
 
+    // Verificar estado de suscripción MP (suspendida o cancelada y vencida)
+    if (license.status === 'payment_failed') {
+      // Acceso suspendido por fallo de pago reiterado
+      await delay(200);
+      return new Response(JSON.stringify({ valid: false, reason: "payment_failed" }), { headers });
+    }
+
     if (license.expiresAt && new Date(license.expiresAt) < new Date()) {
       await delay(200);
       return new Response(JSON.stringify({ valid: false, reason: "expired" }), {
