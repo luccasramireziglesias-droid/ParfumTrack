@@ -12,10 +12,8 @@ import { onRequestPost as syncPost, onRequestGet as syncGet } from './functions/
 import { onRequestPost as mpCreatePreference }    from './functions/mp-create-preference.js';
 import { onRequestPost as mpWebhookPost, onRequestGet as mpWebhookGet } from './functions/mp-webhook.js';
 import { onRequestGet  as mpSubscriptionStatus }  from './functions/mp-subscription-status.js';
-import { onRequestPost as stripeCreateCheckout }  from './functions/stripe-create-checkout.js';
-import { onRequestPost as stripeWebhook }         from './functions/stripe-webhook.js';
 
-const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup', '/trial', '/sync', '/mp-create-preference', '/mp-webhook', '/stripe-create-checkout', '/stripe-webhook'];
+const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup', '/trial', '/sync', '/mp-create-preference', '/mp-webhook'];
 const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status'];
 
 export default {
@@ -50,8 +48,7 @@ export default {
       if (path === '/sync')                   return syncPost(context);
       if (path === '/mp-create-preference')   return mpCreatePreference(context);
       if (path === '/mp-webhook')              return mpWebhookPost(context);
-      if (path === '/stripe-create-checkout') return stripeCreateCheckout(context);
-      if (path === '/stripe-webhook')         return stripeWebhook(context);
+
     }
 
     if (method === 'GET') {
