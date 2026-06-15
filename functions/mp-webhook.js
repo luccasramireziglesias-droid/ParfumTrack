@@ -169,14 +169,15 @@ async function handleSinglePayment(paymentId, payment, env) {
 
   // Obtener email y plan desde external_reference
   let email, plan;
-  try {
-    const ref = JSON.parse(payment.external_reference || '{}');
-    email = ref.email;
-    plan  = ref.plan || 'monthly';
-  } catch {
-    email = payment.payer?.email;
-    plan  = 'monthly';
+  if (payment.external_reference) {
+    try {
+      const ref = JSON.parse(payment.external_reference);
+      email = ref.email;
+      plan  = ref.plan || 'monthly';
+    } catch { /* JSON inválido — usar fallback */ }
   }
+  if (!email) email = payment.payer?.email;
+  if (!plan)  plan  = 'monthly';
 
   if (!email) {
     console.error('[mp-webhook] Pago único sin email, paymentId:', paymentId);
