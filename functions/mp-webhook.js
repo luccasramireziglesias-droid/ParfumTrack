@@ -217,8 +217,19 @@ async function handleSinglePayment(paymentId, payment, env) {
       await env.PT_LICENSES.put(`mp_pay:${paymentId}`, existingCode, { expirationTtl: TTL_3Y });
       console.log(`[mp-webhook] Licencia renovada (pago único): ${existingCode} hasta ${expiresAt}`);
 
+      const ownerEmail = env.OWNER_EMAIL || env.FROM_EMAIL;
       if (lic.clientEmail) {
         await sendEmail(env, lic.clientEmail, 'subscription_renewed', { expiresAt });
+      }
+      if (ownerEmail) {
+        await sendEmail(env, ownerEmail, 'owner_payment_notification', {
+          clientEmail: lic.clientEmail,
+          code:        existingCode,
+          plan:        lic.plan,
+          expiresAt,
+          paymentId,
+          type:        'renewal',
+        });
       }
       return;
     }
@@ -254,6 +265,18 @@ async function handleSinglePayment(paymentId, payment, env) {
 
   console.log(`[mp-webhook] Licencia creada (pago único): ${code} para ${email}`);
   await sendEmail(env, email, 'subscription_activated', { code, expiresAt });
+
+  const ownerEmail = env.OWNER_EMAIL || env.FROM_EMAIL;
+  if (ownerEmail) {
+    await sendEmail(env, ownerEmail, 'owner_payment_notification', {
+      clientEmail: email,
+      code,
+      plan:     isAnnual ? 'basic_annual' : 'basic_monthly',
+      expiresAt,
+      paymentId,
+      type:     'new',
+    });
+  }
 }
 
 // ── Utilidades ────────────────────────────────────────────────────
@@ -447,4 +470,34 @@ const EMAIL_TEMPLATES = {
 </html>`,
     text: `Tu suscripción a Parfum Track fue cancelada. Seguís con acceso hasta ${expiresAt}. Después pasás al plan Free. Podés reactivar cuando quieras. ${appUrl}`,
   }),
+
+  owner_payment_notification: ({ clientEmail, code, plan, expiresAt, paymentId, type }) => {
+    const isNew     = type === 'new';
+    const planLabel = plan === 'basic_annual' ? 'Anual (95.88 USD)' : 'Mensual (9.99 USD)';
+    const title     = isNew ? '💰 Nuevo pago recibido' : '🔄 Renovación recibida';
+    return {
+      subject: `${title} — ${clientEmail}`,
+      html: `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0d0d1a;font-family:'Helvetica Neue',Arial,sans-serif;">
+<div style="max-width:480px;margin:0 auto;padding:24px;">
+  <div style="background:#1e1e35;border:1px solid rgba(201,168,76,0.3);border-radius:14px;padding:24px;">
+    <h2 style="color:#e8cc7a;font-size:18px;font-weight:700;margin:0 0 16px;">${title}</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+      <tr><td style="color:#7a7870;padding:6px 0;width:120px;">Cliente</td><td style="color:#f0eee8;font-weight:600;">${clientEmail}</td></tr>
+      <tr><td style="color:#7a7870;padding:6px 0;">Plan</td><td style="color:#f0eee8;">${planLabel}</td></tr>
+      <tr><td style="color:#7a7870;padding:6px 0;">Licencia</td><td style="color:#e8cc7a;font-family:monospace;font-weight:700;letter-spacing:1px;">${code}</td></tr>
+      <tr><td style="color:#7a7870;padding:6px 0;">Vence</td><td style="color:#f0eee8;">${expiresAt}</td></tr>
+      <tr><td style="color:#7a7870;padding:6px 0;">Payment ID</td><td style="color:#b8b4a8;font-size:12px;">${paymentId}</td></tr>
+      <tr><td style="color:#7a7870;padding:6px 0;">Tipo</td><td style="color:${isNew ? '#70c9a0' : '#c9a84c'};font-weight:700;">${isNew ? 'NUEVA LICENCIA' : 'RENOVACIÓN'}</td></tr>
+    </table>
+  </div>
+  <p style="color:#4a4848;font-size:11px;text-align:center;margin-top:16px;">Parfum Track · Notificación automática</p>
+</div>
+</body>
+</html>`,
+      text: `${title}\nCliente: ${clientEmail}\nPlan: ${planLabel}\nLicencia: ${code}\nVence: ${expiresAt}\nPayment ID: ${paymentId}\nTipo: ${isNew ? 'NUEVA LICENCIA' : 'RENOVACIÓN'}`,
+    };
+  },
 };
