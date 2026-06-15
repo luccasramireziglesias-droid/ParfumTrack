@@ -68,19 +68,19 @@ export async function onRequestPost(context) {
     return jsonResp({ ok: true });
   }
 
-  // 3. Idempotencia: si ya procesamos este evento, ignorar
+  // 3. Idempotencia: ignorar solo si ya fue procesado exitosamente
   const idKey = `webhook_processed:${type}:${resourceId}`;
   const already = await env.PT_LICENSES.get(idKey);
-  if (already) {
+  if (already === 'done') {
     console.log('[mp-webhook] Ya procesado:', idKey);
     return jsonResp({ ok: true });
   }
 
-  // Marcar como procesado (TTL 30 días = 2592000s)
-  await env.PT_LICENSES.put(idKey, '1', { expirationTtl: 2592000 });
+  // Marcar como "en proceso" con TTL corto para evitar ejecuciones simultáneas
+  await env.PT_LICENSES.put(idKey, 'processing', { expirationTtl: 300 });
 
-  // 4. Procesar en background para liberar el 200 de forma inmediata
-  ctx.waitUntil(processEvent({ type, resourceId, env }));
+  // 4. Procesar en background; marcar 'done' solo si tiene éxito
+  ctx.waitUntil(processEvent({ type, resourceId, env, idKey }));
 
   return jsonResp({ ok: true });
 }
@@ -125,17 +125,19 @@ async function verifyMPSignatureFromText(bodyText, xSignature, url, env, request
 
 // ── Dispatcher de eventos ─────────────────────────────────────────
 
-async function processEvent({ type, resourceId, env }) {
+async function processEvent({ type, resourceId, env, idKey }) {
   try {
     if (type === 'payment') {
       await handlePaymentEvent(resourceId, env);
-    } else if (type === 'subscription_preapproval') {
-      await handleSubscriptionEvent(resourceId, env);
     } else {
       console.log(`[mp-webhook] Tipo no manejado: ${type}`);
     }
+    // Marcar como procesado con éxito (TTL 30 días)
+    await env.PT_LICENSES.put(idKey, 'done', { expirationTtl: 2592000 });
   } catch (e) {
     console.error(`[mp-webhook] Error procesando ${type}:${resourceId}:`, e.message, e.stack);
+    // Eliminar la marca 'processing' para permitir retry en el próximo webhook de MP
+    await env.PT_LICENSES.delete(idKey).catch(() => {});
   }
 }
 
@@ -153,25 +155,8 @@ async function handlePaymentEvent(paymentId, env) {
   }
 
   const payment = await resp.json();
-  console.log(`[mp-webhook] Pago ${paymentId}: status=${payment.status} preapproval=${payment.preapproval_id}`);
-
-  const preapprovalId = payment.preapproval_id;
-  if (!preapprovalId) {
-    // Pago único via Checkout Pro (preferencias) — manejar normalmente
-    await handleSinglePayment(paymentId, payment, env);
-    return;
-  }
-
-  if (payment.status === 'approved') {
-    const existingCode = await env.PT_LICENSES.get(`mp_sub:${preapprovalId}`);
-    if (existingCode) {
-      await handleRenewal(existingCode, payment, env);
-    } else {
-      await handleFirstPayment(preapprovalId, payment, env);
-    }
-  } else if (payment.status === 'rejected') {
-    await handlePaymentFailed(preapprovalId, payment, env);
-  }
+  console.log(`[mp-webhook] Pago ${paymentId}: status=${payment.status}`);
+  await handleSinglePayment(paymentId, payment, env);
 }
 
 // ── Pago único via Checkout Pro ───────────────────────────────────
@@ -268,148 +253,6 @@ async function handleSinglePayment(paymentId, payment, env) {
 
   console.log(`[mp-webhook] Licencia creada (pago único): ${code} para ${email}`);
   await sendEmail(env, email, 'subscription_activated', { code, expiresAt });
-}
-
-// ── Primer pago: crear licencia ───────────────────────────────────
-
-async function handleFirstPayment(preapprovalId, payment, env) {
-  // Recuperar email del pending guardado por mp-create-subscription
-  const pendingRaw = await env.PT_LICENSES.get(`pending_sub:${preapprovalId}`);
-  let email, plan;
-  if (pendingRaw) {
-    ({ email, plan } = JSON.parse(pendingRaw));
-  } else {
-    // Fallback: email del pagador en MP
-    email = payment.payer?.email;
-    plan  = 'monthly';
-  }
-  if (!email) {
-    console.error('[mp-webhook] No hay email para preapproval:', preapprovalId);
-    return;
-  }
-
-  const code = await generateLicenseCode(env);
-
-  const now      = new Date();
-  const isAnnual = plan === 'annual';
-  const expiry   = new Date(now);
-  expiry.setDate(expiry.getDate() + (isAnnual ? 366 : 31));
-  const expiresAt = expiry.toISOString().split('T')[0];
-
-  const licenseData = {
-    clientName:     email.split('@')[0],
-    clientEmail:    email,
-    expiresAt,
-    maxUses:        null,
-    usedCount:      0,
-    createdAt:      now.toISOString().split('T')[0],
-    lastActivatedAt: null,
-    plan:           isAnnual ? 'basic_annual' : 'basic_monthly',
-    status:         'active',
-    mpSubscriptionId: preapprovalId,
-    mpPayerId:      payment.payer?.id?.toString(),
-    renewsAt:       expiresAt,
-    suspendedAt:    null,
-    cancelledAt:    null,
-  };
-
-  const TTL_3Y = 94608000; // 3 años en segundos
-  const emailHash = await hashEmail(email);
-
-  await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(licenseData));
-  await env.PT_LICENSES.put(`mp_sub:${preapprovalId}`, code, { expirationTtl: TTL_3Y });
-  await env.PT_LICENSES.put(`email_license:${emailHash}`, code, { expirationTtl: TTL_3Y });
-  await env.PT_LICENSES.delete(`pending_sub:${preapprovalId}`);
-
-  console.log(`[mp-webhook] ✅ Licencia creada: ${code} para ${email}`);
-  await sendEmail(env, email, 'subscription_activated', { code, expiresAt });
-}
-
-// ── Renovación mensual ────────────────────────────────────────────
-
-async function handleRenewal(code, payment, env) {
-  const licRaw = await env.PT_LICENSES.get(`license:${code}`);
-  if (!licRaw) { console.error('[mp-webhook] Renovación: licencia no encontrada:', code); return; }
-
-  const lic      = JSON.parse(licRaw);
-  const isAnnual = lic.plan === 'basic_annual';
-  // Extender desde la fecha de vencimiento actual (no desde hoy, para no dar días extra)
-  const base    = new Date(Math.max(Date.now(), new Date(lic.expiresAt || Date.now()).getTime()));
-  base.setDate(base.getDate() + (isAnnual ? 366 : 31));
-  const expiresAt = base.toISOString().split('T')[0];
-
-  lic.expiresAt   = expiresAt;
-  lic.renewsAt    = expiresAt;
-  lic.status      = 'active';
-  lic.suspendedAt = null;
-
-  await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(lic));
-  console.log(`[mp-webhook] 🔄 Renovada: ${code} hasta ${expiresAt}`);
-
-  if (lic.clientEmail) {
-    await sendEmail(env, lic.clientEmail, 'subscription_renewed', { expiresAt });
-  }
-}
-
-// ── Pago fallido ──────────────────────────────────────────────────
-
-async function handlePaymentFailed(preapprovalId, payment, env) {
-  const code = await env.PT_LICENSES.get(`mp_sub:${preapprovalId}`);
-  if (!code) return; // Primer pago fallido, no hay licencia que suspender
-
-  const licRaw = await env.PT_LICENSES.get(`license:${code}`);
-  if (!licRaw) return;
-
-  const lic   = JSON.parse(licRaw);
-  lic.status  = 'payment_failed';
-  await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(lic));
-  console.log(`[mp-webhook] ⚠ Pago fallido para: ${code}`);
-
-  if (lic.clientEmail) {
-    await sendEmail(env, lic.clientEmail, 'payment_failed', {});
-  }
-}
-
-// ── Cambio de estado de suscripción ──────────────────────────────
-
-async function handleSubscriptionEvent(subscriptionId, env) {
-  if (!env.MP_ACCESS_TOKEN) return;
-
-  const resp = await fetch(`https://api.mercadopago.com/preapproval/${subscriptionId}`, {
-    headers: { Authorization: `Bearer ${env.MP_ACCESS_TOKEN}` },
-  });
-  if (!resp.ok) {
-    console.error('[mp-webhook] Error obteniendo suscripción:', subscriptionId, resp.status);
-    return;
-  }
-
-  const sub   = await resp.json();
-  const code  = await env.PT_LICENSES.get(`mp_sub:${sub.id}`);
-  if (!code) { console.log('[mp-webhook] Suscripción sin licencia (pendiente de primer pago?):', sub.id); return; }
-
-  const licRaw = await env.PT_LICENSES.get(`license:${code}`);
-  if (!licRaw) return;
-  const lic = JSON.parse(licRaw);
-
-  if (sub.status === 'authorized' && lic.status !== 'active') {
-    lic.status      = 'active';
-    lic.suspendedAt = null;
-    await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(lic));
-    console.log(`[mp-webhook] ✅ Suscripción reactivada: ${code}`);
-  } else if (sub.status === 'cancelled') {
-    lic.status      = 'cancelled';
-    lic.cancelledAt = new Date().toISOString().split('T')[0];
-    await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(lic));
-    console.log(`[mp-webhook] ❌ Suscripción cancelada: ${code}`);
-    if (lic.clientEmail) {
-      await sendEmail(env, lic.clientEmail, 'subscription_cancelled', { expiresAt: lic.expiresAt });
-    }
-  } else if (sub.status === 'paused') {
-    lic.status      = 'payment_failed';
-    lic.suspendedAt = new Date().toISOString().split('T')[0];
-    await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(lic));
-    console.log(`[mp-webhook] ⏸ Suscripción pausada: ${code}`);
-  }
 }
 
 // ── Utilidades ────────────────────────────────────────────────────

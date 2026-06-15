@@ -65,7 +65,6 @@ export async function onRequestPost(context) {
         },
         auto_return:        'approved',
         external_reference: JSON.stringify({ email, plan }),
-        notification_url:   `${appUrl}/mp-webhook`,
       }),
     });
   } catch (e) {

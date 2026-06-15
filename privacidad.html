@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Política de Privacidad — Parfum Track</title>
+  <link rel="icon" href="/icon-192.png" type="image/png">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0d0d1a; color: #b8b4a8; font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px 24px 80px; max-width: 720px; margin: 0 auto; line-height: 1.8; }
+    h1 { color: #e8cc7a; font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    h2 { color: #f0eee8; font-size: 17px; font-weight: 700; margin: 32px 0 12px; }
+    p  { margin-bottom: 12px; font-size: 14px; }
+    ul { padding-left: 20px; margin-bottom: 12px; font-size: 14px; }
+    li { margin-bottom: 6px; }
+    .meta { font-size: 12px; color: #7a7870; margin-bottom: 40px; }
+    a { color: #c9a84c; }
+    .back { display: inline-block; color: #c9a84c; text-decoration: none; font-size: 14px; margin-bottom: 32px; }
+    .highlight { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); border-radius: 8px; padding: 12px 16px; margin: 16px 0; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <a href="/landing.html" class="back">← Volver</a>
+  <h1>Política de Privacidad</h1>
+  <p class="meta">Parfum Track · Última actualización: junio 2026 · Cumple con la Ley 18.331 (Uruguay)</p>
+
+  <div class="highlight">
+    Resumen: tus datos de ventas se guardan en tu celular. Tu email se usa solo para enviarte el código de licencia y comunicaciones del servicio. No vendemos ni compartimos tus datos con terceros.
+  </div>
+
+  <h2>1. Responsable del tratamiento</h2>
+  <p>Parfum Track, operado por Luccas Ramírez Iglesias (Uruguay). Contacto: luccasramireziglesias@gmail.com</p>
+
+  <h2>2. Datos que recolectamos</h2>
+  <ul>
+    <li><strong>Email:</strong> al registrarte para el trial o al pagar. Se usa para enviarte el código de activación, emails de bienvenida y recordatorios del estado de tu plan.</li>
+    <li><strong>Datos de ventas:</strong> se guardan localmente en tu dispositivo (localStorage e IndexedDB). Solo se suben a nuestra nube si activás el backup opcional.</li>
+    <li><strong>Datos de pago:</strong> el pago lo procesa Mercado Pago directamente. Nosotros solo recibimos confirmación del pago y el email asociado.</li>
+    <li><strong>Datos de uso anónimos:</strong> usamos Plausible Analytics (sin cookies, sin seguimiento personal) para entender qué funciones se usan más.</li>
+    <li><strong>Notificaciones push:</strong> si habilitás las notificaciones, usamos OneSignal. Podés desactivarlas en cualquier momento desde la configuración de tu navegador.</li>
+  </ul>
+
+  <h2>3. Cómo usamos tus datos</h2>
+  <ul>
+    <li>Enviarte el código de activación de tu plan</li>
+    <li>Enviarte recordatorios de vencimiento de trial o plan</li>
+    <li>Enviarte notificaciones push de cobros pendientes (si las activaste)</li>
+    <li>Mantener tu backup en la nube (si lo activaste)</li>
+  </ul>
+
+  <h2>4. Con quién compartimos tus datos</h2>
+  <ul>
+    <li><strong>Mercado Pago:</strong> para procesar el pago de tu plan.</li>
+    <li><strong>Brevo (Sendinblue):</strong> para el envío de emails transaccionales.</li>
+    <li><strong>OneSignal:</strong> para notificaciones push (solo si las activaste).</li>
+    <li><strong>Cloudflare:</strong> nuestro proveedor de infraestructura (Workers, KV, R2).</li>
+  </ul>
+  <p>No vendemos tus datos a terceros ni los usamos para publicidad.</p>
+
+  <h2>5. Almacenamiento y seguridad</h2>
+  <p>Los datos de tu email y licencia se almacenan en Cloudflare KV (infraestructura ubicada en múltiples regiones). Los backups opcionales se guardan en Cloudflare R2. Usamos cifrado en tránsito (HTTPS) y acceso autenticado con tokens HMAC-SHA256.</p>
+
+  <h2>6. Tus derechos (Ley 18.331, Uruguay)</h2>
+  <p>Tenés derecho a acceder, rectificar o eliminar tus datos personales. Para ejercer estos derechos, escribinos a luccasramireziglesias@gmail.com o por <a href="https://wa.me/59894466577" target="_blank" rel="noopener">WhatsApp</a>.</p>
+
+  <h2>7. Retención de datos</h2>
+  <p>Tu email y licencia se mantienen mientras tu cuenta esté activa. Si cancelás y no renovás, los datos se eliminan automáticamente a los 3 años por vencimiento de los registros en KV.</p>
+
+  <h2>8. Contacto</h2>
+  <p>Para consultas sobre privacidad: <a href="mailto:luccasramireziglesias@gmail.com">luccasramireziglesias@gmail.com</a></p>
+</body>
+</html>

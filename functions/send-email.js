@@ -141,7 +141,7 @@ const TEMPLATES = {
   }),
 
   trial_expired: (data) => ({
-    subject: `Tu prueba de Parfum Track venció — oferta especial 🌸`,
+    subject: `Tu prueba de Parfum Track venció — activá tu plan 🌸`,
     html: `
 <!DOCTYPE html>
 <html lang="es">
@@ -159,24 +159,24 @@ const TEMPLATES = {
         Tu prueba gratuita venció, ${data.name}
       </h2>
       <p style="color:#b8b4a8;font-size:15px;line-height:1.7;margin:0 0 20px;">
-        Tus datos están guardados y seguros en tu celular. Para volver a registrar ventas
-        sin límite, activá tu licencia con un pago único — sin suscripción mensual.
+        Tus datos están guardados y seguros en tu celular. Para seguir registrando ventas
+        sin límite, activá el plan Básico Pro.
       </p>
 
       <!-- Pricing highlight -->
       <div style="background:linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.04));border:1px solid rgba(201,168,76,0.3);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
-        <p style="color:#e8cc7a;font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin:0 0 6px;">Plan Pro — más popular</p>
-        <p style="color:#f0eee8;font-size:32px;font-weight:800;margin:0 0 4px;">$12 <span style="font-size:16px;color:#b8b4a8;font-weight:400;">USD/mes</span></p>
-        <p style="color:#7a7870;font-size:13px;margin:0;">Plan Pro · Cancelás cuando querés</p>
+        <p style="color:#e8cc7a;font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin:0 0 6px;">Plan Básico Pro — más popular</p>
+        <p style="color:#f0eee8;font-size:32px;font-weight:800;margin:0 0 4px;">$9.99 <span style="font-size:16px;color:#b8b4a8;font-weight:400;">USD/mes</span></p>
+        <p style="color:#7a7870;font-size:13px;margin:0;">o $7.99/mes eligiendo el plan anual · Cancelás cuando querés</p>
       </div>
 
-      <a href="${data.waUrl || "#"}"
-         style="display:block;text-align:center;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:12px;">
-        📲 Activar por WhatsApp →
+      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}/landing.html#pricing"
+         style="display:block;text-align:center;background:linear-gradient(135deg,#009ee3,#0070ba);color:#fff;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:12px;">
+        Activar plan con Mercado Pago →
       </a>
-      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}"
+      <a href="${data.waUrl || "#"}"
          style="display:block;text-align:center;background:transparent;border:1.5px solid rgba(255,255,255,0.15);color:#b8b4a8;padding:12px 24px;border-radius:50px;font-size:14px;font-weight:600;text-decoration:none;">
-        Ver todos los planes
+        📲 Consultar por WhatsApp
       </a>
     </div>
 
@@ -186,7 +186,7 @@ const TEMPLATES = {
   </div>
 </body>
 </html>`,
-    text: `Tu prueba de Parfum Track venció, ${data.name}. Activá tu licencia con un pago único: ${data.waUrl || data.appUrl || "https://parfumtrack.pages.dev"}`,
+    text: `Tu prueba de Parfum Track venció, ${data.name}. Activá el plan Básico Pro por $9.99/mes: ${data.appUrl || "https://parfumtrack.pages.dev"}/landing.html#pricing`,
   }),
 };
 
@@ -372,7 +372,7 @@ export async function onRequestOptions(context) {
 
 function corsHeaders(origin) {
   const allowed =
-    /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/.test(
+    /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev)(:\d+)?$/.test(
       origin,
     );
   return {
