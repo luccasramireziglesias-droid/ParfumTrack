@@ -23,7 +23,8 @@
     // Cambiar según el país de tu cuenta MP. Secrets: MP_ACCESS_TOKEN y MP_WEBHOOK_SECRET en Dashboard.
     "MP_CURRENCY_ID": "USD",
     "MP_AMOUNT_MONTHLY": "9.99",
-    "MP_AMOUNT_ANNUAL": "95.88"
+    "MP_AMOUNT_ANNUAL": "95.88",
+    "OWNER_EMAIL": "pagosparfumtrack@gmail.com"
   },
   // KV namespace para licencias.
   // Para obtener el ID: npx wrangler kv namespace create PT_LICENSES
