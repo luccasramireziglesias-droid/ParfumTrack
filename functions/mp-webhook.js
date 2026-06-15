@@ -32,16 +32,16 @@ export async function onRequestPost(context) {
   const xSig       = request.headers.get('x-signature');
   const bodyText   = await request.text();
 
-  // 1. Verificar firma MP solo si viene el header (webhooks nuevos).
-  //    Las notificaciones IPN vía notification_url en preferencias no envían firma.
+  // 1. Verificar firma MP. Si el secreto está configurado, la firma es obligatoria.
   if (xSig) {
-    const sigError = await verifyMPSignatureFromText(bodyText, xSig, url, env);
+    const sigError = await verifyMPSignatureFromText(bodyText, xSig, url, env, request);
     if (sigError) {
       console.warn('[mp-webhook] Firma inválida:', sigError);
-      return jsonResp({ ok: false, error: 'invalid_signature' });
+      return jsonResp({ ok: false, error: 'invalid_signature' }, 401);
     }
-  } else {
-    console.warn('[mp-webhook] Sin x-signature — IPN o request manual, aceptando');
+  } else if (env.MP_WEBHOOK_SECRET) {
+    console.warn('[mp-webhook] Sin x-signature pero MP_WEBHOOK_SECRET configurado — rechazando');
+    return jsonResp({ ok: false, error: 'missing_signature' }, 401);
   }
 
   // 2. Parsear tipo e ID del evento (JSON nuevo o query params IPN antiguo)
@@ -87,14 +87,11 @@ export async function onRequestPost(context) {
 
 // ── Verificación de firma MP ──────────────────────────────────────
 
-async function verifyMPSignatureFromText(bodyText, xSignature, url, env) {
+async function verifyMPSignatureFromText(bodyText, xSignature, url, env, request) {
   const secret = env.MP_WEBHOOK_SECRET;
-  if (!secret) {
-    console.warn('[mp-webhook] MP_WEBHOOK_SECRET no configurado — saltando verificación');
-    return null;
-  }
+  if (!secret) return 'MP_WEBHOOK_SECRET no configurado';
 
-  const xRequestId = ''; // MP no siempre lo envía en notificaciones de preferencias
+  const xRequestId = request.headers.get('x-request-id') || '';
   const dataId     = url.searchParams.get('id') || '';
 
   const parts = {};
@@ -198,6 +195,16 @@ async function handleSinglePayment(paymentId, payment, env) {
 
   if (!email) {
     console.error('[mp-webhook] Pago único sin email, paymentId:', paymentId);
+    return;
+  }
+
+  // Validar monto contra el esperado según el plan
+  const expectedAmount = parseFloat(plan === 'annual'
+    ? (env.MP_AMOUNT_ANNUAL  || '95.88')
+    : (env.MP_AMOUNT_MONTHLY || '9.99'));
+  const paidAmount = parseFloat(payment.transaction_amount || 0);
+  if (Math.abs(paidAmount - expectedAmount) > 0.01) {
+    console.error(`[mp-webhook] Monto incorrecto: pagado=${paidAmount} esperado=${expectedAmount} plan=${plan} paymentId=${paymentId}`);
     return;
   }
 

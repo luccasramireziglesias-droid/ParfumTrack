@@ -113,7 +113,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
 }
 
 function corsHeaders(origin) {
-  const ok = /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|[a-z0-9-]+\.workers\.dev)(:\d+)?$/.test(origin);
+  const ok = /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev)(:\d+)?$/.test(origin);
   return {
     'Content-Type':                 'application/json',
     'Access-Control-Allow-Origin':  ok ? origin : 'null',
