@@ -23,11 +23,7 @@
     // Cambiar según el país de tu cuenta MP. Secrets: MP_ACCESS_TOKEN y MP_WEBHOOK_SECRET en Dashboard.
     "MP_CURRENCY_ID": "USD",
     "MP_AMOUNT_MONTHLY": "9.99",
-    "MP_AMOUNT_ANNUAL": "95.88",
-    // Price IDs de Stripe — crear en Stripe Dashboard → Products → Add product → Copy Price ID (price_...)
-    // Secrets en Cloudflare Dashboard: STRIPE_SECRET_KEY y STRIPE_WEBHOOK_SECRET
-    "STRIPE_PRICE_ID_MONTHLY": "",
-    "STRIPE_PRICE_ID_ANNUAL": ""
+    "MP_AMOUNT_ANNUAL": "95.88"
   },
   // KV namespace para licencias.
   // Para obtener el ID: npx wrangler kv namespace create PT_LICENSES
