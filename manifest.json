@@ -1,7 +1,7 @@
 {
   "name": "Parfum Track",
   "short_name": "Parfum Track",
-  "description": "Gestión de ventas para revendedoras de perfumes",
+  "description": "Gestión de ventas para revendedores de perfumes",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
