@@ -138,6 +138,20 @@ async function processEvent({ type, resourceId, env, idKey }) {
     console.error(`[mp-webhook] Error procesando ${type}:${resourceId}:`, e.message, e.stack);
     // Eliminar la marca 'processing' para permitir retry en el próximo webhook de MP
     await env.PT_LICENSES.delete(idKey).catch(() => {});
+    // Notificar al dueño del error para que pueda intervenir manualmente
+    const ownerEmail = env.OWNER_EMAIL || env.FROM_EMAIL;
+    if (ownerEmail && env.BREVO_API_KEY) {
+      await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'api-key': env.BREVO_API_KEY },
+        body: JSON.stringify({
+          sender: { name: env.FROM_NAME || 'Parfum Track', email: env.FROM_EMAIL || 'hola@parfumtrack.com' },
+          to: [{ email: ownerEmail }],
+          subject: `⚠ Error en webhook MP — ${type}:${resourceId}`,
+          textContent: `Error procesando pago.\nTipo: ${type}\nID: ${resourceId}\nError: ${e.message}\n\nRevisar Cloudflare Workers Logs para más detalles.`,
+        }),
+      }).catch(() => {});
+    }
   }
 }
 

@@ -89,12 +89,13 @@ export async function onRequestPost(context) {
     );
   }
 
+  const safeUrl = (typeof url === 'string' && /^\//.test(url)) ? url : '/';
   const payload = {
     app_id: appId,
     include_subscription_ids: [subscriptionId],
     headings: { en: title, es: title },
     contents: { en: message, es: message },
-    url: url || "/",
+    url: safeUrl,
     chrome_web_icon: "/icon-192.png",
     firefox_icon: "/icon-192.png",
   };

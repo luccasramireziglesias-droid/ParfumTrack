@@ -16,7 +16,7 @@
 
 const TEMPLATES = {
   trial_welcome: (data) => ({
-    subject: `¡Bienvenida a Parfum Track, ${data.name}! 🌸`,
+    subject: `¡Hola, ${data.name}! Tu prueba gratuita ya está activa 🌸`,
     html: `
 <!DOCTYPE html>
 <html lang="es">
