@@ -52,8 +52,10 @@ export async function onRequestPost(context) {
   if (step === "register") return handleRegister(body, ip, env, headers);
   if (step === "verify") return handleVerify(body, ip, env, headers);
 
-  // Legacy path: { deviceId } with no step
-  if (body.deviceId && !step) return handleLegacy(body, ip, env, headers);
+  // Legacy path: { deviceId } sin step → deprecado, requiere OTP
+  if (body.deviceId && !step) {
+    return json({ error: 'Verificación por email requerida. Actualizá la app.' }, 410, headers);
+  }
 
   return json({ error: "Invalid request" }, 400, headers);
 }
@@ -419,7 +421,7 @@ function json(body, status, headers) {
 
 function corsHeaders(origin) {
   const ok =
-    /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev)(:\d+)?$/.test(
+    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
       origin,
     );
   return {

@@ -202,7 +202,10 @@ function sanitize(str) {
 
 // KV-based rate limiter: allows `max` requests per `windowSecs` seconds
 async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) return null;
+  if (!env.PT_LICENSES) {
+    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — rate limiting desactivado');
+    return null;
+  }
 
   const now = Math.floor(Date.now() / 1000);
   const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
@@ -226,6 +229,11 @@ async function checkRateLimit(env, key, max, windowSecs) {
   }
 
   return null;
+}
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // ── Main handler ─────────────────────────────────────────────
@@ -290,6 +298,24 @@ export async function onRequestPost(context) {
       status: 429,
       headers,
     });
+
+  // Verificar que el destinatario tiene registro en KV (trial o licencia)
+  // Esto evita que el endpoint sea usado como relay de phishing a direcciones arbitrarias
+  if (env.PT_LICENSES) {
+    const emailLower = to.toLowerCase().trim();
+    const emailHash = await sha256(emailLower);
+    const [trialRec, licenseRec] = await Promise.all([
+      env.PT_LICENSES.get(`trial_email:${emailHash}`),
+      env.PT_LICENSES.get(`email_license:${emailHash}`),
+    ]);
+    if (!trialRec && !licenseRec) {
+      console.warn(`[send-email] Destinatario no registrado: ${emailHash.slice(0, 8)}...`);
+      return new Response(
+        JSON.stringify({ ok: false, error: "Email not registered" }),
+        { status: 403, headers },
+      );
+    }
+  }
 
   const apiKey = env.BREVO_API_KEY;
   const fromEmail = env.FROM_EMAIL || "hola@parfumtrack.com";
@@ -372,7 +398,7 @@ export async function onRequestOptions(context) {
 
 function corsHeaders(origin) {
   const allowed =
-    /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev)(:\d+)?$/.test(
+    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
       origin,
     );
   return {
