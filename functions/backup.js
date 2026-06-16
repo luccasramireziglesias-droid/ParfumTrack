@@ -167,7 +167,10 @@ async function verifyToken(code, token, env) {
 
 // KV-based rate limiter: allows `max` requests per `windowSecs` seconds
 async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) return null; // KV not configured, skip limiting
+  if (!env.PT_LICENSES) {
+    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — rate limiting desactivado');
+    return null;
+  }
 
   const now = Math.floor(Date.now() / 1000);
   const windowKey = `${key}_${Math.floor(now / windowSecs)}`;

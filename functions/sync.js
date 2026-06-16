@@ -192,7 +192,10 @@ async function sha256(str) {
 }
 
 async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) return null;
+  if (!env.PT_LICENSES) {
+    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — rate limiting desactivado');
+    return null;
+  }
   const now = Math.floor(Date.now() / 1000);
   const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
   let count = 0;
