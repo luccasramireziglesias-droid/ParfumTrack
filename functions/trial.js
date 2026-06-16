@@ -351,7 +351,7 @@ async function sendOtpEmail(email, otp, env) {
     body: JSON.stringify({
       sender: { name: fromName, email: fromEmail },
       to: [{ email }],
-      subject: `${otp} — tu código de verificación Parfum Track`,
+      subject: `Tu código de acceso a Parfum Track`,
       htmlContent: `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>

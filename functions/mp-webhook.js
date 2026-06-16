@@ -32,16 +32,19 @@ export async function onRequestPost(context) {
   const xSig       = request.headers.get('x-signature');
   const bodyText   = await request.text();
 
-  // 1. Verificar firma MP. Si el secreto está configurado, la firma es obligatoria.
-  if (xSig) {
-    const sigError = await verifyMPSignatureFromText(bodyText, xSig, url, env, request);
-    if (sigError) {
-      console.warn('[mp-webhook] Firma inválida:', sigError);
-      return jsonResp({ ok: false, error: 'invalid_signature' }, 401);
-    }
-  } else if (env.MP_WEBHOOK_SECRET) {
-    console.warn('[mp-webhook] Sin x-signature pero MP_WEBHOOK_SECRET configurado — rechazando');
+  // 1. Verificar firma MP — fail closed: si el secreto no está configurado, rechazar siempre.
+  if (!env.MP_WEBHOOK_SECRET) {
+    console.error('[mp-webhook] FATAL: MP_WEBHOOK_SECRET no configurado — rechazando webhook');
+    return jsonResp({ ok: false, error: 'server_misconfigured' }, 500);
+  }
+  if (!xSig) {
+    console.warn('[mp-webhook] Sin x-signature — rechazando');
     return jsonResp({ ok: false, error: 'missing_signature' }, 401);
+  }
+  const sigError = await verifyMPSignatureFromText(bodyText, xSig, url, env, request);
+  if (sigError) {
+    console.warn('[mp-webhook] Firma inválida:', sigError);
+    return jsonResp({ ok: false, error: 'invalid_signature' }, 401);
   }
 
   // 2. Parsear tipo e ID del evento (JSON nuevo o query params IPN antiguo)

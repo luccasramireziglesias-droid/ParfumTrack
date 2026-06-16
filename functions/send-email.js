@@ -358,7 +358,7 @@ export async function onRequestPost(context) {
     );
   } catch (e) {
     console.error("[send-email] Fetch error:", e.message);
-    return new Response(JSON.stringify({ ok: false, error: e.message }), {
+    return new Response(JSON.stringify({ ok: false, error: "Email service unavailable" }), {
       status: 500,
       headers,
     });

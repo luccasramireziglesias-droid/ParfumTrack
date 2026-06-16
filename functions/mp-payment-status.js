@@ -44,7 +44,6 @@ export async function onRequestGet(context) {
     status:    'active',
     plan:      lic.plan,
     expiresAt: lic.expiresAt,
-    email:     lic.clientEmail,
   }, 200, headers);
 }
 

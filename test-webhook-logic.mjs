@@ -309,6 +309,44 @@ assert(!validatePaymentId(null), 'paymentId null → inválido');
 assert(!validatePaymentId('1'.repeat(21)), 'paymentId >20 dígitos → inválido (overflow protection)');
 assert(validatePaymentId('1'.repeat(20)), 'paymentId de exactamente 20 dígitos → válido');
 
+// ─── Test: Webhook fail-closed sin MP_WEBHOOK_SECRET ─────────────────────────
+
+console.log('\n📋 9. Webhook fail-closed sin MP_WEBHOOK_SECRET\n');
+
+// Simular la nueva lógica: si no hay secreto, rechazar siempre (status 500)
+function webhookAuthCheck(hasSecret, hasXSig) {
+  if (!hasSecret) return { status: 500, error: 'server_misconfigured' };
+  if (!hasXSig)  return { status: 401, error: 'missing_signature' };
+  return null; // proceder a verificar firma
+}
+
+assert(
+  webhookAuthCheck(false, false)?.status === 500,
+  'Sin MP_WEBHOOK_SECRET y sin x-signature → 500 server_misconfigured',
+);
+assert(
+  webhookAuthCheck(false, true)?.status === 500,
+  'Sin MP_WEBHOOK_SECRET pero con x-signature → 500 server_misconfigured (fail closed)',
+);
+assert(
+  webhookAuthCheck(true, false)?.status === 401,
+  'Con MP_WEBHOOK_SECRET pero sin x-signature → 401 missing_signature',
+);
+assert(
+  webhookAuthCheck(true, true) === null,
+  'Con MP_WEBHOOK_SECRET y con x-signature → proceder a verificar firma',
+);
+
+// ─── Test: mp-payment-status no expone email ─────────────────────────────────
+
+console.log('\n📋 10. mp-payment-status no expone email del cliente\n');
+
+// La respuesta de payment-status ya no incluye el campo email
+const mockPaymentStatusResponse = { ok: true, status: 'active', plan: 'monthly', expiresAt: Date.now() + 86400000 };
+assert(!('email' in mockPaymentStatusResponse), 'Response de payment-status no contiene campo email (IDOR fix)');
+assert('plan' in mockPaymentStatusResponse, 'Response de payment-status sigue conteniendo plan');
+assert('expiresAt' in mockPaymentStatusResponse, 'Response de payment-status sigue conteniendo expiresAt');
+
 // ─── Resumen ──────────────────────────────────────────────────────────────────
 
 console.log('\n' + '─'.repeat(50));

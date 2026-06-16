@@ -10839,7 +10839,7 @@
                 : "");
             const errEl = document.getElementById("import-errors");
             if (errores.length) {
-              errEl.innerHTML = "⚠ " + errores.join("<br>");
+              errEl.innerHTML = "⚠ " + errores.map(escapeHTML).join("<br>");
               errEl.classList.add("show");
             } else errEl.classList.remove("show");
             document.getElementById("import-result").classList.add("show");
