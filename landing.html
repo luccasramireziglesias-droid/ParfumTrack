@@ -65,15 +65,6 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background:
-    linear-gradient(180deg, rgba(10,10,21,0.88) 0%, rgba(10,10,21,0.78) 50%, rgba(10,10,21,0.92) 100%),
-    url('https://images.unsplash.com/photo-1590736969955-71cc94901144?w=1920&q=80') center/cover no-repeat;
-}
 
 /* ═══════════════════════════════════
    ANNOUNCEMENT BAR
@@ -183,6 +174,9 @@ body::before {
   padding: 88px 24px 80px;
   text-align: center;
   overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(10,10,21,0.85) 0%, rgba(10,10,21,0.72) 40%, rgba(10,10,21,0.90) 100%),
+    url('https://images.unsplash.com/photo-1590736969955-71cc94901144?w=1920&q=80') center/cover no-repeat;
 }
 .hero::before {
   content: '';
