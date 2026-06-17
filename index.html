@@ -6882,63 +6882,106 @@
         privacidad: {
           title: "🔒 Política de Privacidad",
           html: `
-            <p style="margin:0 0 12px"><strong>Última actualización:</strong> 13 de junio de 2026</p>
-            <p style="margin:0 0 12px">Parfum Track es una aplicación para registrar las ventas de tu emprendimiento de perfumes. Tu privacidad nos importa. Esta política explica qué datos se manejan y cómo.</p>
+            <p style="margin:0 0 12px"><strong>Última actualización:</strong> 17 de junio de 2026 · Versión 2.0</p>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;margin:0 0 16px;font-size:12px;line-height:1.6;color:var(--text2)">
+              <strong style="color:var(--text)">Resumen:</strong> Tus datos de ventas se guardan en tu celular, no en nuestros servidores. Tu email se usa solo para el servicio. No vendemos ni compartimos tus datos. Usamos analytics anónimos sin cookies.
+            </div>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">1. Datos guardados en tu dispositivo</p>
-            <p style="margin:0 0 12px">Todas tus ventas, perfumes, gastos, caja y clientes se guardan <strong>localmente en tu celular o computadora</strong> (IndexedDB y almacenamiento local del navegador). No salen de tu dispositivo a menos que actives el backup en la nube. No tenemos acceso a esos datos.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">1. Responsable</p>
+            <p style="margin:0 0 12px">El responsable del tratamiento es Parfum Track. Contacto: <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a></p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Backup en la nube (opcional)</p>
-            <p style="margin:0 0 12px">Si activás el backup en la nube, una copia de tus datos de negocio se envía a nuestros servidores (Cloudflare) para que puedas restaurarla. El backup se asocia a tu código de licencia mediante un token de autenticación. Podés no usar esta función y trabajar 100% offline.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Datos almacenados en tu dispositivo</p>
+            <p style="margin:0 0 12px">Ventas, perfumes, gastos, clientes, cuotas, configuración y estadísticas se guardan <strong>exclusivamente en tu celular</strong> (IndexedDB y localStorage). No tenemos acceso a estos datos a menos que actives el backup en la nube.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">3. Email</p>
-            <p style="margin:0 0 12px">Si ingresás tu email, lo usamos únicamente para enviarte mensajes relacionados con tu prueba gratuita y la activación de tu licencia (mediante el servicio Brevo). No lo compartimos ni lo vendemos a terceros.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">3. Datos que recopilamos</p>
+            <ul style="margin:0 0 12px;padding-left:18px;font-size:13px">
+              <li><strong>Email:</strong> al iniciar trial o pagar, para enviarte el código de activación y comunicaciones del servicio (vía Brevo). No lo compartimos con terceros.</li>
+              <li><strong>Backup en la nube (opcional):</strong> si lo activás, una copia de tus datos se almacena en Cloudflare R2 asociada a tu código de licencia.</li>
+              <li><strong>Notificaciones push (opcional):</strong> se genera un ID anónimo (OneSignal) sin vinculación a tu identidad.</li>
+              <li><strong>Analytics anónimos:</strong> usamos Plausible Analytics, que <strong>no usa cookies</strong>, no rastrea usuarios individuales y cumple GDPR.</li>
+            </ul>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">4. Notificaciones push (opcional)</p>
-            <p style="margin:0 0 12px">Si activás las notificaciones, se genera un identificador anónimo de suscripción (mediante OneSignal) para poder enviarte recordatorios. Podés desactivarlas cuando quieras desde Ajustes.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">4. Datos que NO recopilamos</p>
+            <p style="margin:0 0 12px">No recopilamos ubicación, datos biométricos, datos de tarjetas de crédito (lo maneja Mercado Pago), ni usamos cookies de seguimiento o tracking pixels.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">5. Estadísticas de uso</p>
-            <p style="margin:0 0 12px">Usamos Plausible Analytics, una herramienta respetuosa de la privacidad que <strong>no usa cookies ni recopila datos personales</strong>. Solo medimos páginas vistas y acciones genéricas (por ejemplo, "venta guardada") de forma anónima y agregada, para mejorar la app.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">5. Servicios de terceros</p>
+            <ul style="margin:0 0 12px;padding-left:18px;font-size:13px">
+              <li><strong>Mercado Pago:</strong> procesamiento de pagos (email + monto).</li>
+              <li><strong>Brevo:</strong> envío de emails transaccionales (email).</li>
+              <li><strong>OneSignal:</strong> notificaciones push (ID anónimo).</li>
+              <li><strong>Cloudflare:</strong> infraestructura y almacenamiento.</li>
+              <li><strong>Plausible:</strong> analytics anónimos (ningún dato personal).</li>
+            </ul>
+            <p style="margin:0 0 12px"><strong>No vendemos, alquilamos ni compartimos tus datos para publicidad.</strong></p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">6. Datos de tus clientes</p>
-            <p style="margin:0 0 12px">Si cargás nombres o datos de tus clientes, vos sos el responsable de esa información frente a ellos. Te comprometés a manejarla conforme a la Ley 25.326 de Protección de Datos Personales (Argentina) y normativa aplicable de tu país.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">6. Seguridad</p>
+            <p style="margin:0 0 12px">Usamos HTTPS/TLS, tokens HMAC-SHA256 para backups, criptografía ECDSA P-256 para licencias, validación de webhooks con firma de Mercado Pago, y CORS restrictivo.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">7. Tus derechos</p>
-            <p style="margin:0 0 12px">Podés borrar todos tus datos en cualquier momento desde <strong>Ajustes → Zona peligrosa</strong>. Como titular de datos personales, tenés derecho de acceso, rectificación y supresión conforme a la Ley 25.326. La autoridad de control en Argentina es la Agencia de Acceso a la Información Pública (AAIP).</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">7. Datos de tus clientes</p>
+            <p style="margin:0 0 12px">Si cargás datos de tus clientes, vos sos el responsable de esa información. Te comprometés a manejarla conforme a la legislación de protección de datos aplicable en tu país.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">8. Contacto</p>
-            <p style="margin:0 0 4px">Por consultas sobre privacidad podés escribirnos a <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a>.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">8. Tus derechos</p>
+            <p style="margin:0 0 12px">Tenés derecho de acceso, rectificación, supresión, oposición y portabilidad de tus datos. Podés borrar todos tus datos locales desde <strong>Ajustes → Zona peligrosa</strong>. Para datos en servidor, escribí a <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a>.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">9. Menores de edad</p>
+            <p style="margin:0 0 12px">La App no está dirigida a menores de 16 años. Si tomamos conocimiento de datos de menores, procederemos a eliminarlos.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">10. Cambios</p>
+            <p style="margin:0 0 12px">Podemos actualizar esta política. Los cambios materiales se notificarán dentro de la App o por email.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">11. Contacto</p>
+            <p style="margin:0 0 4px">Email: <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a></p>
+            <p style="margin:4px 0 0;font-size:11px;color:var(--text3)"><a href="/privacidad.html" target="_blank" style="color:var(--gold2)">Ver versión completa →</a></p>
           `,
         },
         terminos: {
-          title: "📄 Términos de Uso",
+          title: "📄 Términos y Condiciones",
           html: `
-            <p style="margin:0 0 12px"><strong>Última actualización:</strong> 13 de junio de 2026</p>
-            <p style="margin:0 0 12px">Al usar Parfum Track aceptás estos términos. Si no estás de acuerdo, no uses la aplicación.</p>
+            <p style="margin:0 0 12px"><strong>Última actualización:</strong> 17 de junio de 2026 · Versión 2.0</p>
+            <p style="margin:0 0 12px">Al usar Parfum Track aceptás estos términos en su totalidad. Si no estás de acuerdo, no uses la aplicación.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">1. Qué es Parfum Track</p>
-            <p style="margin:0 0 12px">Es una herramienta para registrar ventas, gastos, cuotas y estadísticas de un emprendimiento de venta de perfumes. Es una ayuda de gestión, no un sistema de facturación oficial ni un asesor contable o fiscal.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">1. Descripción del servicio</p>
+            <p style="margin:0 0 12px">Parfum Track es una herramienta de gestión para revendedores de perfumes. Permite registrar ventas, controlar stock, gestionar cuotas y generar estadísticas. <strong>No es un sistema de facturación oficial, contable ni fiscal.</strong></p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Planes y licencia</p>
-            <p style="margin:0 0 12px">La app ofrece un plan Free gratuito y permanente con funciones básicas. Para acceder a funciones avanzadas (Básico Pro o Pro), podés activar una licencia con el código que recibirás por WhatsApp después de tu compra. Las condiciones y precios se informan dentro de la app.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Planes y pagos</p>
+            <ul style="margin:0 0 12px;padding-left:18px;font-size:13px">
+              <li><strong>Plan Free:</strong> gratuito, permanente, sin fecha de vencimiento ni tarjeta requerida.</li>
+              <li><strong>Básico Pro:</strong> USD 9.99/mes o USD 95.88/año. Pago vía Mercado Pago.</li>
+              <li>Al pagar recibís un código de activación por email. Es personal e intransferible.</li>
+              <li>Los planes no se renuevan automáticamente.</li>
+              <li>No almacenamos datos de tarjetas (lo maneja Mercado Pago).</li>
+            </ul>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">3. Uso responsable</p>
-            <p style="margin:0 0 12px">Te comprometés a usar la app de forma legal, a no intentar vulnerar sus mecanismos de licencia o seguridad, y a no usarla para actividades ilícitas. El código de licencia es personal e intransferible.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">3. Reembolsos</p>
+            <p style="margin:0 0 12px">Los pagos no son reembolsables como regla general. Se evaluará reembolso en caso de error técnico, cobro duplicado o falla grave. Solicitar dentro de 7 días a <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a>.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">4. Tus datos son tu responsabilidad</p>
-            <p style="margin:0 0 12px">Tus datos se guardan principalmente en tu dispositivo. Te recomendamos hacer backups periódicos (local o en la nube). No nos hacemos responsables por pérdida de datos causada por borrado del navegador, cambio de dispositivo, o falta de respaldo.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">4. Cancelación</p>
+            <p style="margin:0 0 12px">Podés cancelar en cualquier momento escribiendo a <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a>. Tu acceso premium continúa hasta el vencimiento del período pagado.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">5. Disponibilidad y "tal cual"</p>
-            <p style="margin:0 0 12px">La app se ofrece "tal cual" (as is), sin garantías de disponibilidad ininterrumpida. Hacemos lo posible por mantenerla funcionando, pero pueden existir interrupciones, errores o cambios en las funciones.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">5. Uso responsable</p>
+            <p style="margin:0 0 12px">Te comprometés a usar la App de forma legal, no intentar vulnerar la seguridad ni los mecanismos de licencia, no compartir tu código de activación, y ser responsable de los datos que ingreses.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">6. Limitación de responsabilidad</p>
-            <p style="margin:0 0 12px">En la medida permitida por la ley, no seremos responsables por daños indirectos, lucro cesante ni pérdidas derivadas del uso o la imposibilidad de uso de la app. Las decisiones comerciales que tomes en base a la información de la app son de tu exclusiva responsabilidad.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">6. Tus datos</p>
+            <p style="margin:0 0 12px">Tus datos se guardan en tu dispositivo. Sos responsable de hacer backups. No nos hacemos responsables por pérdida de datos por borrado del navegador, cambio de dispositivo o falta de respaldo.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">7. Cambios</p>
-            <p style="margin:0 0 12px">Podemos actualizar estos términos. El uso continuado de la app luego de un cambio implica la aceptación de los nuevos términos.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">7. Propiedad intelectual</p>
+            <p style="margin:0 0 12px">Parfum Track, su código, diseño, marca e ícono son propiedad exclusiva de sus desarrolladores. Se te otorga una licencia limitada, no exclusiva y revocable para usar la App. Queda prohibido copiar, modificar, distribuir o hacer ingeniería inversa.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">8. Contacto</p>
-            <p style="margin:0 0 4px">Por consultas podés escribirnos a <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a>.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">8. Disponibilidad</p>
+            <p style="margin:0 0 12px">La App se ofrece "tal cual" (as is), sin garantías de disponibilidad ininterrumpida. Nos reservamos el derecho de modificar o suspender funcionalidades con aviso previo.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">9. Limitación de responsabilidad</p>
+            <p style="margin:0 0 12px">No seremos responsables por daños directos, indirectos ni consecuentes derivados del uso de la App. La responsabilidad total no excederá lo pagado en los últimos 12 meses. La App no reemplaza asesoramiento profesional contable, fiscal o legal.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">10. Legislación y jurisdicción</p>
+            <p style="margin:0 0 12px">Estos términos se rigen por las leyes de la República Oriental del Uruguay. Las controversias se someten a los tribunales de Montevideo.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">11. Cambios</p>
+            <p style="margin:0 0 12px">Podemos actualizar estos términos. Los cambios materiales se notificarán dentro de la App o por email. El uso continuado implica aceptación.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">12. Contacto</p>
+            <p style="margin:0 0 4px">Email: <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a></p>
+            <p style="margin:4px 0 0;font-size:11px;color:var(--text3)"><a href="/terminos.html" target="_blank" style="color:var(--gold2)">Ver versión completa →</a></p>
           `,
         },
       };
