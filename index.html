@@ -6650,7 +6650,10 @@
                 await PTDB.set(key, val);
                 localStorage.removeItem(key);
               }
-            } catch (e) {}
+            } catch (e) {
+              console.error(`[loadKey] Error migrando "${key}":`, e);
+              setTimeout(() => toast("⚠ Hubo un error al migrar tus datos. Contactá soporte si ves datos faltantes.", 5000, "warning"), 1000);
+            }
           }
           return val ?? defaultVal;
         }
@@ -7958,19 +7961,16 @@
           if (sortBy === "deuda") return b.totalDebe - a.totalDebe;
           if (sortBy === "compras") return b.ventas.length - a.ventas.length;
           if (sortBy === "reciente") {
+            const toISO = (f) => f ? f.split("/").reverse().join("") : "";
             const da = a.ventas.reduce(
-              (mx, v) => (v.fecha > mx ? v.fecha : mx),
+              (mx, v) => { const iso = toISO(v.fecha); return iso > mx ? iso : mx; },
               "",
             );
             const db = b.ventas.reduce(
-              (mx, v) => (v.fecha > mx ? v.fecha : mx),
+              (mx, v) => { const iso = toISO(v.fecha); return iso > mx ? iso : mx; },
               "",
             );
-            return db
-              .split("/")
-              .reverse()
-              .join("")
-              .localeCompare(da.split("/").reverse().join(""));
+            return db.localeCompare(da);
           }
           return b.totalVenta - a.totalVenta;
         });
@@ -10616,9 +10616,11 @@
           }
         }
         v.perfume = perfume;
-        v.precioVenta = pv;
+        const dto = v.descuento || 0;
+        const pvFinal = dto > 0 ? pv * (1 - dto / 100) : pv;
+        v.precioVenta = pvFinal;
         v.precioCompra = pc;
-        v.ganancia = Math.round(pv - pc);
+        v.ganancia = Math.round(pvFinal - pc);
         v.cliente = cliente;
         v.nota = nota;
         // Si es cuotas y cambió el precio, recalcular cuotas pendientes proporcionalmente
@@ -11931,7 +11933,7 @@
           const _sigBytes = Uint8Array.from(atob(serverSig), (c) =>
             c.charCodeAt(0),
           );
-          _sec.activate(_sigBytes);
+          await _sec.activate(_sigBytes);
           const banner = document.getElementById("trial-banner");
           if (banner) banner.remove();
           document.body.classList.remove("has-top-banner");
@@ -12093,18 +12095,29 @@
       const _realDateNow = Date.now.bind(Date);
 
       const _sec = (() => {
-        let _a = false; // license activated — set only by initLicenseVerification / activarLicencia
-        let _t = false; // trial expired — set only by checkTrial / trial ticker
+        let _a = false;
+        let _t = false;
+        let _validSig = null;
+        async function _verifySig(sigBytes) {
+          try {
+            const code = localStorage.getItem("pt_license_raw_code") || "";
+            const pubKeyDer = Uint8Array.from(atob(LICENSE_VERIFY_KEY_B64), (c) => c.charCodeAt(0));
+            const pubKey = await crypto.subtle.importKey("spki", pubKeyDer, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+            const data = new TextEncoder().encode(code.trim().toUpperCase());
+            return await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, pubKey, sigBytes, data);
+          } catch { return false; }
+        }
         return Object.freeze({
-          // sigBytes must be the actual ECDSA P-256 sig (Uint8Array ≥64 bytes).
-          // Rejects console calls like _sec.activate(true) or _sec.activate(1).
-          activate(sigBytes) {
-            if (!(sigBytes instanceof Uint8Array) || sigBytes.length < 64)
-              return;
+          async activate(sigBytes) {
+            if (!(sigBytes instanceof Uint8Array) || sigBytes.length < 64) return;
+            const valid = await _verifySig(sigBytes);
+            if (!valid) return;
+            _validSig = sigBytes;
             _a = true;
           },
           deactivate() {
             _a = false;
+            _validSig = null;
           },
           isActivated() {
             return _a;
@@ -12157,7 +12170,7 @@
       async function initLicenseVerification() {
         const result = await verifyStoredLicense();
         if (result instanceof Uint8Array) {
-          _sec.activate(result);
+          await _sec.activate(result);
         } else {
           _sec.deactivate();
           if (localStorage.getItem("pt_activation_mode") === "server") {

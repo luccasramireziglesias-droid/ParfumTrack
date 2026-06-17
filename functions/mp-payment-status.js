@@ -21,6 +21,11 @@ export async function onRequestGet(context) {
     return json({ ok: false, status: 'pending' }, 200, headers);
   }
 
+  // Rate limit: 30 requests per hour per IP
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const rlErr = await checkRateLimit(env, `rl_mpstatus_ip_${ip}`, 30, 3600);
+  if (rlErr) return json({ ok: false, error: rlErr }, 429, headers);
+
   const licenseCode = await env.PT_LICENSES.get(`mp_pay:${paymentId}`);
   if (!licenseCode) {
     return json({ ok: true, status: 'pending' }, 200, headers);
@@ -54,6 +59,22 @@ export async function onRequestOptions(context) {
 
 function json(body, status, headers) {
   return new Response(JSON.stringify(body), { status, headers });
+}
+
+async function checkRateLimit(env, key, max, windowSecs) {
+  if (!env.PT_LICENSES) return null;
+  const now = Math.floor(Date.now() / 1000);
+  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
+  let count = 0;
+  try {
+    const stored = await env.PT_LICENSES.get(windowKey);
+    count = stored ? parseInt(stored, 10) : 0;
+  } catch { return null; }
+  if (count >= max) return 'Too many requests, please try again later';
+  try {
+    await env.PT_LICENSES.put(windowKey, String(count + 1), { expirationTtl: windowSecs * 2 });
+  } catch { /* non-blocking */ }
+  return null;
 }
 
 function corsHeaders(origin) {

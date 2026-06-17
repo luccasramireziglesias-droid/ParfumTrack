@@ -36,13 +36,14 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: "Bad request" }, 400, headers);
   }
 
-  const { code, token, data } = body;
+  let { code, token, data } = body;
   if (!code || !token || data === undefined) {
     return json({ ok: false, error: "Missing fields" }, 400, headers);
   }
   if (typeof code !== "string" || code.length > 64) {
     return json({ ok: false, error: "Invalid code" }, 400, headers);
   }
+  code = code.trim().toUpperCase();
 
   const authErr = await verifyToken(code, token, env);
   if (authErr) return json({ ok: false, error: authErr }, 401, headers);
@@ -99,7 +100,7 @@ export async function onRequestGet(context) {
   if (ipErr) return json({ ok: false, error: ipErr }, 429, headers);
 
   const url = new URL(request.url);
-  const code = url.searchParams.get("code");
+  let code = url.searchParams.get("code");
   const token = url.searchParams.get("token");
 
   if (!code || !token) {
@@ -108,6 +109,7 @@ export async function onRequestGet(context) {
   if (typeof code !== "string" || code.length > 64) {
     return json({ ok: false, error: "Invalid code" }, 400, headers);
   }
+  code = code.trim().toUpperCase();
 
   const authErr = await verifyToken(code, token, env);
   if (authErr) return json({ ok: false, error: authErr }, 401, headers);

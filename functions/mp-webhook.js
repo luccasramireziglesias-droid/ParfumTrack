@@ -67,15 +67,15 @@ export async function onRequestPost(context) {
   if (!type || !resourceId) return jsonResp({ ok: true });
 
   if (!env.PT_LICENSES) {
-    console.error('[mp-webhook] PT_LICENSES KV no disponible');
-    return jsonResp({ ok: true });
+    console.error('[mp-webhook] FATAL: PT_LICENSES KV no disponible — retornando 500 para que MP reintente');
+    return jsonResp({ ok: false, error: 'kv_unavailable' }, 500);
   }
 
-  // 3. Idempotencia: ignorar solo si ya fue procesado exitosamente
+  // 3. Idempotencia: ignorar si ya fue procesado o está en proceso
   const idKey = `webhook_processed:${type}:${resourceId}`;
   const already = await env.PT_LICENSES.get(idKey);
-  if (already === 'done') {
-    console.log('[mp-webhook] Ya procesado:', idKey);
+  if (already === 'done' || already === 'processing') {
+    console.log('[mp-webhook] Ya procesado/en proceso:', idKey, already);
     return jsonResp({ ok: true });
   }
 
@@ -213,6 +213,13 @@ async function handleSinglePayment(paymentId, payment, env) {
 
   const TTL_3Y    = 94608000;
   const emailHash = await hashEmail(email);
+
+  // Secondary idempotency: check if this payment already created a license
+  const existingPayLicense = await env.PT_LICENSES.get(`mp_pay:${paymentId}`);
+  if (existingPayLicense) {
+    console.log(`[mp-webhook] Payment ${paymentId} already processed — license: ${existingPayLicense}`);
+    return;
+  }
 
   // Si ya tiene licencia activa, renovar
   const existingCode = await env.PT_LICENSES.get(`email_license:${emailHash}`);

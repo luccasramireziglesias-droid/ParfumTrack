@@ -14,7 +14,7 @@
     "nodejs_compat"
   ],
   "vars": {
-    "FROM_EMAIL": "luccasramireziglesias@gmail.com",
+    "FROM_EMAIL": "parfumtrack@gmail.com",
     "FROM_NAME": "Parfum Track",
     // URL pública del Worker — actualizar en Cloudflare Dashboard → Workers → parfumtrack → Settings → Variables
     // Ejemplo: https://parfumtrack.tusubdominio.workers.dev  (ver en CF Dashboard → Workers & Pages → parfumtrack → Domains & Routes)

@@ -76,12 +76,13 @@ export async function onRequestPost(context) {
       headers,
     });
 
-  // Auth: verificar token HMAC si está presente (recomendado, no requerido aún)
-  if (authCode && authToken) {
-    const tokenErr = await verifyToken(authCode, authToken, env);
-    if (tokenErr) {
-      return new Response(JSON.stringify({ ok: false, error: 'Unauthorized' }), { status: 401, headers });
-    }
+  // Auth: verificar token HMAC — obligatorio
+  if (!authCode || !authToken) {
+    return new Response(JSON.stringify({ ok: false, error: 'Authentication required' }), { status: 401, headers });
+  }
+  const tokenErr = await verifyToken(authCode, authToken, env);
+  if (tokenErr) {
+    return new Response(JSON.stringify({ ok: false, error: 'Unauthorized' }), { status: 401, headers });
   }
 
   const appId = env.ONESIGNAL_APP_ID;
@@ -148,7 +149,7 @@ export async function onRequestOptions(context) {
 
 async function verifyToken(code, token, env) {
   const secret = env.LICENSE_SERVER_SECRET;
-  if (!secret) return null; // sin secreto configurado, omitir verificación
+  if (!secret) return 'Server misconfigured';
   if (typeof code !== 'string' || code.length > 128) return 'Invalid code';
   if (typeof token !== 'string' || !/^[0-9a-f]{64}$/.test(token)) return 'Invalid token';
   const enc = new TextEncoder();
