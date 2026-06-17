@@ -86,9 +86,8 @@ export async function onRequestGet(context) {
   const ipLimitError = await checkRateLimit(env, `rl_ip_${ip}`, 10, 3600);
   if (ipLimitError) return json({ ok: false, error: ipLimitError }, 429, headers);
 
-  const url = new URL(request.url);
-  const code = url.searchParams.get('code');
-  const token = url.searchParams.get('token');
+  const code = request.headers.get('X-PT-Code') || new URL(request.url).searchParams.get('code');
+  const token = request.headers.get('X-PT-Token') || new URL(request.url).searchParams.get('token');
 
   if (!code || !token) {
     return json({ ok: false, error: 'Missing params' }, 400, headers);
@@ -200,6 +199,6 @@ function corsHeaders(origin) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': ok ? origin : 'null',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, X-PT-Code, X-PT-Token',
   };
 }

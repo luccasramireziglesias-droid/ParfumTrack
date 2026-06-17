@@ -99,9 +99,8 @@ export async function onRequestGet(context) {
   );
   if (ipErr) return json({ ok: false, error: ipErr }, 429, headers);
 
-  const url = new URL(request.url);
-  let code = url.searchParams.get("code");
-  const token = url.searchParams.get("token");
+  let code = request.headers.get("X-PT-Code") || new URL(request.url).searchParams.get("code");
+  const token = request.headers.get("X-PT-Token") || new URL(request.url).searchParams.get("token");
 
   if (!code || !token) {
     return json({ ok: false, error: "Missing params" }, 400, headers);
@@ -231,6 +230,6 @@ function corsHeaders(origin) {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": ok ? origin : "null",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, X-PT-Code, X-PT-Token",
   };
 }

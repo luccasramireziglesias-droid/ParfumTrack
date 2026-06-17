@@ -7374,12 +7374,10 @@
         }
         let result;
         try {
-          const resp = await fetch(
-            `/backup?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`,
-            {
+          const resp = await fetch(`/backup`, {
+              headers: { "X-PT-Code": code, "X-PT-Token": token },
               signal: AbortSignal.timeout(15000),
-            },
-          );
+            });
           result = await resp.json();
         } catch (e) {
           toast("📶 Sin conexión. Verificá tu internet.", 3000, "warning");
@@ -8661,6 +8659,11 @@
         openLink(url);
       }
       function whatsappBulkReminders() {
+        if (!isActivated()) {
+          toast("⚠ Recordatorios por WhatsApp requieren plan Básico Pro. Activá tu plan desde Ajustes.", 3500);
+          openPricingModal();
+          return;
+        }
         const pend = ventas
           .filter((v) => v.esCuotas && !ventaCompletada(v))
           .sort((a, b) => diasDesdeUltimoPago(b) - diasDesdeUltimoPago(a));
@@ -8732,6 +8735,11 @@
           : "";
       }
       function whatsappCobro(id) {
+        if (!isActivated()) {
+          toast("⚠ Recordatorios por WhatsApp requieren plan Básico Pro. Activá tu plan desde Ajustes.", 3500);
+          openPricingModal();
+          return;
+        }
         const v = ventas.find((x) => x.id === id);
         if (!v) return;
         const debe = calcDebe(v);
@@ -12065,6 +12073,9 @@
         }
       }
 
+      function openPricingModal() {
+        abrirModalActivacion();
+      }
       function abrirModalActivacion() {
         document.getElementById("modal-activacion").classList.add("open");
         // Inicializar estado del tier seleccionado (Básico Pro por default)
@@ -12468,10 +12479,10 @@
 
       async function _syncCargarNube(code, token) {
         try {
-          const resp = await fetch(
-            `/sync?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`,
-            { signal: AbortSignal.timeout(10000) },
-          );
+          const resp = await fetch(`/sync`, {
+              headers: { "X-PT-Code": code, "X-PT-Token": token },
+              signal: AbortSignal.timeout(10000),
+            });
           if (!resp.ok) return null;
           const result = await resp.json();
           return result.ok ? result.data : null;
@@ -14058,15 +14069,45 @@
             history.replaceState(null, "", location.pathname);
             setTimeout(() => {
               document.getElementById("modal-mp-pago-ok").classList.add("open");
+              _pollPaymentStatus(_mpPayId);
             }, 800);
           } else if (_mpPayId && (_mpStatus === "pending" || _mpStatus === "in_process")) {
             history.replaceState(null, "", location.pathname);
-            setTimeout(() => toast("⏳ Tu pago está siendo procesado. En breve recibirás el código por email.", 6000), 800);
+            setTimeout(() => {
+              toast("⏳ Tu pago está siendo procesado. Te avisamos cuando esté listo.", 6000);
+              _pollPaymentStatus(_mpPayId);
+            }, 800);
           }
         } catch (e) {}
 
         // ── Focus trap para modales (accesibilidad) ──
         _initFocusTrap();
+      }
+
+      async function _pollPaymentStatus(paymentId) {
+        const maxAttempts = 12;
+        const interval = 10000;
+        for (let i = 0; i < maxAttempts; i++) {
+          await new Promise(r => setTimeout(r, interval));
+          try {
+            const resp = await fetch(`/mp-payment-status?paymentId=${encodeURIComponent(paymentId)}`);
+            if (!resp.ok) continue;
+            const result = await resp.json();
+            if (result.ok && result.status === "active") {
+              const modal = document.getElementById("modal-mp-pago-ok");
+              const msgEl = modal?.querySelector("p");
+              if (msgEl) {
+                msgEl.innerHTML = `<strong style="color:var(--success)">✅ ¡Tu licencia está lista!</strong><br><br>
+                  Te enviamos el código por email a tu casilla. Revisá tu bandeja de entrada (y spam).<br><br>
+                  Plan: <strong style="color:var(--gold2)">${result.plan === "basic_annual" ? "Básico Pro Anual" : "Básico Pro"}</strong><br>
+                  Válido hasta: <strong>${result.expiresAt}</strong>`;
+              }
+              toast("✅ ¡Tu licencia está lista! Revisá tu email para el código.", 5000);
+              trackEvent("license_ready_polled");
+              return;
+            }
+          } catch {}
+        }
       }
 
       // Instala un MutationObserver que atrapa el foco dentro de cualquier .modal-overlay.open
