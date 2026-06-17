@@ -6166,6 +6166,44 @@
         </div>
       </div>
     </div>
+    <!-- ═══════ MODAL ACEPTACIÓN TÉRMINOS (primera vez) ═══════ -->
+    <div
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      id="modal-terminos-acepto"
+      style="z-index:99999"
+    >
+      <div class="modal" style="max-width:520px;max-height:85vh;display:flex;flex-direction:column;">
+        <h3 style="margin-bottom:14px;text-align:center;">Antes de empezar</h3>
+        <div style="flex:1;overflow-y:auto;margin-bottom:16px;">
+          <div style="font-size:13px;line-height:1.7;color:var(--text2);text-align:left;">
+            <p style="margin:0 0 12px">Para usar Parfum Track necesitás leer y aceptar nuestros Términos de Uso y Política de Privacidad.</p>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;">
+              <p style="margin:0 0 6px;font-weight:700;color:var(--text)">Resumen</p>
+              <ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.8;color:var(--text2)">
+                <li>Tus datos se guardan en tu celular, no en nuestros servidores</li>
+                <li>No vendemos ni compartimos tu información</li>
+                <li>El backup en la nube es opcional</li>
+                <li>Usamos analytics anónimos (sin cookies)</li>
+                <li>Podés borrar todos tus datos cuando quieras</li>
+                <li>La app se ofrece "tal cual", sin garantías</li>
+              </ul>
+            </div>
+            <p style="margin:0 0 8px;font-size:12px;color:var(--text3)">Podés leer los documentos completos tocando los links de abajo:</p>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;">
+              <span onclick="abrirModalLegal('terminos')" style="font-size:12px;color:var(--gold2);cursor:pointer;text-decoration:underline;">Términos de Uso</span>
+              <span onclick="abrirModalLegal('privacidad')" style="font-size:12px;color:var(--gold2);cursor:pointer;text-decoration:underline;">Política de Privacidad</span>
+            </div>
+            <p style="margin:0;font-size:11px;color:var(--text3);text-align:center;">Contacto: <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a></p>
+          </div>
+        </div>
+        <button class="btn-confirm-ok" style="width:100%;padding:14px;font-size:15px;font-weight:700;" onclick="aceptarTerminos()">
+          Acepto los Términos y la Política de Privacidad
+        </button>
+      </div>
+    </div>
+
     <div
       class="modal-overlay"
       role="dialog"
@@ -6866,7 +6904,7 @@
             <p style="margin:0 0 12px">Podés borrar todos tus datos en cualquier momento desde <strong>Ajustes → Zona peligrosa</strong>. Como titular de datos personales, tenés derecho de acceso, rectificación y supresión conforme a la Ley 25.326. La autoridad de control en Argentina es la Agencia de Acceso a la Información Pública (AAIP).</p>
 
             <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">8. Contacto</p>
-            <p style="margin:0 0 4px">Por consultas sobre privacidad podés escribirnos desde el canal de WhatsApp de soporte de la app.</p>
+            <p style="margin:0 0 4px">Por consultas sobre privacidad podés escribirnos a <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a>.</p>
           `,
         },
         terminos: {
@@ -6897,10 +6935,16 @@
             <p style="margin:0 0 12px">Podemos actualizar estos términos. El uso continuado de la app luego de un cambio implica la aceptación de los nuevos términos.</p>
 
             <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">8. Contacto</p>
-            <p style="margin:0 0 4px">Por consultas podés escribirnos desde el canal de WhatsApp de soporte de la app.</p>
+            <p style="margin:0 0 4px">Por consultas podés escribirnos a <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a>.</p>
           `,
         },
       };
+
+      function aceptarTerminos() {
+        localStorage.setItem('pt-terminos-aceptados', Date.now().toString());
+        closeModal('modal-terminos-acepto');
+        trackEvent('terminos_aceptados');
+      }
 
       function abrirModalLegal(tipo) {
         const doc = LEGAL_DOCS[tipo];
@@ -14218,6 +14262,10 @@
             // Fade out loading screen → reveal app with skeleton → real content
             _hideLoader();
             _pruneLocalStorage();
+            // Mostrar modal de aceptación de términos si es primera vez
+            if (!localStorage.getItem('pt-terminos-aceptados')) {
+              document.getElementById('modal-terminos-acepto').classList.add('open');
+            }
             // Disparar evento para que OneSignal chequee cobros pendientes
             window.dispatchEvent(new Event("pt-app-ready"));
             // Attach modal backdrop close listeners
