@@ -25,9 +25,9 @@ export async function onRequestPost(context) {
       headers,
     });
 
-  let subscriptionId, title, message, url;
+  let subscriptionId, title, message, url, authCode, authToken;
   try {
-    ({ subscriptionId, title, message, url } = await request.json());
+    ({ subscriptionId, title, message, url, code: authCode, token: authToken } = await request.json());
   } catch {
     return new Response(JSON.stringify({ ok: false }), {
       status: 400,
@@ -76,6 +76,15 @@ export async function onRequestPost(context) {
       headers,
     });
 
+  // Auth: verificar token HMAC — obligatorio
+  if (!authCode || !authToken) {
+    return new Response(JSON.stringify({ ok: false, error: 'Authentication required' }), { status: 401, headers });
+  }
+  const tokenErr = await verifyToken(authCode, authToken, env);
+  if (tokenErr) {
+    return new Response(JSON.stringify({ ok: false, error: 'Unauthorized' }), { status: 401, headers });
+  }
+
   const appId = env.ONESIGNAL_APP_ID;
   const apiKey = env.ONESIGNAL_REST_KEY;
 
@@ -89,12 +98,13 @@ export async function onRequestPost(context) {
     );
   }
 
+  const safeUrl = (typeof url === 'string' && /^\//.test(url)) ? url : '/';
   const payload = {
     app_id: appId,
     include_subscription_ids: [subscriptionId],
     headings: { en: title, es: title },
     contents: { en: message, es: message },
-    url: url || "/",
+    url: safeUrl,
     chrome_web_icon: "/icon-192.png",
     firefox_icon: "/icon-192.png",
   };
@@ -137,9 +147,27 @@ export async function onRequestOptions(context) {
   return new Response(null, { status: 204, headers: corsHeaders(origin) });
 }
 
+async function verifyToken(code, token, env) {
+  const secret = env.LICENSE_SERVER_SECRET;
+  if (!secret) return 'Server misconfigured';
+  if (typeof code !== 'string' || code.length > 128) return 'Invalid code';
+  if (typeof token !== 'string' || !/^[0-9a-f]{64}$/.test(token)) return 'Invalid token';
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(code));
+  const expected = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+  let diff = 0;
+  if (expected.length !== token.length) return 'Invalid token';
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ token.charCodeAt(i);
+  return diff === 0 ? null : 'Invalid token';
+}
+
 // KV-based rate limiter: allows `max` requests per `windowSecs` seconds
 async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) return null; // KV not configured, skip limiting
+  if (!env.PT_LICENSES) {
+    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — rate limiting desactivado');
+    return null;
+  }
 
   const now = Math.floor(Date.now() / 1000);
   const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
@@ -167,7 +195,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
 
 function corsHeaders(origin) {
   const allowed =
-    /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/.test(
+    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
       origin,
     );
   return {

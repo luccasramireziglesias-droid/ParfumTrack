@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Parfum Track — Organizá tu negocio de perfumes desde el celular</title>
-<meta name="description" content="La app para revendedoras de perfumes. Sabé cuánto ganás, a quién le debés cobrar y cuánto stock tenés — todo en tu celular, en 10 segundos por venta. Gratis para siempre.">
+<meta name="description" content="App gratis para revendedores de perfumes en Argentina, Uruguay, Colombia y México. Controlá ventas, cuotas, stock y ganancia real desde el celular. Sin descargar, funciona offline.">
 <meta property="og:title" content="Parfum Track — Dejá de adivinar cuánto ganás">
 <meta property="og:description" content="Parfum Track calcula tu ganancia real, avisa de cobros pendientes y organiza tu negocio de perfumes. Empezá gratis, sin tarjeta, sin compromiso.">
 <meta property="og:image" content="https://parfumtrack.pages.dev/icon-512.png">
@@ -12,11 +12,15 @@
 <meta property="og:url" content="https://parfumtrack.pages.dev/landing.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Parfum Track — Dejá de adivinar cuánto ganás">
-<meta name="twitter:description" content="App para revendedoras de perfumes. Ventas, cuotas, stock y cobros en tu celular. Gratis para siempre.">
+<meta name="twitter:description" content="App para revendedores de perfumes. Ventas, cuotas, stock y cobros en tu celular. Gratis para siempre.">
 <meta name="twitter:image" content="https://parfumtrack.pages.dev/icon-512.png">
 <link rel="canonical" href="https://parfumtrack.pages.dev/landing.html">
-<link rel="icon" href="/icon-192.png" type="image/png">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Parfum Track","applicationCategory":"BusinessApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"},"description":"App para revendedoras de perfumes. Control de ventas, cuotas, stock y estadísticas desde el celular.","url":"https://parfumtrack.pages.dev/"}</script>
+<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Parfum Track","applicationCategory":"BusinessApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"},"description":"App para revendedores de perfumes. Control de ventas, cuotas, stock y estadísticas desde el celular.","url":"https://parfumtrack.pages.dev/"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap" rel="stylesheet">
@@ -170,6 +174,9 @@ body {
   padding: 88px 24px 80px;
   text-align: center;
   overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(10,10,21,0.82) 0%, rgba(10,10,21,0.68) 40%, rgba(10,10,21,0.88) 100%),
+    url('/bg-perfumes.jpg') center/cover no-repeat;
 }
 .hero::before {
   content: '';
@@ -179,7 +186,7 @@ body {
   transform: translateX(-50%);
   width: 900px;
   height: 700px;
-  background: radial-gradient(ellipse, rgba(201,168,76,0.1) 0%, transparent 65%);
+  background: radial-gradient(ellipse, rgba(201,168,76,0.18) 0%, transparent 65%);
   pointer-events: none;
 }
 .hero::after {
@@ -1203,7 +1210,7 @@ footer {
   display: block;
   background: #0a0a15;
 }
-.hero-screenshot-wrap svg { display: block; width: 100%; }
+.hero-screenshot-wrap svg, .hero-screenshot-wrap img { display: block; width: 100%; }
 
 /* ═══════════════════════════════════
    SOCIAL PROOF STRIP (hero)
@@ -1298,7 +1305,7 @@ body.annual-mode [data-annual] { display: block; }
      ANNOUNCEMENT BAR
 ══════════════════════════════════ -->
 <div class="announce-bar">
-  ⏳ Oferta de lanzamiento: <strong>50% off el primer mes</strong> · Válida hasta el 30 de junio →
+  🍶 Plan Free <strong>gratis para siempre</strong> · Sin tarjeta, sin compromiso →
   <a href="/index.html" onclick="if(window.plausible)plausible('cta_announce')">Empezar ahora</a>
 </div>
 
@@ -1333,7 +1340,7 @@ body.annual-mode [data-annual] { display: block; }
 <section class="hero">
   <div class="hero-eyebrow">
     <span class="hero-eyebrow-dot"></span>
-    La única app diseñada para revendedoras de perfumes
+    La única app diseñada para revendedores de perfumes
   </div>
 
   <h1>
@@ -1348,7 +1355,7 @@ body.annual-mode [data-annual] { display: block; }
 
   <div class="hero-social-proof">
     <span class="sp-dot"></span>
-    +340 revendedoras organizaron su negocio con Parfum Track
+    +340 revendedores organizaron su negocio con Parfum Track
   </div>
 
   <div class="hero-ctas">
@@ -1370,78 +1377,7 @@ body.annual-mode [data-annual] { display: block; }
   <div class="hero-visual">
     <div class="hero-visual-glow"></div>
     <div class="hero-screenshot-wrap">
-      <svg viewBox="0 0 320 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista previa de Parfum Track">
-        <!-- Background -->
-        <rect width="320" height="560" fill="#0a0a15"/>
-        <!-- Top bar -->
-        <rect width="320" height="52" fill="#0f0f1e"/>
-        <rect y="52" width="320" height="1" fill="rgba(255,255,255,0.07)"/>
-        <text x="16" y="33" font-family="system-ui,sans-serif" font-size="15" font-weight="700" fill="#e8cc7a">Parfum Track</text>
-        <circle cx="284" cy="30" r="5" fill="#4ade80" opacity="0.9"/>
-        <text x="278" y="34" font-family="system-ui,sans-serif" font-size="9" fill="#4ade80" text-anchor="end">online</text>
-        <!-- Greeting -->
-        <text x="16" y="74" font-family="system-ui,sans-serif" font-size="10" fill="#6a6660">Buenos días, Marcela ✨</text>
-        <text x="16" y="94" font-family="system-ui,sans-serif" font-size="14" font-weight="700" fill="#f0ede8">Resumen de junio 2026</text>
-        <!-- Main stat card -->
-        <rect x="12" y="108" width="296" height="80" rx="12" fill="#181830"/>
-        <rect x="12" y="108" width="296" height="1" rx="12" fill="rgba(201,168,76,0.2)"/>
-        <text x="24" y="128" font-family="system-ui,sans-serif" font-size="9" fill="#6a6660" letter-spacing="1">GANANCIA DEL MES</text>
-        <text x="24" y="158" font-family="system-ui,sans-serif" font-size="28" font-weight="800" fill="#e8cc7a">$35.600</text>
-        <text x="24" y="178" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#4ade80">↑ 18% vs mayo</text>
-        <text x="296" y="128" font-family="system-ui,sans-serif" font-size="9" fill="#6a6660" text-anchor="end" letter-spacing="1">META</text>
-        <rect x="236" y="134" width="60" height="4" rx="2" fill="rgba(255,255,255,0.06)"/>
-        <rect x="236" y="134" width="53" height="4" rx="2" fill="#c9a84c"/>
-        <text x="296" y="152" font-family="system-ui,sans-serif" font-size="18" font-weight="800" fill="#e8cc7a" text-anchor="end">89%</text>
-        <text x="296" y="166" font-family="system-ui,sans-serif" font-size="9" fill="#6a6660" text-anchor="end">de $40.000</text>
-        <!-- Stats row -->
-        <rect x="12" y="200" width="92" height="60" rx="10" fill="#181830"/>
-        <text x="24" y="220" font-family="system-ui,sans-serif" font-size="9" fill="#6a6660">VENTAS</text>
-        <text x="24" y="246" font-family="system-ui,sans-serif" font-size="20" font-weight="800" fill="#f0ede8">12</text>
-        <rect x="116" y="200" width="92" height="60" rx="10" fill="#181830"/>
-        <text x="128" y="220" font-family="system-ui,sans-serif" font-size="9" fill="#6a6660">COBROS</text>
-        <text x="128" y="244" font-family="system-ui,sans-serif" font-size="18" font-weight="800" fill="#f87171">$9.800</text>
-        <text x="128" y="256" font-family="system-ui,sans-serif" font-size="9" fill="#f87171">3 pendientes</text>
-        <rect x="220" y="200" width="88" height="60" rx="10" fill="#181830"/>
-        <text x="232" y="220" font-family="system-ui,sans-serif" font-size="9" fill="#6a6660">STOCK</text>
-        <text x="232" y="246" font-family="system-ui,sans-serif" font-size="20" font-weight="800" fill="#f0ede8">28</text>
-        <text x="232" y="256" font-family="system-ui,sans-serif" font-size="9" fill="#6a6660">unidades</text>
-        <!-- Sales section title -->
-        <text x="16" y="288" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#f0ede8">Últimas ventas</text>
-        <!-- Sale 1 -->
-        <rect x="12" y="298" width="296" height="56" rx="10" fill="#181830"/>
-        <circle cx="35" cy="326" r="14" fill="rgba(139,92,246,0.25)"/>
-        <text x="35" y="330" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#a78bfa" text-anchor="middle">HG</text>
-        <text x="58" y="319" font-family="system-ui,sans-serif" font-size="12" font-weight="600" fill="#f0ede8">Haramain Gold</text>
-        <text x="58" y="337" font-family="system-ui,sans-serif" font-size="10" fill="#6a6660">Valentina R. · cuota 2/3</text>
-        <text x="298" y="319" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#4ade80" text-anchor="end">+$2.800</text>
-        <text x="298" y="337" font-family="system-ui,sans-serif" font-size="9" fill="#6a6660" text-anchor="end">hoy</text>
-        <!-- Sale 2 -->
-        <rect x="12" y="362" width="296" height="56" rx="10" fill="#181830"/>
-        <circle cx="35" cy="390" r="14" fill="rgba(180,83,9,0.25)"/>
-        <text x="35" y="394" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#e8cc7a" text-anchor="middle">BK</text>
-        <text x="58" y="383" font-family="system-ui,sans-serif" font-size="12" font-weight="600" fill="#f0ede8">Bharara King</text>
-        <text x="58" y="401" font-family="system-ui,sans-serif" font-size="10" fill="#6a6660">Marcela G. · efectivo</text>
-        <text x="298" y="383" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#4ade80" text-anchor="end">+$4.200</text>
-        <text x="298" y="401" font-family="system-ui,sans-serif" font-size="9" fill="#6a6660" text-anchor="end">ayer</text>
-        <!-- Sale 3 overdue -->
-        <rect x="12" y="426" width="296" height="56" rx="10" fill="#181830"/>
-        <rect x="12" y="426" width="3" height="56" rx="2" fill="#f87171"/>
-        <circle cx="35" cy="454" r="14" fill="rgba(248,113,113,0.15)"/>
-        <text x="35" y="458" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#f87171" text-anchor="middle">LA</text>
-        <text x="58" y="447" font-family="system-ui,sans-serif" font-size="12" font-weight="600" fill="#f0ede8">Lattafa Asad</text>
-        <text x="58" y="465" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#f87171">⚠ Cuota vencida · WA listo</text>
-        <text x="298" y="447" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#f87171" text-anchor="end">$1.800</text>
-        <text x="298" y="465" font-family="system-ui,sans-serif" font-size="9" fill="#6a6660" text-anchor="end">hace 5 días</text>
-        <!-- Bottom bar -->
-        <rect y="500" width="320" height="60" fill="#0f0f1e"/>
-        <rect y="500" width="320" height="1" fill="rgba(255,255,255,0.07)"/>
-        <text x="32" y="536" font-family="system-ui,sans-serif" font-size="20" text-anchor="middle">🏠</text>
-        <text x="96" y="536" font-family="system-ui,sans-serif" font-size="20" text-anchor="middle">📊</text>
-        <circle cx="160" cy="524" r="20" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.35)" stroke-width="1.5"/>
-        <text x="160" y="531" font-family="system-ui,sans-serif" font-size="22" font-weight="300" fill="#e8cc7a" text-anchor="middle">+</text>
-        <text x="224" y="536" font-family="system-ui,sans-serif" font-size="20" text-anchor="middle">📋</text>
-        <text x="288" y="536" font-family="system-ui,sans-serif" font-size="20" text-anchor="middle">⚙️</text>
-      </svg>
+      <img src="/screenshot-app.jpg" alt="Parfum Track — vista real de la app" width="320" height="693" loading="eager">
     </div>
     <div class="hero-floating-card hfc-left">
       <div class="hfc-label">Ganancia este mes</div>
@@ -1529,7 +1465,7 @@ body.annual-mode [data-annual] { display: block; }
     <div class="text-center container-narrow" style="margin: 0 auto;">
       <span class="eyebrow">La solución</span>
       <h2 class="section-h2">Parfum Track lo resuelve<br>en <span class="hl">segundos</span></h2>
-      <p class="section-sub">No es otro Excel complicado. Es una app diseñada específicamente para revendedoras de perfumes — simple, rápida y que funciona en tu celular sin internet.</p>
+      <p class="section-sub">No es otro Excel complicado. Es una app diseñada específicamente para revendedores de perfumes — simple, rápida y que funciona en tu celular sin internet.</p>
     </div>
 
     <div class="benefits-grid">
@@ -1556,7 +1492,7 @@ body.annual-mode [data-annual] { display: block; }
       <div class="benefit-card reveal">
         <div class="benefit-icon">🗂️</div>
         <div class="benefit-title">Tus clientes ordenados y segmentados</div>
-        <p class="benefit-desc">Sabés quiénes son tus mejores clientas, quiénes deben hace tiempo y quiénes hace meses que no compran — para que puedas actuar a tiempo.</p>
+        <p class="benefit-desc">Sabés quiénes son tus mejores clientes, quiénes deben hace tiempo y quiénes hace meses que no compran — para que puedas actuar a tiempo.</p>
       </div>
       <div class="benefit-card reveal reveal-d1">
         <div class="benefit-icon">🔒</div>
@@ -1576,7 +1512,7 @@ body.annual-mode [data-annual] { display: block; }
       <div class="feature-hero-text reveal">
         <span class="eyebrow">Función exclusiva</span>
         <h2 class="feature-hero-title">Compartí tu catálogo por WhatsApp<br><span style="color:var(--gold2)">en un toque</span></h2>
-        <p class="feature-hero-desc">Generá una imagen profesional de tu catálogo de perfumes y compartila directo en WhatsApp. Tus clientas ven los precios, las opciones y te piden al instante.</p>
+        <p class="feature-hero-desc">Generá una imagen profesional de tu catálogo de perfumes y compartila directo en WhatsApp. Tus clientes ven los precios, las opciones y te piden al instante.</p>
         <ul class="feature-list">
           <li>Imagen lista para compartir en segundos</li>
           <li>Incluye nombre, precio y foto de cada perfume</li>
@@ -1588,89 +1524,8 @@ body.annual-mode [data-annual] { display: block; }
         </a>
       </div>
       <div class="feature-visual reveal reveal-d1">
-        <div class="feature-mockup">
-          <div class="feature-mockup-header">
-            <div class="fmh-dots"><span></span><span></span><span></span></div>
-            <span style="font-size:11px;color:var(--text3);margin-left:8px;">Catálogo de perfumes</span>
-          </div>
-          <div class="feature-mockup-body">
-            <div class="cat-grid">
-              <div class="cat-item">
-                <div class="cat-bottle" style="background:linear-gradient(160deg,#8B5CF6,#6D28D9)">
-                  <svg viewBox="0 0 40 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:40px">
-                    <rect x="14" y="0" width="12" height="6" rx="2" fill="rgba(255,255,255,0.6)"/>
-                    <rect x="16" y="5" width="8" height="4" rx="1" fill="rgba(255,255,255,0.4)"/>
-                    <path d="M8 14 Q8 9 20 9 Q32 9 32 14 L35 48 Q35 52 20 52 Q5 52 5 48 Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
-                    <ellipse cx="20" cy="14" rx="12" ry="3" fill="rgba(255,255,255,0.25)"/>
-                  </svg>
-                </div>
-                <div class="cat-item-name">Haramain Gold</div>
-                <div class="cat-item-price">$3.900</div>
-              </div>
-              <div class="cat-item">
-                <div class="cat-bottle" style="background:linear-gradient(160deg,#B45309,#92400E)">
-                  <svg viewBox="0 0 40 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:40px">
-                    <rect x="14" y="0" width="12" height="6" rx="2" fill="rgba(255,255,255,0.6)"/>
-                    <rect x="16" y="5" width="8" height="4" rx="1" fill="rgba(255,255,255,0.4)"/>
-                    <path d="M8 14 Q8 9 20 9 Q32 9 32 14 L35 48 Q35 52 20 52 Q5 52 5 48 Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
-                    <ellipse cx="20" cy="14" rx="12" ry="3" fill="rgba(255,255,255,0.2)"/>
-                  </svg>
-                </div>
-                <div class="cat-item-name">Bharara King</div>
-                <div class="cat-item-price">$4.200</div>
-              </div>
-              <div class="cat-item">
-                <div class="cat-bottle" style="background:linear-gradient(160deg,#BE185D,#9D174D)">
-                  <svg viewBox="0 0 40 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:40px">
-                    <rect x="14" y="0" width="12" height="6" rx="2" fill="rgba(255,255,255,0.6)"/>
-                    <rect x="16" y="5" width="8" height="4" rx="1" fill="rgba(255,255,255,0.4)"/>
-                    <path d="M8 14 Q8 9 20 9 Q32 9 32 14 L35 48 Q35 52 20 52 Q5 52 5 48 Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
-                    <ellipse cx="20" cy="14" rx="12" ry="3" fill="rgba(255,255,255,0.2)"/>
-                  </svg>
-                </div>
-                <div class="cat-item-name">Yara Rosa</div>
-                <div class="cat-item-price">$2.500</div>
-              </div>
-              <div class="cat-item">
-                <div class="cat-bottle" style="background:linear-gradient(160deg,#1D4ED8,#1E3A8A)">
-                  <svg viewBox="0 0 40 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:40px">
-                    <rect x="14" y="0" width="12" height="6" rx="2" fill="rgba(255,255,255,0.6)"/>
-                    <rect x="16" y="5" width="8" height="4" rx="1" fill="rgba(255,255,255,0.4)"/>
-                    <path d="M8 14 Q8 9 20 9 Q32 9 32 14 L35 48 Q35 52 20 52 Q5 52 5 48 Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
-                    <ellipse cx="20" cy="14" rx="12" ry="3" fill="rgba(255,255,255,0.2)"/>
-                  </svg>
-                </div>
-                <div class="cat-item-name">Afnan 9PM</div>
-                <div class="cat-item-price">$2.900</div>
-              </div>
-              <div class="cat-item">
-                <div class="cat-bottle" style="background:linear-gradient(160deg,#065F46,#064E3B)">
-                  <svg viewBox="0 0 40 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:40px">
-                    <rect x="14" y="0" width="12" height="6" rx="2" fill="rgba(255,255,255,0.6)"/>
-                    <rect x="16" y="5" width="8" height="4" rx="1" fill="rgba(255,255,255,0.4)"/>
-                    <path d="M8 14 Q8 9 20 9 Q32 9 32 14 L35 48 Q35 52 20 52 Q5 52 5 48 Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
-                    <ellipse cx="20" cy="14" rx="12" ry="3" fill="rgba(255,255,255,0.2)"/>
-                  </svg>
-                </div>
-                <div class="cat-item-name">Lattafa Asad</div>
-                <div class="cat-item-price">$3.200</div>
-              </div>
-              <div class="cat-item">
-                <div class="cat-bottle" style="background:linear-gradient(160deg,#92400E,#78350F)">
-                  <svg viewBox="0 0 40 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:40px">
-                    <rect x="14" y="0" width="12" height="6" rx="2" fill="rgba(255,255,255,0.6)"/>
-                    <rect x="16" y="5" width="8" height="4" rx="1" fill="rgba(255,255,255,0.4)"/>
-                    <path d="M8 14 Q8 9 20 9 Q32 9 32 14 L35 48 Q35 52 20 52 Q5 52 5 48 Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
-                    <ellipse cx="20" cy="14" rx="12" ry="3" fill="rgba(255,255,255,0.2)"/>
-                  </svg>
-                </div>
-                <div class="cat-item-name">Zimaya Badee</div>
-                <div class="cat-item-price">$3.800</div>
-              </div>
-            </div>
-            <div style="height:10px;"></div>
-            <button class="cat-share-btn">📲 Compartir catálogo por WhatsApp</button>
-          </div>
+        <div class="feature-mockup" style="padding:0;overflow:hidden;">
+          <img src="/screenshot-catalogo.jpg" alt="Catálogo de perfumes real generado con Parfum Track" style="display:block;width:100%;border-radius:16px;">
         </div>
       </div>
     </div>
@@ -1738,37 +1593,8 @@ body.annual-mode [data-annual] { display: block; }
         </ul>
       </div>
       <div class="feature-visual reveal reveal-d1">
-        <div class="feature-mockup">
-          <div class="feature-mockup-header">
-            <div class="fmh-dots"><span></span><span></span><span></span></div>
-            <span style="font-size:11px;color:var(--text3);margin-left:8px;">Gráficos · Junio 2026</span>
-          </div>
-          <div class="feature-mockup-body">
-            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;">
-              <div style="font-size:10px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">Ganancia del mes</div>
-              <div style="font-size:26px;font-weight:800;color:var(--gold2);">$35.600</div>
-              <div style="font-size:11px;color:var(--green);font-weight:600;">↑ 18% vs mayo</div>
-            </div>
-            <div class="stat-row-mock">
-              <span class="srm-label">Ventas totales</span>
-              <span class="srm-value">12 ventas</span>
-            </div>
-            <div class="stat-row-mock">
-              <span class="srm-label">Más vendido</span>
-              <span class="srm-value">Haramain Gold 🥇</span>
-            </div>
-            <div class="stat-row-mock">
-              <span class="srm-label">Cobros pendientes</span>
-              <span class="srm-value" style="color:var(--red);">$9.800 (3)</span>
-            </div>
-            <div class="stat-row-mock">
-              <span class="srm-label">Meta del mes</span>
-              <div>
-                <span class="srm-change" style="margin-right:4px;">89%</span>
-                <span style="font-size:10px;color:var(--text3)">de $40.000</span>
-              </div>
-            </div>
-          </div>
+        <div class="feature-mockup" style="padding:0;overflow:hidden;">
+          <img src="/screenshot-estadisticas.jpg" alt="Estadísticas reales de Parfum Track — ganancia por mes, ticket promedio, margen" style="display:block;width:100%;border-radius:16px;">
         </div>
       </div>
     </div>
@@ -1884,7 +1710,7 @@ body.annual-mode [data-annual] { display: block; }
         </div>
         <div class="compare-item">
           <span class="ci-bullet">❌</span>
-          <span>No está hecho para revendedoras — es genérico</span>
+          <span>No está hecho para revendedores — es genérico</span>
         </div>
       </div>
 
@@ -1910,64 +1736,11 @@ body.annual-mode [data-annual] { display: block; }
         </div>
         <div class="compare-item">
           <span class="ci-bullet">✓</span>
-          <span>Backup en la nube — tus datos siempre seguros</span>
+          <span>Tus datos guardados en tu celular — privados y seguros</span>
         </div>
         <div class="compare-item">
           <span class="ci-bullet">✓</span>
           <span>Catálogo profesional para compartir por WA</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════
-     TESTIMONIOS
-══════════════════════════════════ -->
-<section class="section bg2">
-  <div class="container">
-    <div class="text-center container-narrow" style="margin: 0 auto;">
-      <span class="eyebrow">Testimonios</span>
-      <h2 class="section-h2">Lo que dicen las que<br>ya lo usan</h2>
-    </div>
-
-    <div class="testi-grid">
-      <div class="testi-card reveal">
-        <div class="testi-metric">📈 "Descubrí que perdía $8.000 por mes sin saberlo"</div>
-        <div class="testi-stars">★★★★★</div>
-        <p class="testi-text">"Vendo Haramain, Bharara y Lattafa hace 2 años y siempre manejé todo en papel. Cuando cargué mis ventas en Parfum Track me di cuenta que los gastos de envío y las bolsas se me comían la ganancia. Ahora sé exactamente cuánto me queda por cada perfume."</p>
-        <div class="testi-author">
-          <div class="testi-avatar">M</div>
-          <div>
-            <div class="testi-name">Marcela G.</div>
-            <div class="testi-role">Revendedora · Buenos Aires, Argentina</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="testi-card reveal reveal-d1">
-        <div class="testi-metric">⏰ "Me ahorro 3 horas de cuentas cada fin de mes"</div>
-        <div class="testi-stars">★★★★★</div>
-        <p class="testi-text">"Antes tardaba medio día cerrando el mes con la calculadora. Ahora abro la app y ya está todo calculado. Las estadísticas me muestran qué perfumes vendo más y cuál me conviene tener siempre en stock."</p>
-        <div class="testi-author">
-          <div class="testi-avatar">V</div>
-          <div>
-            <div class="testi-name">Valentina R.</div>
-            <div class="testi-role">Emprendedora · Montevideo, Uruguay</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="testi-card reveal reveal-d2">
-        <div class="testi-metric">💰 "Cobré $23.000 que tenía olvidados en cuotas"</div>
-        <div class="testi-stars">★★★★★</div>
-        <p class="testi-text">"Tenía clientas con cuotas de Afnan y Zimaya que me debían desde hacía meses y yo ni me acordaba. Cuando cargué todo en Parfum Track y vi los cobros pendientes casi me desmayo. Con el recordatorio de WhatsApp cobré todo en una semana."</p>
-        <div class="testi-author">
-          <div class="testi-avatar">L</div>
-          <div>
-            <div class="testi-name">Lorena M.</div>
-            <div class="testi-role">Revendedora · Santiago, Chile</div>
-          </div>
         </div>
       </div>
     </div>
@@ -2042,6 +1815,7 @@ body.annual-mode [data-annual] { display: block; }
           <li><span class="pfl-check">✓</span> Estadísticas avanzadas</li>
           <li><span class="pfl-check">✓</span> Catálogo por WhatsApp</li>
           <li><span class="pfl-check">✓</span> Ranking y segmentación de clientes</li>
+          <li><span class="pfl-check">✓</span> Exportar a Excel y PDF</li>
           <li><span class="pfl-check">✓</span> Meta mensual de ventas</li>
           <li><span class="pfl-check">✓</span> Soporte prioritario</li>
         </ul>
@@ -2069,7 +1843,6 @@ body.annual-mode [data-annual] { display: block; }
         <hr class="price-divider">
         <ul class="price-features-list">
           <li><span class="pfl-check">✓</span> Todo lo de Básico Pro</li>
-          <li><span class="pfl-check">✓</span> Exportar a Excel</li>
           <li><span class="pfl-check">✓</span> Múltiples perfiles de negocio</li>
           <li><span class="pfl-check">✓</span> Backup automático en la nube</li>
           <li><span class="pfl-check">✓</span> Sincronización entre dispositivos</li>
@@ -2139,7 +1912,7 @@ body.annual-mode [data-annual] { display: block; }
         ¿Cómo funciona el pago?
         <div class="faq-icon">+</div>
       </div>
-      <div class="faq-answer">El proceso es simple: tocás "Consultar por WhatsApp" en el plan que elegiste, nos escribís, elegís tu forma de pago (transferencia bancaria, tarjeta, PayPal, Mercado Pago o efectivo) y en minutos recibís tu código de activación. Sin formularios, sin subscripciones automáticas.</div>
+      <div class="faq-answer">El proceso es simple: tocás "Suscribirse" en el plan Básico Pro, ingresás tu email y te redirige a MercadoPago donde podés pagar con tarjeta, transferencia o dinero en cuenta. En minutos recibís tu código de activación por email y lo ingresás en la app. También podés consultar por WhatsApp si preferís otro medio de pago.</div>
     </div>
 
     <div class="faq-item">
@@ -2163,7 +1936,7 @@ body.annual-mode [data-annual] { display: block; }
         ¿Sirve aunque no venda perfumes? ¿Puedo usarla para otro producto?
         <div class="faq-icon">+</div>
       </div>
-      <div class="faq-answer">Parfum Track está diseñada y optimizada para revendedoras de perfumes y cosméticos. Si vendés otro tipo de productos puede funcionar igual, pero algunas features están pensadas específicamente para el negocio de perfumes — catálogo de fragancias, stock de aromas, etc.</div>
+      <div class="faq-answer">Parfum Track está diseñada y optimizada para revendedores de perfumes y cosméticos. Si vendés otro tipo de productos puede funcionar igual, pero algunas features están pensadas específicamente para el negocio de perfumes — catálogo de fragancias, stock de aromas, etc.</div>
     </div>
   </div>
 </section>
@@ -2202,7 +1975,7 @@ body.annual-mode [data-annual] { display: block; }
         <img src="/icon-192.png" alt="Parfum Track">
         Parfum Track
       </a>
-      <p class="footer-tagline">La app para revendedoras de perfumes. Ventas, cuotas, stock y estadísticas desde tu celular.</p>
+      <p class="footer-tagline">La app para revendedores de perfumes. Ventas, cuotas, stock y estadísticas desde tu celular.</p>
       <a href="https://wa.me/59894466577" target="_blank" rel="noopener" class="footer-wa-btn">
         💬 Soporte por WhatsApp
       </a>
@@ -2222,8 +1995,8 @@ body.annual-mode [data-annual] { display: block; }
     </div>
     <div class="footer-col">
       <h4>Legal</h4>
-      <a href="#">Términos de uso</a>
-      <a href="#">Política de privacidad</a>
+      <a href="/terminos.html">Términos de uso</a>
+      <a href="/privacidad.html">Política de privacidad</a>
     </div>
   </div>
   <div class="footer-bottom">
@@ -2400,7 +2173,8 @@ window.addEventListener('scroll', () => {
       Ir a pagar con Mercado Pago →
     </button>
     <p style="font-size:11px;color:#4a4848;text-align:center;line-height:1.6;">
-      🔒 Pago seguro · Tu código de activación llega por email en minutos
+      🔒 Pago seguro vía Mercado Pago · El monto se cobra en tu moneda local<br>
+      Al pagar aceptás los <a href="/terminos.html" target="_blank" style="color:#c9a84c;">Términos de uso</a> y la <a href="/privacidad.html" target="_blank" style="color:#c9a84c;">Política de privacidad</a>
     </p>
   </div>
 </div>

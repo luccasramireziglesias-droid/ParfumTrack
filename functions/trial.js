@@ -52,8 +52,10 @@ export async function onRequestPost(context) {
   if (step === "register") return handleRegister(body, ip, env, headers);
   if (step === "verify") return handleVerify(body, ip, env, headers);
 
-  // Legacy path: { deviceId } with no step
-  if (body.deviceId && !step) return handleLegacy(body, ip, env, headers);
+  // Legacy path: { deviceId } sin step → deprecado, requiere OTP
+  if (body.deviceId && !step) {
+    return json({ error: 'Verificación por email requerida. Actualizá la app.' }, 410, headers);
+  }
 
   return json({ error: "Invalid request" }, 400, headers);
 }
@@ -330,7 +332,7 @@ async function sha256(str) {
   return Array.from(new Uint8Array(buf))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("")
-    .slice(0, 32);
+    ;
 }
 
 async function sendOtpEmail(email, otp, env) {
@@ -351,7 +353,7 @@ async function sendOtpEmail(email, otp, env) {
     body: JSON.stringify({
       sender: { name: fromName, email: fromEmail },
       to: [{ email }],
-      subject: `${otp} — tu código de verificación Parfum Track`,
+      subject: `Tu código de acceso a Parfum Track`,
       htmlContent: `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -419,7 +421,7 @@ function json(body, status, headers) {
 
 function corsHeaders(origin) {
   const ok =
-    /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/.test(
+    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
       origin,
     );
   return {

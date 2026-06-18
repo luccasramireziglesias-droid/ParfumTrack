@@ -65,7 +65,6 @@ export async function onRequestPost(context) {
         },
         auto_return:        'approved',
         external_reference: JSON.stringify({ email, plan }),
-        notification_url:   `${appUrl}/mp-webhook`,
       }),
     });
   } catch (e) {
@@ -102,7 +101,10 @@ export async function onRequestOptions(context) {
 // ── Utilidades ────────────────────────────────────────────────────
 
 async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) return null;
+  if (!env.PT_LICENSES) {
+    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — rate limiting desactivado');
+    return null;
+  }
   const now  = Math.floor(Date.now() / 1000);
   const wKey = `${key}_${Math.floor(now / windowSecs)}`;
   let count  = 0;
@@ -113,7 +115,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
 }
 
 function corsHeaders(origin) {
-  const ok = /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|[a-z0-9-]+\.workers\.dev)(:\d+)?$/.test(origin);
+  const ok = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin);
   return {
     'Content-Type':                 'application/json',
     'Access-Control-Allow-Origin':  ok ? origin : 'null',

@@ -32,16 +32,19 @@ export async function onRequestPost(context) {
   const xSig       = request.headers.get('x-signature');
   const bodyText   = await request.text();
 
-  // 1. Verificar firma MP solo si viene el header (webhooks nuevos).
-  //    Las notificaciones IPN vía notification_url en preferencias no envían firma.
-  if (xSig) {
-    const sigError = await verifyMPSignatureFromText(bodyText, xSig, url, env);
-    if (sigError) {
-      console.warn('[mp-webhook] Firma inválida:', sigError);
-      return jsonResp({ ok: false, error: 'invalid_signature' });
-    }
-  } else {
-    console.warn('[mp-webhook] Sin x-signature — IPN o request manual, aceptando');
+  // 1. Verificar firma MP — fail closed: si el secreto no está configurado, rechazar siempre.
+  if (!env.MP_WEBHOOK_SECRET) {
+    console.error('[mp-webhook] FATAL: MP_WEBHOOK_SECRET no configurado — rechazando webhook');
+    return jsonResp({ ok: false, error: 'server_misconfigured' }, 500);
+  }
+  if (!xSig) {
+    console.warn('[mp-webhook] Sin x-signature — rechazando');
+    return jsonResp({ ok: false, error: 'missing_signature' }, 401);
+  }
+  const sigError = await verifyMPSignatureFromText(bodyText, xSig, url, env, request);
+  if (sigError) {
+    console.warn('[mp-webhook] Firma inválida:', sigError);
+    return jsonResp({ ok: false, error: 'invalid_signature' }, 401);
   }
 
   // 2. Parsear tipo e ID del evento (JSON nuevo o query params IPN antiguo)
@@ -64,37 +67,34 @@ export async function onRequestPost(context) {
   if (!type || !resourceId) return jsonResp({ ok: true });
 
   if (!env.PT_LICENSES) {
-    console.error('[mp-webhook] PT_LICENSES KV no disponible');
-    return jsonResp({ ok: true });
+    console.error('[mp-webhook] FATAL: PT_LICENSES KV no disponible — retornando 500 para que MP reintente');
+    return jsonResp({ ok: false, error: 'kv_unavailable' }, 500);
   }
 
-  // 3. Idempotencia: si ya procesamos este evento, ignorar
+  // 3. Idempotencia: ignorar si ya fue procesado o está en proceso
   const idKey = `webhook_processed:${type}:${resourceId}`;
   const already = await env.PT_LICENSES.get(idKey);
-  if (already) {
-    console.log('[mp-webhook] Ya procesado:', idKey);
+  if (already === 'done' || already === 'processing') {
+    console.log('[mp-webhook] Ya procesado/en proceso:', idKey, already);
     return jsonResp({ ok: true });
   }
 
-  // Marcar como procesado (TTL 30 días = 2592000s)
-  await env.PT_LICENSES.put(idKey, '1', { expirationTtl: 2592000 });
+  // Marcar como "en proceso" con TTL corto para evitar ejecuciones simultáneas
+  await env.PT_LICENSES.put(idKey, 'processing', { expirationTtl: 300 });
 
-  // 4. Procesar en background para liberar el 200 de forma inmediata
-  ctx.waitUntil(processEvent({ type, resourceId, env }));
+  // 4. Procesar en background; marcar 'done' solo si tiene éxito
+  ctx.waitUntil(processEvent({ type, resourceId, env, idKey }));
 
   return jsonResp({ ok: true });
 }
 
 // ── Verificación de firma MP ──────────────────────────────────────
 
-async function verifyMPSignatureFromText(bodyText, xSignature, url, env) {
+async function verifyMPSignatureFromText(bodyText, xSignature, url, env, request) {
   const secret = env.MP_WEBHOOK_SECRET;
-  if (!secret) {
-    console.warn('[mp-webhook] MP_WEBHOOK_SECRET no configurado — saltando verificación');
-    return null;
-  }
+  if (!secret) return 'MP_WEBHOOK_SECRET no configurado';
 
-  const xRequestId = ''; // MP no siempre lo envía en notificaciones de preferencias
+  const xRequestId = request.headers.get('x-request-id') || '';
   const dataId     = url.searchParams.get('id') || '';
 
   const parts = {};
@@ -128,17 +128,33 @@ async function verifyMPSignatureFromText(bodyText, xSignature, url, env) {
 
 // ── Dispatcher de eventos ─────────────────────────────────────────
 
-async function processEvent({ type, resourceId, env }) {
+async function processEvent({ type, resourceId, env, idKey }) {
   try {
     if (type === 'payment') {
       await handlePaymentEvent(resourceId, env);
-    } else if (type === 'subscription_preapproval') {
-      await handleSubscriptionEvent(resourceId, env);
     } else {
       console.log(`[mp-webhook] Tipo no manejado: ${type}`);
     }
+    // Marcar como procesado con éxito (TTL 30 días)
+    await env.PT_LICENSES.put(idKey, 'done', { expirationTtl: 2592000 });
   } catch (e) {
     console.error(`[mp-webhook] Error procesando ${type}:${resourceId}:`, e.message, e.stack);
+    // Eliminar la marca 'processing' para permitir retry en el próximo webhook de MP
+    await env.PT_LICENSES.delete(idKey).catch(() => {});
+    // Notificar al dueño del error para que pueda intervenir manualmente
+    const ownerEmail = env.OWNER_EMAIL || env.FROM_EMAIL;
+    if (ownerEmail && env.BREVO_API_KEY) {
+      await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'api-key': env.BREVO_API_KEY },
+        body: JSON.stringify({
+          sender: { name: env.FROM_NAME || 'Parfum Track', email: env.FROM_EMAIL || 'hola@parfumtrack.com' },
+          to: [{ email: ownerEmail }],
+          subject: `⚠ Error en webhook MP — ${type}:${resourceId}`,
+          textContent: `Error procesando pago.\nTipo: ${type}\nID: ${resourceId}\nError: ${e.message}\n\nRevisar Cloudflare Workers Logs para más detalles.`,
+        }),
+      }).catch(() => {});
+    }
   }
 }
 
@@ -156,25 +172,8 @@ async function handlePaymentEvent(paymentId, env) {
   }
 
   const payment = await resp.json();
-  console.log(`[mp-webhook] Pago ${paymentId}: status=${payment.status} preapproval=${payment.preapproval_id}`);
-
-  const preapprovalId = payment.preapproval_id;
-  if (!preapprovalId) {
-    // Pago único via Checkout Pro (preferencias) — manejar normalmente
-    await handleSinglePayment(paymentId, payment, env);
-    return;
-  }
-
-  if (payment.status === 'approved') {
-    const existingCode = await env.PT_LICENSES.get(`mp_sub:${preapprovalId}`);
-    if (existingCode) {
-      await handleRenewal(existingCode, payment, env);
-    } else {
-      await handleFirstPayment(preapprovalId, payment, env);
-    }
-  } else if (payment.status === 'rejected') {
-    await handlePaymentFailed(preapprovalId, payment, env);
-  }
+  console.log(`[mp-webhook] Pago ${paymentId}: status=${payment.status}`);
+  await handleSinglePayment(paymentId, payment, env);
 }
 
 // ── Pago único via Checkout Pro ───────────────────────────────────
@@ -187,22 +186,40 @@ async function handleSinglePayment(paymentId, payment, env) {
 
   // Obtener email y plan desde external_reference
   let email, plan;
-  try {
-    const ref = JSON.parse(payment.external_reference || '{}');
-    email = ref.email;
-    plan  = ref.plan || 'monthly';
-  } catch {
-    email = payment.payer?.email;
-    plan  = 'monthly';
+  if (payment.external_reference) {
+    try {
+      const ref = JSON.parse(payment.external_reference);
+      email = ref.email;
+      plan  = ref.plan || 'monthly';
+    } catch { /* JSON inválido — usar fallback */ }
   }
+  if (!email) email = payment.payer?.email;
+  if (!plan)  plan  = 'monthly';
 
   if (!email) {
     console.error('[mp-webhook] Pago único sin email, paymentId:', paymentId);
     return;
   }
 
+  // Validar monto contra el esperado según el plan
+  const expectedAmount = parseFloat(plan === 'annual'
+    ? (env.MP_AMOUNT_ANNUAL  || '95.88')
+    : (env.MP_AMOUNT_MONTHLY || '9.99'));
+  const paidAmount = parseFloat(payment.transaction_amount || 0);
+  if (Math.abs(paidAmount - expectedAmount) > 0.01) {
+    console.error(`[mp-webhook] Monto incorrecto: pagado=${paidAmount} esperado=${expectedAmount} plan=${plan} paymentId=${paymentId}`);
+    return;
+  }
+
   const TTL_3Y    = 94608000;
   const emailHash = await hashEmail(email);
+
+  // Secondary idempotency: check if this payment already created a license
+  const existingPayLicense = await env.PT_LICENSES.get(`mp_pay:${paymentId}`);
+  if (existingPayLicense) {
+    console.log(`[mp-webhook] Payment ${paymentId} already processed — license: ${existingPayLicense}`);
+    return;
+  }
 
   // Si ya tiene licencia activa, renovar
   const existingCode = await env.PT_LICENSES.get(`email_license:${emailHash}`);
@@ -224,8 +241,19 @@ async function handleSinglePayment(paymentId, payment, env) {
       await env.PT_LICENSES.put(`mp_pay:${paymentId}`, existingCode, { expirationTtl: TTL_3Y });
       console.log(`[mp-webhook] Licencia renovada (pago único): ${existingCode} hasta ${expiresAt}`);
 
+      const ownerEmail = env.OWNER_EMAIL || env.FROM_EMAIL;
       if (lic.clientEmail) {
         await sendEmail(env, lic.clientEmail, 'subscription_renewed', { expiresAt });
+      }
+      if (ownerEmail) {
+        await sendEmail(env, ownerEmail, 'owner_payment_notification', {
+          clientEmail: lic.clientEmail,
+          code:        existingCode,
+          plan:        lic.plan,
+          expiresAt,
+          paymentId,
+          type:        'renewal',
+        });
       }
       return;
     }
@@ -261,147 +289,17 @@ async function handleSinglePayment(paymentId, payment, env) {
 
   console.log(`[mp-webhook] Licencia creada (pago único): ${code} para ${email}`);
   await sendEmail(env, email, 'subscription_activated', { code, expiresAt });
-}
 
-// ── Primer pago: crear licencia ───────────────────────────────────
-
-async function handleFirstPayment(preapprovalId, payment, env) {
-  // Recuperar email del pending guardado por mp-create-subscription
-  const pendingRaw = await env.PT_LICENSES.get(`pending_sub:${preapprovalId}`);
-  let email, plan;
-  if (pendingRaw) {
-    ({ email, plan } = JSON.parse(pendingRaw));
-  } else {
-    // Fallback: email del pagador en MP
-    email = payment.payer?.email;
-    plan  = 'monthly';
-  }
-  if (!email) {
-    console.error('[mp-webhook] No hay email para preapproval:', preapprovalId);
-    return;
-  }
-
-  const code = await generateLicenseCode(env);
-
-  const now      = new Date();
-  const isAnnual = plan === 'annual';
-  const expiry   = new Date(now);
-  expiry.setDate(expiry.getDate() + (isAnnual ? 366 : 31));
-  const expiresAt = expiry.toISOString().split('T')[0];
-
-  const licenseData = {
-    clientName:     email.split('@')[0],
-    clientEmail:    email,
-    expiresAt,
-    maxUses:        null,
-    usedCount:      0,
-    createdAt:      now.toISOString().split('T')[0],
-    lastActivatedAt: null,
-    plan:           isAnnual ? 'basic_annual' : 'basic_monthly',
-    status:         'active',
-    mpSubscriptionId: preapprovalId,
-    mpPayerId:      payment.payer?.id?.toString(),
-    renewsAt:       expiresAt,
-    suspendedAt:    null,
-    cancelledAt:    null,
-  };
-
-  const TTL_3Y = 94608000; // 3 años en segundos
-  const emailHash = await hashEmail(email);
-
-  await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(licenseData));
-  await env.PT_LICENSES.put(`mp_sub:${preapprovalId}`, code, { expirationTtl: TTL_3Y });
-  await env.PT_LICENSES.put(`email_license:${emailHash}`, code, { expirationTtl: TTL_3Y });
-  await env.PT_LICENSES.delete(`pending_sub:${preapprovalId}`);
-
-  console.log(`[mp-webhook] ✅ Licencia creada: ${code} para ${email}`);
-  await sendEmail(env, email, 'subscription_activated', { code, expiresAt });
-}
-
-// ── Renovación mensual ────────────────────────────────────────────
-
-async function handleRenewal(code, payment, env) {
-  const licRaw = await env.PT_LICENSES.get(`license:${code}`);
-  if (!licRaw) { console.error('[mp-webhook] Renovación: licencia no encontrada:', code); return; }
-
-  const lic      = JSON.parse(licRaw);
-  const isAnnual = lic.plan === 'basic_annual';
-  // Extender desde la fecha de vencimiento actual (no desde hoy, para no dar días extra)
-  const base    = new Date(Math.max(Date.now(), new Date(lic.expiresAt || Date.now()).getTime()));
-  base.setDate(base.getDate() + (isAnnual ? 366 : 31));
-  const expiresAt = base.toISOString().split('T')[0];
-
-  lic.expiresAt   = expiresAt;
-  lic.renewsAt    = expiresAt;
-  lic.status      = 'active';
-  lic.suspendedAt = null;
-
-  await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(lic));
-  console.log(`[mp-webhook] 🔄 Renovada: ${code} hasta ${expiresAt}`);
-
-  if (lic.clientEmail) {
-    await sendEmail(env, lic.clientEmail, 'subscription_renewed', { expiresAt });
-  }
-}
-
-// ── Pago fallido ──────────────────────────────────────────────────
-
-async function handlePaymentFailed(preapprovalId, payment, env) {
-  const code = await env.PT_LICENSES.get(`mp_sub:${preapprovalId}`);
-  if (!code) return; // Primer pago fallido, no hay licencia que suspender
-
-  const licRaw = await env.PT_LICENSES.get(`license:${code}`);
-  if (!licRaw) return;
-
-  const lic   = JSON.parse(licRaw);
-  lic.status  = 'payment_failed';
-  await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(lic));
-  console.log(`[mp-webhook] ⚠ Pago fallido para: ${code}`);
-
-  if (lic.clientEmail) {
-    await sendEmail(env, lic.clientEmail, 'payment_failed', {});
-  }
-}
-
-// ── Cambio de estado de suscripción ──────────────────────────────
-
-async function handleSubscriptionEvent(subscriptionId, env) {
-  if (!env.MP_ACCESS_TOKEN) return;
-
-  const resp = await fetch(`https://api.mercadopago.com/preapproval/${subscriptionId}`, {
-    headers: { Authorization: `Bearer ${env.MP_ACCESS_TOKEN}` },
-  });
-  if (!resp.ok) {
-    console.error('[mp-webhook] Error obteniendo suscripción:', subscriptionId, resp.status);
-    return;
-  }
-
-  const sub   = await resp.json();
-  const code  = await env.PT_LICENSES.get(`mp_sub:${sub.id}`);
-  if (!code) { console.log('[mp-webhook] Suscripción sin licencia (pendiente de primer pago?):', sub.id); return; }
-
-  const licRaw = await env.PT_LICENSES.get(`license:${code}`);
-  if (!licRaw) return;
-  const lic = JSON.parse(licRaw);
-
-  if (sub.status === 'authorized' && lic.status !== 'active') {
-    lic.status      = 'active';
-    lic.suspendedAt = null;
-    await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(lic));
-    console.log(`[mp-webhook] ✅ Suscripción reactivada: ${code}`);
-  } else if (sub.status === 'cancelled') {
-    lic.status      = 'cancelled';
-    lic.cancelledAt = new Date().toISOString().split('T')[0];
-    await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(lic));
-    console.log(`[mp-webhook] ❌ Suscripción cancelada: ${code}`);
-    if (lic.clientEmail) {
-      await sendEmail(env, lic.clientEmail, 'subscription_cancelled', { expiresAt: lic.expiresAt });
-    }
-  } else if (sub.status === 'paused') {
-    lic.status      = 'payment_failed';
-    lic.suspendedAt = new Date().toISOString().split('T')[0];
-    await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(lic));
-    console.log(`[mp-webhook] ⏸ Suscripción pausada: ${code}`);
+  const ownerEmail = env.OWNER_EMAIL || env.FROM_EMAIL;
+  if (ownerEmail) {
+    await sendEmail(env, ownerEmail, 'owner_payment_notification', {
+      clientEmail: email,
+      code,
+      plan:     isAnnual ? 'basic_annual' : 'basic_monthly',
+      expiresAt,
+      paymentId,
+      type:     'new',
+    });
   }
 }
 
@@ -596,4 +494,34 @@ const EMAIL_TEMPLATES = {
 </html>`,
     text: `Tu suscripción a Parfum Track fue cancelada. Seguís con acceso hasta ${expiresAt}. Después pasás al plan Free. Podés reactivar cuando quieras. ${appUrl}`,
   }),
+
+  owner_payment_notification: ({ clientEmail, code, plan, expiresAt, paymentId, type }) => {
+    const isNew     = type === 'new';
+    const planLabel = plan === 'basic_annual' ? 'Anual (95.88 USD)' : 'Mensual (9.99 USD)';
+    const title     = isNew ? '💰 Nuevo pago recibido' : '🔄 Renovación recibida';
+    return {
+      subject: `${title} — ${clientEmail}`,
+      html: `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0d0d1a;font-family:'Helvetica Neue',Arial,sans-serif;">
+<div style="max-width:480px;margin:0 auto;padding:24px;">
+  <div style="background:#1e1e35;border:1px solid rgba(201,168,76,0.3);border-radius:14px;padding:24px;">
+    <h2 style="color:#e8cc7a;font-size:18px;font-weight:700;margin:0 0 16px;">${title}</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+      <tr><td style="color:#7a7870;padding:6px 0;width:120px;">Cliente</td><td style="color:#f0eee8;font-weight:600;">${clientEmail}</td></tr>
+      <tr><td style="color:#7a7870;padding:6px 0;">Plan</td><td style="color:#f0eee8;">${planLabel}</td></tr>
+      <tr><td style="color:#7a7870;padding:6px 0;">Licencia</td><td style="color:#e8cc7a;font-family:monospace;font-weight:700;letter-spacing:1px;">${code}</td></tr>
+      <tr><td style="color:#7a7870;padding:6px 0;">Vence</td><td style="color:#f0eee8;">${expiresAt}</td></tr>
+      <tr><td style="color:#7a7870;padding:6px 0;">Payment ID</td><td style="color:#b8b4a8;font-size:12px;">${paymentId}</td></tr>
+      <tr><td style="color:#7a7870;padding:6px 0;">Tipo</td><td style="color:${isNew ? '#70c9a0' : '#c9a84c'};font-weight:700;">${isNew ? 'NUEVA LICENCIA' : 'RENOVACIÓN'}</td></tr>
+    </table>
+  </div>
+  <p style="color:#4a4848;font-size:11px;text-align:center;margin-top:16px;">Parfum Track · Notificación automática</p>
+</div>
+</body>
+</html>`,
+      text: `${title}\nCliente: ${clientEmail}\nPlan: ${planLabel}\nLicencia: ${code}\nVence: ${expiresAt}\nPayment ID: ${paymentId}\nTipo: ${isNew ? 'NUEVA LICENCIA' : 'RENOVACIÓN'}`,
+    };
+  },
 };

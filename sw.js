@@ -49,6 +49,10 @@ self.addEventListener("fetch", (event) => {
       "/backup",
       "/trial",
       "/sync",
+      "/mp-create-preference",
+      "/mp-webhook",
+      "/mp-subscription-status",
+      "/mp-payment-status",
     ].includes(url.pathname)
   )
     return;

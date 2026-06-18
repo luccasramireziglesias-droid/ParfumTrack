@@ -69,7 +69,7 @@ export async function onRequestPost(context) {
   }
 
   const ownerCode = (env.LICENSE_OWNER_CODE || "").trim().toUpperCase();
-  const isOwner = ownerCode.length > 0 && normalizedCode === ownerCode;
+  const isOwner = ownerCode.length > 0 && timingSafeEqual(normalizedCode, ownerCode);
 
   if (!isOwner) {
     // Validación normal vía KV
@@ -198,6 +198,13 @@ function delay(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 // KV-based rate limiter: allows `max` requests per `windowSecs` seconds
 async function checkRateLimit(env, key, max, windowSecs) {
   if (!env.PT_LICENSES) return null;
@@ -228,7 +235,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
 
 function corsHeaders(origin) {
   const ok =
-    /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/.test(
+    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
       origin,
     );
   return {

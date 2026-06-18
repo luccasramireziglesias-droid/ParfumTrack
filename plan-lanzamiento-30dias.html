@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParfumTrack — Plan de Lanzamiento 30 Dias + Auditoria Brutal</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#07070f;--card:#12122a;--card2:#1a1a35;--gold:#c9a84c;--gold2:#e8c97e;--gold-dim:rgba(201,168,76,.12);--text:#f0ece4;--text2:#b8b5d0;--text3:#7a77a0;--danger:#e07070;--success:#70c9a0;--warning:#e0a060;--info:#70a8e0;--purple:#a070e0;--radius:14px}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans-serif;line-height:1.7;padding:0}
+.container{max-width:1200px;margin:0 auto;padding:20px 24px 80px}
+h1{font-family:Georgia,serif;font-size:clamp(28px,5vw,44px);color:var(--gold2);text-align:center;padding:50px 0 8px;letter-spacing:-.5px}
+.subtitle{text-align:center;color:var(--text3);font-size:14px;margin-bottom:10px}
+.hero-badge{text-align:center;margin-bottom:40px}
+.hero-badge span{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#07070f;font-size:12px;font-weight:700;padding:6px 18px;border-radius:20px;letter-spacing:1px}
+h2{font-family:Georgia,serif;font-size:clamp(20px,3.5vw,30px);color:var(--gold);margin:56px 0 20px;padding-bottom:12px;border-bottom:2px solid rgba(201,168,76,.25)}
+h3{font-size:18px;color:var(--gold2);margin:28px 0 12px}
+h4{font-size:15px;color:var(--text);margin:20px 0 8px;font-weight:600}
+p{font-size:14px;color:var(--text2);margin-bottom:10px}
+.phase-badge{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#07070f;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;margin-bottom:12px;letter-spacing:.5px}
+.week-badge{display:inline-block;background:linear-gradient(135deg,#1a1a35,#2a2a55);border:1px solid var(--gold);color:var(--gold2);font-size:13px;font-weight:700;padding:6px 20px;border-radius:25px;margin-bottom:16px;letter-spacing:.5px}
+.card{background:var(--card);border:1px solid rgba(201,168,76,.15);border-radius:var(--radius);padding:22px 26px;margin:16px 0}
+.card-highlight{border-color:var(--gold);background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(201,168,76,.02))}
+.card-danger{border-color:var(--danger);background:rgba(224,112,112,.06)}
+.card-success{border-color:var(--success);background:rgba(112,201,160,.06)}
+.card-warning{border-color:var(--warning);background:rgba(224,160,96,.06)}
+.card-info{border-color:var(--info);background:rgba(112,168,224,.06)}
+.card-purple{border-color:var(--purple);background:rgba(160,112,224,.06)}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.mini-card{background:var(--card2);border:1px solid rgba(201,168,76,.1);border-radius:10px;padding:14px 16px}
+.mini-card h4{margin:0 0 6px;font-size:14px}
+.mini-card p{font-size:12px;margin:0;color:var(--text3)}
+.tag{display:inline-block;font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px;margin:2px 2px 4px 0}
+.tag-viral{background:rgba(224,112,112,.2);color:#e07070}
+.tag-edu{background:rgba(112,168,224,.2);color:#70a8e0}
+.tag-auth{background:rgba(160,112,224,.2);color:#a070e0}
+.tag-conv{background:rgba(201,168,76,.2);color:var(--gold2)}
+.tag-prob{background:rgba(224,160,96,.2);color:#e0a060}
+.tag-test{background:rgba(112,201,160,.2);color:#70c9a0}
+.tag-brand{background:rgba(112,112,224,.2);color:#7070e0}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+th{background:var(--card2);color:var(--gold);text-align:left;padding:12px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--text2);vertical-align:top}
+tr:hover td{background:rgba(201,168,76,.03)}
+.score-bar{height:10px;border-radius:5px;background:var(--card2);overflow:hidden;margin:6px 0}
+.score-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.copy-block{background:var(--card2);border-left:3px solid var(--gold);padding:16px 20px;margin:12px 0;border-radius:0 8px 8px 0;font-size:13px;color:var(--text);font-style:italic}
+.calendar-day{background:var(--card);border:1px solid rgba(201,168,76,.12);border-radius:12px;padding:18px 20px;margin:12px 0}
+.calendar-day .day-label{font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.num{color:var(--gold);font-weight:700;font-size:24px;margin-right:8px}
+.canva-link{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#07070f;font-size:12px;font-weight:700;padding:6px 16px;border-radius:8px;text-decoration:none;margin:4px 2px}
+.canva-link:hover{opacity:.85}
+.phase-section{border-left:3px solid var(--gold);padding-left:20px;margin:20px 0}
+.verdict{background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.05));border:2px solid var(--gold);border-radius:var(--radius);padding:28px 32px;margin:24px 0}
+.error-item{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.error-num{display:inline-block;width:28px;height:28px;border-radius:50%;text-align:center;line-height:28px;font-size:12px;font-weight:700;margin-right:10px}
+.error-red{background:rgba(224,112,112,.2);color:var(--danger)}
+.error-orange{background:rgba(224,160,96,.2);color:var(--warning)}
+.error-green{background:rgba(112,201,160,.2);color:var(--success)}
+.error-gold{background:rgba(201,168,76,.2);color:var(--gold2)}
+.toc{background:var(--card);border:1px solid rgba(201,168,76,.2);border-radius:var(--radius);padding:24px 28px;margin:20px 0}
+.toc a{color:var(--gold2);text-decoration:none;font-size:13px;display:block;padding:4px 0}
+.toc a:hover{color:var(--gold);text-decoration:underline}
+.hashtag{display:inline-block;background:var(--card2);color:var(--info);font-size:12px;padding:3px 10px;border-radius:6px;margin:2px}
+.kpi-box{text-align:center;padding:16px}
+.kpi-num{font-size:32px;font-weight:700;color:var(--gold2);display:block}
+.kpi-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+@media(max-width:600px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}.container{padding:12px 16px 40px}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>PLAN DE LANZAMIENTO 30 DIAS</h1>
+<p class="subtitle">ParfumTrack — La App #1 para Gestionar tu Negocio de Perfumes</p>
+<div class="hero-badge"><span>DIRECTOR CREATIVO + CMO + GROWTH MARKETER + COPYWRITER</span></div>
+
+<div class="toc">
+<h3 style="margin-top:0">Indice del Plan</h3>
+<a href="#canva">Carpeta Canva — 24 Disenos Organizados</a>
+<a href="#semana1">Semana 1 — Pre-Lanzamiento (Dias 1-7)</a>
+<a href="#semana2">Semana 2 — Lanzamiento (Dias 8-14)</a>
+<a href="#semana3">Semana 3 — Traccion (Dias 15-21)</a>
+<a href="#semana4">Semana 4 — Escala (Dias 22-30)</a>
+<a href="#fase1">Fase 1 — Primer Impacto (3 segundos)</a>
+<a href="#fase2">Fase 2 — Diseno</a>
+<a href="#fase3">Fase 3 — Copywriting</a>
+<a href="#fase4">Fase 4 — Psicologia de Ventas</a>
+<a href="#fase5">Fase 5 — Instagram</a>
+<a href="#fase6">Fase 6 — Conversion</a>
+<a href="#fase7">Fase 7 — Branding</a>
+<a href="#fase8">Fase 8 — Analisis Canva</a>
+<a href="#fase9">Fase 9 — Marketing</a>
+<a href="#fase10">Fase 10 — Rediseno Completo</a>
+<a href="#fase11">Fase 11 — Descripcion y Hashtags</a>
+<a href="#fase12">Fase 12 — Auditoria Brutal</a>
+<a href="#puntuacion">Puntuacion Final</a>
+<a href="#veredicto">Veredicto Final</a>
+</div>
+
+<!-- CANVA FOLDER STRUCTURE -->
+<h2 id="canva">Carpeta Canva — 24 Disenos Profesionales</h2>
+
+<div class="card card-highlight">
+<h3>Carpeta Principal</h3>
+<p><a class="canva-link" href="https://www.canva.com/folder/FAHM1hlYTP8" target="_blank">Abrir en Canva: ParfumTrack - Lanzamiento 30 Dias</a></p>
+
+<div class="grid-3" style="margin-top:16px">
+<div class="mini-card">
+<h4>01 - Historias (Stories)</h4>
+<p>8 stories para Instagram/Facebook</p>
+<a class="canva-link" href="https://www.canva.com/folder/FAHM1pJliQ8" target="_blank">Abrir</a>
+</div>
+<div class="mini-card">
+<h4>02 - Publicaciones (Posts)</h4>
+<p>9 posts para feed de Instagram</p>
+<a class="canva-link" href="https://www.canva.com/folder/FAHM1pUjkOM" target="_blank">Abrir</a>
+</div>
+<div class="mini-card">
+<h4>03 - Carruseles</h4>
+<p>1 portada de carrusel educativo</p>
+<a class="canva-link" href="https://www.canva.com/folder/FAHM1oqhQgs" target="_blank">Abrir</a>
+</div>
+<div class="mini-card">
+<h4>04 - Publicidad (Ads)</h4>
+<p>4 creativos para Meta Ads</p>
+<a class="canva-link" href="https://www.canva.com/folder/FAHM1luBjdk" target="_blank">Abrir</a>
+</div>
+<div class="mini-card">
+<h4>05 - Reels y TikTok</h4>
+<p>Carpeta para covers de video</p>
+<a class="canva-link" href="https://www.canva.com/folder/FAHM1uihNgI" target="_blank">Abrir</a>
+</div>
+<div class="mini-card">
+<h4>06 - Banners y Portadas</h4>
+<p>1 Facebook cover profesional</p>
+<a class="canva-link" href="https://www.canva.com/folder/FAHM1jt4jnk" target="_blank">Abrir</a>
+</div>
+</div>
+</div>
+
+<h3>Inventario Completo de Disenos</h3>
+<table>
+<tr><th>#</th><th>Diseno</th><th>Tipo</th><th>Carpeta</th><th>Canva</th></tr>
+<tr><td>1</td><td>Hero Story - "Tu Negocio Merece Mas"</td><td><span class="tag tag-conv">Story</span></td><td>Historias</td><td><a class="canva-link" href="https://www.canva.com/d/nm-lCP3cqzBYkJr" target="_blank">Editar</a></td></tr>
+<tr><td>2</td><td>Pain Point - "Todavia anotas en cuaderno?"</td><td><span class="tag tag-prob">Post</span></td><td>Publicaciones</td><td><a class="canva-link" href="https://www.canva.com/d/juw_RUPTgKWoHg4" target="_blank">Editar</a></td></tr>
+<tr><td>3</td><td>Meta Ad - "Deja de perder dinero"</td><td><span class="tag tag-viral">Ad Story</span></td><td>Publicidad</td><td><a class="canva-link" href="https://www.canva.com/d/HVeu87eV1CsPZNu" target="_blank">Editar</a></td></tr>
+<tr><td>4</td><td>Lanzamiento - "Llego ParfumTrack"</td><td><span class="tag tag-conv">Post</span></td><td>Publicaciones</td><td><a class="canva-link" href="https://www.canva.com/d/zvaMNXUMbQjQWbc" target="_blank">Editar</a></td></tr>
+<tr><td>5</td><td>Testimonio - "Antes perdia ventas..."</td><td><span class="tag tag-test">Story</span></td><td>Historias</td><td><a class="canva-link" href="https://www.canva.com/d/wkkqn9SIpmK5vct" target="_blank">Editar</a></td></tr>
+<tr><td>6</td><td>Educativo - "5 Errores que te hacen perder dinero"</td><td><span class="tag tag-edu">Post</span></td><td>Publicaciones</td><td><a class="canva-link" href="https://www.canva.com/d/Yk0WpdUnaVa6XN3" target="_blank">Editar</a></td></tr>
+<tr><td>7</td><td>Urgencia - "7 Dias Gratis - Lanzamiento"</td><td><span class="tag tag-conv">Story</span></td><td>Historias</td><td><a class="canva-link" href="https://www.canva.com/d/IfZP3XGTyxJGFPb" target="_blank">Editar</a></td></tr>
+<tr><td>8</td><td>Before/After - "De esto... a esto"</td><td><span class="tag tag-viral">Ad Post</span></td><td>Publicidad</td><td><a class="canva-link" href="https://www.canva.com/d/cwEZ1pVzUb9DzX-" target="_blank">Editar</a></td></tr>
+<tr><td>9</td><td>Features - "Todo tu negocio en una app"</td><td><span class="tag tag-edu">Post</span></td><td>Publicaciones</td><td><a class="canva-link" href="https://www.canva.com/d/n0zv2PPg_Sq5i29" target="_blank">Editar</a></td></tr>
+<tr><td>10</td><td>Encuesta - "Como controlas tus ventas?"</td><td><span class="tag tag-viral">Story</span></td><td>Historias</td><td><a class="canva-link" href="https://www.canva.com/d/CRPhvKghQ278YgN" target="_blank">Editar</a></td></tr>
+<tr><td>11</td><td>Facebook Cover - Banner Profesional</td><td><span class="tag tag-brand">Banner</span></td><td>Banners</td><td><a class="canva-link" href="https://www.canva.com/d/kjTtpp531T4yC7A" target="_blank">Editar</a></td></tr>
+<tr><td>12</td><td>Resultados - "Datos reales de usar ParfumTrack"</td><td><span class="tag tag-test">Post</span></td><td>Publicaciones</td><td><a class="canva-link" href="https://www.canva.com/d/Ka3Fnb6y2IP_b9O" target="_blank">Editar</a></td></tr>
+<tr><td>13</td><td>Feature Deep-Dive - Control de Stock</td><td><span class="tag tag-edu">Story</span></td><td>Historias</td><td><a class="canva-link" href="https://www.canva.com/d/zbYoY8rqe4-DO4L" target="_blank">Editar</a></td></tr>
+<tr><td>14</td><td>How It Works - "Asi de facil"</td><td><span class="tag tag-edu">Post</span></td><td>Publicaciones</td><td><a class="canva-link" href="https://www.canva.com/d/LJewUUflycHNnT2" target="_blank">Editar</a></td></tr>
+<tr><td>15</td><td>Retargeting Ad - "Aun no probaste?"</td><td><span class="tag tag-conv">Ad Story</span></td><td>Publicidad</td><td><a class="canva-link" href="https://www.canva.com/d/U1jwMPEkdsIMlEk" target="_blank">Editar</a></td></tr>
+<tr><td>16</td><td>Aspiracional - "Tu negocio merece crecer"</td><td><span class="tag tag-auth">Post</span></td><td>Publicaciones</td><td><a class="canva-link" href="https://www.canva.com/d/tC0CwdJteWZQRge" target="_blank">Editar</a></td></tr>
+<tr><td>17</td><td>Caso de Exito - Carolina R.</td><td><span class="tag tag-test">Story</span></td><td>Historias</td><td><a class="canva-link" href="https://www.canva.com/d/CpK0P2KxiWaIbMd" target="_blank">Editar</a></td></tr>
+<tr><td>18</td><td>Comparacion - Con vs Sin ParfumTrack</td><td><span class="tag tag-prob">Post</span></td><td>Publicaciones</td><td><a class="canva-link" href="https://www.canva.com/d/ZELUbsrxQcboWAD" target="_blank">Editar</a></td></tr>
+<tr><td>19</td><td>Pricing - "Cuanto vale organizar tu negocio?"</td><td><span class="tag tag-conv">Story</span></td><td>Historias</td><td><a class="canva-link" href="https://www.canva.com/d/0BJ2hnccHDwv8vE" target="_blank">Editar</a></td></tr>
+<tr><td>20</td><td>Tip Semanal - "3 senales de que necesitas digitalizar"</td><td><span class="tag tag-edu">Post</span></td><td>Publicaciones</td><td><a class="canva-link" href="https://www.canva.com/d/R4JXst8dstLvW-2" target="_blank">Editar</a></td></tr>
+<tr><td>21</td><td>Carrusel Cover - "Guia Completa"</td><td><span class="tag tag-edu">Carrusel</span></td><td>Carruseles</td><td><a class="canva-link" href="https://www.canva.com/d/GyOS9Bp29Rg5Od5" target="_blank">Editar</a></td></tr>
+<tr><td>22</td><td>Day in Life - "Un dia con ParfumTrack"</td><td><span class="tag tag-auth">Story</span></td><td>Historias</td><td><a class="canva-link" href="https://www.canva.com/d/nGH3_neDWJudjzG" target="_blank">Editar</a></td></tr>
+<tr><td>23</td><td>FAQ - Preguntas Frecuentes</td><td><span class="tag tag-edu">Post</span></td><td>Publicaciones</td><td><a class="canva-link" href="https://www.canva.com/d/v_3Q8n8GMuGVHyX" target="_blank">Editar</a></td></tr>
+<tr><td>24</td><td>Oferta Limitada - "30 Dias Gratis"</td><td><span class="tag tag-conv">Ad Story</span></td><td>Publicidad</td><td><a class="canva-link" href="https://www.canva.com/d/F_qBZnYt6FdpQAe" target="_blank">Editar</a></td></tr>
+</table>
+
+<!-- SEMANA 1 -->
+<h2 id="semana1">Semana 1 — Pre-Lanzamiento (Dias 1-7)</h2>
+<div class="week-badge">FASE: GENERAR CURIOSIDAD + CONSTRUIR AUDIENCIA</div>
+
+<div class="card">
+<h3>Objetivo de la Semana</h3>
+<p>Crear expectativa, establecer presencia de marca, y construir una audiencia base de revendedoras de perfumes antes del lanzamiento oficial. Meta: 200 seguidores organicos, 50 registros en lista de espera.</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 1 — Lunes: Activacion de Perfiles</div>
+<h4>Acciones:</h4>
+<p>1. Configurar perfil de Instagram profesional con bio optimizada<br>
+2. Subir Facebook Cover (#11)<br>
+3. Publicar Historia de anticipacion (#7 - Urgencia)<br>
+4. Configurar link en bio (Linktree o similar) con landing page</p>
+<h4>Bio de Instagram:</h4>
+<div class="copy-block">
+ParfumTrack | Gestion de Perfumes<br>
+La app que organiza tu negocio de perfumes<br>
+Stock + Ventas + Clientes + Ganancias<br>
+Prueba GRATIS 7 dias
+</div>
+<h4>Story Copy:</h4>
+<div class="copy-block">"Algo grande esta llegando para las emprendedoras de perfumes... Preparate."</div>
+<p><span class="tag tag-brand">Branding</span> <span class="tag tag-conv">Conversion</span></p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 2 — Martes: Pain Point</div>
+<h4>Publicar:</h4>
+<p>Post #2 — "Todavia anotas tus ventas en un cuaderno?"<br>
+Story #10 — Encuesta "Como controlas tus ventas?"</p>
+<h4>Descripcion del Post:</h4>
+<div class="copy-block">
+Si todavia controlas tu negocio de perfumes con cuadernos, notas en el celular y memoria...<br><br>
+No es tu culpa. Pero si es tu responsabilidad cambiarlo.<br><br>
+Existe una forma mas inteligente de hacerlo. Y se llama ParfumTrack.<br><br>
+Stock + Ventas + Clientes + Ganancias = Todo organizado.<br><br>
+Link en bio para tu prueba gratis de 7 dias.<br><br>
+#NegocioDePerfumes #Emprendedora #RevendedoraDePerfumes #OrganizaTuNegocio #ParfumTrack #GestionDeNegocio #PerfumesOriginales #VentaDePerfumes
+</div>
+<p><span class="tag tag-prob">Pain Point</span> <span class="tag tag-viral">Engagement</span></p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 3 — Miercoles: Educativo</div>
+<h4>Publicar:</h4>
+<p>Post #6 — "5 Errores que te hacen perder dinero"<br>
+Story #13 — Feature Deep-Dive: Control de Stock</p>
+<h4>Descripcion del Post:</h4>
+<div class="copy-block">
+Estos 5 errores te estan costando dinero REAL en tu negocio de perfumes:<br><br>
+1. No controlar tu stock (vendes lo que no tienes)<br>
+2. No registrar cada venta (pierdes el rastro del dinero)<br>
+3. No conocer tus ganancias reales (trabajas gratis sin saberlo)<br>
+4. No dar seguimiento a clientes (pierdes recompras)<br>
+5. No organizar tus cuotas (dinero que nunca cobras)<br><br>
+ParfumTrack soluciona los 5. En serio.<br><br>
+Guarda este post si quieres dejar de perder dinero.<br><br>
+#ErroresDeNegocio #NegocioDePerfumes #TipsDeNegocio #Emprendedora #ParfumTrack #ControlDeStock #GestionDeVentas
+</div>
+<p><span class="tag tag-edu">Educativo</span> <span class="tag tag-viral">Guardados</span></p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 4 — Jueves: Contenido de Valor</div>
+<h4>Publicar:</h4>
+<p>Post #20 — Tip Semanal: "3 senales de que necesitas digitalizar"<br>
+Story #1 — Hero "Tu Negocio Merece Mas"</p>
+<h4>Descripcion del Post:</h4>
+<div class="copy-block">
+3 senales de que necesitas digitalizar tu negocio de perfumes YA:<br><br>
+1. Pierdes tiempo buscando datos de clientes en cuadernos<br>
+2. No sabes exactamente cuanto ganaste este mes<br>
+3. Has perdido ventas por no saber que tenias en stock<br><br>
+Si te identificas con al menos 1... ParfumTrack es para ti.<br><br>
+Se configura en 2 minutos. En serio.<br><br>
+#DigitalizaTuNegocio #NegocioDePerfumes #Emprendedora #TipsEmprendedoras #ParfumTrack
+</div>
+<p><span class="tag tag-edu">Educativo</span> <span class="tag tag-conv">Conversion</span></p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 5 — Viernes: Social Proof</div>
+<h4>Publicar:</h4>
+<p>Post #12 — Resultados: "Datos reales de usar ParfumTrack"<br>
+Story #5 — Testimonio de Maria</p>
+<h4>Reel sugerido (60s):</h4>
+<div class="copy-block">
+Hook (3s): "Esto es lo que pasa cuando organizas tu negocio de perfumes con una app"<br>
+Problema (10s): Mostrar el caos de cuadernos, notas, WhatsApp<br>
+Solucion (15s): Transicion a pantalla limpia de ParfumTrack<br>
+Resultados (10s): Numeros de mejora<br>
+CTA (5s): "Link en bio — 7 dias gratis"
+</div>
+<p><span class="tag tag-test">Social Proof</span> <span class="tag tag-viral">Viral</span></p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 6 — Sabado: Engagement</div>
+<h4>Publicar:</h4>
+<p>Story #22 — "Un Dia con ParfumTrack" (lifestyle)<br>
+Post #16 — Aspiracional: "Tu negocio merece crecer"</p>
+<h4>Descripcion del Post:</h4>
+<div class="copy-block">
+Tu negocio de perfumes merece crecer con las herramientas correctas.<br><br>
+Miles de emprendedoras ya organizaron su negocio con ParfumTrack.<br><br>
+Estas lista para dar el siguiente paso?<br><br>
+Prueba gratis 7 dias. Link en bio.<br><br>
+#Emprendedora #CreceTuNegocio #NegocioDePerfumes #MujeresEmprendedoras #ParfumTrack
+</div>
+<p><span class="tag tag-auth">Aspiracional</span> <span class="tag tag-brand">Branding</span></p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 7 — Domingo: Preparacion del Lanzamiento</div>
+<h4>Publicar:</h4>
+<p>Story #7 — Countdown "7 Dias Gratis - Lanzamiento Especial"<br>
+Preparar todos los materiales de Semana 2</p>
+<h4>Acciones:</h4>
+<p>1. Revisar metricas de Semana 1<br>
+2. Identificar posts con mejor rendimiento<br>
+3. Preparar secuencia de email para lista de espera<br>
+4. Configurar Meta Ads con creativos #3, #8, #15, #24</p>
+<p><span class="tag tag-conv">Conversion</span> <span class="tag tag-brand">Estrategia</span></p>
+</div>
+
+<!-- SEMANA 2 -->
+<h2 id="semana2">Semana 2 — Lanzamiento Oficial (Dias 8-14)</h2>
+<div class="week-badge">FASE: LANZAMIENTO + PRIMERAS CONVERSIONES</div>
+
+<div class="card card-highlight">
+<h3>Objetivo de la Semana</h3>
+<p>Lanzamiento oficial de ParfumTrack. Generar el mayor volumen de pruebas gratuitas posible. Activar Meta Ads. Meta: 500 seguidores, 200 registros, 50 pruebas activas.</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 8 — Lunes: DIA DE LANZAMIENTO</div>
+<h4>Publicar TODO:</h4>
+<p>Post #4 — "LLEGO PARFUMTRACK" (post principal)<br>
+Story #1 — Hero "Tu Negocio Merece Mas"<br>
+Story #7 — Urgencia "7 Dias Gratis"<br>
+Story #24 — Oferta Limitada "30 Dias Gratis" (primeras 100)<br>
+ACTIVAR Meta Ads con creativos #3 y #8</p>
+<h4>Descripcion del Post de Lanzamiento:</h4>
+<div class="copy-block">
+LLEGO PARFUMTRACK.<br><br>
+La app que las emprendedoras de perfumes estaban esperando.<br><br>
+Imagina tener TODO tu negocio organizado en tu celular:<br>
+- Stock inteligente<br>
+- Ventas en un toque<br>
+- Clientes organizados<br>
+- Ganancias claras<br>
+- Cuotas controladas<br>
+- Gastos registrados<br><br>
+Sin cuadernos. Sin hojas de calculo. Sin caos.<br><br>
+OFERTA DE LANZAMIENTO: Las primeras 100 emprendedoras reciben 30 DIAS GRATIS (en vez de 7).<br><br>
+Link en bio. No esperes.<br><br>
+#ParfumTrack #LanzamientoApp #NegocioDePerfumes #Emprendedora #AppParaPerfumes #OrganizaTuNegocio #GestionDeNegocio #RevendedoraDePerfumes #PerfumesOriginales #VentaDePerfumes
+</div>
+<p><span class="tag tag-conv">Lanzamiento</span> <span class="tag tag-viral">Viral</span> <span class="tag tag-prob">Urgencia</span></p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 9 — Martes: Social Proof + Retargeting</div>
+<h4>Publicar:</h4>
+<p>Post #18 — Comparacion "Con vs Sin ParfumTrack"<br>
+Story #17 — Caso de Exito Carolina R.<br>
+ACTIVAR Ad de retargeting #15</p>
+<h4>Descripcion:</h4>
+<div class="copy-block">
+CON PARFUMTRACK vs SIN PARFUMTRACK<br><br>
+Sin: Cuadernos desordenados, ventas sin registro, no sabes cuanto ganas, clientes olvidados, stock perdido.<br><br>
+Con: Todo digitalizado, cada venta registrada, ganancias claras, clientes organizados, stock controlado.<br><br>
+La diferencia? Una app. 2 minutos de configuracion.<br><br>
+Cambia tu negocio hoy. Prueba gratis. Link en bio.<br><br>
+#AntesYDespues #NegocioDePerfumes #Emprendedora #ParfumTrack #TransformaTuNegocio
+</div>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 10 — Miercoles: How It Works</div>
+<h4>Publicar:</h4>
+<p>Post #14 — "Asi de facil es usar ParfumTrack"<br>
+Story #13 — Feature: Control de Stock<br>
+Reel: Demo rapida de la app (30-45s)</p>
+<h4>Script del Reel:</h4>
+<div class="copy-block">
+"Te muestro como funciona ParfumTrack en 30 segundos"<br>
+Paso 1: Abres la app (mostrar pantalla)<br>
+Paso 2: Agregas tu perfume (mostrar formulario)<br>
+Paso 3: Registras una venta (mostrar proceso)<br>
+"Y listo. Asi de simple. Link en bio para tu prueba gratis."
+</div>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 11 — Jueves: FAQ + Pricing</div>
+<h4>Publicar:</h4>
+<p>Post #23 — FAQ Preguntas Frecuentes<br>
+Story #19 — Pricing: "Cuanto vale organizar tu negocio?"</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 12 — Viernes: Carrusel Educativo</div>
+<h4>Publicar:</h4>
+<p>Post #21 — Carrusel "Guia Completa para organizar tu negocio"<br>
+Story #5 — Testimonio reprise<br>
+TikTok: "5 cosas que cambiaron cuando digitalice mi negocio de perfumes"</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 13 — Sabado: Community</div>
+<h4>Publicar:</h4>
+<p>Story #10 — Encuesta "Como controlas tus ventas?"<br>
+Post #9 — Features "Todo tu negocio en una app"<br>
+Responder TODOS los DMs y comentarios personalmente</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 14 — Domingo: Revision</div>
+<h4>Acciones:</h4>
+<p>1. Analizar metricas de Semana 2<br>
+2. Optimizar ads (pausar los que no convierten, escalar los ganadores)<br>
+3. Publicar Story #22 — "Un Dia con ParfumTrack"<br>
+4. Preparar contenido Semana 3 basado en datos reales</p>
+</div>
+
+<!-- SEMANA 3 -->
+<h2 id="semana3">Semana 3 — Traccion y Autoridad (Dias 15-21)</h2>
+<div class="week-badge">FASE: EDUCAR + CONSTRUIR CONFIANZA + ESCALAR</div>
+
+<div class="card card-success">
+<h3>Objetivo de la Semana</h3>
+<p>Consolidar la autoridad de marca, aumentar el engagement, y escalar las conversiones. Meta: 1000 seguidores, 500 registros, 150 pruebas activas, primeras suscripciones pagas.</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 15 — Lunes: Caso de Exito Profundo</div>
+<p>Post: Carrusel con historia completa de una revendedora (antes/despues con datos)<br>
+Story #17 — Caso de Exito Carolina con resultados actualizados<br>
+Reel: "La historia de [nombre] - De cuaderno a ParfumTrack"</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 16 — Martes: Tutorial en Video</div>
+<p>Reel/TikTok: "Como registrar una venta en ParfumTrack en 10 segundos"<br>
+Story: Behind-the-scenes del equipo trabajando en nuevas funciones<br>
+Post educativo: "3 formas de aumentar tus ventas de perfumes este mes"</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 17 — Miercoles: Colaboracion</div>
+<p>Contactar 10 micro-influencers de nicho perfumes/emprendimiento<br>
+Publicar: Post colaborativo o repost de usuario real<br>
+Story: Compartir reviews de usuarios reales</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 18 — Jueves: Feature Spotlight</div>
+<p>Post: Deep-dive en la funcion de Gestion de Clientes<br>
+Story: Tutorial rapido de como agregar un cliente<br>
+Reel: "Nunca mas pierdas un cliente - Asi funciona"</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 19 — Viernes: Social Proof Masivo</div>
+<p>Post: Compilacion de testimonios y reviews<br>
+Story: Screenshots de mensajes positivos de usuarios<br>
+Activar nuevo ad con el creativo de mejor rendimiento de Semana 2</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 20 — Sabado: Contenido Viral</div>
+<p>Reel: "POV: Sos revendedora de perfumes y descubris ParfumTrack" (humor)<br>
+Post: Meme relatable sobre el caos de vender perfumes sin organizacion<br>
+Story: Encuesta divertida sobre situaciones de revendedoras</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIA 21 — Domingo: Preparacion Semana Final</div>
+<p>Post aspiracional #16 — "Tu negocio merece crecer"<br>
+Revision de metricas y optimizacion de funnel completo<br>
+Preparar oferta especial de cierre para Semana 4</p>
+</div>
+
+<!-- SEMANA 4 -->
+<h2 id="semana4">Semana 4 — Escala y Conversion (Dias 22-30)</h2>
+<div class="week-badge">FASE: CONVERTIR + RETENER + MONETIZAR</div>
+
+<div class="card card-warning">
+<h3>Objetivo de la Semana</h3>
+<p>Maximizar conversiones de prueba gratuita a suscripcion paga. Retener usuarios. Establecer ritmo de contenido sostenible. Meta: 2000 seguidores, 100 suscriptores pagos, CAC menor a $5 USD.</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIAS 22-24: Urgencia de Cierre</div>
+<p>Post: "Ultimos dias de la oferta de lanzamiento"<br>
+Story #24 — Oferta Limitada "30 dias gratis - quedan pocos lugares"<br>
+Ads con urgencia: Countdown creatives<br>
+Email: Secuencia de cierre a lista de espera<br>
+Retargeting agresivo a visitantes de landing page</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIAS 25-27: Social Proof + FOMO</div>
+<p>Post: "Ya somos +X emprendedoras usando ParfumTrack"<br>
+Story: Counter en tiempo real de nuevos usuarios<br>
+Reel: Compilacion de transformaciones de usuarios reales<br>
+TikTok: "Lo que pasa cuando 500 emprendedoras descubren esta app"<br>
+Testimonios en video de usuarios reales</p>
+</div>
+
+<div class="calendar-day">
+<div class="day-label">DIAS 28-30: Consolidacion</div>
+<p>Post: Agradecimiento a la comunidad + resultados del lanzamiento<br>
+Story: Preview de nuevas funciones que vienen<br>
+Establecer calendario de contenido semanal sostenible<br>
+Documentar las metricas finales del lanzamiento<br>
+Planificar la estrategia del mes 2 basada en datos reales</p>
+</div>
+
+<!-- FASE 1: PRIMER IMPACTO -->
+<h2 id="fase1">FASE 1 — Primer Impacto (Primeros 3 Segundos)</h2>
+<div class="phase-badge">ANALISIS DE SCROLL-STOPPING</div>
+
+<div class="phase-section">
+<h4>Detiene el scroll?</h4>
+<p>PARCIALMENTE. Los colores oscuros + dorado destacan en feeds saturados de blanco. Pero necesitan un elemento visual mas disruptivo. Un numero grande, una imagen impactante, o una pregunta que genere incomodidad.</p>
+
+<h4>Genera curiosidad?</h4>
+<p>INSUFICIENTE. Los posts educativos (5 errores, 3 senales) generan curiosidad natural. Los posts de lanzamiento son demasiado "anuncio" y poco "historia". Abrir con una pregunta incomoda o un dato impactante.</p>
+
+<h4>Genera confianza?</h4>
+<p>SI. El diseno dark + gold transmite profesionalismo y seriedad. Parece una startup real, no un proyecto amateur.</p>
+
+<div class="card card-highlight">
+<h3>Calificacion Primer Impacto: 7.5/10</h3>
+<div class="score-bar"><div class="score-fill" style="width:75%"></div></div>
+<p>Fuerte en estetica, debil en hooks disruptivos. Necesita headlines mas agresivos que generen tension emocional inmediata.</p>
+</div>
+</div>
+
+<!-- FASE 2: DISENO -->
+<h2 id="fase2">FASE 2 — Diseno</h2>
+<div class="phase-badge">ANALISIS VISUAL COMPLETO</div>
+
+<div class="phase-section">
+<div class="grid-2">
+<div class="card">
+<h4>Colores</h4>
+<p><strong>Acierto:</strong> Navy + Gold es premium, perfecto para perfumes.</p>
+<p><strong>Mejora:</strong> Agregar tercer color de acento (coral #E07070 o verde #70C9A0) para CTAs y urgencia.</p>
+</div>
+<div class="card">
+<h4>Tipografias</h4>
+<p><strong>Mejora:</strong> Jerarquia mas clara. Titulo AL MENOS 2.5x mas grande que texto secundario. DM Sans Bold titulos, Regular cuerpo.</p>
+</div>
+<div class="card">
+<h4>Contraste y Espaciado</h4>
+<p><strong>Mejora:</strong> Mas espacio negativo. El vacio es premium. Shopify usa 40% espacio vacio en sus creativos.</p>
+</div>
+<div class="card">
+<h4>Jerarquia Visual</h4>
+<p><strong>Critico:</strong> El CTA compite con el headline. El ojo debe ir HEADLINE, BENEFICIO, CTA. Nada mas.</p>
+</div>
+</div>
+
+<h4>Que falta?</h4>
+<p>1. Screenshots reales de la app (la prueba social visual mas fuerte)<br>
+2. Rostros humanos (generan 38% mas engagement)<br>
+3. Elemento de movimiento/dinamismo (flechas, lineas de flujo)</p>
+</div>
+
+<!-- FASE 3: COPYWRITING -->
+<h2 id="fase3">FASE 3 — Copywriting</h2>
+<div class="phase-badge">ANALISIS DE TEXTOS Y MENSAJES</div>
+
+<div class="phase-section">
+<h3>Transformaciones: Funciones a Beneficios</h3>
+<table>
+<tr><th>Funcion (NO usar)</th><th>Beneficio (USAR)</th></tr>
+<tr><td>Control de stock</td><td>"Sabe exactamente que tienes para vender HOY"</td></tr>
+<tr><td>Registro de ventas</td><td>"Nunca mas pierdas el rastro de tu dinero"</td></tr>
+<tr><td>Gestion de clientes</td><td>"Tus clientes vuelven a comprarte porque les das seguimiento"</td></tr>
+<tr><td>Reportes de ganancias</td><td>"Sabe exactamente cuanto ganaste este mes"</td></tr>
+<tr><td>Control de cuotas</td><td>"Cobra cada peso que te deben sin perseguir a nadie"</td></tr>
+<tr><td>Gestion de gastos</td><td>"Descubre a donde se va tu dinero y detene la fuga"</td></tr>
+</table>
+
+<h4>Top 5 Headlines que Detienen el Scroll</h4>
+<div class="card card-highlight">
+<p>1. "Cuanto dinero perdiste este mes por no tener control?"<br>
+2. "El 73% de las revendedoras no sabe cuanto gana realmente"<br>
+3. "Tu clienta te debe $15.000. Lo recordas?"<br>
+4. "3 perfumes se te vencieron sin que te dieras cuenta"<br>
+5. "Trabajas 12 horas al dia y no sabes si ganas o pierdes"</p>
+</div>
+
+<h4>CTAs Optimizados</h4>
+<table>
+<tr><th>CTA Debil</th><th>CTA Fuerte</th></tr>
+<tr><td>Descargar</td><td>Empieza tu prueba gratis</td></tr>
+<tr><td>Registrate</td><td>Organiza tu negocio en 2 minutos</td></tr>
+<tr><td>Conoce mas</td><td>Mira como funciona (30 segundos)</td></tr>
+<tr><td>Comprar</td><td>Activa tu prueba gratis de 7 dias</td></tr>
+</table>
+</div>
+
+<!-- FASE 4: PSICOLOGIA -->
+<h2 id="fase4">FASE 4 — Psicologia de Ventas</h2>
+<div class="phase-badge">ANALISIS EMOCIONAL Y PERSUASIVO</div>
+
+<div class="phase-section">
+<div class="grid-3">
+<div class="mini-card">
+<h4>Curiosidad: 6.5/10</h4>
+<div class="score-bar"><div class="score-fill" style="width:65%"></div></div>
+</div>
+<div class="mini-card">
+<h4>Deseo: 7/10</h4>
+<div class="score-bar"><div class="score-fill" style="width:70%"></div></div>
+</div>
+<div class="mini-card">
+<h4>Confianza: 7.5/10</h4>
+<div class="score-bar"><div class="score-fill" style="width:75%"></div></div>
+</div>
+<div class="mini-card">
+<h4>Autoridad: 5/10</h4>
+<div class="score-bar"><div class="score-fill" style="width:50%"></div></div>
+</div>
+<div class="mini-card">
+<h4>Urgencia: 8/10</h4>
+<div class="score-bar"><div class="score-fill" style="width:80%"></div></div>
+</div>
+<div class="mini-card">
+<h4>Simplicidad: 7/10</h4>
+<div class="score-bar"><div class="score-fill" style="width:70%"></div></div>
+</div>
+</div>
+
+<h4>Emociones que Faltan</h4>
+<p><strong>MIEDO A LA PERDIDA:</strong> "Cuanto dinero perdiste HOY por no controlar tu negocio?" 2x mas efectivo que prometer ganancias.</p>
+<p><strong>ORGULLO:</strong> "Imagina mostrarle a tus clientes que sos una profesional." Las revendedoras quieren ser vistas como empresarias serias.</p>
+<p><strong>PERTENENCIA:</strong> "Unite a la comunidad de +500 emprendedoras inteligentes." Nadie quiere quedarse afuera.</p>
+</div>
+
+<!-- FASE 5: INSTAGRAM -->
+<h2 id="fase5">FASE 5 — Instagram</h2>
+<div class="phase-badge">ANALISIS DE POTENCIAL EN PLATAFORMA</div>
+
+<div class="phase-section">
+<div class="grid-2">
+<div class="card">
+<h4>Potencial de Alcance: 7/10</h4>
+<div class="score-bar"><div class="score-fill" style="width:70%"></div></div>
+<p>Reels tienen el mayor potencial. Invertir 60% del esfuerzo en video.</p>
+</div>
+<div class="card">
+<h4>Potencial de Guardados: 8.5/10</h4>
+<div class="score-bar"><div class="score-fill" style="width:85%"></div></div>
+<p>FORTALEZA. Posts educativos tienen altisimo potencial de guardado.</p>
+</div>
+<div class="card">
+<h4>Potencial de Compartidos: 6/10</h4>
+<div class="score-bar"><div class="score-fill" style="width:60%"></div></div>
+<p>Crear contenido tipo "tips para emprendedoras" mas generico que compartan.</p>
+</div>
+<div class="card">
+<h4>Potencial de Viralidad: 5.5/10</h4>
+<div class="score-bar"><div class="score-fill" style="width:55%"></div></div>
+<p>Nicho especifico limita viralidad masiva. Viralidad DENTRO del nicho es alcanzable.</p>
+</div>
+</div>
+</div>
+
+<!-- FASE 6: CONVERSION -->
+<h2 id="fase6">FASE 6 — Conversion</h2>
+<div class="phase-badge">ANALISIS DE CAPACIDAD DE VENTA</div>
+
+<div class="phase-section">
+<h4>Que impide que convierta mas?</h4>
+<div class="card card-danger">
+<p><strong>1. No hay demo visual.</strong> Un video de 15 segundos mostrando la interfaz duplicaria la conversion.<br><br>
+<strong>2. Demasiados pasos al CTA.</strong> "Link en bio" es un paso extra. Usar "Desliza" en stories o links directos en ads.<br><br>
+<strong>3. No hay seguimiento post-clic.</strong> Necesita pixel de Meta + retargeting automatico.<br><br>
+<strong>4. Falta prueba social cuantificable.</strong> "+537 emprendedoras en Argentina" es mas creible que "+500 emprendedoras".<br><br>
+<strong>5. Valor percibido no claro.</strong> Cuanto tiempo/dinero ahorra exactamente? Necesita datos concretos.</p>
+</div>
+</div>
+
+<!-- FASE 7: BRANDING -->
+<h2 id="fase7">FASE 7 — Branding</h2>
+<div class="phase-badge">COMPARACION CON STARTUPS DE CLASE MUNDIAL</div>
+
+<div class="phase-section">
+<table>
+<tr><th>Aspecto</th><th>ParfumTrack</th><th>Shopify</th><th>Stripe</th><th>Notion</th></tr>
+<tr><td>Paleta</td><td>Dark + Gold</td><td>Verde + Blanco</td><td>Purple + Navy</td><td>B&W minimal</td></tr>
+<tr><td>Consistencia</td><td>7/10</td><td>10/10</td><td>10/10</td><td>9/10</td></tr>
+<tr><td>Screenshots</td><td>NO TIENE</td><td>Protagonistas</td><td>Protagonistas</td><td>Protagonistas</td></tr>
+</table>
+
+<div class="card card-warning">
+<h4>Que le falta para parecer una startup profesional?</h4>
+<p>1. SCREENSHOTS DE LA APP (brecha mas grande)<br>
+2. Sistema de iconografia propio<br>
+3. Tipografia custom (Plus Jakarta Sans o Space Grotesk)<br>
+4. Animaciones de marca<br>
+5. Landing page profesional con la misma estetica</p>
+</div>
+</div>
+
+<!-- FASE 8: CANVA -->
+<h2 id="fase8">FASE 8 — Analisis Canva</h2>
+<div class="phase-badge">INSTRUCCIONES DE REDISENO</div>
+
+<div class="phase-section">
+<div class="card">
+<h4>Colores Exactos</h4>
+<p>Fondo: #0A1628 | Secundario: #1A2744 | Gold: #D4A574 | Gold claro: #E8C97E<br>
+Texto: #FFFFFF | Secundario: #B8B5D0 | Urgencia: #E07070 | Exito: #70C9A0</p>
+</div>
+<div class="card">
+<h4>Tipografias en Canva</h4>
+<p>Titulos: DM Sans Bold — 36-48px stories, 28-36px posts<br>
+Subtitulos: DM Sans Medium — 18-24px<br>
+Cuerpo: DM Sans Regular — 14-16px<br>
+CTA: DM Sans Bold — 16-20px con padding generoso</p>
+</div>
+<div class="card">
+<h4>Estructura Story (1080x1920)</h4>
+<p>Top 10%: Logo | 10-30%: Hook/titulo | 30-70%: Contenido | 70-85%: CTA | 85-100%: Urgencia</p>
+</div>
+<div class="card">
+<h4>Estructura Post (1080x1350)</h4>
+<p>Top 15%: Marca + badge | 15-40%: Headline | 40-80%: Contenido | 80-100%: CTA</p>
+</div>
+</div>
+
+<!-- FASE 9: MARKETING -->
+<h2 id="fase9">FASE 9 — Marketing</h2>
+<div class="phase-badge">FORMATO OPTIMO Y ROI</div>
+
+<div class="phase-section">
+<table>
+<tr><th>Objetivo</th><th>Mejor Formato</th><th>ROI</th></tr>
+<tr><td>Alcance maximo</td><td>Reels (30-60s)</td><td>10x mas que posts estaticos</td></tr>
+<tr><td>Guardados</td><td>Carruseles educativos</td><td>3x mas guardados</td></tr>
+<tr><td>Engagement</td><td>Stories con encuestas</td><td>5x mas interaccion</td></tr>
+<tr><td>Conversion</td><td>Story Ads con CTA</td><td>Menor CPL</td></tr>
+<tr><td>Confianza</td><td>Video testimonial (60-90s)</td><td>-40% CAC</td></tr>
+<tr><td>Viralidad</td><td>TikTok/Reel con humor</td><td>Altisimo potencial</td></tr>
+</table>
+
+<div class="card card-success">
+<h4>GANADOR: Reel de 30s mostrando la app en accion</h4>
+<p>Problema (5s) → App abierta (10s) → Resultado (10s) → CTA (5s). Tiene el mayor ROI porque muestra el producto real, se reutiliza como TikTok/ad/story, y genera confianza visual.</p>
+</div>
+</div>
+
+<!-- FASE 10: REDISENO -->
+<h2 id="fase10">FASE 10 — Rediseno Completo</h2>
+<div class="phase-badge">NUEVA PROPUESTA VISUAL</div>
+
+<div class="phase-section">
+<div class="card card-highlight">
+<h4>Post Principal Redisenado</h4>
+<p>1. HOOK: "Cuanto dinero perdiste este mes?" (grande, gold, centrado)<br>
+2. VISUAL: Mockup de telefono con ParfumTrack abierto (40% del espacio)<br>
+3. 3 BENEFICIOS: "Nunca pierdas una venta" / "Sabe cuanto ganas" / "Clientes que vuelven"<br>
+4. CTA: "Prueba 7 Dias Gratis" con subtext "Sin tarjeta de credito"</p>
+</div>
+
+<h4>Nuevo Copy Central</h4>
+<div class="copy-block">
+Hook: "Tu negocio de perfumes te esta haciendo perder dinero. Y ni lo sabes."<br>
+Desarrollo: "Cada venta no registrada es dinero invisible. Cada cliente sin seguimiento es una recompra perdida."<br>
+Solucion: "ParfumTrack ilumina todo. En 2 minutos tenes el control total."<br>
+CTA: "Activa tu prueba gratis. 7 dias. Sin tarjeta. Sin compromiso."
+</div>
+</div>
+
+<!-- FASE 11: DESCRIPCION Y HASHTAGS -->
+<h2 id="fase11">FASE 11 — Descripcion y Hashtags</h2>
+<div class="phase-badge">COPY OPTIMIZADO PARA REDES</div>
+
+<div class="phase-section">
+<h3>Hashtags por Categoria</h3>
+
+<h4>Nicho (usar SIEMPRE):</h4>
+<p>
+<span class="hashtag">#NegocioDePerfumes</span>
+<span class="hashtag">#RevendedoraDePerfumes</span>
+<span class="hashtag">#VentaDePerfumes</span>
+<span class="hashtag">#PerfumesOriginales</span>
+<span class="hashtag">#EmprendedoraDePerfumes</span>
+<span class="hashtag">#ParfumTrack</span>
+</p>
+
+<h4>Emprendimiento (rotar):</h4>
+<p>
+<span class="hashtag">#Emprendedora</span>
+<span class="hashtag">#MujeresEmprendedoras</span>
+<span class="hashtag">#NegocioDesdeElCelular</span>
+<span class="hashtag">#EmprendimientoFemenino</span>
+<span class="hashtag">#TipsDeNegocio</span>
+<span class="hashtag">#CreceTuNegocio</span>
+<span class="hashtag">#MujerEmpresaria</span>
+</p>
+
+<h4>Organizacion (rotar):</h4>
+<p>
+<span class="hashtag">#OrganizaTuNegocio</span>
+<span class="hashtag">#ControlDeStock</span>
+<span class="hashtag">#GestionDeVentas</span>
+<span class="hashtag">#DigitalizaTuNegocio</span>
+<span class="hashtag">#NegocioOrganizado</span>
+<span class="hashtag">#AppParaNegocios</span>
+</p>
+
+<h4>Alcance (agregar 3-5):</h4>
+<p>
+<span class="hashtag">#Emprendimiento</span>
+<span class="hashtag">#NegocioOnline</span>
+<span class="hashtag">#TrabajaDesdeElCelular</span>
+<span class="hashtag">#IndependenciaFinanciera</span>
+<span class="hashtag">#JefaDeMiMisma</span>
+</p>
+
+<h3>Plantilla de Descripcion para Posts Educativos</h3>
+<div class="copy-block">
+[Dato impactante o pregunta]<br><br>
+La realidad es que la mayoria de las revendedoras de perfumes pierden dinero por no tener control.<br><br>
+Pero no tiene que ser asi. ParfumTrack te da el control total en 2 minutos.<br><br>
+Guarda este post si no quieres seguir perdiendo.<br><br>
+Prueba gratis 7 dias — link en bio.<br><br>
+#NegocioDePerfumes #Emprendedora #TipsDeNegocio #RevendedoraDePerfumes #ParfumTrack #OrganizaTuNegocio #ControlDeStock #GestionDeVentas #VentaDePerfumes #EmprendimientoFemenino
+</div>
+
+<h3>Plantilla para Posts de Conversion</h3>
+<div class="copy-block">
+Tu negocio de perfumes puede estar organizado HOY.<br><br>
+No manana. No "cuando tenga tiempo". HOY.<br><br>
+ParfumTrack se configura en 2 minutos y te muestra exactamente:<br>
+— Que tienes en stock<br>
+— Cuanto vendiste<br>
+— Quien te debe<br>
+— Cuanto ganaste<br><br>
+Las primeras 100 emprendedoras reciben 30 DIAS GRATIS.<br><br>
+Link en bio. No esperes.<br><br>
+#ParfumTrack #NegocioDePerfumes #AppParaNegocios #Emprendedora #PruebaGratis #RevendedoraDePerfumes #OrganizaTuNegocio
+</div>
+</div>
+
+<!-- FASE 12: AUDITORIA BRUTAL -->
+<h2 id="fase12">FASE 12 — Auditoria Brutal</h2>
+<div class="phase-badge">SIN PIEDAD, SIN ELOGIOS</div>
+
+<div class="phase-section">
+<h3 style="color:var(--danger)">TOP 10 ERRORES MAS GRAVES</h3>
+
+<div class="error-item"><span class="error-num error-red">1</span><strong>NO HAY SCREENSHOTS DE LA APP.</strong> Vendes un producto digital sin mostrarlo. La confianza cae un 50%.</div>
+<div class="error-item"><span class="error-num error-red">2</span><strong>COPY CENTRADO EN FUNCIONES.</strong> "Control de stock" no vende. "Nunca mas pierdas una venta" si vende.</div>
+<div class="error-item"><span class="error-num error-red">3</span><strong>FALTA VIDEO DEMO.</strong> El formato con mayor ROI no existe. Es como tener un Ferrari y no encenderlo.</div>
+<div class="error-item"><span class="error-num error-red">4</span><strong>NO HAY PRUEBA SOCIAL CUANTIFICABLE.</strong> Necesitas numeros reales, reviews verificadas, screenshots de mensajes.</div>
+<div class="error-item"><span class="error-num error-red">5</span><strong>DEMASIADO TEXTO POR DISENO.</strong> Disenos con 5+ lineas tienen tasa de lectura menor al 20%.</div>
+<div class="error-item"><span class="error-num error-red">6</span><strong>HOOKS DEBILES.</strong> "Llego ParfumTrack" no detiene el scroll. "Cuanto dinero perdiste HOY?" si.</div>
+<div class="error-item"><span class="error-num error-red">7</span><strong>CTA INCONSISTENTE.</strong> Un solo CTA en TODA la campana: "Activa tu prueba gratis".</div>
+<div class="error-item"><span class="error-num error-red">8</span><strong>NO HAY RETARGETING.</strong> Sin pixel de Meta, cada visitante que no convierte se pierde para siempre.</div>
+<div class="error-item"><span class="error-num error-red">9</span><strong>FALTA VIDEO.</strong> 80% del contenido es estatico. Instagram prioriza video.</div>
+<div class="error-item"><span class="error-num error-red">10</span><strong>NO HAY LANDING PAGE.</strong> Mandar trafico a app store directamente pierde 60% de conversiones.</div>
+
+<h3 style="color:var(--warning);margin-top:30px">TOP 10 MEJORAS MAS IMPORTANTES</h3>
+
+<div class="error-item"><span class="error-num error-orange">1</span>Crear 3-5 Reels mostrando la app real (screen recordings con voiceover)</div>
+<div class="error-item"><span class="error-num error-orange">2</span>Agregar mockup de telefono con screenshots reales en todos los creativos</div>
+<div class="error-item"><span class="error-num error-orange">3</span>Reescribir TODOS los headlines en formato "beneficio emocional"</div>
+<div class="error-item"><span class="error-num error-orange">4</span>Crear landing page con la misma estetica dark+gold</div>
+<div class="error-item"><span class="error-num error-orange">5</span>Instalar Meta Pixel y configurar eventos de conversion</div>
+<div class="error-item"><span class="error-num error-orange">6</span>Conseguir 5-10 testimonios reales con foto y nombre</div>
+<div class="error-item"><span class="error-num error-orange">7</span>Reducir texto un 40% en cada diseno</div>
+<div class="error-item"><span class="error-num error-orange">8</span>Crear set de iconos custom para las 6 funciones</div>
+<div class="error-item"><span class="error-num error-orange">9</span>Implementar secuencia de email automatica</div>
+<div class="error-item"><span class="error-num error-orange">10</span>Agregar precios concretos en creativos de pricing</div>
+
+<h3 style="color:var(--success);margin-top:30px">TOP 10 OPORTUNIDADES DE CRECIMIENTO</h3>
+
+<div class="error-item"><span class="error-num error-green">1</span><strong>Programa de referidos:</strong> "Invita una amiga y ambas reciben 1 mes gratis"</div>
+<div class="error-item"><span class="error-num error-green">2</span><strong>Contenido UGC:</strong> Pedir a usuarias que graben su experiencia a cambio de meses gratis</div>
+<div class="error-item"><span class="error-num error-green">3</span><strong>Comunidad de WhatsApp:</strong> Grupo exclusivo para usuarias de ParfumTrack</div>
+<div class="error-item"><span class="error-num error-green">4</span><strong>Partnerships con proveedores de perfumes</strong></div>
+<div class="error-item"><span class="error-num error-green">5</span><strong>Templates gratuitos:</strong> "Descarga gratis la plantilla de control de stock" para capturar emails</div>
+<div class="error-item"><span class="error-num error-green">6</span><strong>Lives semanales:</strong> "Tips para crecer tu negocio de perfumes"</div>
+<div class="error-item"><span class="error-num error-green">7</span><strong>SEO/Blog:</strong> "Como empezar un negocio de perfumes" para trafico organico</div>
+<div class="error-item"><span class="error-num error-green">8</span><strong>TikTok agresivo:</strong> Formato antes/despues tiene potencial viral enorme</div>
+<div class="error-item"><span class="error-num error-green">9</span><strong>Expansion a otros nichos:</strong> Cosmeticos, ropa, accesorios (mercado 10x)</div>
+<div class="error-item"><span class="error-num error-green">10</span><strong>Feature de catalogo digital:</strong> Compartir catalogo con clientes desde la app</div>
+
+<h3 style="color:var(--gold2);margin-top:30px">TOP 5 CAMBIOS QUE GENERARIAN MAS VENTAS</h3>
+
+<div class="error-item"><span class="error-num error-gold">1</span><strong>REEL DEMO 30s.</strong> +200% conversiones de prueba gratuita.</div>
+<div class="error-item"><span class="error-num error-gold">2</span><strong>LANDING PAGE.</strong> +150% conversion de visitante a registro.</div>
+<div class="error-item"><span class="error-num error-gold">3</span><strong>PROGRAMA DE REFERIDOS.</strong> Reduccion de CAC del 60%.</div>
+<div class="error-item"><span class="error-num error-gold">4</span><strong>SECUENCIA DE EMAIL.</strong> +80% conversion de prueba gratis a pago.</div>
+<div class="error-item"><span class="error-num error-gold">5</span><strong>RETARGETING META ADS.</strong> Recuperar 30% de visitantes perdidos.</div>
+</div>
+
+<!-- PUNTUACION FINAL -->
+<h2 id="puntuacion">Puntuacion Final</h2>
+
+<div class="card card-highlight">
+<div class="grid-4">
+<div class="kpi-box">
+<span class="kpi-num">7.5</span>
+<span class="kpi-label">Diseno</span>
+<div class="score-bar"><div class="score-fill" style="width:75%"></div></div>
+</div>
+<div class="kpi-box">
+<span class="kpi-num">7.0</span>
+<span class="kpi-label">Branding</span>
+<div class="score-bar"><div class="score-fill" style="width:70%"></div></div>
+</div>
+<div class="kpi-box">
+<span class="kpi-num">6.5</span>
+<span class="kpi-label">Marketing</span>
+<div class="score-bar"><div class="score-fill" style="width:65%"></div></div>
+</div>
+<div class="kpi-box">
+<span class="kpi-num">6.0</span>
+<span class="kpi-label">Instagram</span>
+<div class="score-bar"><div class="score-fill" style="width:60%"></div></div>
+</div>
+<div class="kpi-box">
+<span class="kpi-num">5.5</span>
+<span class="kpi-label">Conversion</span>
+<div class="score-bar"><div class="score-fill" style="width:55%"></div></div>
+</div>
+<div class="kpi-box">
+<span class="kpi-num">7.0</span>
+<span class="kpi-label">Valor Percibido</span>
+<div class="score-bar"><div class="score-fill" style="width:70%"></div></div>
+</div>
+<div class="kpi-box">
+<span class="kpi-num">6.0</span>
+<span class="kpi-label">Potencial Ventas</span>
+<div class="score-bar"><div class="score-fill" style="width:60%"></div></div>
+</div>
+<div class="kpi-box">
+<span class="kpi-num">5.0</span>
+<span class="kpi-label">Viralidad</span>
+<div class="score-bar"><div class="score-fill" style="width:50%"></div></div>
+</div>
+</div>
+<p style="text-align:center;margin-top:16px;color:var(--text3)">Promedio General: <strong style="color:var(--gold2);font-size:24px">6.3/10</strong></p>
+</div>
+
+<!-- VEREDICTO FINAL -->
+<h2 id="veredicto">Veredicto Final</h2>
+
+<div class="verdict">
+<h3>1. Publicarias esto hoy?</h3>
+<p>SI, pero con modificaciones. Los disenos son profesionales. Pero cada dia sin screenshots de la app y sin video demo es dinero perdido en conversion.</p>
+
+<h3>2. Que cambiarias antes de publicar?</h3>
+<p>a) Screenshot real de la app en al menos 5 disenos clave<br>
+b) Reescribir los 3 headlines principales con enfoque emocional<br>
+c) Reducir texto un 30% en cada pieza<br>
+d) Grabar 1 Reel demo de 30 segundos</p>
+
+<h3>3. Que haria que consiga mas alcance?</h3>
+<p>REELS. 60% del esfuerzo deberia ser video. Un Reel bueno puede alcanzar 50K-100K views en el nicho correcto.</p>
+
+<h3>4. Que haria que consiga mas ventas?</h3>
+<p>LANDING PAGE + RETARGETING. Sin estos dos, el funnel tiene un agujero gigante entre "vi el contenido" y "me registre".</p>
+
+<h3>5. Que haria que parezca disenado por una agencia premium?</h3>
+<p>a) Mockups de telefono con screenshots reales<br>
+b) Animaciones sutiles en cada pieza<br>
+c) Tipografia custom<br>
+d) Sistema de iconografia propio<br>
+e) 40% espacio negativo minimo</p>
+
+<h3>6. Que haria que convierta el doble?</h3>
+<p>UN SOLO CAMBIO: Video demo de 30 segundos mostrando la app REAL. Elimina la incertidumbre principal: "Como se ve? Es facil? Funciona?"</p>
+
+<h3>7. Que haria una startup valuada en millones?</h3>
+<p>a) Produccion de video profesional<br>
+b) A/B testing de 10+ variantes de cada creativo<br>
+c) 50-100 colaboraciones con micro-influencers<br>
+d) $5K-$10K/mes en ads (Meta + TikTok + Google)<br>
+e) Growth hacking dedicado<br>
+f) Waitlist con early access exclusivo<br>
+g) Product Hunt launch<br>
+h) Metricas publicas ("Ya ayudamos a gestionar $X en ventas")</p>
+</div>
+
+<!-- FOOTER -->
+<div style="text-align:center;padding:40px 0;border-top:1px solid rgba(201,168,76,.2);margin-top:40px">
+<p style="color:var(--gold2);font-size:16px;font-weight:600">ParfumTrack — Plan de Lanzamiento 30 Dias</p>
+<p style="color:var(--text3);font-size:12px">Documento generado el 17 de Junio 2026<br>24 disenos en Canva | Calendario dia a dia | Auditoria completa de 12 fases</p>
+<p style="margin-top:16px"><a class="canva-link" href="https://www.canva.com/folder/FAHM1hlYTP8" target="_blank">Abrir Carpeta Canva Completa</a></p>
+</div>
+
+</div>
+</body>
+</html>

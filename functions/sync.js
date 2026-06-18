@@ -36,13 +36,14 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: "Bad request" }, 400, headers);
   }
 
-  const { code, token, data } = body;
+  let { code, token, data } = body;
   if (!code || !token || data === undefined) {
     return json({ ok: false, error: "Missing fields" }, 400, headers);
   }
   if (typeof code !== "string" || code.length > 64) {
     return json({ ok: false, error: "Invalid code" }, 400, headers);
   }
+  code = code.trim().toUpperCase();
 
   const authErr = await verifyToken(code, token, env);
   if (authErr) return json({ ok: false, error: authErr }, 401, headers);
@@ -98,9 +99,8 @@ export async function onRequestGet(context) {
   );
   if (ipErr) return json({ ok: false, error: ipErr }, 429, headers);
 
-  const url = new URL(request.url);
-  const code = url.searchParams.get("code");
-  const token = url.searchParams.get("token");
+  let code = request.headers.get("X-PT-Code") || new URL(request.url).searchParams.get("code");
+  const token = request.headers.get("X-PT-Token") || new URL(request.url).searchParams.get("token");
 
   if (!code || !token) {
     return json({ ok: false, error: "Missing params" }, 400, headers);
@@ -108,6 +108,7 @@ export async function onRequestGet(context) {
   if (typeof code !== "string" || code.length > 64) {
     return json({ ok: false, error: "Invalid code" }, 400, headers);
   }
+  code = code.trim().toUpperCase();
 
   const authErr = await verifyToken(code, token, env);
   if (authErr) return json({ ok: false, error: authErr }, 401, headers);
@@ -192,7 +193,10 @@ async function sha256(str) {
 }
 
 async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) return null;
+  if (!env.PT_LICENSES) {
+    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — rate limiting desactivado');
+    return null;
+  }
   const now = Math.floor(Date.now() / 1000);
   const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
   let count = 0;
@@ -219,13 +223,13 @@ function json(body, status, headers) {
 
 function corsHeaders(origin) {
   const ok =
-    /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/.test(
+    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
       origin,
     );
   return {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": ok ? origin : "null",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, X-PT-Code, X-PT-Token",
   };
 }

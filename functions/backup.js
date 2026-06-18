@@ -86,9 +86,8 @@ export async function onRequestGet(context) {
   const ipLimitError = await checkRateLimit(env, `rl_ip_${ip}`, 10, 3600);
   if (ipLimitError) return json({ ok: false, error: ipLimitError }, 429, headers);
 
-  const url = new URL(request.url);
-  const code = url.searchParams.get('code');
-  const token = url.searchParams.get('token');
+  const code = request.headers.get('X-PT-Code') || new URL(request.url).searchParams.get('code');
+  const token = request.headers.get('X-PT-Token') || new URL(request.url).searchParams.get('token');
 
   if (!code || !token) {
     return json({ ok: false, error: 'Missing params' }, 400, headers);
@@ -167,7 +166,10 @@ async function verifyToken(code, token, env) {
 
 // KV-based rate limiter: allows `max` requests per `windowSecs` seconds
 async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) return null; // KV not configured, skip limiting
+  if (!env.PT_LICENSES) {
+    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — rate limiting desactivado');
+    return null;
+  }
 
   const now = Math.floor(Date.now() / 1000);
   const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
@@ -192,11 +194,11 @@ function json(body, status, headers) {
 }
 
 function corsHeaders(origin) {
-  const ok = /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/.test(origin);
+  const ok = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin);
   return {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': ok ? origin : 'null',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, X-PT-Code, X-PT-Token',
   };
 }

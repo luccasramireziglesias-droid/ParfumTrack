@@ -8,9 +8,17 @@
     />
     <meta
       name="description"
-      content="Gestión de ventas para revendedoras de perfumes — registrá ventas, stock, cuotas y ganancias desde el celular."
+      content="App gratis para revendedores de perfumes. Controlá ventas, stock, cuotas y ganancia real desde el celular. Funciona offline."
     />
     <meta name="theme-color" content="#1a1a2e" />
+    <meta property="og:title" content="Parfum Track — Tu negocio de perfumes, organizado" />
+    <meta property="og:description" content="App gratis para revendedores de perfumes. Ventas, cuotas, stock y estadísticas desde el celular." />
+    <meta property="og:image" content="https://parfumtrack.pages.dev/icon-512.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://parfumtrack.pages.dev/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Parfum Track — Tu negocio de perfumes, organizado" />
+    <meta name="twitter:description" content="App gratis para revendedores de perfumes. Ventas, cuotas, stock y cobros desde el celular." />
     <!-- iOS PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
@@ -22,6 +30,9 @@
     <meta name="msapplication-TileColor" content="#07070f" />
     <meta name="msapplication-TileImage" content="/icon-192.png" />
     <!-- Iconos -->
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
@@ -2459,15 +2470,13 @@
           flex-wrap: wrap;
         }
 
-        /* ── FIX HEADER MOBILE: todos los controles deben entrar en 390px ── */
+        /* ── FIX HEADER MOBILE ── */
         .brand-row {
-          overflow: hidden;
           gap: 6px;
+          flex-wrap: wrap;
         }
         .brand-left {
-          flex: 1 1 0;
-          min-width: 0;
-          overflow: hidden;
+          flex-shrink: 0;
           gap: 8px;
         }
         .brand-title {
@@ -2479,14 +2488,20 @@
           height: 34px !important;
         }
         .header-right {
-          flex-shrink: 0;
+          flex-shrink: 1;
           gap: 3px !important;
+          flex-wrap: wrap;
+          justify-content: flex-end;
         }
         /* Profile badge compacto */
         #profile-badge {
-          max-width: 90px !important;
+          max-width: 110px !important;
           font-size: 10px !important;
           padding: 3px 7px !important;
+        }
+        /* Ocultar botón backup en mobile — se accede desde Ajustes */
+        #header-backup-btn {
+          display: none !important;
         }
         /* icon-btn compacto en header */
         .header-right .icon-btn {
@@ -3065,6 +3080,7 @@
               <span id="sync-status-label">Backup</span>
             </div>
             <button
+              id="header-backup-btn"
               class="icon-btn"
               onclick="backupData()"
               title="Backup datos"
@@ -3303,6 +3319,7 @@
           <button class="tab" id="tabbtn-stock" onclick="showTab('stock')">
             <span class="tab-icon">📦</span>
             <span class="tab-lbl">Stock</span>
+            <span id="stock-low-badge" style="display:none;width:8px;height:8px;background:#ff4444;border-radius:50%;flex-shrink:0;margin-left:auto"></span>
           </button>
           <button
             class="tab"
@@ -6157,6 +6174,44 @@
         </div>
       </div>
     </div>
+    <!-- ═══════ MODAL ACEPTACIÓN TÉRMINOS (primera vez) ═══════ -->
+    <div
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      id="modal-terminos-acepto"
+      style="z-index:99999"
+    >
+      <div class="modal" style="max-width:520px;max-height:85vh;display:flex;flex-direction:column;">
+        <h3 style="margin-bottom:14px;text-align:center;">Antes de empezar</h3>
+        <div style="flex:1;overflow-y:auto;margin-bottom:16px;">
+          <div style="font-size:13px;line-height:1.7;color:var(--text2);text-align:left;">
+            <p style="margin:0 0 12px">Para usar Parfum Track necesitás leer y aceptar nuestros Términos de Uso y Política de Privacidad.</p>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;">
+              <p style="margin:0 0 6px;font-weight:700;color:var(--text)">Resumen</p>
+              <ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.8;color:var(--text2)">
+                <li>Tus datos se guardan en tu celular, no en nuestros servidores</li>
+                <li>No vendemos ni compartimos tu información</li>
+                <li>El backup en la nube es opcional</li>
+                <li>Usamos analytics anónimos (sin cookies)</li>
+                <li>Podés borrar todos tus datos cuando quieras</li>
+                <li>La app se ofrece "tal cual", sin garantías</li>
+              </ul>
+            </div>
+            <p style="margin:0 0 8px;font-size:12px;color:var(--text3)">Podés leer los documentos completos tocando los links de abajo:</p>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;">
+              <span onclick="abrirModalLegal('terminos')" style="font-size:12px;color:var(--gold2);cursor:pointer;text-decoration:underline;">Términos de Uso</span>
+              <span onclick="abrirModalLegal('privacidad')" style="font-size:12px;color:var(--gold2);cursor:pointer;text-decoration:underline;">Política de Privacidad</span>
+            </div>
+            <p style="margin:0;font-size:11px;color:var(--text3);text-align:center;">Contacto: <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a></p>
+          </div>
+        </div>
+        <button class="btn-confirm-ok" style="width:100%;padding:14px;font-size:15px;font-weight:700;" onclick="aceptarTerminos()">
+          Acepto los Términos y la Política de Privacidad
+        </button>
+      </div>
+    </div>
+
     <div
       class="modal-overlay"
       role="dialog"
@@ -6600,7 +6655,10 @@
                 await PTDB.set(key, val);
                 localStorage.removeItem(key);
               }
-            } catch (e) {}
+            } catch (e) {
+              console.error(`[loadKey] Error migrando "${key}":`, e);
+              setTimeout(() => toast("⚠ Hubo un error al migrar tus datos. Contactá soporte si ves datos faltantes.", 5000, "warning"), 1000);
+            }
           }
           return val ?? defaultVal;
         }
@@ -6832,66 +6890,115 @@
         privacidad: {
           title: "🔒 Política de Privacidad",
           html: `
-            <p style="margin:0 0 12px"><strong>Última actualización:</strong> 13 de junio de 2026</p>
-            <p style="margin:0 0 12px">Parfum Track es una aplicación para registrar las ventas de tu emprendimiento de perfumes. Tu privacidad nos importa. Esta política explica qué datos se manejan y cómo.</p>
+            <p style="margin:0 0 12px"><strong>Última actualización:</strong> 17 de junio de 2026 · Versión 2.0</p>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;margin:0 0 16px;font-size:12px;line-height:1.6;color:var(--text2)">
+              <strong style="color:var(--text)">Resumen:</strong> Tus datos de ventas se guardan en tu celular, no en nuestros servidores. Tu email se usa solo para el servicio. No vendemos ni compartimos tus datos. Usamos analytics anónimos sin cookies.
+            </div>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">1. Datos guardados en tu dispositivo</p>
-            <p style="margin:0 0 12px">Todas tus ventas, perfumes, gastos, caja y clientes se guardan <strong>localmente en tu celular o computadora</strong> (IndexedDB y almacenamiento local del navegador). No salen de tu dispositivo a menos que actives el backup en la nube. No tenemos acceso a esos datos.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">1. Responsable</p>
+            <p style="margin:0 0 12px">El responsable del tratamiento es Parfum Track. Contacto: <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a></p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Backup en la nube (opcional)</p>
-            <p style="margin:0 0 12px">Si activás el backup en la nube, una copia de tus datos de negocio se envía a nuestros servidores (Cloudflare) para que puedas restaurarla. El backup se asocia a tu código de licencia mediante un token de autenticación. Podés no usar esta función y trabajar 100% offline.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Datos almacenados en tu dispositivo</p>
+            <p style="margin:0 0 12px">Ventas, perfumes, gastos, clientes, cuotas, configuración y estadísticas se guardan <strong>exclusivamente en tu celular</strong> (IndexedDB y localStorage). No tenemos acceso a estos datos a menos que actives el backup en la nube.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">3. Email</p>
-            <p style="margin:0 0 12px">Si ingresás tu email, lo usamos únicamente para enviarte mensajes relacionados con tu prueba gratuita y la activación de tu licencia (mediante el servicio Brevo). No lo compartimos ni lo vendemos a terceros.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">3. Datos que recopilamos</p>
+            <ul style="margin:0 0 12px;padding-left:18px;font-size:13px">
+              <li><strong>Email:</strong> al iniciar trial o pagar, para enviarte el código de activación y comunicaciones del servicio (vía Brevo). No lo compartimos con terceros.</li>
+              <li><strong>Backup en la nube (opcional):</strong> si lo activás, una copia de tus datos se almacena en Cloudflare R2 asociada a tu código de licencia.</li>
+              <li><strong>Notificaciones push (opcional):</strong> se genera un ID anónimo (OneSignal) sin vinculación a tu identidad.</li>
+              <li><strong>Analytics anónimos:</strong> usamos Plausible Analytics, que <strong>no usa cookies</strong>, no rastrea usuarios individuales y cumple GDPR.</li>
+            </ul>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">4. Notificaciones push (opcional)</p>
-            <p style="margin:0 0 12px">Si activás las notificaciones, se genera un identificador anónimo de suscripción (mediante OneSignal) para poder enviarte recordatorios. Podés desactivarlas cuando quieras desde Ajustes.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">4. Datos que NO recopilamos</p>
+            <p style="margin:0 0 12px">No recopilamos ubicación, datos biométricos, datos de tarjetas de crédito (lo maneja Mercado Pago), ni usamos cookies de seguimiento o tracking pixels.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">5. Estadísticas de uso</p>
-            <p style="margin:0 0 12px">Usamos Plausible Analytics, una herramienta respetuosa de la privacidad que <strong>no usa cookies ni recopila datos personales</strong>. Solo medimos páginas vistas y acciones genéricas (por ejemplo, "venta guardada") de forma anónima y agregada, para mejorar la app.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">5. Servicios de terceros</p>
+            <ul style="margin:0 0 12px;padding-left:18px;font-size:13px">
+              <li><strong>Mercado Pago:</strong> procesamiento de pagos (email + monto).</li>
+              <li><strong>Brevo:</strong> envío de emails transaccionales (email).</li>
+              <li><strong>OneSignal:</strong> notificaciones push (ID anónimo).</li>
+              <li><strong>Cloudflare:</strong> infraestructura y almacenamiento.</li>
+              <li><strong>Plausible:</strong> analytics anónimos (ningún dato personal).</li>
+            </ul>
+            <p style="margin:0 0 12px"><strong>No vendemos, alquilamos ni compartimos tus datos para publicidad.</strong></p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">6. Datos de tus clientes</p>
-            <p style="margin:0 0 12px">Si cargás nombres o datos de tus clientes, vos sos el responsable de esa información frente a ellos. Te comprometés a manejarla conforme a la Ley 25.326 de Protección de Datos Personales (Argentina) y normativa aplicable de tu país.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">6. Seguridad</p>
+            <p style="margin:0 0 12px">Usamos HTTPS/TLS, tokens HMAC-SHA256 para backups, criptografía ECDSA P-256 para licencias, validación de webhooks con firma de Mercado Pago, y CORS restrictivo.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">7. Tus derechos</p>
-            <p style="margin:0 0 12px">Podés borrar todos tus datos en cualquier momento desde <strong>Ajustes → Zona peligrosa</strong>. Como titular de datos personales, tenés derecho de acceso, rectificación y supresión conforme a la Ley 25.326. La autoridad de control en Argentina es la Agencia de Acceso a la Información Pública (AAIP).</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">7. Datos de tus clientes</p>
+            <p style="margin:0 0 12px">Si cargás datos de tus clientes, vos sos el responsable de esa información. Te comprometés a manejarla conforme a la legislación de protección de datos aplicable en tu país.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">8. Contacto</p>
-            <p style="margin:0 0 4px">Por consultas sobre privacidad podés escribirnos desde el canal de WhatsApp de soporte de la app.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">8. Tus derechos</p>
+            <p style="margin:0 0 12px">Tenés derecho de acceso, rectificación, supresión, oposición y portabilidad de tus datos. Podés borrar todos tus datos locales desde <strong>Ajustes → Zona peligrosa</strong>. Para datos en servidor, escribí a <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a>.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">9. Menores de edad</p>
+            <p style="margin:0 0 12px">La App no está dirigida a menores de 16 años. Si tomamos conocimiento de datos de menores, procederemos a eliminarlos.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">10. Cambios</p>
+            <p style="margin:0 0 12px">Podemos actualizar esta política. Los cambios materiales se notificarán dentro de la App o por email.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">11. Contacto</p>
+            <p style="margin:0 0 4px">Email: <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a></p>
+            <p style="margin:4px 0 0;font-size:11px;color:var(--text3)"><a href="/privacidad.html" target="_blank" style="color:var(--gold2)">Ver versión completa →</a></p>
           `,
         },
         terminos: {
-          title: "📄 Términos de Uso",
+          title: "📄 Términos y Condiciones",
           html: `
-            <p style="margin:0 0 12px"><strong>Última actualización:</strong> 13 de junio de 2026</p>
-            <p style="margin:0 0 12px">Al usar Parfum Track aceptás estos términos. Si no estás de acuerdo, no uses la aplicación.</p>
+            <p style="margin:0 0 12px"><strong>Última actualización:</strong> 17 de junio de 2026 · Versión 2.0</p>
+            <p style="margin:0 0 12px">Al usar Parfum Track aceptás estos términos en su totalidad. Si no estás de acuerdo, no uses la aplicación.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">1. Qué es Parfum Track</p>
-            <p style="margin:0 0 12px">Es una herramienta para registrar ventas, gastos, cuotas y estadísticas de un emprendimiento de venta de perfumes. Es una ayuda de gestión, no un sistema de facturación oficial ni un asesor contable o fiscal.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">1. Descripción del servicio</p>
+            <p style="margin:0 0 12px">Parfum Track es una herramienta de gestión para revendedores de perfumes. Permite registrar ventas, controlar stock, gestionar cuotas y generar estadísticas. <strong>No es un sistema de facturación oficial, contable ni fiscal.</strong></p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Planes y licencia</p>
-            <p style="margin:0 0 12px">La app ofrece un plan Free gratuito y permanente con funciones básicas. Para acceder a funciones avanzadas (Básico Pro o Pro), podés activar una licencia con el código que recibirás por WhatsApp después de tu compra. Las condiciones y precios se informan dentro de la app.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">2. Planes y pagos</p>
+            <ul style="margin:0 0 12px;padding-left:18px;font-size:13px">
+              <li><strong>Plan Free:</strong> gratuito, permanente, sin fecha de vencimiento ni tarjeta requerida.</li>
+              <li><strong>Básico Pro:</strong> USD 9.99/mes o USD 95.88/año. Pago vía Mercado Pago.</li>
+              <li>Al pagar recibís un código de activación por email. Es personal e intransferible.</li>
+              <li>Los planes no se renuevan automáticamente.</li>
+              <li>No almacenamos datos de tarjetas (lo maneja Mercado Pago).</li>
+            </ul>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">3. Uso responsable</p>
-            <p style="margin:0 0 12px">Te comprometés a usar la app de forma legal, a no intentar vulnerar sus mecanismos de licencia o seguridad, y a no usarla para actividades ilícitas. El código de licencia es personal e intransferible.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">3. Reembolsos</p>
+            <p style="margin:0 0 12px">Los pagos no son reembolsables como regla general. Se evaluará reembolso en caso de error técnico, cobro duplicado o falla grave. Solicitar dentro de 7 días a <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a>.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">4. Tus datos son tu responsabilidad</p>
-            <p style="margin:0 0 12px">Tus datos se guardan principalmente en tu dispositivo. Te recomendamos hacer backups periódicos (local o en la nube). No nos hacemos responsables por pérdida de datos causada por borrado del navegador, cambio de dispositivo, o falta de respaldo.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">4. Cancelación</p>
+            <p style="margin:0 0 12px">Podés cancelar en cualquier momento escribiendo a <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a>. Tu acceso premium continúa hasta el vencimiento del período pagado.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">5. Disponibilidad y "tal cual"</p>
-            <p style="margin:0 0 12px">La app se ofrece "tal cual" (as is), sin garantías de disponibilidad ininterrumpida. Hacemos lo posible por mantenerla funcionando, pero pueden existir interrupciones, errores o cambios en las funciones.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">5. Uso responsable</p>
+            <p style="margin:0 0 12px">Te comprometés a usar la App de forma legal, no intentar vulnerar la seguridad ni los mecanismos de licencia, no compartir tu código de activación, y ser responsable de los datos que ingreses.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">6. Limitación de responsabilidad</p>
-            <p style="margin:0 0 12px">En la medida permitida por la ley, no seremos responsables por daños indirectos, lucro cesante ni pérdidas derivadas del uso o la imposibilidad de uso de la app. Las decisiones comerciales que tomes en base a la información de la app son de tu exclusiva responsabilidad.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">6. Tus datos</p>
+            <p style="margin:0 0 12px">Tus datos se guardan en tu dispositivo. Sos responsable de hacer backups. No nos hacemos responsables por pérdida de datos por borrado del navegador, cambio de dispositivo o falta de respaldo.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">7. Cambios</p>
-            <p style="margin:0 0 12px">Podemos actualizar estos términos. El uso continuado de la app luego de un cambio implica la aceptación de los nuevos términos.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">7. Propiedad intelectual</p>
+            <p style="margin:0 0 12px">Parfum Track, su código, diseño, marca e ícono son propiedad exclusiva de sus desarrolladores. Se te otorga una licencia limitada, no exclusiva y revocable para usar la App. Queda prohibido copiar, modificar, distribuir o hacer ingeniería inversa.</p>
 
-            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">8. Contacto</p>
-            <p style="margin:0 0 4px">Por consultas podés escribirnos desde el canal de WhatsApp de soporte de la app.</p>
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">8. Disponibilidad</p>
+            <p style="margin:0 0 12px">La App se ofrece "tal cual" (as is), sin garantías de disponibilidad ininterrumpida. Nos reservamos el derecho de modificar o suspender funcionalidades con aviso previo.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">9. Limitación de responsabilidad</p>
+            <p style="margin:0 0 12px">No seremos responsables por daños directos, indirectos ni consecuentes derivados del uso de la App. La responsabilidad total no excederá lo pagado en los últimos 12 meses. La App no reemplaza asesoramiento profesional contable, fiscal o legal.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">10. Legislación y jurisdicción</p>
+            <p style="margin:0 0 12px">Estos términos se rigen por las leyes de la República Oriental del Uruguay. Las controversias se someten a los tribunales de Montevideo.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">11. Cambios</p>
+            <p style="margin:0 0 12px">Podemos actualizar estos términos. Los cambios materiales se notificarán dentro de la App o por email. El uso continuado implica aceptación.</p>
+
+            <p style="margin:14px 0 4px;font-weight:600;color:var(--text)">12. Contacto</p>
+            <p style="margin:0 0 4px">Email: <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a></p>
+            <p style="margin:4px 0 0;font-size:11px;color:var(--text3)"><a href="/terminos.html" target="_blank" style="color:var(--gold2)">Ver versión completa →</a></p>
           `,
         },
       };
+
+      function aceptarTerminos() {
+        localStorage.setItem('pt-terminos-aceptados', Date.now().toString());
+        closeModal('modal-terminos-acepto');
+        trackEvent('terminos_aceptados');
+      }
 
       function abrirModalLegal(tipo) {
         const doc = LEGAL_DOCS[tipo];
@@ -7272,12 +7379,10 @@
         }
         let result;
         try {
-          const resp = await fetch(
-            `/backup?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`,
-            {
+          const resp = await fetch(`/backup`, {
+              headers: { "X-PT-Code": code, "X-PT-Token": token },
               signal: AbortSignal.timeout(15000),
-            },
-          );
+            });
           result = await resp.json();
         } catch (e) {
           toast("📶 Sin conexión. Verificá tu internet.", 3000, "warning");
@@ -7859,19 +7964,16 @@
           if (sortBy === "deuda") return b.totalDebe - a.totalDebe;
           if (sortBy === "compras") return b.ventas.length - a.ventas.length;
           if (sortBy === "reciente") {
+            const toISO = (f) => f ? f.split("/").reverse().join("") : "";
             const da = a.ventas.reduce(
-              (mx, v) => (v.fecha > mx ? v.fecha : mx),
+              (mx, v) => { const iso = toISO(v.fecha); return iso > mx ? iso : mx; },
               "",
             );
             const db = b.ventas.reduce(
-              (mx, v) => (v.fecha > mx ? v.fecha : mx),
+              (mx, v) => { const iso = toISO(v.fecha); return iso > mx ? iso : mx; },
               "",
             );
-            return db
-              .split("/")
-              .reverse()
-              .join("")
-              .localeCompare(da.split("/").reverse().join(""));
+            return db.localeCompare(da);
           }
           return b.totalVenta - a.totalVenta;
         });
@@ -8562,6 +8664,11 @@
         openLink(url);
       }
       function whatsappBulkReminders() {
+        if (!isActivated()) {
+          toast("⚠ Recordatorios por WhatsApp requieren plan Básico Pro. Activá tu plan desde Ajustes.", 3500);
+          openPricingModal();
+          return;
+        }
         const pend = ventas
           .filter((v) => v.esCuotas && !ventaCompletada(v))
           .sort((a, b) => diasDesdeUltimoPago(b) - diasDesdeUltimoPago(a));
@@ -8633,6 +8740,11 @@
           : "";
       }
       function whatsappCobro(id) {
+        if (!isActivated()) {
+          toast("⚠ Recordatorios por WhatsApp requieren plan Básico Pro. Activá tu plan desde Ajustes.", 3500);
+          openPricingModal();
+          return;
+        }
         const v = ventas.find((x) => x.id === id);
         if (!v) return;
         const debe = calcDebe(v);
@@ -9322,6 +9434,9 @@
           "show",
           perfumes.some((p) => p.stock <= (p.stockMin || 3)),
         );
+        const _stockBadge = document.getElementById("stock-low-badge");
+        if (_stockBadge)
+          _stockBadge.style.display = perfumes.some((p) => p.stock > 0 && p.stock <= (p.stockMin || 3)) ? "block" : "none";
         // event delegation for stock actions
         el.onclick = function (e) {
           const btn = e.target.closest("[data-action]");
@@ -10514,9 +10629,11 @@
           }
         }
         v.perfume = perfume;
-        v.precioVenta = pv;
+        const dto = v.descuento || 0;
+        const pvFinal = dto > 0 ? pv * (1 - dto / 100) : pv;
+        v.precioVenta = pvFinal;
         v.precioCompra = pc;
-        v.ganancia = Math.round(pv - pc);
+        v.ganancia = Math.round(pvFinal - pc);
         v.cliente = cliente;
         v.nota = nota;
         // Si es cuotas y cambió el precio, recalcular cuotas pendientes proporcionalmente
@@ -10839,7 +10956,7 @@
                 : "");
             const errEl = document.getElementById("import-errors");
             if (errores.length) {
-              errEl.innerHTML = "⚠ " + errores.join("<br>");
+              errEl.innerHTML = "⚠ " + errores.map(escapeHTML).join("<br>");
               errEl.classList.add("show");
             } else errEl.classList.remove("show");
             document.getElementById("import-result").classList.add("show");
@@ -10918,7 +11035,7 @@
       async function exportExcel() {
         if (!isActivated()) {
           toast(
-            "⚠ Exportar a Excel requiere plan Pro. Próximamente disponible — escribinos por WhatsApp.",
+            "⚠ Exportar a Excel requiere plan Básico Pro ($9.99/mes). Activá tu plan desde Ajustes.",
             3500,
           );
           return;
@@ -11829,7 +11946,7 @@
           const _sigBytes = Uint8Array.from(atob(serverSig), (c) =>
             c.charCodeAt(0),
           );
-          _sec.activate(_sigBytes);
+          await _sec.activate(_sigBytes);
           const banner = document.getElementById("trial-banner");
           if (banner) banner.remove();
           document.body.classList.remove("has-top-banner");
@@ -11961,6 +12078,9 @@
         }
       }
 
+      function openPricingModal() {
+        abrirModalActivacion();
+      }
       function abrirModalActivacion() {
         document.getElementById("modal-activacion").classList.add("open");
         // Inicializar estado del tier seleccionado (Básico Pro por default)
@@ -11991,18 +12111,29 @@
       const _realDateNow = Date.now.bind(Date);
 
       const _sec = (() => {
-        let _a = false; // license activated — set only by initLicenseVerification / activarLicencia
-        let _t = false; // trial expired — set only by checkTrial / trial ticker
+        let _a = false;
+        let _t = false;
+        let _validSig = null;
+        async function _verifySig(sigBytes) {
+          try {
+            const code = localStorage.getItem("pt_license_raw_code") || "";
+            const pubKeyDer = Uint8Array.from(atob(LICENSE_VERIFY_KEY_B64), (c) => c.charCodeAt(0));
+            const pubKey = await crypto.subtle.importKey("spki", pubKeyDer, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+            const data = new TextEncoder().encode(code.trim().toUpperCase());
+            return await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, pubKey, sigBytes, data);
+          } catch { return false; }
+        }
         return Object.freeze({
-          // sigBytes must be the actual ECDSA P-256 sig (Uint8Array ≥64 bytes).
-          // Rejects console calls like _sec.activate(true) or _sec.activate(1).
-          activate(sigBytes) {
-            if (!(sigBytes instanceof Uint8Array) || sigBytes.length < 64)
-              return;
+          async activate(sigBytes) {
+            if (!(sigBytes instanceof Uint8Array) || sigBytes.length < 64) return;
+            const valid = await _verifySig(sigBytes);
+            if (!valid) return;
+            _validSig = sigBytes;
             _a = true;
           },
           deactivate() {
             _a = false;
+            _validSig = null;
           },
           isActivated() {
             return _a;
@@ -12055,7 +12186,7 @@
       async function initLicenseVerification() {
         const result = await verifyStoredLicense();
         if (result instanceof Uint8Array) {
-          _sec.activate(result);
+          await _sec.activate(result);
         } else {
           _sec.deactivate();
           if (localStorage.getItem("pt_activation_mode") === "server") {
@@ -12353,10 +12484,10 @@
 
       async function _syncCargarNube(code, token) {
         try {
-          const resp = await fetch(
-            `/sync?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`,
-            { signal: AbortSignal.timeout(10000) },
-          );
+          const resp = await fetch(`/sync`, {
+              headers: { "X-PT-Code": code, "X-PT-Token": token },
+              signal: AbortSignal.timeout(10000),
+            });
           if (!resp.ok) return null;
           const result = await resp.json();
           return result.ok ? result.data : null;
@@ -13380,7 +13511,7 @@
         doc.setFontSize(7);
         doc.setFont("helvetica", "normal");
         doc.text(
-          "Parfum Track · Gestión de ventas para revendedoras",
+          "Parfum Track · Gestión de ventas para revendedores",
           W / 2,
           291,
           { align: "center" },
@@ -13934,8 +14065,54 @@
           });
         });
 
+        // ── Detección de retorno desde MercadoPago ──
+        try {
+          const _mpParams = new URLSearchParams(location.search);
+          const _mpStatus = _mpParams.get("collection_status") || _mpParams.get("status");
+          const _mpPayId  = _mpParams.get("payment_id") || _mpParams.get("collection_id");
+          if (_mpPayId && _mpStatus === "approved") {
+            history.replaceState(null, "", location.pathname);
+            setTimeout(() => {
+              document.getElementById("modal-mp-pago-ok").classList.add("open");
+              _pollPaymentStatus(_mpPayId);
+            }, 800);
+          } else if (_mpPayId && (_mpStatus === "pending" || _mpStatus === "in_process")) {
+            history.replaceState(null, "", location.pathname);
+            setTimeout(() => {
+              toast("⏳ Tu pago está siendo procesado. Te avisamos cuando esté listo.", 6000);
+              _pollPaymentStatus(_mpPayId);
+            }, 800);
+          }
+        } catch (e) {}
+
         // ── Focus trap para modales (accesibilidad) ──
         _initFocusTrap();
+      }
+
+      async function _pollPaymentStatus(paymentId) {
+        const maxAttempts = 12;
+        const interval = 10000;
+        for (let i = 0; i < maxAttempts; i++) {
+          await new Promise(r => setTimeout(r, interval));
+          try {
+            const resp = await fetch(`/mp-payment-status?paymentId=${encodeURIComponent(paymentId)}`);
+            if (!resp.ok) continue;
+            const result = await resp.json();
+            if (result.ok && result.status === "active") {
+              const modal = document.getElementById("modal-mp-pago-ok");
+              const msgEl = modal?.querySelector("p");
+              if (msgEl) {
+                msgEl.innerHTML = `<strong style="color:var(--success)">✅ ¡Tu licencia está lista!</strong><br><br>
+                  Te enviamos el código por email a tu casilla. Revisá tu bandeja de entrada (y spam).<br><br>
+                  Plan: <strong style="color:var(--gold2)">${result.plan === "basic_annual" ? "Básico Pro Anual" : "Básico Pro"}</strong><br>
+                  Válido hasta: <strong>${result.expiresAt}</strong>`;
+              }
+              toast("✅ ¡Tu licencia está lista! Revisá tu email para el código.", 5000);
+              trackEvent("license_ready_polled");
+              return;
+            }
+          } catch {}
+        }
       }
 
       // Instala un MutationObserver que atrapa el foco dentro de cualquier .modal-overlay.open
@@ -14190,6 +14367,10 @@
             // Fade out loading screen → reveal app with skeleton → real content
             _hideLoader();
             _pruneLocalStorage();
+            // Mostrar modal de aceptación de términos si es primera vez
+            if (!localStorage.getItem('pt-terminos-aceptados')) {
+              document.getElementById('modal-terminos-acepto').classList.add('open');
+            }
             // Disparar evento para que OneSignal chequee cobros pendientes
             window.dispatchEvent(new Event("pt-app-ready"));
             // Attach modal backdrop close listeners
@@ -17969,14 +18150,14 @@
                     font-weight: 600;
                   "
                 >
-                  Anual: $7.99/mes 🔥
+                  Anual: $7.99/mes · Ahorrás $24/año 🔥
                 </span>
               </div>
             </div>
             <div style="font-size: 11px; color: var(--text2); line-height: 1.7">
               ✓ Todo Free + ✓ Recordatorios WA · ✓ Stats avanzadas
               <br />
-              ✓ Catálogo WA · ✓ Segmentación · ✓ Soporte prioritario
+              ✓ Catálogo WA · ✓ Excel/PDF · ✓ Soporte prioritario
             </div>
           </div>
 
@@ -18039,7 +18220,7 @@
               </div>
             </div>
             <div style="font-size: 11px; color: var(--text3); line-height: 1.7">
-              ✓ Todo Básico Pro + ✓ Excel · ✓ Múltiples perfiles
+              ✓ Todo Básico Pro + ✓ Múltiples perfiles
               <br />
               ✓ Backup nube · ✓ Sync multi-dispositivo
             </div>
@@ -18166,10 +18347,10 @@
                 </tr>
                 <tr style="border-bottom: 0.5px solid var(--border)">
                   <td style="padding: 6px 8px; color: var(--text2)">
-                    Exportar Excel
+                    Exportar Excel/PDF
                   </td>
                   <td style="text-align: center; color: var(--border2)">—</td>
-                  <td style="text-align: center; color: var(--border2)">—</td>
+                  <td style="text-align: center; color: var(--gold2)">✓</td>
                   <td style="text-align: center; color: var(--success)">✓</td>
                 </tr>
                 <tr style="border-bottom: 0.5px solid var(--border); background: var(--card);">
@@ -18324,6 +18505,28 @@
       </div>
     </div>
 
+    <!-- ═══════ MODAL PAGO APROBADO MP ═══════ -->
+    <div id="modal-mp-pago-ok" class="modal-overlay" role="dialog" aria-modal="true" style="z-index:10001">
+      <div class="modal" style="max-width:380px;padding:28px 24px;text-align:center">
+        <div style="font-size:48px;margin-bottom:8px">🎉</div>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold2);margin-bottom:8px">¡Pago recibido!</h3>
+        <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px">
+          Tu pago fue aprobado. <strong style="color:var(--text)">En minutos te enviamos el código de activación por email.</strong><br><br>
+          Cuando lo recibas, ingresá acá abajo para activar tu plan.
+        </p>
+        <button
+          onclick="closeModal('modal-mp-pago-ok');document.getElementById('modal-activacion').classList.add('open')"
+          style="width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1a2e;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px">
+          Ingresar código de activación
+        </button>
+        <button
+          onclick="closeModal('modal-mp-pago-ok')"
+          style="width:100%;padding:9px;background:none;border:0.5px solid var(--border);color:var(--text3);border-radius:10px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">
+          Activar más tarde
+        </button>
+      </div>
+    </div>
+
     <!-- ═══════ MODAL BIENVENIDA TRIAL ═══════ -->
     <div
       id="modal-trial-bienvenida"
@@ -18345,7 +18548,7 @@
             margin-bottom: 4px;
           "
         >
-          ¡Bienvenida a Parfum Track!
+          ¡Bienvenido a Parfum Track!
         </h3>
         <p style="font-size: 12px; color: var(--text3); margin-bottom: 18px">
           Plan Free — gratis para siempre · Sin tarjeta
@@ -18858,6 +19061,8 @@
               subscriptionId,
               title: "💰 Cobros pendientes — Parfum Track",
               message: `Tenés ${deudas.length} venta${deudas.length !== 1 ? "s" : ""} sin cobrar por ${fmtMonto}`,
+              code: localStorage.getItem("pt_sync_code") || undefined,
+              token: localStorage.getItem("pt_sync_token") || undefined,
               url: "/",
             }),
           });
@@ -18900,6 +19105,8 @@
               subscriptionId,
               title: "📅 Cuotas vencidas — Parfum Track",
               message: `${vencidas.length} cuota${vencidas.length !== 1 ? "s" : ""} sin cobrar hace más de 30 días (${fmtMonto})`,
+              code: localStorage.getItem("pt_sync_code") || undefined,
+              token: localStorage.getItem("pt_sync_token") || undefined,
               url: "/",
             }),
           });
@@ -18953,6 +19160,8 @@
               subscriptionId,
               title: "🎯 ¡Meta mensual alcanzada! — Parfum Track",
               message: `¡Superaste tu meta! Ganancia del mes: ${fmtMonto}`,
+              code: localStorage.getItem("pt_sync_code") || undefined,
+              token: localStorage.getItem("pt_sync_token") || undefined,
               url: "/",
             }),
           });
@@ -19006,6 +19215,8 @@
               subscriptionId,
               title: "📊 Resumen semanal — Parfum Track",
               message: `La semana pasada: ${ventasSemana.length} venta${ventasSemana.length !== 1 ? "s" : ""} · Ganancia: ${fmtMonto}`,
+              code: localStorage.getItem("pt_sync_code") || undefined,
+              token: localStorage.getItem("pt_sync_token") || undefined,
               url: "/",
             }),
           });

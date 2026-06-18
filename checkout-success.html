@@ -38,6 +38,7 @@
       font-size: 13px;
       color: #7a7870;
       line-height: 1.8;
+      text-align: left;
     }
     .btn {
       display: block;
@@ -62,27 +63,168 @@
       text-decoration: none;
     }
     .note { font-size: 12px; color: #4a4848; margin-top: 24px; }
+
+    /* Verificando estado */
+    #checking-section { display: block; }
+    #success-section  { display: none; }
+    #timeout-section  { display: none; }
+
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(201,168,76,0.2);
+      border-top-color: #c9a84c;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .progress-bar {
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 3px;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #c9a84c, #e8cc7a);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 1s linear;
+    }
+    .status-text { font-size: 13px; color: #7a7870; margin-top: 8px; }
+
+    .active-badge {
+      display: inline-block;
+      background: rgba(112,201,160,0.15);
+      border: 1px solid rgba(112,201,160,0.4);
+      color: #70c9a0;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 20px;
+      padding: 4px 12px;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="icon">✅</div>
-    <h1>¡Pago recibido!</h1>
-    <p>
-      Tu pago fue procesado correctamente. En los próximos minutos vas a recibir
-      un email con tu <strong style="color:#e8cc7a;">código de activación</strong>.
-    </p>
-    <div class="code-box">
-      📧 Revisá tu casilla de email (incluyendo spam)<br>
-      🔑 El código tiene el formato <strong style="color:#e8cc7a;">PT-XXXXXX-YYYYYY</strong><br>
-      📱 Ingresalo en la app → Ajustes → Licencia
+
+    <!-- Verificando estado del pago -->
+    <div id="checking-section">
+      <div class="spinner"></div>
+      <h1 style="font-size:20px;">Verificando tu pago…</h1>
+      <p style="font-size:14px;">Confirmando con Mercado Pago y activando tu plan.</p>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <p class="status-text" id="status-text">Conectando…</p>
     </div>
-    <a href="/index.html" class="btn">Abrir Parfum Track →</a>
-    <a href="https://wa.me/59894466577?text=Hola!%20Acabo%20de%20pagar%20el%20plan%20Básico%20Pro%20de%20Parfum%20Track%20🌸"
-       target="_blank" rel="noopener" class="btn-secondary">
-      📲 ¿Problema con el email? Escribinos
-    </a>
+
+    <!-- Pago confirmado y licencia activa -->
+    <div id="success-section">
+      <div class="icon">✅</div>
+      <div class="active-badge">Plan activo</div>
+      <h1>¡Todo listo!</h1>
+      <p>Tu plan <strong style="color:#e8cc7a;">Básico Pro</strong> está activo. Revisá tu email — ya te enviamos el código de activación.</p>
+      <div class="code-box">
+        📧 Buscá un email de <strong style="color:#e8cc7a;">Parfum Track</strong><br>
+        🔑 El código tiene el formato <strong style="color:#e8cc7a;">PT-XXXXXX-YYYYYY</strong><br>
+        📱 Ingresalo en la app → Ajustes → Licencia<br>
+        📂 Si no llegó, revisá la carpeta de spam
+      </div>
+      <a href="/index.html" class="btn">Abrir Parfum Track →</a>
+      <a href="https://wa.me/59894466577?text=Hola!%20Acabo%20de%20pagar%20el%20plan%20Básico%20Pro%20de%20Parfum%20Track%20🌸"
+         target="_blank" rel="noopener" class="btn-secondary">
+        📲 ¿Problema con el email? Escribinos
+      </a>
+    </div>
+
+    <!-- Timeout: pago procesándose -->
+    <div id="timeout-section">
+      <div class="icon">⏳</div>
+      <h1>Pago recibido</h1>
+      <p>Tu pago fue procesado. En los próximos minutos vas a recibir un email con tu <strong style="color:#e8cc7a;">código de activación</strong>.</p>
+      <div class="code-box">
+        📧 Revisá tu casilla de email (incluyendo spam)<br>
+        🔑 El código tiene el formato <strong style="color:#e8cc7a;">PT-XXXXXX-YYYYYY</strong><br>
+        📱 Ingresalo en la app → Ajustes → Licencia
+      </div>
+      <a href="/index.html" class="btn">Abrir Parfum Track →</a>
+      <a href="https://wa.me/59894466577?text=Hola!%20Acabo%20de%20pagar%20el%20plan%20Básico%20Pro%20de%20Parfum%20Track%20🌸"
+         target="_blank" rel="noopener" class="btn-secondary">
+        📲 ¿No llegó el email? Escribinos
+      </a>
+    </div>
+
     <p class="note">Parfum Track · <a href="/landing.html" style="color:#c9a84c;">parfumtrack.pages.dev</a></p>
   </div>
+
+  <script>
+    const params    = new URLSearchParams(location.search);
+    const paymentId = params.get('collection_id') || params.get('payment_id');
+    const status    = params.get('collection_status') || params.get('status');
+
+    // Si MP dice "rejected" directamente, redirigir a landing
+    if (status === 'rejected' || status === 'cancelled') {
+      location.replace('/landing.html');
+    }
+
+    const MAX_WAIT_MS  = 120_000; // 2 minutos
+    const POLL_INTERVAL = 5_000;  // cada 5 segundos
+    const start = Date.now();
+
+    const progressEl = document.getElementById('progress-fill');
+    const statusEl   = document.getElementById('status-text');
+
+    function showSuccess() {
+      document.getElementById('checking-section').style.display = 'none';
+      document.getElementById('success-section').style.display  = 'block';
+    }
+    function showTimeout() {
+      document.getElementById('checking-section').style.display = 'none';
+      document.getElementById('timeout-section').style.display  = 'block';
+    }
+    function updateProgress() {
+      const elapsed = Date.now() - start;
+      const pct     = Math.min(95, (elapsed / MAX_WAIT_MS) * 100);
+      progressEl.style.width = pct + '%';
+    }
+
+    async function poll() {
+      const elapsed = Date.now() - start;
+      updateProgress();
+
+      if (elapsed >= MAX_WAIT_MS) {
+        showTimeout();
+        return;
+      }
+
+      if (!paymentId) {
+        // Sin paymentId no podemos verificar — mostrar timeout directamente
+        showTimeout();
+        return;
+      }
+
+      try {
+        statusEl.textContent = 'Verificando con Mercado Pago…';
+        const resp = await fetch(`/mp-payment-status?paymentId=${encodeURIComponent(paymentId)}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.ok && data.status === 'active') {
+            progressEl.style.width = '100%';
+            setTimeout(showSuccess, 400);
+            return;
+          }
+        }
+      } catch (_) { /* red inestable — seguir intentando */ }
+
+      const remaining = Math.round((MAX_WAIT_MS - (Date.now() - start)) / 1000);
+      statusEl.textContent = `Activando tu plan… (${remaining}s)`;
+      setTimeout(poll, POLL_INTERVAL);
+    }
+
+    // Arrancar polling
+    poll();
+  </script>
 </body>
 </html>

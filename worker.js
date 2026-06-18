@@ -12,9 +12,10 @@ import { onRequestPost as syncPost, onRequestGet as syncGet } from './functions/
 import { onRequestPost as mpCreatePreference }    from './functions/mp-create-preference.js';
 import { onRequestPost as mpWebhookPost, onRequestGet as mpWebhookGet } from './functions/mp-webhook.js';
 import { onRequestGet  as mpSubscriptionStatus }  from './functions/mp-subscription-status.js';
+import { onRequestGet  as mpPaymentStatus }        from './functions/mp-payment-status.js';
 
 const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup', '/trial', '/sync', '/mp-create-preference', '/mp-webhook'];
-const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status'];
+const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status', '/mp-payment-status'];
 
 export default {
   async fetch(request, env, ctx) {
@@ -28,7 +29,7 @@ export default {
     // CORS preflight
     if (method === 'OPTIONS' && isApiRoute) {
       const origin  = request.headers.get('Origin') || '';
-      const allowed = /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|[a-z0-9-]+\.workers\.dev)(:\d+)?$/.test(origin) ? origin : 'null';
+      const allowed = /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev)(:\d+)?$/.test(origin) ? origin : 'null';
       return new Response(null, {
         status: 204,
         headers: {
@@ -56,6 +57,7 @@ export default {
       if (path === '/sync')                   return syncGet(context);
       if (path === '/mp-webhook')             return mpWebhookGet(context);
       if (path === '/mp-subscription-status') return mpSubscriptionStatus(context);
+      if (path === '/mp-payment-status')      return mpPaymentStatus(context);
     }
 
     // Todo lo demás → assets estáticos (index.html, sw.js, etc.)

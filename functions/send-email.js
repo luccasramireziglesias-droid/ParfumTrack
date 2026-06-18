@@ -16,7 +16,7 @@
 
 const TEMPLATES = {
   trial_welcome: (data) => ({
-    subject: `¡Bienvenida a Parfum Track, ${data.name}! 🌸`,
+    subject: `¡Hola, ${data.name}! Tu prueba gratuita ya está activa 🌸`,
     html: `
 <!DOCTYPE html>
 <html lang="es">
@@ -141,7 +141,7 @@ const TEMPLATES = {
   }),
 
   trial_expired: (data) => ({
-    subject: `Tu prueba de Parfum Track venció — oferta especial 🌸`,
+    subject: `Tu prueba de Parfum Track venció — activá tu plan 🌸`,
     html: `
 <!DOCTYPE html>
 <html lang="es">
@@ -159,24 +159,24 @@ const TEMPLATES = {
         Tu prueba gratuita venció, ${data.name}
       </h2>
       <p style="color:#b8b4a8;font-size:15px;line-height:1.7;margin:0 0 20px;">
-        Tus datos están guardados y seguros en tu celular. Para volver a registrar ventas
-        sin límite, activá tu licencia con un pago único — sin suscripción mensual.
+        Tus datos están guardados y seguros en tu celular. Para seguir registrando ventas
+        sin límite, activá el plan Básico Pro.
       </p>
 
       <!-- Pricing highlight -->
       <div style="background:linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.04));border:1px solid rgba(201,168,76,0.3);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
-        <p style="color:#e8cc7a;font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin:0 0 6px;">Plan Pro — más popular</p>
-        <p style="color:#f0eee8;font-size:32px;font-weight:800;margin:0 0 4px;">$12 <span style="font-size:16px;color:#b8b4a8;font-weight:400;">USD/mes</span></p>
-        <p style="color:#7a7870;font-size:13px;margin:0;">Plan Pro · Cancelás cuando querés</p>
+        <p style="color:#e8cc7a;font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin:0 0 6px;">Plan Básico Pro — más popular</p>
+        <p style="color:#f0eee8;font-size:32px;font-weight:800;margin:0 0 4px;">$9.99 <span style="font-size:16px;color:#b8b4a8;font-weight:400;">USD/mes</span></p>
+        <p style="color:#7a7870;font-size:13px;margin:0;">o $7.99/mes eligiendo el plan anual · Cancelás cuando querés</p>
       </div>
 
-      <a href="${data.waUrl || "#"}"
-         style="display:block;text-align:center;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:12px;">
-        📲 Activar por WhatsApp →
+      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}/landing.html#pricing"
+         style="display:block;text-align:center;background:linear-gradient(135deg,#009ee3,#0070ba);color:#fff;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:12px;">
+        Activar plan con Mercado Pago →
       </a>
-      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}"
+      <a href="${data.waUrl || "#"}"
          style="display:block;text-align:center;background:transparent;border:1.5px solid rgba(255,255,255,0.15);color:#b8b4a8;padding:12px 24px;border-radius:50px;font-size:14px;font-weight:600;text-decoration:none;">
-        Ver todos los planes
+        📲 Consultar por WhatsApp
       </a>
     </div>
 
@@ -186,7 +186,7 @@ const TEMPLATES = {
   </div>
 </body>
 </html>`,
-    text: `Tu prueba de Parfum Track venció, ${data.name}. Activá tu licencia con un pago único: ${data.waUrl || data.appUrl || "https://parfumtrack.pages.dev"}`,
+    text: `Tu prueba de Parfum Track venció, ${data.name}. Activá el plan Básico Pro por $9.99/mes: ${data.appUrl || "https://parfumtrack.pages.dev"}/landing.html#pricing`,
   }),
 };
 
@@ -202,7 +202,10 @@ function sanitize(str) {
 
 // KV-based rate limiter: allows `max` requests per `windowSecs` seconds
 async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) return null;
+  if (!env.PT_LICENSES) {
+    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — rate limiting desactivado');
+    return null;
+  }
 
   const now = Math.floor(Date.now() / 1000);
   const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
@@ -226,6 +229,11 @@ async function checkRateLimit(env, key, max, windowSecs) {
   }
 
   return null;
+}
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // ── Main handler ─────────────────────────────────────────────
@@ -290,6 +298,24 @@ export async function onRequestPost(context) {
       status: 429,
       headers,
     });
+
+  // Verificar que el destinatario tiene registro en KV (trial o licencia)
+  // Esto evita que el endpoint sea usado como relay de phishing a direcciones arbitrarias
+  if (env.PT_LICENSES) {
+    const emailLower = to.toLowerCase().trim();
+    const emailHash = await sha256(emailLower);
+    const [trialRec, licenseRec] = await Promise.all([
+      env.PT_LICENSES.get(`trial_email:${emailHash}`),
+      env.PT_LICENSES.get(`email_license:${emailHash}`),
+    ]);
+    if (!trialRec && !licenseRec) {
+      console.warn(`[send-email] Destinatario no registrado: ${emailHash.slice(0, 8)}...`);
+      return new Response(
+        JSON.stringify({ ok: false, error: "Email not registered" }),
+        { status: 403, headers },
+      );
+    }
+  }
 
   const apiKey = env.BREVO_API_KEY;
   const fromEmail = env.FROM_EMAIL || "hola@parfumtrack.com";
@@ -358,7 +384,7 @@ export async function onRequestPost(context) {
     );
   } catch (e) {
     console.error("[send-email] Fetch error:", e.message);
-    return new Response(JSON.stringify({ ok: false, error: e.message }), {
+    return new Response(JSON.stringify({ ok: false, error: "Email service unavailable" }), {
       status: 500,
       headers,
     });
@@ -372,7 +398,7 @@ export async function onRequestOptions(context) {
 
 function corsHeaders(origin) {
   const allowed =
-    /^https?:\/\/(localhost|127\.0\.0\.1|parfumtrack\.pages\.dev|parfumtrack\.workers\.dev)(:\d+)?$/.test(
+    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
       origin,
     );
   return {
