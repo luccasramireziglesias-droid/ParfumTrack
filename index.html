@@ -2499,6 +2499,10 @@
           font-size: 10px !important;
           padding: 3px 7px !important;
         }
+        /* Ocultar botón backup en mobile — se accede desde Ajustes */
+        #header-backup-btn {
+          display: none !important;
+        }
         /* icon-btn compacto en header */
         .header-right .icon-btn {
           padding: 5px 6px !important;
@@ -3076,6 +3080,7 @@
               <span id="sync-status-label">Backup</span>
             </div>
             <button
+              id="header-backup-btn"
               class="icon-btn"
               onclick="backupData()"
               title="Backup datos"
