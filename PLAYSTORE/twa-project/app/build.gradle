@@ -1,0 +1,50 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.parfumtrack.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.parfumtrack.app"
+        minSdk 19
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+
+        manifestPlaceholders = [
+            hostName          : "parfumtrack.myapp.workers.dev",
+            defaultUrl        : "https://parfumtrack.myapp.workers.dev/index.html",
+            launcherName      : "Parfum Track",
+            assetStatements   : '[{ "relation": ["delegate_permission/common.handle_all_urls"], ' +
+                                '"target": { "namespace": "web", "site": "https://parfumtrack.myapp.workers.dev" } }]',
+            themeColor        : "#0f0f1a",
+            navigationColor   : "#0f0f1a",
+            navigationColorDark: "#0f0f1a",
+            navigationDividerColor: "#0f0f1a",
+            navigationDividerColorDark: "#0f0f1a",
+            backgroundColor   : "#0f0f1a",
+            enableNotifications: "true",
+            enableSiteSettingsShortcut: "true",
+            fallbackType      : "customtabs",
+            orientation       : "default"
+        ]
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}

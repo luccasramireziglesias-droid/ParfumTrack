@@ -4,3 +4,14 @@
 !.dev.vars.example
 .env*
 !.env.example
+
+# Node
+node_modules/
+
+# Android/Gradle build
+PLAYSTORE/twa-project/.gradle/
+PLAYSTORE/twa-project/build/
+PLAYSTORE/twa-project/app/build/
+PLAYSTORE/twa-project/local.properties
+*.apk
+*.aab
