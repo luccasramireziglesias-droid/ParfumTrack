@@ -26,13 +26,13 @@ Organizá tus ventas de perfumes: ganancia, cuotas, stock y cobros.
 ## Descripción larga (máx 4000 caracteres)
 
 ```
-Parfum Track es la app gratuita para revendedoras y revendedores de perfumes que quieren saber exactamente cuánto ganan, a quién le cobran y qué tienen en stock — sin calculadora, sin cuaderno, sin Excel.
+Parfum Track es la app gratuita para revendedores de perfumes que quieren saber exactamente cuánto ganan, a quién le cobran y qué tienen en stock — sin calculadora, sin cuaderno, sin Excel.
 
 REGISTRÁ CADA VENTA EN 10 SEGUNDOS
 Cargás el perfume, el precio de venta, el precio de compra y el cliente. La app calcula tu ganancia al instante. No hacés ninguna cuenta.
 
 CUOTAS CON SEGUIMIENTO AUTOMÁTICO
-Si vendés en cuotas, Parfum Track lleva la cuenta por vos: cuántas cuotas son, cuánto paga cada una, cuáles vencieron. Te avisa cuando una clienta debe y te arma el mensaje de cobro para WhatsApp.
+Si vendés en cuotas, Parfum Track lleva la cuenta por vos: cuántas cuotas son, cuánto paga cada una, cuáles vencieron. Te avisa cuando un cliente debe y te arma el mensaje de cobro para WhatsApp.
 
 CONTROL DE STOCK EN TIEMPO REAL
 Cada venta descuenta automáticamente del stock. Sabés exactamente cuántas unidades tenés de cada perfume sin contar a mano.
@@ -56,13 +56,13 @@ PLANES OPCIONALES PARA CRECER
 Si tu negocio crece, podés activar el plan Básico Pro con recordatorios automáticos de cobro, notificaciones push, catálogo profesional y estadísticas avanzadas. Cancelás cuando querás.
 
 ¿POR QUÉ PARFUM TRACK?
-+ Hecha especialmente para revendedoras de perfumes
++ Hecha especialmente para revendedores de perfumes
 + No necesitás saber de tecnología
 + Tus datos son tuyos y están en tu celular
 + Sin publicidad
 + Soporte por WhatsApp
 
-Más de 340 revendedoras ya organizaron su negocio con Parfum Track.
+Más de 340 revendedores ya organizaron su negocio con Parfum Track.
 Empezá gratis hoy.
 ```
 
@@ -74,7 +74,7 @@ Empezá gratis hoy.
 
 1. perfumes
 2. ventas
-3. revendedoras
+3. revendedores
 4. stock
 5. ganancias
 
