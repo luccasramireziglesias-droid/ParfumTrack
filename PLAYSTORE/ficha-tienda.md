@@ -7,7 +7,7 @@
 | **Nombre de la app** | Parfum Track |
 | **Desarrollador** | Parfum Track |
 | **Categoría** | Negocios |
-| **Correo de contacto** | luccasramireziglesias@gmail.com |
+| **Correo de contacto** | parfumtrack@gmail.com |
 | **Política de privacidad** | https://parfumtrack.com/privacidad.html |
 | **Sitio web** | https://parfumtrack.com |
 
