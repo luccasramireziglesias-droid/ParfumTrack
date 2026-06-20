@@ -7,6 +7,8 @@
 
 # Node
 node_modules/
+PLAYSTORE/package.json
+PLAYSTORE/package-lock.json
 
 # Android/Gradle build
 PLAYSTORE/twa-project/.gradle/
