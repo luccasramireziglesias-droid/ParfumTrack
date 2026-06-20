@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Configuración TWA — Parfum Track Play Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f1a;--bg2:#1a1a2e;--card:#1e1e35;
+  --gold:#c9a84c;--gold2:#e8c97e;--gold-dim:rgba(201,168,76,0.1);
+  --text:#f0ece4;--text2:#a8a49c;--text3:#6a6660;
+  --border:rgba(255,255,255,0.08);
+  --green:#70c9a0;--red:#e07070;--blue:#60a5fa;
+}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh;padding:0}
+.wrap{max-width:800px;margin:0 auto;padding:40px 24px 80px}
+h1{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,42px);font-weight:700;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.subtitle{color:var(--text2);font-size:14px;margin-bottom:40px}
+h2{font-size:18px;font-weight:700;color:var(--gold2);margin:40px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+h3{font-size:15px;font-weight:600;color:var(--text);margin:20px 0 8px}
+p{margin:8px 0;font-size:14px;color:var(--text2)}
+table{width:100%;border-collapse:collapse;margin:16px 0;background:var(--card);border-radius:12px;overflow:hidden}
+th{text-align:left;padding:12px 16px;background:rgba(201,168,76,0.08);color:var(--gold2);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+td{padding:12px 16px;border-top:1px solid var(--border);font-size:14px;color:var(--text)}
+td:first-child{font-weight:600;color:var(--text2)}
+.badge{display:inline-block;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700}
+.badge-green{background:rgba(112,201,160,0.1);border:1px solid rgba(112,201,160,0.2);color:var(--green)}
+.badge-pending{background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);color:var(--blue)}
+.badge-red{background:rgba(224,112,112,0.1);border:1px solid rgba(224,112,112,0.2);color:var(--red)}
+code{background:var(--bg2);padding:2px 8px;border-radius:4px;font-size:13px;color:var(--gold2);font-family:'DM Mono',monospace}
+pre{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:12px 0;overflow-x:auto;font-size:13px;line-height:1.6;color:var(--text)}
+.info-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin:16px 0;font-size:14px}
+.info-box p{color:var(--text);margin:4px 0}
+.step{display:flex;align-items:flex-start;gap:16px;margin:20px 0;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px}
+.step-num{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1400;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-body{flex:1}
+.step-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px}
+.step-desc{font-size:13px;color:var(--text2);line-height:1.7}
+.step-desc ol{padding-left:20px;margin:8px 0}
+.step-desc ol li{margin:6px 0}
+.warning{background:rgba(224,112,112,0.06);border:1px solid rgba(224,112,112,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--red);line-height:1.7}
+.summary{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:20px 0}
+.summary-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.summary-num{font-size:24px;font-weight:800;color:var(--gold)}
+.summary-label{font-size:12px;color:var(--text3);margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Configuración TWA</h1>
+<p class="subtitle">Guía paso a paso para publicar Parfum Track en Google Play Store</p>
+
+<!-- QUE ES -->
+<div class="info-box">
+  <p><strong>¿Qué es una TWA?</strong></p>
+  <p>TWA (Trusted Web Activity) permite empaquetar una PWA como app Android nativa. La app abre tu sitio web en Chrome sin barra de navegación — se ve y se siente como una app nativa. No hay que reescribir código.</p>
+</div>
+
+<!-- REQUISITOS -->
+<h2>Requisitos previos</h2>
+<table>
+  <tr><th>Requisito</th><th>Estado</th></tr>
+  <tr><td>PWA con manifest.json</td><td><span class="badge badge-green">LISTO</span></td></tr>
+  <tr><td>Service Worker (sw.js)</td><td><span class="badge badge-green">LISTO</span></td></tr>
+  <tr><td>HTTPS</td><td><span class="badge badge-green">LISTO</span></td></tr>
+  <tr><td>icon-512.png (512x512)</td><td><span class="badge badge-green">LISTO</span></td></tr>
+  <tr><td>icon-192.png (192x192)</td><td><span class="badge badge-green">LISTO</span></td></tr>
+  <tr><td>Cuenta Google Play Developer ($25 USD)</td><td><span class="badge badge-pending">PENDIENTE</span></td></tr>
+  <tr><td>Android Studio instalado</td><td><span class="badge badge-pending">PENDIENTE</span></td></tr>
+  <tr><td>Java JDK 11+ instalado</td><td><span class="badge badge-pending">PENDIENTE</span></td></tr>
+</table>
+
+<!-- PASOS -->
+<h2>Pasos</h2>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <div class="step-title">Crear cuenta de desarrollador en Google Play</div>
+    <div class="step-desc">
+      <ol>
+        <li>Ir a <code>https://play.google.com/console</code></li>
+        <li>Iniciar sesión con <code>parfumtrack@gmail.com</code></li>
+        <li>Pagar la tarifa única de USD $25</li>
+        <li>Completar la verificación de identidad (puede tardar 2-7 días)</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <div class="step-title">Instalar herramientas</div>
+    <div class="step-desc">
+      <h3>Node.js</h3>
+      <pre>Descargar desde https://nodejs.org (versión LTS)</pre>
+      <h3>Bubblewrap CLI</h3>
+      <pre>npm install -g @nicedoc/bubblewrap</pre>
+      <h3>Android Studio</h3>
+      <p>Descargar desde <code>https://developer.android.com/studio</code></p>
+      <p>Instalar el SDK de Android (API level 33+)</p>
+      <p>Ruta del SDK: <code>C:\Users\lucca\AppData\Local\Android\Sdk</code></p>
+      <h3>Java JDK</h3>
+      <p>Descargar JDK 17 desde <code>https://adoptium.net</code></p>
+      <p>Configurar JAVA_HOME en variables de entorno</p>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <div class="step-title">Inicializar proyecto con Bubblewrap</div>
+    <div class="step-desc">
+      <p>Desde la carpeta PLAYSTORE, ejecutar:</p>
+      <pre>bubblewrap init --manifest="https://parfumtrack.com/manifest.json"</pre>
+      <p style="margin-top:12px">Usar estos valores cuando pregunte:</p>
+    </div>
+    <table style="margin-top:12px">
+      <tr><td>Domain</td><td>parfumtrack.com</td></tr>
+      <tr><td>URL path</td><td>/index.html</td></tr>
+      <tr><td>App name</td><td>Parfum Track</td></tr>
+      <tr><td>Short name</td><td>ParfumTrack</td></tr>
+      <tr><td>Package</td><td>com.parfumtrack.app</td></tr>
+      <tr><td>Version name</td><td>1.0.0</td></tr>
+      <tr><td>Version code</td><td>1</td></tr>
+      <tr><td>Display mode</td><td>standalone</td></tr>
+      <tr><td>Status bar color</td><td>#0f0f1a</td></tr>
+      <tr><td>Navigation bar color</td><td>#0f0f1a</td></tr>
+      <tr><td>Splash screen color</td><td>#0f0f1a</td></tr>
+      <tr><td>Signing key</td><td>Crear nueva</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">4</div>
+  <div class="step-body">
+    <div class="step-title">Generar el APK/AAB</div>
+    <div class="step-desc">
+      <pre>bubblewrap build</pre>
+      <p style="margin-top:8px">Esto genera:</p>
+      <p><code>app-release-bundle.aab</code> — el archivo que se sube a Play Store</p>
+      <p><code>app-release-signed.apk</code> — para testing directo en celular</p>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">5</div>
+  <div class="step-body">
+    <div class="step-title">Verificar Digital Asset Links</div>
+    <div class="step-desc">
+      <p>Para que la app se abra sin barra de Chrome:</p>
+      <p style="margin-top:8px">1. Obtener el fingerprint SHA-256:</p>
+      <pre>keytool -list -v -keystore ./ptrack.keystore -alias ptrack</pre>
+      <p style="margin-top:8px">2. Crear <code>/.well-known/assetlinks.json</code> en el servidor:</p>
+      <pre>[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.parfumtrack.app",
+    "sha256_cert_fingerprints": ["XX:XX:XX:...TU_FINGERPRINT_ACA..."]
+  }
+}]</pre>
+      <p style="margin-top:8px">3. Verificar que sea accesible en:</p>
+      <pre>https://parfumtrack.com/.well-known/assetlinks.json</pre>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">6</div>
+  <div class="step-body">
+    <div class="step-title">Subir a Play Store</div>
+    <div class="step-desc">
+      <ol>
+        <li>Ir a Google Play Console → Crear aplicación</li>
+        <li>Completar la ficha de la tienda (ver <code>ficha-tienda.html</code>)</li>
+        <li>Subir los assets gráficos (ver <code>assets-graficos.html</code>)</li>
+        <li>Ir a <strong>Producción</strong> → <strong>Crear nueva versión</strong></li>
+        <li>Subir el archivo <code>app-release-bundle.aab</code></li>
+        <li>Completar el cuestionario de clasificación de contenido</li>
+        <li>Configurar precio (Gratis) y distribución (países)</li>
+        <li>Enviar a revisión</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">7</div>
+  <div class="step-body">
+    <div class="step-title">Revisión de Google</div>
+    <div class="step-desc">
+      <p>La primera revisión puede tardar entre 3 y 7 días.</p>
+      <p>Google revisa que la app cumpla sus políticas.</p>
+      <p>Si hay compras in-app (plan Pro), declararlo en la ficha.</p>
+      <p>Tener la política de privacidad publicada antes de enviar.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHIVOS IMPORTANTES -->
+<h2>Archivos importantes que se generan</h2>
+<table>
+  <tr><th>Archivo</th><th>Descripción</th><th>Guardar seguro</th></tr>
+  <tr><td>ptrack.keystore</td><td>Clave de firma de la app</td><td><span class="badge badge-red">CRITICO</span></td></tr>
+  <tr><td>app-release-bundle.aab</td><td>Bundle para Play Store</td><td>No (se regenera)</td></tr>
+  <tr><td>assetlinks.json</td><td>Verificación de dominio</td><td>No (se sube al servidor)</td></tr>
+  <tr><td>twa-manifest.json</td><td>Configuración de Bubblewrap</td><td>Sí</td></tr>
+</table>
+
+<div class="warning">
+  <strong>IMPORTANTE:</strong> Si perdés el archivo <code>ptrack.keystore</code>, no vas a poder actualizar la app en Play Store nunca más. Guardalo en un lugar seguro (Google Drive, USB, etc).
+</div>
+
+<!-- RESUMEN -->
+<h2>Resumen</h2>
+<div class="summary">
+  <div class="summary-item"><div class="summary-num">$25</div><div class="summary-label">Cuenta Google Play (único pago)</div></div>
+  <div class="summary-item"><div class="summary-num">7</div><div class="summary-label">Pasos para publicar</div></div>
+  <div class="summary-item"><div class="summary-num">3-7</div><div class="summary-label">Días de revisión</div></div>
+  <div class="summary-item"><div class="summary-num">$0</div><div class="summary-label">Costo de la app para usuarios</div></div>
+</div>
+
+</div>
+</body>
+</html>

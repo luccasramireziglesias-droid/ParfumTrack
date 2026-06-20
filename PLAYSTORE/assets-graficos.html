@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Assets Gráficos — Parfum Track Play Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f1a;--bg2:#1a1a2e;--card:#1e1e35;
+  --gold:#c9a84c;--gold2:#e8c97e;--gold-dim:rgba(201,168,76,0.1);
+  --text:#f0ece4;--text2:#a8a49c;--text3:#6a6660;
+  --border:rgba(255,255,255,0.08);
+  --green:#70c9a0;--red:#e07070;--blue:#60a5fa;
+}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh;padding:0}
+.wrap{max-width:800px;margin:0 auto;padding:40px 24px 80px}
+h1{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,42px);font-weight:700;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.subtitle{color:var(--text2);font-size:14px;margin-bottom:40px}
+h2{font-size:18px;font-weight:700;color:var(--gold2);margin:40px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;margin:16px 0;background:var(--card);border-radius:12px;overflow:hidden}
+th{text-align:left;padding:12px 16px;background:rgba(201,168,76,0.08);color:var(--gold2);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+td{padding:12px 16px;border-top:1px solid var(--border);font-size:14px;color:var(--text)}
+td:first-child{font-weight:600;color:var(--text2);white-space:nowrap}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin:20px 0}
+.card-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px}
+.card-sub{font-size:12px;color:var(--text3);margin-bottom:16px}
+.badge{display:inline-block;padding:4px 12px;border-radius:50px;font-size:11px;font-weight:700}
+.badge-green{background:rgba(112,201,160,0.1);border:1px solid rgba(112,201,160,0.2);color:var(--green)}
+.badge-pending{background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);color:var(--blue)}
+.spec-row{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
+.spec{padding:8px 16px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:13px}
+.spec strong{color:var(--gold2)}
+.design-note{background:var(--bg);border-left:3px solid var(--gold);padding:16px 20px;border-radius:0 8px 8px 0;margin:16px 0;font-size:13px;color:var(--text2);line-height:1.8}
+.screenshot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:20px 0}
+.ss-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;transition:transform 0.2s}
+.ss-card:hover{transform:translateY(-2px)}
+.ss-num{font-size:28px;font-weight:900;color:var(--gold);opacity:0.3;line-height:1}
+.ss-title{font-size:14px;font-weight:700;color:var(--gold2);margin:8px 0 4px}
+.ss-overlay{font-size:12px;color:var(--text);font-style:italic;margin-bottom:4px}
+.ss-desc{font-size:12px;color:var(--text3)}
+.summary-table td:last-child{text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Assets Gráficos</h1>
+<p class="subtitle">Especificaciones de imágenes para la ficha de Google Play Store</p>
+
+<!-- ICONO -->
+<h2>1. Ícono de la app</h2>
+<div class="card">
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+    <img src="/icon-512.png" alt="Ícono Parfum Track" style="width:80px;height:80px;border-radius:16px;border:1px solid var(--border)">
+    <div>
+      <div class="card-title">icon-512.png</div>
+      <div class="card-sub">Gota dorada sobre fondo oscuro</div>
+      <span class="badge badge-green">LISTO</span>
+    </div>
+  </div>
+  <div class="spec-row">
+    <div class="spec"><strong>512</strong> x <strong>512</strong> px</div>
+    <div class="spec">PNG 32-bit con alfa</div>
+    <div class="spec">Fondo <strong>#0f0f1a</strong></div>
+  </div>
+  <p style="font-size:12px;color:var(--text3);margin-top:12px">Google Play le aplica la máscara automáticamente (esquinas redondeadas). No agregar borde, sombra ni badge.</p>
+</div>
+
+<!-- FEATURE GRAPHIC -->
+<h2>2. Feature Graphic</h2>
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div>
+      <div class="card-title">feature-graphic.png</div>
+      <div class="card-sub">Banner principal de la ficha</div>
+    </div>
+    <span class="badge badge-pending">POR CREAR</span>
+  </div>
+  <div class="spec-row">
+    <div class="spec"><strong>1024</strong> x <strong>500</strong> px</div>
+    <div class="spec">JPG o PNG 24-bit (sin alfa)</div>
+  </div>
+  <div class="design-note">
+    <strong>Diseño propuesto:</strong><br>
+    Fondo: degradado oscuro (#0f0f1a → #1a1a2e)<br>
+    Izquierda: texto "Parfum Track" en Cormorant Garamond bold, gold (#c9a84c → #e8c97e)<br>
+    Subtítulo: "Organizá tu negocio de perfumes" en DM Sans, cream (#f0ece4)<br>
+    Derecha: mockup de celular con screenshot del Dashboard<br>
+    Logo gota dorada pequeño arriba a la izquierda<br>
+    Sin texto chico ni CTA — Google lo muestra muy reducido
+  </div>
+</div>
+
+<!-- SCREENSHOTS -->
+<h2>3. Screenshots</h2>
+<div class="spec-row" style="margin-bottom:8px">
+  <div class="spec"><strong>1080</strong> x <strong>1920</strong> px (9:16)</div>
+  <div class="spec">JPG o PNG</div>
+  <div class="spec">Mínimo <strong>2</strong> · Recomendado <strong>5-8</strong></div>
+</div>
+
+<div class="screenshot-grid">
+  <div class="ss-card">
+    <div class="ss-num">01</div>
+    <div class="ss-title">Dashboard</div>
+    <div class="ss-overlay">"Sabés cuánto ganás — al instante"</div>
+    <div class="ss-desc">Vista principal con ganancia, ventas, deudas</div>
+  </div>
+  <div class="ss-card">
+    <div class="ss-num">02</div>
+    <div class="ss-title">Nueva Venta</div>
+    <div class="ss-overlay">"Registrá cada venta en 10 segundos"</div>
+    <div class="ss-desc">Formulario de nueva venta</div>
+  </div>
+  <div class="ss-card">
+    <div class="ss-num">03</div>
+    <div class="ss-title">Cuotas</div>
+    <div class="ss-overlay">"Tus cuotas pendientes, siempre a la vista"</div>
+    <div class="ss-desc">Lista de cuotas con alertas de vencimiento</div>
+  </div>
+  <div class="ss-card">
+    <div class="ss-num">04</div>
+    <div class="ss-title">Stock</div>
+    <div class="ss-overlay">"Tu stock siempre actualizado"</div>
+    <div class="ss-desc">Control de inventario por perfume</div>
+  </div>
+  <div class="ss-card">
+    <div class="ss-num">05</div>
+    <div class="ss-title">Catálogo</div>
+    <div class="ss-overlay">"Compartí tu catálogo por WhatsApp"</div>
+    <div class="ss-desc">Catálogo profesional generado</div>
+  </div>
+  <div class="ss-card">
+    <div class="ss-num">06</div>
+    <div class="ss-title">Estadísticas</div>
+    <div class="ss-overlay">"Tus números reales, no adivinados"</div>
+    <div class="ss-desc">Gráficos y métricas del negocio</div>
+  </div>
+</div>
+
+<div class="design-note">
+  <strong>Formato de cada screenshot:</strong><br>
+  Fondo oscuro (#0f0f1a)<br>
+  Mockup de celular centrado con la captura de la app<br>
+  Título arriba en gold (#c9a84c), tipografía Cormorant Garamond bold<br>
+  Subtítulo opcional en cream (#f0ece4), DM Sans<br>
+  Glow dorado sutil alrededor del mockup
+</div>
+
+<!-- RESUMEN -->
+<h2>4. Resumen de archivos</h2>
+<table class="summary-table">
+  <tr><th>Archivo</th><th>Tamaño</th><th>Estado</th></tr>
+  <tr><td>icon-512.png</td><td>512 x 512</td><td><span class="badge badge-green">LISTO</span></td></tr>
+  <tr><td>feature-graphic.png</td><td>1024 x 500</td><td><span class="badge badge-pending">POR CREAR</span></td></tr>
+  <tr><td>screenshot-01.png</td><td>1080 x 1920</td><td><span class="badge badge-pending">POR CREAR</span></td></tr>
+  <tr><td>screenshot-02.png</td><td>1080 x 1920</td><td><span class="badge badge-pending">POR CREAR</span></td></tr>
+  <tr><td>screenshot-03.png</td><td>1080 x 1920</td><td><span class="badge badge-pending">POR CREAR</span></td></tr>
+  <tr><td>screenshot-04.png</td><td>1080 x 1920</td><td><span class="badge badge-pending">POR CREAR</span></td></tr>
+  <tr><td>screenshot-05.png</td><td>1080 x 1920</td><td><span class="badge badge-pending">POR CREAR</span></td></tr>
+  <tr><td>screenshot-06.png</td><td>1080 x 1920</td><td><span class="badge badge-pending">POR CREAR</span></td></tr>
+</table>
+
+</div>
+</body>
+</html>
