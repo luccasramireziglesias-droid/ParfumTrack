@@ -1040,7 +1040,9 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
 }
 
 @media (max-width: 600px) {
-  .slide { padding: 40px 16px; }
+  html { scroll-snap-type: none; }
+  .slide { padding: 40px 16px; min-height: 100vh; min-height: 100dvh; height: auto; }
+  .slide-inner { gap: 24px; }
   .features-grid { grid-template-columns: 1fr; }
   .benefits-grid { grid-template-columns: 1fr; }
   .cards-2, .cards-3 { grid-template-columns: 1fr; }
@@ -1051,13 +1053,35 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
   .phone-whatsapp { width: 260px; }
   .stats-row { gap: 24px; }
   .stat-num { font-size: 2rem; }
+  h1 { font-size: clamp(1.8rem, 7vw, 2.4rem); }
+  h2 { font-size: clamp(1.5rem, 6vw, 1.8rem); }
+  .subtitle { font-size: 0.95rem; }
+  .btn { padding: 14px 32px; font-size: 0.95rem; }
+  .card { padding: 20px 18px; }
+  .card h3 { font-size: 1.05rem; }
+  .card p { font-size: 0.85rem; }
+  .compare-table { font-size: 0.72rem; }
+  .compare-table th { font-size: 0.82rem; }
+  .compare-table th, .compare-table td { padding: 8px 6px; }
+  .pricing-grid { grid-template-columns: 1fr; max-width: 360px; margin: 0 auto; }
+  .pricing-card { padding: 24px 20px; }
+  .pricing-card.featured { transform: none; }
+  .timeline-content p { font-size: 0.88rem; }
+  .persona-card { padding: 20px 18px; }
+  .faq-question { font-size: 0.92rem; padding: 14px 0; }
+  .faq-answer { font-size: 0.85rem; }
+  .roadmap-item h3 { font-size: 1rem; }
+  .roadmap-item p { font-size: 0.85rem; }
+  .slide-counter { font-size: 0.7rem; top: 12px; left: 12px; }
+  .cost-cols { gap: 16px; }
+  .cost-stat { font-size: clamp(1.8rem, 8vw, 2.5rem); }
 }
 </style>
 </head>
 <body>
 
 <!-- ==================== NAVIGATION ==================== -->
-<nav class="nav-dots" id="navDots" aria-label="Navegacion por diapositivas"></nav>
+<nav class="nav-dots" id="navDots" aria-label="Navegación por diapositivas"></nav>
 <div class="slide-counter" id="slideCounter">01 / 25</div>
 
 <!-- ==================== SLIDE 1 — PORTADA ==================== -->
@@ -1069,7 +1093,7 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
     <p class="subtitle">La plataforma que organiza tus ventas, cuotas, stock y ganancia &mdash; desde el celular.</p>
     <div style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 8px;">
       <a href="/index.html" class="btn btn-gold">Probar gratis</a>
-      <a href="#s2" class="btn btn-outline">Conocer mas</a>
+      <a href="#s2" class="btn btn-outline">Conocer más</a>
     </div>
   </div>
 </section>
@@ -1078,9 +1102,9 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
 <section class="slide slide-alt" id="s2">
   <div class="slide-inner reveal">
     <p class="label">El problema</p>
-    <h2>&laquo;Cuanto ganaste este mes?&raquo;</h2>
+    <h2>&laquo;¿Cuánto ganaste este mes?&raquo;</h2>
     <div class="divider-gold"></div>
-    <p class="subtitle">Si para responder esa pregunta necesitas un cuaderno, una calculadora y dos horas... el problema no sos vos.<br><br><strong class="gold2">Es que no tenes las herramientas correctas.</strong></p>
+    <p class="subtitle">Si para responder esa pregunta necesitás un cuaderno, una calculadora y dos horas... el problema no sos vos.<br><br><strong class="gold2">Es que no tenés las herramientas correctas.</strong></p>
   </div>
 </section>
 
@@ -1093,22 +1117,22 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
       <div class="card">
         <span class="card-icon">&#x1F4C9;</span>
         <h3>Ventas sin registrar</h3>
-        <p>Vendiste, pero no sabes cuanto ganaste. Cada venta sin registrar es plata que se pierde de vista.</p>
+        <p>Vendiste, pero no sabés cuánto ganaste. Cada venta sin registrar es plata que se pierde de vista.</p>
       </div>
       <div class="card">
         <span class="card-icon">&#x1F4AD;</span>
         <h3>Cuotas olvidadas</h3>
-        <p>Te deben plata, pero no recordas cuanto, ni quien, ni desde cuando. El cuaderno no te avisa.</p>
+        <p>Te deben plata, pero no recordás cuánto, ni quién, ni desde cuándo. El cuaderno no te avisa.</p>
       </div>
       <div class="card">
         <span class="card-icon">&#x1F4E6;</span>
         <h3>Stock descontrolado</h3>
-        <p>No sabes cuantas unidades te quedan de cada perfume. Cuando un cliente pide, improvisas.</p>
+        <p>No sabés cuántas unidades te quedan de cada perfume. Cuando un cliente pide, improvisás.</p>
       </div>
       <div class="card">
         <span class="card-icon">&#x1F648;</span>
         <h3>Decisiones a ciegas</h3>
-        <p>Sin datos claros, elegis por intuicion. No sabes que perfume rinde mas ni que cliente compra mas.</p>
+        <p>Sin datos claros, elegís por intuición. No sabés qué perfume rinde más ni qué cliente compra más.</p>
       </div>
     </div>
   </div>
@@ -1122,21 +1146,21 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
     <div class="cost-cols" style="margin-top: 12px;">
       <div class="cost-col">
         <span class="cost-icon">&#x23F0;</span>
-        <div class="cost-stat">+100h/ano</div>
+        <div class="cost-stat">+100h/año</div>
         <h3>Tiempo perdido</h3>
-        <p>Mas de 2 horas por semana buscando datos, sumando numeros y organizando papeles. Eso son 100+ horas al ano que no recuperas.</p>
+        <p>Más de 2 horas por semana buscando datos, sumando números y organizando papeles. Eso son 100+ horas al año que no recuperás.</p>
       </div>
       <div class="cost-col">
         <span class="cost-icon">&#x1F4B8;</span>
         <div class="cost-stat">$$$</div>
         <h3>Plata sin cobrar</h3>
-        <p>Cuotas que se te olvidan, clientes que no pagas a tiempo. Cada cuota olvidada es plata que perdes para siempre.</p>
+        <p>Cuotas que se te olvidan, clientes que no pagás a tiempo. Cada cuota olvidada es plata que perdés para siempre.</p>
       </div>
       <div class="cost-col">
         <span class="cost-icon">&#x1F680;</span>
         <div class="cost-stat">0 datos</div>
         <h3>Oportunidades perdidas</h3>
-        <p>Sin datos, no podes crecer. No sabes que reponer, que dejar de comprar ni cual es tu mejor mes para invertir.</p>
+        <p>Sin datos, no podés crecer. No sabés qué reponer, qué dejar de comprar ni cuál es tu mejor mes para invertir.</p>
       </div>
     </div>
   </div>
@@ -1146,35 +1170,35 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
 <section class="slide" id="s5">
   <div class="glow-orb glow-gold" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
   <div class="slide-inner reveal">
-    <p class="label">La solucion</p>
+    <p class="label">La solución</p>
     <h2>Hay una mejor manera</h2>
     <div class="divider-gold" style="margin: 8px auto;"></div>
     <img src="/icon-192.png" alt="Parfum Track" class="logo-lg" style="margin: 16px 0;">
     <h1 class="gold" style="font-size: clamp(2rem, 4.5vw, 3.5rem);">Parfum Track</h1>
-    <p class="subtitle">La plataforma disenada para revendedores de perfumes que quieren <strong class="gold2">control total</strong> de su negocio.</p>
+    <p class="subtitle">La plataforma diseñada para revendedores de perfumes que quieren <strong class="gold2">control total</strong> de su negocio.</p>
   </div>
 </section>
 
 <!-- ==================== SLIDE 6 — COMO FUNCIONA ==================== -->
 <section class="slide slide-alt" id="s6">
   <div class="slide-inner reveal">
-    <p class="label">Como funciona</p>
+    <p class="label">Cómo funciona</p>
     <h2>Tres pasos. Diez segundos.</h2>
     <div class="steps" style="margin-top: 16px;">
       <div class="step">
         <div class="step-num">1</div>
-        <h3>Registras una venta</h3>
-        <p>10 segundos. Elegis el perfume, el precio, el cliente. Listo.</p>
+        <h3>Registrás una venta</h3>
+        <p>10 segundos. Elegís el perfume, el precio, el cliente. Listo.</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
         <h3>Todo se calcula solo</h3>
-        <p>Ganancia, stock, cuotas, estadisticas. Automatico, sin errores.</p>
+        <p>Ganancia, stock, cuotas, estadísticas. Automático, sin errores.</p>
       </div>
       <div class="step">
         <div class="step-num">3</div>
-        <h3>Tomas decisiones con datos</h3>
-        <p>Sabes que vender, a quien cobrar, cuando reponer. Sin adivinar.</p>
+        <h3>Tomás decisiones con datos</h3>
+        <p>Sabés qué vender, a quién cobrar, cuándo reponer. Sin adivinar.</p>
       </div>
     </div>
   </div>
@@ -1184,12 +1208,12 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
 <section class="slide" id="s7">
   <div class="slide-inner reveal">
     <p class="label">Beneficios</p>
-    <h2>Lo que cambia cuando<br>tenes <span class="gold">el control</span></h2>
+    <h2>Lo que cambia cuando<br>tenés <span class="gold">el control</span></h2>
     <div class="benefits-grid" style="margin-top: 12px;">
       <div class="benefit-card">
         <span class="benefit-icon">&#x1F3AF;</span>
         <h3>Control total</h3>
-        <p>Sabes exactamente cuanto ganaste, cuanto te deben y cuanto stock tenes. Sin adivinar.</p>
+        <p>Sabés exactamente cuánto ganaste, cuánto te deben y cuánto stock tenés. Sin adivinar.</p>
       </div>
       <div class="benefit-card">
         <span class="benefit-icon">&#x26A1;</span>
@@ -1198,23 +1222,23 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
       </div>
       <div class="benefit-card">
         <span class="benefit-icon">&#x1F4B0;</span>
-        <h3>Cobros al dia</h3>
-        <p>Nunca mas te olvidas de una cuota. El sistema te muestra quien debe y facilita el cobro por WhatsApp.</p>
+        <h3>Cobros al día</h3>
+        <p>Nunca más te olvidás de una cuota. El sistema te muestra quién debe y facilita el cobro por WhatsApp.</p>
       </div>
       <div class="benefit-card">
         <span class="benefit-icon">&#x1F4CA;</span>
         <h3>Decisiones inteligentes</h3>
-        <p>Con datos reales, decidis que perfume reponer, que linea dejar y donde poner el foco. Datos, no corazonadas.</p>
+        <p>Con datos reales, decidís qué perfume reponer, qué línea dejar y dónde poner el foco. Datos, no corazonadas.</p>
       </div>
       <div class="benefit-card">
         <span class="benefit-icon">&#x1F4E6;</span>
         <h3>Stock organizado</h3>
-        <p>Siempre sabes cuantas unidades tenes de cada producto. Se actualiza solo con cada venta.</p>
+        <p>Siempre sabés cuántas unidades tenés de cada producto. Se actualiza solo con cada venta.</p>
       </div>
       <div class="benefit-card">
         <span class="benefit-icon">&#x1F4C8;</span>
         <h3>Crecimiento real</h3>
-        <p>Crece con confianza. Cuando tenes los numeros claros, podes planificar, invertir y escalar.</p>
+        <p>Crecé con confianza. Cuando tenés los números claros, podés planificar, invertir y escalar.</p>
       </div>
     </div>
   </div>
@@ -1224,7 +1248,7 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
 <section class="slide slide-alt" id="s8">
   <div class="slide-inner reveal">
     <p class="label">Funcionalidades</p>
-    <h2>Todo lo que necesitas,<br><span class="gold">en un solo lugar</span></h2>
+    <h2>Todo lo que necesitás,<br><span class="gold">en un solo lugar</span></h2>
     <div class="features-grid" style="margin-top: 12px;">
       <div class="feature-item">
         <span class="feature-icon">&#x1F4CA;</span>
@@ -1234,7 +1258,7 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
       <div class="feature-item">
         <span class="feature-icon">&#x1F4B3;</span>
         <h3>Ventas en 10 segundos</h3>
-        <p>Registra una venta en cuatro toques. La ganancia se calcula sola.</p>
+        <p>Registrá una venta en cuatro toques. La ganancia se calcula sola.</p>
       </div>
       <div class="feature-item">
         <span class="feature-icon">&#x1F514;</span>
@@ -1243,23 +1267,23 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
       </div>
       <div class="feature-item">
         <span class="feature-icon">&#x1F4E6;</span>
-        <h3>Stock automatico</h3>
-        <p>Cada venta descuenta automaticamente. Sabes exactamente que tenes.</p>
+        <h3>Stock automático</h3>
+        <p>Cada venta descuenta automáticamente. Sabés exactamente qué tenés.</p>
       </div>
       <div class="feature-item">
         <span class="feature-icon">&#x1F4F1;</span>
-        <h3>Catalogo WhatsApp</h3>
+        <h3>Catálogo WhatsApp</h3>
         <p>Compartilo con tus clientes para que vean tus productos y precios al instante.</p>
       </div>
       <div class="feature-item">
         <span class="feature-icon">&#x1F4C8;</span>
-        <h3>Estadisticas reales</h3>
+        <h3>Estadísticas reales</h3>
         <p>Ganancia por mes, margen, ticket promedio, ranking de productos y clientes.</p>
       </div>
       <div class="feature-item">
         <span class="feature-icon">&#x1F4B5;</span>
         <h3>Gastos y caja</h3>
-        <p>Registra tus gastos y ve el balance real de tu negocio. Ingresos vs egresos.</p>
+        <p>Registrá tus gastos y ve el balance real de tu negocio. Ingresos vs egresos.</p>
       </div>
       <div class="feature-item">
         <span class="feature-icon">&#x1F512;</span>
@@ -1276,7 +1300,7 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
     <div class="cols">
       <div class="col-visual">
         <div class="phone-mockup">
-          <img src="/img/sc-dashboard.png" alt="Dashboard de ParfumTrack mostrando ventas, ganancia y estadisticas">
+          <img src="/img/sc-dashboard.png" alt="Dashboard de ParfumTrack mostrando ventas, ganancia y estadísticas">
         </div>
       </div>
       <div class="col-text">
@@ -1298,28 +1322,28 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
 <section class="slide slide-alt" id="s10">
   <div class="slide-inner reveal">
     <p class="label">Stock</p>
-    <h2>Nunca te quedes sin<br><span class="gold">tu perfume mas vendido</span></h2>
-    <p class="subtitle">El stock se actualiza solo con cada venta. Siempre sabes cuantas unidades tenes de cada producto.</p>
+    <h2>Nunca te quedes sin<br><span class="gold">tu perfume más vendido</span></h2>
+    <p class="subtitle">El stock se actualiza solo con cada venta. Siempre sabés cuántas unidades tenés de cada producto.</p>
     <div class="cards cards-4" style="margin-top: 12px;">
       <div class="card">
         <span class="card-icon">&#x1F504;</span>
-        <h3>Actualizacion automatica</h3>
+        <h3>Actualización automática</h3>
         <p>Cada venta descuenta del stock. Sin intervenir, sin errores manuales.</p>
       </div>
       <div class="card">
         <span class="card-icon">&#x26A0;&#xFE0F;</span>
         <h3>Alertas de stock bajo</h3>
-        <p>Sabes cuando un producto esta por agotarse antes de que sea tarde.</p>
+        <p>Sabés cuándo un producto está por agotarse antes de que sea tarde.</p>
       </div>
       <div class="card">
         <span class="card-icon">&#x1F4B2;</span>
         <h3>Precio de compra</h3>
-        <p>Registra tu costo para calcular el margen real de cada perfume.</p>
+        <p>Registrá tu costo para calcular el margen real de cada perfume.</p>
       </div>
       <div class="card">
         <span class="card-icon">&#x1F3C6;</span>
         <h3>Ranking de productos</h3>
-        <p>Sabes cuales son los que mas se venden y cuales conviene reponer primero.</p>
+        <p>Sabés cuáles son los que más se venden y cuáles conviene reponer primero.</p>
       </div>
     </div>
   </div>
@@ -1336,8 +1360,8 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
       </div>
       <div class="col-text">
         <p class="label">Ventas</p>
-        <h2>Registra una venta<br>en <span class="gold">10 segundos</span></h2>
-        <p style="margin-top: 8px;">La ganancia se calcula sola. Vos solo elegis el perfume, el precio y el cliente.</p>
+        <h2>Registrá una venta<br>en <span class="gold">10 segundos</span></h2>
+        <p style="margin-top: 8px;">La ganancia se calcula sola. Vos solo elegís el perfume, el precio y el cliente.</p>
         <div class="flow" style="margin-top: 24px; justify-content: flex-start;">
           <div class="flow-step">Perfume</div>
           <span class="flow-arrow">&#x2192;</span>
@@ -1347,7 +1371,7 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
           <span class="flow-arrow">&#x2192;</span>
           <div class="flow-step" style="border-color: var(--gold); color: var(--gold);">Listo</div>
         </div>
-        <p style="color: var(--text2); margin-top: 20px; font-size: 0.92rem;">12 ventas, $9.750 de ganancia. Asi se ve cuando tu negocio esta bajo control.</p>
+        <p style="color: var(--text2); margin-top: 20px; font-size: 0.92rem;">12 ventas, $9.750 de ganancia. Así se ve cuando tu negocio está bajo control.</p>
       </div>
     </div>
   </div>
@@ -1357,7 +1381,7 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
 <section class="slide slide-alt" id="s12">
   <div class="slide-inner reveal">
     <p class="label">Clientes</p>
-    <h2>Sabe exactamente quien te compra,<br><span class="gold">quien te debe y cuanto</span></h2>
+    <h2>Sabé exactamente quién te compra,<br><span class="gold">quién te debe y cuánto</span></h2>
     <p class="subtitle">Cada cliente tiene su historial completo: compras, pagos, deuda. Todo organizado, todo a la vista.</p>
     <div class="cards cards-3" style="margin-top: 12px;">
       <div class="card" style="text-align: center;">
@@ -1368,12 +1392,12 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
       <div class="card" style="text-align: center;">
         <span class="card-icon" style="text-align: center;">&#x1F4B3;</span>
         <h3>Seguimiento de pagos</h3>
-        <p>Sabes quien pago, quien debe y cuanto falta. Sin anotar en papelitos.</p>
+        <p>Sabés quién pagó, quién debe y cuánto falta. Sin anotar en papelitos.</p>
       </div>
       <div class="card" style="text-align: center;">
         <span class="card-icon" style="text-align: center;">&#x1F4F2;</span>
         <h3>WhatsApp integrado</h3>
-        <p>Envia recordatorios de pago profesionales directo desde la app. Un toque y listo.</p>
+        <p>Enviá recordatorios de pago profesionales directo desde la app. Un toque y listo.</p>
       </div>
     </div>
   </div>
@@ -1383,8 +1407,8 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
 <section class="slide" id="s13">
   <div class="slide-inner reveal">
     <p class="label">Gastos</p>
-    <h2>Conoce exactamente cuanto<br><span class="green">entra</span> y cuanto <span class="red">sale</span></h2>
-    <p class="subtitle">Registra tus gastos, ve tu balance real y toma decisiones con numeros claros. Nunca mas a ojo.</p>
+    <h2>Conocé exactamente cuánto<br><span class="green">entra</span> y cuánto <span class="red">sale</span></h2>
+    <p class="subtitle">Registrá tus gastos, ve tu balance real y tomá decisiones con números claros. Nunca más a ojo.</p>
     <div style="display: flex; gap: 40px; justify-content: center; margin-top: 24px; flex-wrap: wrap; align-items: center;">
       <div style="text-align: center;">
         <div class="balance-circle" style="border: 4px solid var(--green);">
@@ -1420,10 +1444,10 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
       <div class="col-text">
         <p class="label">Cuotas</p>
         <h2>Tus cuotas pendientes,<br><span class="gold">siempre a la vista</span></h2>
-        <p style="margin-top: 8px;">Ves quien te debe, cuanto y desde cuando. Con un toque, envias un recordatorio por WhatsApp.</p>
+        <p style="margin-top: 8px;">Ves quién te debe, cuánto y desde cuándo. Con un toque, enviás un recordatorio por WhatsApp.</p>
         <ul style="margin-top: 20px;">
           <li>Todas las cuotas pendientes en un solo lugar</li>
-          <li>Recordatorio automatico por WhatsApp</li>
+          <li>Recordatorio automático por WhatsApp</li>
           <li>Historial de pagos por cliente</li>
           <li>Cuotas vencidas destacadas en rojo</li>
         </ul>
@@ -1435,39 +1459,39 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
 <!-- ==================== SLIDE 15 — ESTADISTICAS ==================== -->
 <section class="slide" id="s15">
   <div class="slide-inner reveal">
-    <p class="label">Estadisticas</p>
-    <h2>Deja de adivinar.<br><span class="gold">Empeza a saber.</span></h2>
-    <p class="subtitle">Datos reales sobre tu negocio. No estimaciones, no sensaciones: numeros.</p>
+    <p class="label">Estadísticas</p>
+    <h2>Dejá de adivinar.<br><span class="gold">Empezá a saber.</span></h2>
+    <p class="subtitle">Datos reales sobre tu negocio. No estimaciones, no sensaciones: números.</p>
     <div class="benefits-grid" style="margin-top: 16px;">
       <div class="benefit-card" style="text-align: center;">
         <span class="benefit-icon" style="text-align: center;">&#x1F4B0;</span>
         <h3>Ganancia por mes</h3>
-        <p>Cuanto ganaste cada mes, con grafico de evolucion.</p>
+        <p>Cuánto ganaste cada mes, con gráfico de evolución.</p>
       </div>
       <div class="benefit-card" style="text-align: center;">
         <span class="benefit-icon" style="text-align: center;">&#x1F4CA;</span>
         <h3>Margen real</h3>
-        <p>Cuanto ganas por cada peso que invertis. El margen verdadero.</p>
+        <p>Cuánto ganás por cada peso que invertís. El margen verdadero.</p>
       </div>
       <div class="benefit-card" style="text-align: center;">
         <span class="benefit-icon" style="text-align: center;">&#x1F3AF;</span>
         <h3>Ticket promedio</h3>
-        <p>Cuanto gasta en promedio cada cliente que te compra.</p>
+        <p>Cuánto gasta en promedio cada cliente que te compra.</p>
       </div>
       <div class="benefit-card" style="text-align: center;">
         <span class="benefit-icon" style="text-align: center;">&#x1F4C5;</span>
-        <h3>Mejor dia de ventas</h3>
-        <p>Sabes cual es tu dia fuerte para planificar mejor.</p>
+        <h3>Mejor día de ventas</h3>
+        <p>Sabés cuál es tu día fuerte para planificar mejor.</p>
       </div>
       <div class="benefit-card" style="text-align: center;">
         <span class="benefit-icon" style="text-align: center;">&#x1F947;</span>
-        <h3>Producto mas vendido</h3>
-        <p>Cuales rinden mas. Cuales conviene reponer. Cuales no.</p>
+        <h3>Producto más vendido</h3>
+        <p>Cuáles rinden más. Cuáles conviene reponer. Cuáles no.
       </div>
       <div class="benefit-card" style="text-align: center;">
         <span class="benefit-icon" style="text-align: center;">&#x1F451;</span>
         <h3>Ranking de clientes</h3>
-        <p>Quienes son tus mejores clientes. A quienes cuidar y premiar.</p>
+        <p>Quiénes son tus mejores clientes. A quiénes cuidar y premiar.</p>
       </div>
     </div>
   </div>
@@ -1494,10 +1518,10 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
       </div>
       <div class="card" style="text-align: center;">
         <h3>Funciona offline</h3>
-        <p>Sin internet, seguis usando la app. Tus datos se sincronizan cuando vuelvas a conectarte.</p>
+        <p>Sin internet, seguís usando la app. Tus datos se sincronizan cuando vuelvas a conectarte.</p>
       </div>
       <div class="card" style="text-align: center;">
-        <h3>Acceso instantaneo</h3>
+        <h3>Acceso instantáneo</h3>
         <p>Agrega la app a tu pantalla de inicio y accede con un toque, como cualquier app nativa.</p>
       </div>
     </div>
@@ -1518,7 +1542,7 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
         <h2>Cobra sin incomodidad</h2>
         <p style="margin-top: 8px;">Un mensaje profesional, un pago al toque. Sin llamar, sin insistir, sin incomodar.</p>
         <div style="background: var(--card); border-left: 3px solid var(--green); border-radius: 0 12px 12px 0; padding: 20px; margin-top: 24px; text-align: left;">
-          <p style="font-style: italic; color: var(--text); font-size: 0.95rem;">&laquo;Disculpa, me habia olvidado. Enseguida te pago!&raquo;</p>
+          <p style="font-style: italic; color: var(--text); font-size: 0.95rem;">&laquo;Disculpa, me había olvidado. Enseguida te pago!&raquo;</p>
           <p style="color: var(--text2); font-size: 0.82rem; margin-top: 8px;">&mdash; Respuesta real de un cliente</p>
         </div>
         <p style="color: var(--text2); margin-top: 20px; font-size: 0.92rem;">Un recordatorio amable y profesional resuelve el 90% de los cobros pendientes. Sin drama.</p>
@@ -1530,8 +1554,8 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
 <!-- ==================== SLIDE 18 — COMPARACION ==================== -->
 <section class="slide slide-alt" id="s18">
   <div class="slide-inner reveal">
-    <p class="label">Comparacion</p>
-    <h2>ParfumTrack vs. metodos tradicionales</h2>
+    <p class="label">Comparación</p>
+    <h2>ParfumTrack vs. métodos tradicionales</h2>
     <div style="width: 100%; overflow-x: auto; margin-top: 16px;">
       <table class="compare-table">
         <thead>
@@ -1559,16 +1583,16 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
             <td>Seguimiento de cuotas</td>
             <td><span class="cross">&#x2717;</span> Manual</td>
             <td><span class="cross">&#x2717;</span> Manual</td>
-            <td class="col-highlight"><span class="check">&#x2713;</span> Automatico</td>
+            <td class="col-highlight"><span class="check">&#x2713;</span> Automático</td>
           </tr>
           <tr>
             <td>Control de stock</td>
             <td><span class="cross">&#x2717;</span> No</td>
-            <td><span class="mid">~</span> Basico</td>
-            <td class="col-highlight"><span class="check">&#x2713;</span> Automatico</td>
+            <td><span class="mid">~</span> Básico</td>
+            <td class="col-highlight"><span class="check">&#x2713;</span> Automático</td>
           </tr>
           <tr>
-            <td>Estadisticas</td>
+            <td>Estadísticas</td>
             <td><span class="cross">&#x2717;</span> No</td>
             <td><span class="mid">~</span> Limitado</td>
             <td class="col-highlight"><span class="check">&#x2713;</span> Completas</td>
@@ -1581,7 +1605,7 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
           </tr>
           <tr>
             <td>Funciona offline</td>
-            <td><span class="check">&#x2713;</span> Si</td>
+            <td><span class="check">&#x2713;</span> Sí</td>
             <td><span class="cross">&#x2717;</span> Depende</td>
             <td class="col-highlight"><span class="check">&#x2713;</span> 100%</td>
           </tr>
@@ -1601,35 +1625,35 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
 <section class="slide" id="s19">
   <div class="slide-inner reveal">
     <p class="label">Resultados</p>
-    <h2>Lo que podes esperar<br>en los <span class="gold">primeros 30 dias</span></h2>
+    <h2>Lo que podés esperar<br>en los <span class="gold">primeros 30 días</span></h2>
     <div class="cols" style="margin-top: 16px;">
       <div class="col-text" style="max-width: 520px;">
         <div class="timeline">
           <div class="timeline-item">
             <div class="timeline-dot"></div>
             <div class="timeline-content">
-              <div class="timeline-label">Dia 1</div>
-              <p>Registras tu primera venta y tu primer producto. En 5 minutos ya tenes todo armado.</p>
+              <div class="timeline-label">Día 1</div>
+              <p>Registrás tu primera venta y tu primer producto. En 5 minutos ya tenés todo armado.</p>
             </div>
           </div>
           <div class="timeline-item">
             <div class="timeline-dot"></div>
             <div class="timeline-content">
               <div class="timeline-label">Semana 1</div>
-              <p>Tenes tu stock completo cargado y tus primeras ventas registradas con ganancia calculada.</p>
+              <p>Tenés tu stock completo cargado y tus primeras ventas registradas con ganancia calculada.</p>
             </div>
           </div>
           <div class="timeline-item">
             <div class="timeline-dot"></div>
             <div class="timeline-content">
-              <div class="timeline-label">Dia 15</div>
-              <p>Sabes exactamente cuanto ganaste, cuanto te deben y que producto rinde mas.</p>
+              <div class="timeline-label">Día 15</div>
+              <p>Sabés exactamente cuánto ganaste, cuánto te deben y qué producto rinde más.</p>
             </div>
           </div>
           <div class="timeline-item">
             <div class="timeline-dot"></div>
             <div class="timeline-content">
-              <div class="timeline-label">Dia 30</div>
+              <div class="timeline-label">Día 30</div>
               <p>Control total. Decisiones con datos. Tu negocio organizado como nunca antes.</p>
             </div>
           </div>
@@ -1659,22 +1683,22 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
 <section class="slide slide-alt" id="s20">
   <div class="slide-inner reveal">
     <p class="label">Para vos</p>
-    <h2>No importa en que etapa estes,<br><span class="gold">ParfumTrack se adapta</span></h2>
+    <h2>No importa en qué etapa estés,<br><span class="gold">ParfumTrack se adapta</span></h2>
     <div class="persona-grid" style="margin-top: 16px;">
       <div class="persona-card">
         <span class="persona-emoji">&#x1F331;</span>
-        <h3>El que recien empieza</h3>
-        <p>Tenes pocos productos y pocos clientes, pero queres empezar con orden desde el dia uno. ParfumTrack te da la estructura para crecer bien, sin vicios del cuaderno.</p>
+        <h3>El que recién empieza</h3>
+        <p>Tenés pocos productos y pocos clientes, pero querés empezar con orden desde el día uno. ParfumTrack te da la estructura para crecer bien, sin vicios del cuaderno.</p>
       </div>
       <div class="persona-card">
         <span class="persona-emoji">&#x1F4AA;</span>
         <h3>El que ya vende bien</h3>
-        <p>Tenes muchos clientes, cuotas pendientes y cada vez se te complica mas llevar todo en la cabeza. Necesitas un sistema que haga los calculos por vos.</p>
+        <p>Tenés muchos clientes, cuotas pendientes y cada vez se te complica más llevar todo en la cabeza. Necesitás un sistema que haga los cálculos por vos.</p>
       </div>
       <div class="persona-card">
         <span class="persona-emoji">&#x1F680;</span>
         <h3>El que quiere crecer</h3>
-        <p>Manejas varias lineas de perfumes y queres datos para decidir que stockear, que dejar y donde invertir. ParfumTrack te da los numeros para escalar.</p>
+        <p>Manejás varias líneas de perfumes y querés datos para decidir qué stockear, qué dejar y dónde invertir. ParfumTrack te da los números para escalar.</p>
       </div>
     </div>
   </div>
@@ -1685,7 +1709,7 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
   <div class="slide-inner reveal">
     <p class="label">Precios</p>
     <h2>Planes para cada etapa<br><span class="gold">de tu negocio</span></h2>
-    <p class="subtitle" style="margin-bottom: 8px;">Sin tarjeta. Sin compromiso. Empeza gratis hoy.</p>
+    <p class="subtitle" style="margin-bottom: 8px;">Sin tarjeta. Sin compromiso. Empezá gratis hoy.</p>
     <div class="pricing-grid" style="margin-top: 8px;">
       <div class="pricing-card">
         <div class="pricing-name">Free</div>
@@ -1693,23 +1717,23 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
         <ul class="pricing-features">
           <li>Hasta 20 productos</li>
           <li>Hasta 15 ventas/mes</li>
-          <li>Control de stock basico</li>
+          <li>Control de stock básico</li>
           <li>Dashboard principal</li>
           <li>Funciona offline</li>
         </ul>
         <a href="/index.html" class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 24px;">Empezar gratis</a>
       </div>
       <div class="pricing-card featured">
-        <div class="pricing-badge">Mas popular</div>
-        <div class="pricing-name">Basico Pro</div>
+        <div class="pricing-badge">Más popular</div>
+        <div class="pricing-name">Básico Pro</div>
         <div class="pricing-price">$9.99 <span>/ mes</span></div>
         <ul class="pricing-features">
           <li>Productos ilimitados</li>
           <li>Ventas ilimitadas</li>
           <li>Cuotas y cobros por WhatsApp</li>
-          <li>Estadisticas completas</li>
-          <li>Catalogo compartible</li>
-          <li>Backup y restauracion</li>
+          <li>Estadísticas completas</li>
+          <li>Catálogo compartible</li>
+          <li>Backup y restauración</li>
         </ul>
         <a href="/index.html" class="btn btn-gold" style="width: 100%; justify-content: center; margin-top: 24px;">Elegir plan</a>
       </div>
@@ -1717,7 +1741,7 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
         <div class="pricing-name">Pro</div>
         <div class="pricing-price">$19.99 <span>/ mes</span></div>
         <ul class="pricing-features">
-          <li>Todo lo de Basico Pro</li>
+          <li>Todo de Básico Pro</li>
           <li>Gastos y balance de caja</li>
           <li>Reportes avanzados</li>
           <li>Multi-dispositivo (pronto)</li>
@@ -1734,13 +1758,13 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
 <section class="slide slide-alt" id="s22">
   <div class="slide-inner reveal">
     <p class="label">Roadmap</p>
-    <h2>Estamos construyendo el futuro<br><span class="gold">de la gestion de perfumes</span></h2>
+    <h2>Estamos construyendo el futuro<br><span class="gold">de la gestión de perfumes</span></h2>
     <p class="subtitle">ParfumTrack evoluciona con vos. Estas son las funcionalidades que vienen.</p>
     <div class="roadmap-grid" style="margin-top: 16px;">
       <div class="roadmap-item">
         <span class="roadmap-icon">&#x1F504;</span>
         <div>
-          <h3>Sincronizacion multi-dispositivo <span class="coming-badge">Pronto</span></h3>
+          <h3>Sincronización multi-dispositivo <span class="coming-badge">Pronto</span></h3>
           <p>Usa ParfumTrack en tu celular y en tu computadora. Todo sincronizado en tiempo real.</p>
         </div>
       </div>
@@ -1748,21 +1772,21 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
         <span class="roadmap-icon">&#x1F4F1;</span>
         <div>
           <h3>App en Google Play <span class="coming-badge">2026</span></h3>
-          <p>Descargala directamente desde la tienda de Google. Aun mas rapida y accesible.</p>
+          <p>Descargala directamente desde la tienda de Google. Aún más rápida y accesible.</p>
         </div>
       </div>
       <div class="roadmap-item">
         <span class="roadmap-icon">&#x1F4C4;</span>
         <div>
-          <h3>Reportes PDF automaticos <span class="coming-badge">Pronto</span></h3>
+          <h3>Reportes PDF automáticos <span class="coming-badge">Pronto</span></h3>
           <p>Genera reportes profesionales de tu negocio con un toque. Ideal para llevar cuentas claras.</p>
         </div>
       </div>
       <div class="roadmap-item">
         <span class="roadmap-icon">&#x1F4B3;</span>
         <div>
-          <h3>Integracion con Mercado Pago <span class="coming-badge">2026</span></h3>
-          <p>Recibe pagos directamente desde la app. Tus clientes pagan, vos cobras. Sin friccion.</p>
+          <h3>Integración con Mercado Pago <span class="coming-badge">2026</span></h3>
+          <p>Recibí pagos directamente desde la app. Tus clientes pagan, vos cobrás. Sin fricción.</p>
         </div>
       </div>
     </div>
@@ -1777,45 +1801,45 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
     <div class="faq-list" style="margin-top: 16px;">
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          Necesito descargar algo?
+          ¿Necesito descargar algo?
           <span class="faq-chevron">&#x25BC;</span>
         </button>
-        <div class="faq-answer">No. ParfumTrack funciona directo desde el navegador de tu celular o computadora. No necesitas descargar nada de ninguna tienda. Tambien podes agregarlo a tu pantalla de inicio para acceder con un toque.</div>
+        <div class="faq-answer">No. ParfumTrack funciona directo desde el navegador de tu celular o computadora. No necesitas descargar nada de ninguna tienda. También podés agregarlo a tu pantalla de inicio para acceder con un toque.</div>
       </div>
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          Funciona sin internet?
+          ¿Funciona sin internet?
           <span class="faq-chevron">&#x25BC;</span>
         </button>
-        <div class="faq-answer">Si, 100% offline. Todos tus datos se guardan en tu dispositivo. Podes registrar ventas, consultar stock y ver tus estadisticas sin conexion. Cuando vuelvas a conectarte, todo sigue igual.</div>
+        <div class="faq-answer">Sí, 100% offline. Todos tus datos se guardan en tu dispositivo. Podés registrar ventas, consultar stock y ver tus estadísticas sin conexión. Cuando vuelvas a conectarte, todo sigue igual.</div>
       </div>
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          Mis datos estan seguros?
+          ¿Mis datos están seguros?
           <span class="faq-chevron">&#x25BC;</span>
         </button>
-        <div class="faq-answer">Si. Tus datos se almacenan en tu dispositivo y no se comparten con nadie. Ademas, podes hacer backups para resguardar tu informacion y restaurarla cuando quieras.</div>
+        <div class="faq-answer">Sí. Tus datos se almacenan en tu dispositivo y no se comparten con nadie. Además, podés hacer backups para resguardar tu información y restaurarla cuando quieras.</div>
       </div>
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          El plan Free es gratis para siempre?
+          ¿El plan Free es gratis para siempre?
           <span class="faq-chevron">&#x25BC;</span>
         </button>
-        <div class="faq-answer">Si, el plan Free es gratuito para siempre. Sin letra chica, sin limite de tiempo, sin tarjeta de credito. Usalo todo el tiempo que quieras.</div>
+        <div class="faq-answer">Sí, el plan Free es gratuito para siempre. Sin letra chica, sin límite de tiempo, sin tarjeta de crédito. Usalo todo el tiempo que quieras.</div>
       </div>
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          Puedo usar en mas de un dispositivo?
+          ¿Puedo usar en más de un dispositivo?
           <span class="faq-chevron">&#x25BC;</span>
         </button>
-        <div class="faq-answer">Si. Hoy podes usar ParfumTrack en cualquier dispositivo con navegador. La sincronizacion automatica entre dispositivos esta en desarrollo y sera parte de las proximas actualizaciones.</div>
+        <div class="faq-answer">Sí. Hoy podés usar ParfumTrack en cualquier dispositivo con navegador. La sincronización automática entre dispositivos está en desarrollo y será parte de las próximas actualizaciones.</div>
       </div>
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          Puedo cancelar cuando quiera?
+          ¿Puedo cancelar cuando quiera?
           <span class="faq-chevron">&#x25BC;</span>
         </button>
-        <div class="faq-answer">Si, sin permanencia. Podes cancelar tu suscripcion en cualquier momento, sin penalidades ni preguntas. Tus datos siempre son tuyos.</div>
+        <div class="faq-answer">Sí, sin permanencia. Podés cancelar tu suscripción en cualquier momento, sin penalidades ni preguntas. Tus datos siempre son tuyos.</div>
       </div>
     </div>
   </div>
@@ -1826,8 +1850,8 @@ h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
   <div class="glow-orb glow-gold" style="top: 40%; left: 50%; transform: translate(-50%, -50%);"></div>
   <div class="slide-inner reveal">
     <img src="/icon-192.png" alt="Parfum Track" class="logo">
-    <h1>Empeza a controlar<br><span class="gold">tu negocio hoy</span></h1>
-    <p class="subtitle">No necesitas tarjeta, no necesitas instalar nada. Funciona desde el navegador, funciona offline. Empeza gratis y pasa a un plan pago solo si lo necesitas.</p>
+    <h1>Empezá a controlar<br><span class="gold">tu negocio hoy</span></h1>
+    <p class="subtitle">No necesitás tarjeta, no necesitás instalar nada. Funciona desde el navegador, funciona offline. Empezá gratis y pasá a un plan pago solo si lo necesitás.</p>
     <a href="/index.html" class="btn btn-gold" style="font-size: 1.15rem; padding: 18px 48px; margin-top: 8px;">
       Probar gratis &#x2192;
     </a>
