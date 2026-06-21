@@ -164,6 +164,16 @@
     const paymentId = params.get('collection_id') || params.get('payment_id');
     const status    = params.get('collection_status') || params.get('status');
 
+    // Extract payer email from external_reference (JSON: { email, plan })
+    let payerEmail = '';
+    try {
+      const extRef = params.get('external_reference');
+      if (extRef) {
+        const ref = JSON.parse(extRef);
+        payerEmail = (ref.email || '').toLowerCase().trim();
+      }
+    } catch { /* ignore parse errors */ }
+
     // Si MP dice "rejected" directamente, redirigir a landing
     if (status === 'rejected' || status === 'cancelled') {
       location.replace('/landing.html');
@@ -207,7 +217,7 @@
 
       try {
         statusEl.textContent = 'Verificando con Mercado Pago…';
-        const resp = await fetch(`/mp-payment-status?paymentId=${encodeURIComponent(paymentId)}`);
+        const resp = await fetch(`/mp-payment-status?paymentId=${encodeURIComponent(paymentId)}&email=${encodeURIComponent(payerEmail)}`);
         if (resp.ok) {
           const data = await resp.json();
           if (data.ok && data.status === 'active') {
