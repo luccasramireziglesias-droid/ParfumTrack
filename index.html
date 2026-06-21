@@ -7024,7 +7024,7 @@
         btn.style.color = dangerous ? "#fff" : "#1a1a2e";
         btn.onclick = () => {
           closeModal("modal-confirm");
-          onConfirm();
+          Promise.resolve().then(() => onConfirm()).catch((e) => console.error("[PT] confirm callback error:", e));
         };
         el.classList.add("open");
       }
@@ -7475,6 +7475,7 @@
         a.href = URL.createObjectURL(blob);
         a.download = `VIP_Parfums_backup_${hoy().replace(/\//g, "-")}.json`;
         a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
         localStorage.setItem("pt_last_backup", Date.now().toString());
         localStorage.removeItem("pt_backup_snooze");
         localStorage.removeItem("pt_backup_banner_snooze");
@@ -7574,6 +7575,7 @@
                 a.href = URL.createObjectURL(blob);
                 a.download = `safety_backup_antes_restaurar_${hoy().replace(/\//g, "-")}.json`;
                 a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 1000);
               } catch (_) {}
               // Restaurar
               ventas = data.ventas || [];
@@ -8702,12 +8704,8 @@
           const [d, m, a] = f.split("/");
           return new Date(parseInt(a), parseInt(m) - 1, parseInt(d)).getTime();
         }
-        const ultTs = toTs(
-          c.ventas.reduce((mx, v) => (v.fecha > mx ? v.fecha : mx), ""),
-        );
-        const priTs = toTs(
-          c.ventas.reduce((mn, v) => (!mn || v.fecha < mn ? v.fecha : mn), ""),
-        );
+        const ultTs = c.ventas.reduce((mx, v) => { const t = toTs(v.fecha); return t > mx ? t : mx; }, 0);
+        const priTs = c.ventas.reduce((mn, v) => { const t = toTs(v.fecha); return t > 0 && (!mn || t < mn) ? t : mn; }, 0);
         const diasUlt = ultTs ? Math.floor((ahora - ultTs) / 86400000) : 999;
         const badges = [];
         if (c.ventas.length >= 5 || c.totalVenta >= 20000)
@@ -8942,6 +8940,7 @@
       }
       // ── ANÁLISIS ──────────────────────────────────────────────────
       async function renderChartMeses() {
+        try {
         if (!(await ensureChart())) {
           return;
         }
@@ -9004,6 +9003,7 @@
             },
           },
         });
+        } catch (e) { console.error("[PT] Chart error:", e); }
       }
       function renderStatsAvanzadas(filtered) {
         const el = document.getElementById("stats-avanzadas");
@@ -10533,22 +10533,22 @@
           stockCantidad: cantidad,
         });
         _addingStock = true;
-        save();
-        updateStats();
-        // Limpiar form
-        ["as-perfume", "as-precio", "as-pventa", "as-proveedor"].forEach(
-          (id) => (document.getElementById(id).value = ""),
-        );
-        document.getElementById("as-cantidad").value = "1";
-        document.getElementById("as-total-preview").style.display = "none";
-        toast(
-          `✓ ${cantidad}x "${nombre}" agregado al stock · ${fmt(total)} descontado de Caja`,
-          3200,
-        );
-        setTimeout(() => {
-          _addingStock = false;
-        }, 800);
-        showTab("stock");
+        try {
+          save();
+          updateStats();
+          ["as-perfume", "as-precio", "as-pventa", "as-proveedor"].forEach(
+            (id) => { var el = document.getElementById(id); if (el) el.value = ""; },
+          );
+          var qEl = document.getElementById("as-cantidad"); if (qEl) qEl.value = "1";
+          var tpEl = document.getElementById("as-total-preview"); if (tpEl) tpEl.style.display = "none";
+          toast(
+            `✓ ${cantidad}x "${nombre}" agregado al stock · ${fmt(total)} descontado de Caja`,
+            3200,
+          );
+          showTab("stock");
+        } finally {
+          setTimeout(() => { _addingStock = false; }, 800);
+        }
       }
 
       // ── EDITAR VENTA ──
@@ -10898,7 +10898,7 @@
               }
               filas.forEach((f, idx) => {
                 if (!f.fecha) f.fecha = `01/${mm}/${anio}`;
-                f.id = Date.now() + todas.length + idx;
+                f.id = Date.now() * 1000 + Math.floor(Math.random() * 1000) + idx;
                 todas.push(f);
               });
               hojas.push(`${sn} (${filas.length})`);
@@ -14216,21 +14216,18 @@
           { icon: "👤", label: "Eliminar perfil" },
         );
       }
-      function _doEliminarPerfil(pid) {
+      async function _doEliminarPerfil(pid) {
         const profiles = getProfiles().filter((x) => x.id !== pid);
         saveProfiles(profiles);
-        // Remove all data for this profile from IndexedDB (data is NOT in localStorage)
-        [
+        await Promise.all([
           "vip_ventas_v2",
           "vip_stock_v2",
           "vip_gastos_v1",
           "vip_caja_v1",
           "vip_meta_v1",
-        ].forEach((k) => {
-          PTDB.delete(`${k}_${pid}`);
-        });
+        ].map((k) => PTDB.delete(`${k}_${pid}`)));
         if (activeProfile === pid) {
-          loadProfile(profiles[0]?.id || "default");
+          await loadProfile(profiles[0]?.id || "default");
         }
         showProfileScreen();
         toast("🗑 Perfil eliminado");
@@ -14331,9 +14328,18 @@
       }
 
       function cobrarEfectivo() {
+        const v = ventas.find((x) => x.id === pagoVentaId);
+        if (!v) return;
         const monto = getMontoVenta();
+        if (!v.cuotasPagos) v.cuotasPagos = [];
+        v.cuotasPagos.push({ monto, fecha: hoy(), numCuota: v.cuotasPagos.length + 1, medio: "efectivo" });
+        caja.push({ id: Date.now(), tipo: "entrada", monto, desc: `Cobro efectivo: ${v.perfume}${v.cliente ? " — " + v.cliente : ""}`, fecha: hoy() });
+        save();
+        updateStats();
+        renderVentas();
+        const resta = calcDebe(v);
         closeModal("modal-pago");
-        toast(`💵 Cobro en efectivo: ${fmt(monto)}`);
+        toast(resta <= 0 ? `✅ Cobro completo: ${fmt(monto)}` : `💵 Cobrado ${fmt(monto)} · Resta: ${fmt(resta)}`);
       }
 
       // ══════════════════════════════════════════════
