@@ -13,9 +13,9 @@
     <meta name="theme-color" content="#1a1a2e" />
     <meta property="og:title" content="Parfum Track — Tu negocio de perfumes, organizado" />
     <meta property="og:description" content="App gratis para revendedores de perfumes. Ventas, cuotas, stock y estadísticas desde el celular." />
-    <meta property="og:image" content="https://parfumtrack.pages.dev/icon-512.png" />
+    <meta property="og:image" content="https://parfumtrack.luccasramireziglesias.workers.dev/icon-512.png" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://parfumtrack.pages.dev/" />
+    <meta property="og:url" content="https://parfumtrack.luccasramireziglesias.workers.dev/" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Parfum Track — Tu negocio de perfumes, organizado" />
     <meta name="twitter:description" content="App gratis para revendedores de perfumes. Ventas, cuotas, stock y cobros desde el celular." />
@@ -70,7 +70,7 @@
     <!-- Reemplazá "parfumtrack.com" con tu dominio real en Cloudflare Pages -->
     <script
       defer
-      data-domain="parfumtrack.pages.dev"
+      data-domain="parfumtrack.luccasramireziglesias.workers.dev"
       src="https://plausible.io/js/script.js"
     ></script>
     <!-- OneSignal Web Push SDK: cargado bajo demanda para mejorar performance inicial -->
@@ -6566,28 +6566,20 @@
         db: null,
         async init() {
           return new Promise((resolve) => {
-            const req = indexedDB.open("parfumtrack_db", 1);
-            req.onupgradeneeded = (e) => {
-              const db = e.target.result;
-              if (!db.objectStoreNames.contains("data"))
-                db.createObjectStore("data");
-            };
-            req.onsuccess = (e) => {
-              this.db = e.target.result;
-              resolve();
-            };
-            req.onerror = () => {
-              setTimeout(
-                () =>
-                  toast(
-                    "⚠ Error al iniciar el almacenamiento. Los datos no se guardarán en este dispositivo.",
-                    5000,
-                    "error",
-                  ),
-                500,
-              );
-              resolve();
-            };
+            var resolved = false;
+            function done(db) { if (resolved) return; resolved = true; PTDB.db = db || null; resolve(); }
+            setTimeout(function() { done(null); }, 3000);
+            try {
+              var req = indexedDB.open("parfumtrack_db", 1);
+              req.onupgradeneeded = function(e) {
+                var db = e.target.result;
+                if (!db.objectStoreNames.contains("data"))
+                  db.createObjectStore("data");
+              };
+              req.onsuccess = function(e) { done(e.target.result); };
+              req.onerror = function() { done(null); };
+              req.onblocked = function() { done(null); };
+            } catch(e) { done(null); }
           });
         },
         async get(key) {
@@ -6791,7 +6783,7 @@
           localStorage.getItem("pt_user_email") ||
           localStorage.getItem("pt_backup_email");
         if (!email || !email.includes("@")) return; // sin email registrado
-        const name = (getActiveProfile()?.name || email.split("@")[0]).split(
+        const name = (getProfileName(activeProfile) || email.split("@")[0]).split(
           " ",
         )[0];
         const waNum = getWANumber();
@@ -6800,7 +6792,7 @@
           : null;
         const data = {
           name,
-          appUrl: window.location.origin || "https://parfumtrack.pages.dev",
+          appUrl: window.location.origin || "https://parfumtrack.luccasramireziglesias.workers.dev",
           ...(waUrl ? { waUrl } : {}),
           ...extraData,
         };
@@ -7430,7 +7422,11 @@
             caja = data.caja || caja;
             if (data.meta) metaMensual = data.meta;
             save();
-            renderAll();
+            updateStats();
+            renderVentas();
+            renderStock();
+            renderGastos();
+            renderCaja();
             trackEvent("backup_restaurado");
             toast("✅ Backup restaurado desde la nube.", 3500);
           },
@@ -10629,11 +10625,9 @@
           }
         }
         v.perfume = perfume;
-        const dto = v.descuento || 0;
-        const pvFinal = dto > 0 ? pv * (1 - dto / 100) : pv;
-        v.precioVenta = pvFinal;
+        v.precioVenta = pv;
         v.precioCompra = pc;
-        v.ganancia = Math.round(pvFinal - pc);
+        v.ganancia = Math.round(pv - pc);
         v.cliente = cliente;
         v.nota = nota;
         // Si es cuotas y cambió el precio, recalcular cuotas pendientes proporcionalmente
@@ -16660,7 +16654,7 @@
         ctx.fillStyle =
           catTema === "dark" ? "rgba(201,168,76,0.4)" : "rgba(140,100,30,0.35)";
         ctx.font = `500 10px 'DM Sans', Arial, sans-serif`;
-        ctx.fillText("✦ Parfum Track · parfumtrack.pages.dev", W / 2, H - 8);
+        ctx.fillText("✦ Parfum Track · parfumtrack.luccasramireziglesias.workers.dev", W / 2, H - 8);
 
         loading.style.display = "none";
       }

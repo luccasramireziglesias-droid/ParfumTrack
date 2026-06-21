@@ -5,8 +5,8 @@ try {
   console.warn("[SW] OneSignal no disponible:", e.message);
 }
 
-const CACHE_NAME = "parfumtrack-v4";
-const STATIC_ASSETS = ["/manifest.json", "/icon-192.png", "/icon-512.png"];
+const CACHE_NAME = "parfumtrack-v5";
+const STATIC_ASSETS = ["/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png"];
 
 // Instalar: cachear solo assets estáticos (NO el HTML)
 self.addEventListener("install", (event) => {
@@ -68,7 +68,7 @@ self.addEventListener("fetch", (event) => {
             .then((cache) => cache.put(event.request, clone));
           return response;
         })
-        .catch(() => caches.match("/index.html")),
+        .catch(() => caches.match("/").then(r => r || caches.match("/index.html"))),
     );
     return;
   }

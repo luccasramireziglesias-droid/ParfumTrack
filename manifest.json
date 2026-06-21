@@ -7,7 +7,8 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#07070f",
-  "theme_color": "#c9a84c",
+  "theme_color": "#0f0f1a",
+  "id": "parfumtrack",
   "lang": "es",
   "icons": [
     {
