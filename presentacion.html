@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parfum Track — Presentación</title>
+<style>
+@import url('/fonts/fonts.css');
+
+:root {
+  --bg: #0f0f1a;
+  --bg2: #1a1a2e;
+  --card: #1e1e35;
+  --gold: #c9a84c;
+  --gold2: #e8c97e;
+  --gold3: #f5dfa0;
+  --text: #f0ece4;
+  --text2: #a8a49c;
+  --green: #70c9a0;
+  --red: #e07070;
+  --border: rgba(201,168,76,0.12);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.slide {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  scroll-snap-align: start;
+  position: relative;
+  overflow: hidden;
+}
+
+.slide::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at center, rgba(201,168,76,0.03) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Slide 1: Title ── */
+.slide-title {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+  text-align: center;
+}
+
+.logo-big {
+  width: 100px;
+  height: 100px;
+  border-radius: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 8px 40px rgba(201,168,76,0.25);
+}
+
+.title-main {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(42px, 7vw, 80px);
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--gold), var(--gold2), var(--gold3));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.title-sub {
+  font-size: clamp(18px, 2.5vw, 26px);
+  color: var(--text2);
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  font-size: 13px;
+  color: var(--text2);
+  opacity: 0.6;
+  animation: bounce 2s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+/* ── Slide 2: Problem ── */
+.slide-problem { background: var(--bg2); }
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 20px;
+}
+
+.slide h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 40px;
+  max-width: 800px;
+  text-align: center;
+}
+
+.slide h2 em {
+  font-style: italic;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pain-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  max-width: 900px;
+  width: 100%;
+}
+
+.pain-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  text-align: center;
+}
+
+.pain-icon {
+  font-size: 36px;
+  margin-bottom: 14px;
+}
+
+.pain-card h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.pain-card p {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+/* ── Slide 3: Solution ── */
+.slide-solution { background: var(--bg); }
+
+.solution-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  max-width: 1000px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.solution-card {
+  background: linear-gradient(135deg, var(--card), rgba(30,30,53,0.8));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.solution-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(201,168,76,0.12);
+}
+
+.sol-icon {
+  font-size: 40px;
+  margin-bottom: 16px;
+}
+
+.solution-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--gold2);
+}
+
+.solution-card p {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+/* ── Slide 4: WhatsApp Feature ── */
+.slide-whatsapp { background: var(--bg2); }
+
+.feature-row {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  max-width: 1000px;
+  width: 100%;
+}
+
+.feature-text { flex: 1; }
+
+.feature-text h2 {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.feature-text p {
+  font-size: 16px;
+  color: var(--text2);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+}
+
+.feature-list li {
+  font-size: 15px;
+  padding: 8px 0;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.feature-list li::before {
+  content: '✓';
+  color: var(--green);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.feature-img {
+  flex: 0 0 300px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.15);
+}
+
+.feature-img img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── Slide 5: Stats/Numbers ── */
+.slide-stats { background: var(--bg); }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 32px;
+  max-width: 900px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 24px;
+}
+
+.stat-number {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(40px, 6vw, 60px);
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.4;
+}
+
+/* ── Slide 6: Pricing ── */
+.slide-pricing { background: var(--bg2); }
+
+.pricing-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  max-width: 900px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.price-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 36px 28px;
+  text-align: center;
+  position: relative;
+}
+
+.price-card.featured {
+  border-color: var(--gold);
+  box-shadow: 0 0 30px rgba(201,168,76,0.15);
+  transform: scale(1.04);
+}
+
+.price-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #1a1400;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 16px;
+  border-radius: 50px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.price-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 12px;
+}
+
+.price-amount {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.price-amount span {
+  font-size: 20px;
+  color: var(--text2);
+}
+
+.price-period {
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 24px;
+}
+
+.price-features {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+}
+
+.price-features li {
+  font-size: 14px;
+  padding: 6px 0;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.price-features li::before {
+  content: '✓';
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* ── Slide 7: Differentiators ── */
+.slide-diff { background: var(--bg); }
+
+.diff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  max-width: 900px;
+  width: 100%;
+}
+
+.diff-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.diff-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.diff-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--gold2);
+}
+
+.diff-card p {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+/* ── Slide 8: CTA ── */
+.slide-cta {
+  background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+  text-align: center;
+}
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 32px;
+  padding: 16px 40px;
+  border-radius: 50px;
+  border: none;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #1a1400;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: inherit;
+  text-decoration: none;
+  box-shadow: 0 4px 24px rgba(201,168,76,0.35);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(201,168,76,0.5);
+}
+
+.contact-info {
+  margin-top: 40px;
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 2;
+}
+
+.contact-info a {
+  color: var(--gold2);
+  text-decoration: none;
+}
+
+/* ── Navigation dots ── */
+.nav-dots {
+  position: fixed;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 100;
+}
+
+.nav-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(201,168,76,0.25);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 0;
+}
+
+.nav-dot.active, .nav-dot:hover {
+  background: var(--gold);
+  transform: scale(1.3);
+}
+
+/* ── Slide number ── */
+.slide-num {
+  position: absolute;
+  top: 28px;
+  left: 40px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(201,168,76,0.3);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .slide { padding: 48px 24px; }
+  .feature-row { flex-direction: column; gap: 32px; }
+  .feature-text h2 { text-align: center; }
+  .feature-img { flex: none; max-width: 280px; margin: 0 auto; }
+  .nav-dots { display: none; }
+  .price-card.featured { transform: none; }
+  .slide-num { left: 24px; top: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════ SLIDE 1: TITLE ══════ -->
+<div class="slide slide-title" id="s1">
+  <span class="slide-num">01 / 08</span>
+  <img src="/icon-192.png" alt="Parfum Track" class="logo-big">
+  <h1 class="title-main">Parfum Track</h1>
+  <p class="title-sub">
+    La app que organiza tu negocio de perfumes.<br>
+    Ventas, cuotas, stock y ganancia real — todo desde el celular.
+  </p>
+  <div class="scroll-hint">▼ Deslizá para ver más</div>
+</div>
+
+<!-- ══════ SLIDE 2: PROBLEM ══════ -->
+<div class="slide slide-problem" id="s2">
+  <span class="slide-num">02 / 08</span>
+  <div class="eyebrow">El problema</div>
+  <h2>Cada fin de mes, la misma historia:<br><em>¿cuánto gané realmente?</em></h2>
+  <div class="pain-grid">
+    <div class="pain-card">
+      <div class="pain-icon">📒</div>
+      <h3>Cuaderno y calculadora</h3>
+      <p>Anotás las ventas a mano, sumás con la calculadora y nunca te cierran los números.</p>
+    </div>
+    <div class="pain-card">
+      <div class="pain-icon">💸</div>
+      <h3>Cuotas olvidadas</h3>
+      <p>Vendiste en cuotas pero perdiste la cuenta de quién pagó, cuánto falta y desde cuándo.</p>
+    </div>
+    <div class="pain-card">
+      <div class="pain-icon">📦</div>
+      <h3>Stock a ojo</h3>
+      <p>No sabés cuántos perfumes tenés, cuáles se venden más ni cuándo reponer.</p>
+    </div>
+    <div class="pain-card">
+      <div class="pain-icon">⏰</div>
+      <h3>Horas perdidas</h3>
+      <p>Dedicás 2+ horas por semana a hacer cuentas que una app haría en segundos.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 3: SOLUTION ══════ -->
+<div class="slide slide-solution" id="s3">
+  <span class="slide-num">03 / 08</span>
+  <div class="eyebrow">La solución</div>
+  <h2>Todo tu negocio en <em>10 segundos por venta</em></h2>
+  <div class="solution-grid">
+    <div class="solution-card">
+      <div class="sol-icon">💰</div>
+      <h3>Ganancia real</h3>
+      <p>Cada venta actualiza tu ganancia al instante. Margen, ticket promedio, todo automático.</p>
+    </div>
+    <div class="solution-card">
+      <div class="sol-icon">📋</div>
+      <h3>Cuotas y cobros</h3>
+      <p>Control total de quién debe, cuánto y desde cuándo. Recordatorios por WhatsApp.</p>
+    </div>
+    <div class="solution-card">
+      <div class="sol-icon">📦</div>
+      <h3>Stock inteligente</h3>
+      <p>Se actualiza solo con cada venta. Sabés qué reponer y qué se vende más.</p>
+    </div>
+    <div class="solution-card">
+      <div class="sol-icon">📊</div>
+      <h3>Estadísticas</h3>
+      <p>Gráficos de ganancia, mejor día de venta, margen real y más — sin hacer cuentas.</p>
+    </div>
+    <div class="solution-card">
+      <div class="sol-icon">📱</div>
+      <h3>Catálogo WhatsApp</h3>
+      <p>Catálogo profesional con fotos y precios, listo para compartir con tus clientes.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 4: WHATSAPP ══════ -->
+<div class="slide slide-whatsapp" id="s4">
+  <span class="slide-num">04 / 08</span>
+  <div class="feature-row">
+    <div class="feature-text">
+      <div class="eyebrow">Cobros automatizados</div>
+      <h2>Recordatorios de cobro<br><em>sin perseguir a nadie</em></h2>
+      <p>Con un toque abrís WhatsApp con el mensaje de cobro ya escrito. Tu clienta recibe el recordatorio y te paga al toque.</p>
+      <ul class="feature-list">
+        <li>Alertas de cuotas vencidas</li>
+        <li>Mensaje pre-escrito listo para enviar</li>
+        <li>Historial de pagos por clienta</li>
+        <li>Vista de "quién me debe más"</li>
+      </ul>
+    </div>
+    <div class="feature-img">
+      <img src="/img/whatsapp-cobro.jpg" alt="Recordatorio de cobro por WhatsApp" loading="lazy">
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 5: NUMBERS ══════ -->
+<div class="slide slide-stats" id="s5">
+  <span class="slide-num">05 / 08</span>
+  <div class="eyebrow">En números</div>
+  <h2>Diseñada para <em>revendedores reales</em></h2>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">10s</div>
+      <div class="stat-label">por venta registrada</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">0</div>
+      <div class="stat-label">descargas necesarias</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">100%</div>
+      <div class="stat-label">offline — sin internet</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">∞</div>
+      <div class="stat-label">ventas en plan Free</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 6: PRICING ══════ -->
+<div class="slide slide-pricing" id="s6">
+  <span class="slide-num">06 / 08</span>
+  <div class="eyebrow">Precios</div>
+  <h2>Simple, claro y <em>sin sorpresas</em></h2>
+  <div class="pricing-row">
+    <div class="price-card">
+      <div class="price-name">Free</div>
+      <div class="price-amount">$0</div>
+      <div class="price-period">gratis para siempre</div>
+      <ul class="price-features">
+        <li>Ventas ilimitadas</li>
+        <li>Cuotas y cobros por WA</li>
+        <li>Control de stock</li>
+        <li>Ganancia automática</li>
+        <li>Funciona sin internet</li>
+        <li>1 perfil de negocio</li>
+      </ul>
+    </div>
+    <div class="price-card featured">
+      <div class="price-badge">Más popular</div>
+      <div class="price-name">Básico Pro</div>
+      <div class="price-amount">$9<span>.99</span></div>
+      <div class="price-period">USD por mes</div>
+      <ul class="price-features">
+        <li>Todo lo de Free</li>
+        <li>Recordatorios WA automáticos</li>
+        <li>Notificaciones push de cobros</li>
+        <li>Estadísticas avanzadas</li>
+        <li>Catálogo por WhatsApp</li>
+        <li>Exportar a Excel y PDF</li>
+      </ul>
+    </div>
+    <div class="price-card">
+      <div class="price-name">Pro</div>
+      <div class="price-amount">$19<span>.99</span></div>
+      <div class="price-period">USD por mes</div>
+      <ul class="price-features">
+        <li>Todo lo de Básico Pro</li>
+        <li>Múltiples perfiles</li>
+        <li>Backup en la nube</li>
+        <li>Sincronización entre dispositivos</li>
+        <li>Soporte preferencial</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 7: DIFFERENTIATORS ══════ -->
+<div class="slide slide-diff" id="s7">
+  <span class="slide-num">07 / 08</span>
+  <div class="eyebrow">Por qué Parfum Track</div>
+  <h2>Lo que nos hace <em>diferentes</em></h2>
+  <div class="diff-grid">
+    <div class="diff-card">
+      <div class="diff-icon">🌐</div>
+      <div>
+        <h3>Sin descargar</h3>
+        <p>Abrís el link y ya estás usando la app. No necesitás bajar nada del Play Store.</p>
+      </div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-icon">📴</div>
+      <div>
+        <h3>Funciona offline</h3>
+        <p>Registrás ventas sin internet. Ideal para ferias, mercados y zonas con mala señal.</p>
+      </div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-icon">🔒</div>
+      <div>
+        <h3>Datos privados</h3>
+        <p>Tus datos quedan en tu celular. No los vendemos ni los compartimos con nadie.</p>
+      </div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-icon">🎯</div>
+      <div>
+        <h3>Hecha para vos</h3>
+        <p>Diseñada específicamente para revendedores de perfumes en LATAM, no una app genérica.</p>
+      </div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-icon">⚡</div>
+      <div>
+        <h3>Ultra rápida</h3>
+        <p>Pesa menos de 2 MB. Carga al instante, no gasta datos ni batería.</p>
+      </div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-icon">💬</div>
+      <div>
+        <h3>Soporte real</h3>
+        <p>Te respondemos por WhatsApp personalmente, no un bot.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 8: CTA ══════ -->
+<div class="slide slide-cta" id="s8">
+  <span class="slide-num">08 / 08</span>
+  <img src="/icon-192.png" alt="Parfum Track" class="logo-big">
+  <h2>Empezá a controlar<br>tu negocio <em>hoy</em></h2>
+  <a href="/index.html" class="cta-btn">Probar gratis →</a>
+  <div class="contact-info">
+    <a href="mailto:parfumtrack@gmail.com">parfumtrack@gmail.com</a><br>
+    Parfum Track — Montevideo, Uruguay
+  </div>
+</div>
+
+<!-- Navigation dots -->
+<nav class="nav-dots" id="navDots">
+  <button class="nav-dot active" onclick="goSlide(1)" title="Inicio"></button>
+  <button class="nav-dot" onclick="goSlide(2)" title="El problema"></button>
+  <button class="nav-dot" onclick="goSlide(3)" title="La solución"></button>
+  <button class="nav-dot" onclick="goSlide(4)" title="WhatsApp"></button>
+  <button class="nav-dot" onclick="goSlide(5)" title="Números"></button>
+  <button class="nav-dot" onclick="goSlide(6)" title="Precios"></button>
+  <button class="nav-dot" onclick="goSlide(7)" title="Diferenciadores"></button>
+  <button class="nav-dot" onclick="goSlide(8)" title="Empezar"></button>
+</nav>
+
+<script>
+function goSlide(n) {
+  document.getElementById('s' + n).scrollIntoView({ behavior: 'smooth' });
+}
+
+const dots = document.querySelectorAll('.nav-dot');
+const slides = document.querySelectorAll('.slide');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const idx = Array.from(slides).indexOf(e.target);
+      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    }
+  });
+}, { threshold: 0.5 });
+
+slides.forEach(s => observer.observe(s));
+
+document.addEventListener('keydown', e => {
+  const current = Array.from(dots).findIndex(d => d.classList.contains('active'));
+  if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    if (current < slides.length - 1) goSlide(current + 2);
+  } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    if (current > 0) goSlide(current);
+  }
+});
+</script>
+
+</body>
+</html>
