@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Parfum Track — Presentación</title>
+<title>Tu negocio bajo control — Parfum Track</title>
 <style>
 @import url('/fonts/fonts.css');
 
@@ -16,6 +16,7 @@
   --gold3: #f5dfa0;
   --text: #f0ece4;
   --text2: #a8a49c;
+  --text3: #6b6660;
   --green: #70c9a0;
   --red: #e07070;
   --border: rgba(201,168,76,0.12);
@@ -48,83 +49,23 @@ body {
   overflow: hidden;
 }
 
-.slide::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(ellipse at center, rgba(201,168,76,0.03) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-/* ── Slide 1: Title ── */
-.slide-title {
-  background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
-  text-align: center;
-}
-
-.logo-big {
-  width: 100px;
-  height: 100px;
-  border-radius: 24px;
-  margin-bottom: 32px;
-  box-shadow: 0 8px 40px rgba(201,168,76,0.25);
-}
-
-.title-main {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: clamp(42px, 7vw, 80px);
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--gold), var(--gold2), var(--gold3));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1.1;
-  margin-bottom: 20px;
-}
-
-.title-sub {
-  font-size: clamp(18px, 2.5vw, 26px);
-  color: var(--text2);
-  max-width: 600px;
-  line-height: 1.6;
-}
-
-.scroll-hint {
-  position: absolute;
-  bottom: 32px;
-  font-size: 13px;
-  color: var(--text2);
-  opacity: 0.6;
-  animation: bounce 2s ease infinite;
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(8px); }
-}
-
-/* ── Slide 2: Problem ── */
-.slide-problem { background: var(--bg2); }
-
+/* ── Typography ── */
 .eyebrow {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 3.5px;
   text-transform: uppercase;
   color: var(--gold);
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .slide h2 {
   font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: clamp(32px, 5vw, 56px);
+  font-size: clamp(34px, 5.5vw, 60px);
   font-weight: 700;
-  line-height: 1.15;
-  margin-bottom: 40px;
-  max-width: 800px;
+  line-height: 1.12;
+  margin-bottom: 24px;
+  max-width: 780px;
   text-align: center;
 }
 
@@ -136,351 +77,457 @@ body {
   background-clip: text;
 }
 
-.pain-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-  max-width: 900px;
-  width: 100%;
+.slide-body {
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--text2);
+  max-width: 600px;
+  text-align: center;
+  line-height: 1.7;
 }
 
-.pain-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 28px;
+.slide-num {
+  position: absolute;
+  top: 28px;
+  left: 40px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(201,168,76,0.2);
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 28px;
+  font-size: 13px;
+  color: var(--text2);
+  opacity: 0.5;
+  animation: bounce 2.5s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+/* ═══════════════════════════════
+   SLIDE 1 — HOOK
+═══════════════════════════════ */
+.slide-hook {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
   text-align: center;
 }
 
-.pain-icon {
-  font-size: 36px;
-  margin-bottom: 14px;
-}
-
-.pain-card h3 {
-  font-size: 17px;
+.hook-question {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(38px, 6vw, 72px);
   font-weight: 700;
-  margin-bottom: 8px;
+  line-height: 1.1;
+  margin-bottom: 32px;
+  max-width: 700px;
 }
 
-.pain-card p {
+.hook-question em {
+  font-style: italic;
+  background: linear-gradient(135deg, var(--gold), var(--gold2), var(--gold3));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ═══════════════════════════════
+   SLIDE 2 — DAILY REALITY
+═══════════════════════════════ */
+.slide-reality { background: var(--bg2); }
+
+.reality-list {
+  list-style: none;
+  max-width: 620px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.reality-list li {
+  font-size: clamp(16px, 2vw, 19px);
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  color: var(--text2);
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.reality-list li:last-child { border-bottom: none; }
+
+.reality-list .li-marker {
+  color: var(--red);
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  opacity: 0.8;
+}
+
+/* ═══════════════════════════════
+   SLIDE 3 — IMAGINE
+═══════════════════════════════ */
+.slide-imagine { background: var(--bg); }
+
+.imagine-list {
+  list-style: none;
+  max-width: 620px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.imagine-list li {
+  font-size: clamp(16px, 2vw, 19px);
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(201,168,76,0.08);
+  color: var(--text);
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.imagine-list li:last-child { border-bottom: none; }
+
+.imagine-list .li-marker {
+  color: var(--green);
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════
+   SLIDE 4 — CONTROL
+═══════════════════════════════ */
+.slide-control { background: var(--bg2); }
+
+.control-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  max-width: 880px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.control-card {
+  background: rgba(30,30,53,0.6);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 26px;
+  text-align: left;
+}
+
+.control-card h3 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold2);
+  margin-bottom: 10px;
+}
+
+.control-card p {
+  font-size: 15px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════
+   SLIDE 5 — TIME
+═══════════════════════════════ */
+.slide-time { background: var(--bg); }
+
+.time-comparison {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 32px;
+  align-items: center;
+  max-width: 800px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.time-col {
+  text-align: center;
+  padding: 32px 24px;
+  border-radius: 18px;
+}
+
+.time-col.before {
+  background: rgba(224,112,112,0.06);
+  border: 1px solid rgba(224,112,112,0.12);
+}
+
+.time-col.after {
+  background: rgba(112,201,160,0.06);
+  border: 1px solid rgba(112,201,160,0.12);
+}
+
+.time-col h3 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.time-col.before h3 { color: var(--red); }
+.time-col.after h3 { color: var(--green); }
+
+.time-number {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 52px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.time-col.before .time-number { color: var(--red); }
+.time-col.after .time-number { color: var(--green); }
+
+.time-label {
   font-size: 14px;
   color: var(--text2);
   line-height: 1.5;
 }
 
-/* ── Slide 3: Solution ── */
-.slide-solution { background: var(--bg); }
-
-.solution-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 24px;
-  max-width: 1000px;
-  width: 100%;
-  margin-top: 10px;
+.time-arrow {
+  font-size: 32px;
+  color: var(--gold);
+  opacity: 0.6;
 }
 
-.solution-card {
-  background: linear-gradient(135deg, var(--card), rgba(30,30,53,0.8));
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 32px 24px;
+.time-footer {
+  margin-top: 36px;
+  font-size: 17px;
+  color: var(--text2);
   text-align: center;
-  transition: transform 0.3s, box-shadow 0.3s;
+  max-width: 500px;
+  line-height: 1.6;
 }
 
-.solution-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(201,168,76,0.12);
-}
-
-.sol-icon {
-  font-size: 40px;
-  margin-bottom: 16px;
-}
-
-.solution-card h3 {
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 8px;
+.time-footer strong {
   color: var(--gold2);
 }
 
-.solution-card p {
-  font-size: 13px;
+/* ═══════════════════════════════
+   SLIDE 6 — PROFIT CLARITY
+═══════════════════════════════ */
+.slide-profit { background: var(--bg2); }
+
+.profit-story {
+  max-width: 640px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.profit-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.profit-step:last-child { border-bottom: none; }
+
+.step-num {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #1a1400;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profit-step h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.profit-step p {
+  font-size: 15px;
   color: var(--text2);
   line-height: 1.5;
 }
 
-/* ── Slide 4: WhatsApp Feature ── */
-.slide-whatsapp { background: var(--bg2); }
+/* ═══════════════════════════════
+   SLIDE 7 — COBROS + WA IMAGE
+═══════════════════════════════ */
+.slide-cobros { background: var(--bg); }
 
-.feature-row {
+.cobros-row {
   display: flex;
   align-items: center;
-  gap: 60px;
-  max-width: 1000px;
+  gap: 56px;
+  max-width: 920px;
   width: 100%;
 }
 
-.feature-text { flex: 1; }
+.cobros-text { flex: 1; }
 
-.feature-text h2 {
+.cobros-text h2 {
   text-align: left;
   margin-bottom: 20px;
 }
 
-.feature-text p {
-  font-size: 16px;
+.cobros-text p {
+  font-size: 17px;
   color: var(--text2);
   line-height: 1.7;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 
-.feature-list {
-  list-style: none;
-  padding: 0;
-}
-
-.feature-list li {
-  font-size: 15px;
-  padding: 8px 0;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.feature-list li::before {
-  content: '✓';
-  color: var(--green);
-  font-weight: 700;
+.cobros-text .highlight-line {
   font-size: 16px;
+  color: var(--green);
+  font-weight: 600;
+  margin-top: 16px;
 }
 
-.feature-img {
-  flex: 0 0 300px;
+.cobros-img {
+  flex: 0 0 280px;
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.15);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.12);
 }
 
-.feature-img img {
+.cobros-img img {
   width: 100%;
   height: auto;
   display: block;
 }
 
-/* ── Slide 5: Stats/Numbers ── */
-.slide-stats { background: var(--bg); }
+/* ═══════════════════════════════
+   SLIDE 8 — GROWTH
+═══════════════════════════════ */
+.slide-growth { background: var(--bg2); }
 
-.stats-grid {
+.growth-pillars {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 32px;
-  max-width: 900px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  max-width: 800px;
   width: 100%;
   margin-top: 20px;
 }
 
-.stat-card {
+.pillar {
   text-align: center;
-  padding: 24px;
+  padding: 28px 20px;
 }
 
-.stat-number {
+.pillar-icon {
+  font-size: 44px;
+  margin-bottom: 18px;
+}
+
+.pillar h3 {
   font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: clamp(40px, 6vw, 60px);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gold2);
+  margin-bottom: 10px;
+}
+
+.pillar p {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════
+   SLIDE 9 — CLOSE
+═══════════════════════════════ */
+.slide-close {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+  text-align: center;
+}
+
+.close-phrase {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 600;
+  color: var(--text2);
+  max-width: 600px;
+  line-height: 1.5;
+  margin-bottom: 48px;
+  font-style: italic;
+}
+
+.close-phrase strong {
+  color: var(--gold2);
+  font-weight: 700;
+}
+
+.logo-mark {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 24px rgba(201,168,76,0.2);
+}
+
+.close-name {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 28px;
   font-weight: 700;
   background: linear-gradient(135deg, var(--gold), var(--gold2));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1;
   margin-bottom: 8px;
 }
 
-.stat-label {
-  font-size: 14px;
-  color: var(--text2);
-  line-height: 1.4;
-}
-
-/* ── Slide 6: Pricing ── */
-.slide-pricing { background: var(--bg2); }
-
-.pricing-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
-  max-width: 900px;
-  width: 100%;
-  margin-top: 20px;
-}
-
-.price-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 36px 28px;
-  text-align: center;
-  position: relative;
-}
-
-.price-card.featured {
-  border-color: var(--gold);
-  box-shadow: 0 0 30px rgba(201,168,76,0.15);
-  transform: scale(1.04);
-}
-
-.price-badge {
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, var(--gold), var(--gold2));
-  color: #1a1400;
-  font-size: 11px;
-  font-weight: 800;
-  padding: 4px 16px;
-  border-radius: 50px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.price-name {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text2);
-  margin-bottom: 12px;
-}
-
-.price-amount {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 48px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 4px;
-}
-
-.price-amount span {
-  font-size: 20px;
-  color: var(--text2);
-}
-
-.price-period {
-  font-size: 13px;
-  color: var(--text2);
-  margin-bottom: 24px;
-}
-
-.price-features {
-  list-style: none;
-  padding: 0;
-  text-align: left;
-}
-
-.price-features li {
-  font-size: 14px;
-  padding: 6px 0;
-  color: var(--text2);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.price-features li::before {
-  content: '✓';
-  color: var(--green);
-  font-weight: 700;
-}
-
-/* ── Slide 7: Differentiators ── */
-.slide-diff { background: var(--bg); }
-
-.diff-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  max-width: 900px;
-  width: 100%;
-}
-
-.diff-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 24px;
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.diff-icon {
-  font-size: 28px;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.diff-card h3 {
+.close-tagline {
   font-size: 15px;
-  font-weight: 700;
-  margin-bottom: 6px;
-  color: var(--gold2);
-}
-
-.diff-card p {
-  font-size: 13px;
   color: var(--text2);
-  line-height: 1.5;
-}
-
-/* ── Slide 8: CTA ── */
-.slide-cta {
-  background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
-  text-align: center;
+  margin-bottom: 32px;
 }
 
 .cta-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 32px;
-  padding: 16px 40px;
+  padding: 15px 36px;
   border-radius: 50px;
   border: none;
   background: linear-gradient(135deg, var(--gold), var(--gold2));
   color: #1a1400;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   font-family: inherit;
   text-decoration: none;
-  box-shadow: 0 4px 24px rgba(201,168,76,0.35);
+  box-shadow: 0 4px 24px rgba(201,168,76,0.3);
   transition: all 0.3s;
   cursor: pointer;
 }
 
 .cta-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(201,168,76,0.5);
+  box-shadow: 0 8px 32px rgba(201,168,76,0.45);
 }
 
-.contact-info {
-  margin-top: 40px;
-  font-size: 14px;
+.contact-line {
+  margin-top: 32px;
+  font-size: 13px;
+  color: var(--text3);
+}
+
+.contact-line a {
   color: var(--text2);
-  line-height: 2;
-}
-
-.contact-info a {
-  color: var(--gold2);
   text-decoration: none;
 }
 
-/* ── Navigation dots ── */
+/* ── Nav dots ── */
 .nav-dots {
   position: fixed;
   right: 24px;
@@ -488,15 +535,15 @@ body {
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   z-index: 100;
 }
 
 .nav-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: rgba(201,168,76,0.25);
+  background: rgba(201,168,76,0.2);
   border: none;
   cursor: pointer;
   transition: all 0.3s;
@@ -505,304 +552,284 @@ body {
 
 .nav-dot.active, .nav-dot:hover {
   background: var(--gold);
-  transform: scale(1.3);
-}
-
-/* ── Slide number ── */
-.slide-num {
-  position: absolute;
-  top: 28px;
-  left: 40px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: rgba(201,168,76,0.3);
+  transform: scale(1.4);
 }
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .slide { padding: 48px 24px; }
-  .feature-row { flex-direction: column; gap: 32px; }
-  .feature-text h2 { text-align: center; }
-  .feature-img { flex: none; max-width: 280px; margin: 0 auto; }
+  .cobros-row { flex-direction: column; gap: 32px; }
+  .cobros-text h2 { text-align: center; }
+  .cobros-img { flex: none; max-width: 260px; margin: 0 auto; }
+  .time-comparison { grid-template-columns: 1fr; gap: 16px; }
+  .time-arrow { transform: rotate(90deg); justify-self: center; }
+  .growth-pillars { grid-template-columns: 1fr; }
   .nav-dots { display: none; }
-  .price-card.featured { transform: none; }
   .slide-num { left: 24px; top: 20px; }
 }
 </style>
 </head>
 <body>
 
-<!-- ══════ SLIDE 1: TITLE ══════ -->
-<div class="slide slide-title" id="s1">
-  <span class="slide-num">01 / 08</span>
-  <img src="/icon-192.png" alt="Parfum Track" class="logo-big">
-  <h1 class="title-main">Parfum Track</h1>
-  <p class="title-sub">
-    La app que organiza tu negocio de perfumes.<br>
-    Ventas, cuotas, stock y ganancia real — todo desde el celular.
+<!-- ══════ 1. HOOK ══════ -->
+<div class="slide slide-hook" id="s1">
+  <span class="slide-num">01</span>
+  <div class="eyebrow">Para revendedores de perfumes</div>
+  <div class="hook-question">
+    ¿Cuánto ganaste<br><em>este mes?</em>
+  </div>
+  <p class="slide-body">
+    Si para responder necesitás un cuaderno, una calculadora y dos horas libres... el problema no sos vos. Es cómo estás llevando tu negocio.
   </p>
-  <div class="scroll-hint">▼ Deslizá para ver más</div>
+  <div class="scroll-hint">▼ Deslizá</div>
 </div>
 
-<!-- ══════ SLIDE 2: PROBLEM ══════ -->
-<div class="slide slide-problem" id="s2">
-  <span class="slide-num">02 / 08</span>
-  <div class="eyebrow">El problema</div>
-  <h2>Cada fin de mes, la misma historia:<br><em>¿cuánto gané realmente?</em></h2>
-  <div class="pain-grid">
-    <div class="pain-card">
-      <div class="pain-icon">📒</div>
-      <h3>Cuaderno y calculadora</h3>
-      <p>Anotás las ventas a mano, sumás con la calculadora y nunca te cierran los números.</p>
-    </div>
-    <div class="pain-card">
-      <div class="pain-icon">💸</div>
-      <h3>Cuotas olvidadas</h3>
-      <p>Vendiste en cuotas pero perdiste la cuenta de quién pagó, cuánto falta y desde cuándo.</p>
-    </div>
-    <div class="pain-card">
-      <div class="pain-icon">📦</div>
-      <h3>Stock a ojo</h3>
-      <p>No sabés cuántos perfumes tenés, cuáles se venden más ni cuándo reponer.</p>
-    </div>
-    <div class="pain-card">
-      <div class="pain-icon">⏰</div>
-      <h3>Horas perdidas</h3>
-      <p>Dedicás 2+ horas por semana a hacer cuentas que una app haría en segundos.</p>
-    </div>
-  </div>
+<!-- ══════ 2. DAILY REALITY ══════ -->
+<div class="slide slide-reality" id="s2">
+  <span class="slide-num">02</span>
+  <div class="eyebrow">La realidad de cada día</div>
+  <h2>Suena familiar, <em>¿no?</em></h2>
+  <ul class="reality-list">
+    <li>
+      <span class="li-marker">✗</span>
+      <span>Vendés mucho, pero a fin de mes no sabés si realmente ganaste o solo moviste plata.</span>
+    </li>
+    <li>
+      <span class="li-marker">✗</span>
+      <span>Tres clientes te deben cuotas. No recordás cuánto, ni desde cuándo. Te da cosa reclamar.</span>
+    </li>
+    <li>
+      <span class="li-marker">✗</span>
+      <span>Anotás en un cuaderno, en un Excel, en notas del celular... y al final no encontrás nada.</span>
+    </li>
+    <li>
+      <span class="li-marker">✗</span>
+      <span>No sabés qué perfumes tenés en stock, cuáles se venden más, ni cuándo reponer.</span>
+    </li>
+    <li>
+      <span class="li-marker">✗</span>
+      <span>Dedicás horas a hacer cuentas que deberían tardar segundos.</span>
+    </li>
+  </ul>
 </div>
 
-<!-- ══════ SLIDE 3: SOLUTION ══════ -->
-<div class="slide slide-solution" id="s3">
-  <span class="slide-num">03 / 08</span>
-  <div class="eyebrow">La solución</div>
-  <h2>Todo tu negocio en <em>10 segundos por venta</em></h2>
-  <div class="solution-grid">
-    <div class="solution-card">
-      <div class="sol-icon">💰</div>
+<!-- ══════ 3. IMAGINE ══════ -->
+<div class="slide slide-imagine" id="s3">
+  <span class="slide-num">03</span>
+  <div class="eyebrow">Ahora imaginá esto</div>
+  <h2>Cada día, <em>sabés exactamente</em> dónde estás</h2>
+  <ul class="imagine-list">
+    <li>
+      <span class="li-marker">✓</span>
+      <span>Registrás una venta en 10 segundos. La ganancia se calcula sola.</span>
+    </li>
+    <li>
+      <span class="li-marker">✓</span>
+      <span>Sabés quién te debe, cuánto y desde cuándo — sin revisar cuadernos.</span>
+    </li>
+    <li>
+      <span class="li-marker">✓</span>
+      <span>El stock se actualiza con cada venta. Siempre sabés qué tenés.</span>
+    </li>
+    <li>
+      <span class="li-marker">✓</span>
+      <span>A fin de mes abrís tu celular y ahí está: tu ganancia real, exacta, sin adivinar.</span>
+    </li>
+    <li>
+      <span class="li-marker">✓</span>
+      <span>Dedicás tu tiempo a vender, no a hacer cuentas.</span>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 4. CONTROL ══════ -->
+<div class="slide slide-control" id="s4">
+  <span class="slide-num">04</span>
+  <div class="eyebrow">Control total</div>
+  <h2>Tu negocio entero, <em>en la palma de tu mano</em></h2>
+  <div class="control-grid">
+    <div class="control-card">
+      <h3>Ventas</h3>
+      <p>Cada venta queda registrada con fecha, producto, cliente, precio de compra y de venta. Tu historial completo, siempre disponible.</p>
+    </div>
+    <div class="control-card">
+      <h3>Clientes y cuotas</h3>
+      <p>Sabés quién te compró, quién te debe y cuántas cuotas faltan. Sin anotar en papelitos que se pierden.</p>
+    </div>
+    <div class="control-card">
+      <h3>Stock</h3>
+      <p>Se actualiza con cada venta. Sabés qué tenés disponible, qué se agotó y qué necesitás reponer.</p>
+    </div>
+    <div class="control-card">
       <h3>Ganancia real</h3>
-      <p>Cada venta actualiza tu ganancia al instante. Margen, ticket promedio, todo automático.</p>
+      <p>No "más o menos" ni "creo que gané". Tu margen exacto, tu ticket promedio, tu mejor día — números reales.</p>
     </div>
-    <div class="solution-card">
-      <div class="sol-icon">📋</div>
-      <h3>Cuotas y cobros</h3>
-      <p>Control total de quién debe, cuánto y desde cuándo. Recordatorios por WhatsApp.</p>
+    <div class="control-card">
+      <h3>Gastos y caja</h3>
+      <p>Registrá los gastos de tu negocio y tené un flujo de caja real. Sabé si estás ganando o perdiendo de verdad.</p>
     </div>
-    <div class="solution-card">
-      <div class="sol-icon">📦</div>
-      <h3>Stock inteligente</h3>
-      <p>Se actualiza solo con cada venta. Sabés qué reponer y qué se vende más.</p>
-    </div>
-    <div class="solution-card">
-      <div class="sol-icon">📊</div>
-      <h3>Estadísticas</h3>
-      <p>Gráficos de ganancia, mejor día de venta, margen real y más — sin hacer cuentas.</p>
-    </div>
-    <div class="solution-card">
-      <div class="sol-icon">📱</div>
-      <h3>Catálogo WhatsApp</h3>
-      <p>Catálogo profesional con fotos y precios, listo para compartir con tus clientes.</p>
+    <div class="control-card">
+      <h3>Todo sin internet</h3>
+      <p>Estés donde estés — en una feria, en la calle, en tu casa — tu negocio está ahí, sin depender de la señal.</p>
     </div>
   </div>
 </div>
 
-<!-- ══════ SLIDE 4: WHATSAPP ══════ -->
-<div class="slide slide-whatsapp" id="s4">
-  <span class="slide-num">04 / 08</span>
-  <div class="feature-row">
-    <div class="feature-text">
-      <div class="eyebrow">Cobros automatizados</div>
-      <h2>Recordatorios de cobro<br><em>sin perseguir a nadie</em></h2>
-      <p>Con un toque abrís WhatsApp con el mensaje de cobro ya escrito. Tu clienta recibe el recordatorio y te paga al toque.</p>
-      <ul class="feature-list">
-        <li>Alertas de cuotas vencidas</li>
-        <li>Mensaje pre-escrito listo para enviar</li>
-        <li>Historial de pagos por clienta</li>
-        <li>Vista de "quién me debe más"</li>
-      </ul>
+<!-- ══════ 5. TIME ══════ -->
+<div class="slide slide-time" id="s5">
+  <span class="slide-num">05</span>
+  <div class="eyebrow">Tu tiempo vale</div>
+  <h2>Dejá de hacer cuentas.<br><em>Dedicate a vender.</em></h2>
+  <div class="time-comparison">
+    <div class="time-col before">
+      <h3>Antes</h3>
+      <div class="time-number">2h+</div>
+      <div class="time-label">por semana haciendo cuentas,<br>revisando cuadernos,<br>buscando datos</div>
     </div>
-    <div class="feature-img">
-      <img src="/img/whatsapp-cobro.jpg" alt="Recordatorio de cobro por WhatsApp" loading="lazy">
-    </div>
-  </div>
-</div>
-
-<!-- ══════ SLIDE 5: NUMBERS ══════ -->
-<div class="slide slide-stats" id="s5">
-  <span class="slide-num">05 / 08</span>
-  <div class="eyebrow">En números</div>
-  <h2>Diseñada para <em>revendedores reales</em></h2>
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-number">10s</div>
-      <div class="stat-label">por venta registrada</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number">0</div>
-      <div class="stat-label">descargas necesarias</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number">100%</div>
-      <div class="stat-label">offline — sin internet</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number">∞</div>
-      <div class="stat-label">ventas en plan Free</div>
+    <div class="time-arrow">→</div>
+    <div class="time-col after">
+      <h3>Ahora</h3>
+      <div class="time-number">10s</div>
+      <div class="time-label">por venta registrada.<br>El resto se calcula solo.<br>Vos vendés.</div>
     </div>
   </div>
+  <p class="time-footer">
+    Esas 2 horas semanales son <strong>más de 100 horas al año</strong> que podrías dedicar a vender, a tus clientes, o a lo que quieras.
+  </p>
 </div>
 
-<!-- ══════ SLIDE 6: PRICING ══════ -->
-<div class="slide slide-pricing" id="s6">
-  <span class="slide-num">06 / 08</span>
-  <div class="eyebrow">Precios</div>
-  <h2>Simple, claro y <em>sin sorpresas</em></h2>
-  <div class="pricing-row">
-    <div class="price-card">
-      <div class="price-name">Free</div>
-      <div class="price-amount">$0</div>
-      <div class="price-period">gratis para siempre</div>
-      <ul class="price-features">
-        <li>Ventas ilimitadas</li>
-        <li>Cuotas y cobros por WA</li>
-        <li>Control de stock</li>
-        <li>Ganancia automática</li>
-        <li>Funciona sin internet</li>
-        <li>1 perfil de negocio</li>
-      </ul>
-    </div>
-    <div class="price-card featured">
-      <div class="price-badge">Más popular</div>
-      <div class="price-name">Básico Pro</div>
-      <div class="price-amount">$9<span>.99</span></div>
-      <div class="price-period">USD por mes</div>
-      <ul class="price-features">
-        <li>Todo lo de Free</li>
-        <li>Recordatorios WA automáticos</li>
-        <li>Notificaciones push de cobros</li>
-        <li>Estadísticas avanzadas</li>
-        <li>Catálogo por WhatsApp</li>
-        <li>Exportar a Excel y PDF</li>
-      </ul>
-    </div>
-    <div class="price-card">
-      <div class="price-name">Pro</div>
-      <div class="price-amount">$19<span>.99</span></div>
-      <div class="price-period">USD por mes</div>
-      <ul class="price-features">
-        <li>Todo lo de Básico Pro</li>
-        <li>Múltiples perfiles</li>
-        <li>Backup en la nube</li>
-        <li>Sincronización entre dispositivos</li>
-        <li>Soporte preferencial</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<!-- ══════ SLIDE 7: DIFFERENTIATORS ══════ -->
-<div class="slide slide-diff" id="s7">
-  <span class="slide-num">07 / 08</span>
-  <div class="eyebrow">Por qué Parfum Track</div>
-  <h2>Lo que nos hace <em>diferentes</em></h2>
-  <div class="diff-grid">
-    <div class="diff-card">
-      <div class="diff-icon">🌐</div>
+<!-- ══════ 6. PROFIT ══════ -->
+<div class="slide slide-profit" id="s6">
+  <span class="slide-num">06</span>
+  <div class="eyebrow">Claridad financiera</div>
+  <h2>Sabé cuánto ganás.<br><em>De verdad.</em></h2>
+  <div class="profit-story">
+    <div class="profit-step">
+      <div class="step-num">1</div>
       <div>
-        <h3>Sin descargar</h3>
-        <p>Abrís el link y ya estás usando la app. No necesitás bajar nada del Play Store.</p>
+        <h3>Registrás la venta</h3>
+        <p>Precio de compra, precio de venta, medio de pago. 10 segundos.</p>
       </div>
     </div>
-    <div class="diff-card">
-      <div class="diff-icon">📴</div>
+    <div class="profit-step">
+      <div class="step-num">2</div>
       <div>
-        <h3>Funciona offline</h3>
-        <p>Registrás ventas sin internet. Ideal para ferias, mercados y zonas con mala señal.</p>
+        <h3>Tu ganancia aparece al instante</h3>
+        <p>Cuánto ganaste hoy, esta semana, este mes. Sin calculadora, sin dudas.</p>
       </div>
     </div>
-    <div class="diff-card">
-      <div class="diff-icon">🔒</div>
+    <div class="profit-step">
+      <div class="step-num">3</div>
       <div>
-        <h3>Datos privados</h3>
-        <p>Tus datos quedan en tu celular. No los vendemos ni los compartimos con nadie.</p>
+        <h3>Ves tus números reales</h3>
+        <p>Margen de ganancia, ticket promedio, mejor día de venta, producto más vendido.</p>
       </div>
     </div>
-    <div class="diff-card">
-      <div class="diff-icon">🎯</div>
+    <div class="profit-step">
+      <div class="step-num">4</div>
       <div>
-        <h3>Hecha para vos</h3>
-        <p>Diseñada específicamente para revendedores de perfumes en LATAM, no una app genérica.</p>
-      </div>
-    </div>
-    <div class="diff-card">
-      <div class="diff-icon">⚡</div>
-      <div>
-        <h3>Ultra rápida</h3>
-        <p>Pesa menos de 2 MB. Carga al instante, no gasta datos ni batería.</p>
-      </div>
-    </div>
-    <div class="diff-card">
-      <div class="diff-icon">💬</div>
-      <div>
-        <h3>Soporte real</h3>
-        <p>Te respondemos por WhatsApp personalmente, no un bot.</p>
+        <h3>Tomás decisiones con información</h3>
+        <p>Sabés qué perfume te deja más ganancia, cuándo vendés más y dónde poner el foco.</p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════ SLIDE 8: CTA ══════ -->
-<div class="slide slide-cta" id="s8">
-  <span class="slide-num">08 / 08</span>
-  <img src="/icon-192.png" alt="Parfum Track" class="logo-big">
-  <h2>Empezá a controlar<br>tu negocio <em>hoy</em></h2>
-  <a href="/index.html" class="cta-btn">Probar gratis →</a>
-  <div class="contact-info">
-    <a href="mailto:parfumtrack@gmail.com">parfumtrack@gmail.com</a><br>
-    Parfum Track — Montevideo, Uruguay
+<!-- ══════ 7. COBROS ══════ -->
+<div class="slide slide-cobros" id="s7">
+  <span class="slide-num">07</span>
+  <div class="cobros-row">
+    <div class="cobros-text">
+      <div class="eyebrow">Sin perseguir a nadie</div>
+      <h2>Tus cobros, <em>sin incomodidad</em></h2>
+      <p>No te acordás quién te debe, te da cosa reclamar, dejás pasar el tiempo y perdés plata.</p>
+      <p>Con un recordatorio claro y profesional por WhatsApp, tu cliente se acuerda solo. Sin drama, sin presión.</p>
+      <div class="highlight-line">→ "Disculpa, me había olvidado. Enseguida te pago!"</div>
+    </div>
+    <div class="cobros-img">
+      <img src="/img/whatsapp-cobro.jpg" alt="Recordatorio de cobro profesional" loading="lazy">
+    </div>
   </div>
 </div>
 
-<!-- Navigation dots -->
+<!-- ══════ 8. GROWTH ══════ -->
+<div class="slide slide-growth" id="s8">
+  <span class="slide-num">08</span>
+  <div class="eyebrow">Crecimiento</div>
+  <h2>No es solo una app.<br>Es <em>otro nivel para tu negocio.</em></h2>
+  <div class="growth-pillars">
+    <div class="pillar">
+      <div class="pillar-icon">🧘</div>
+      <h3>Tranquilidad</h3>
+      <p>No más "¿habré cobrado esa cuota?", "¿cuánto tenía en stock?", "¿estoy ganando o perdiendo?". Está todo ahí.</p>
+    </div>
+    <div class="pillar">
+      <div class="pillar-icon">🎯</div>
+      <h3>Control</h3>
+      <p>Cada venta, cada cobro, cada número de tu negocio — organizado, claro, siempre a mano. Sin depender de la memoria.</p>
+    </div>
+    <div class="pillar">
+      <div class="pillar-icon">📈</div>
+      <h3>Crecimiento</h3>
+      <p>Cuando sabés tus números reales, podés crecer con confianza. Más stock, más clientes, más ganancia — con datos, no intuición.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 9. CLOSE ══════ -->
+<div class="slide slide-close" id="s9">
+  <span class="slide-num">09</span>
+  <p class="close-phrase">
+    No necesitás ser contador.<br>
+    No necesitás un sistema complicado.<br>
+    Solo necesitás <strong>saber dónde estás</strong>.
+  </p>
+  <img src="/icon-192.png" alt="Parfum Track" class="logo-mark">
+  <div class="close-name">Parfum Track</div>
+  <div class="close-tagline">Tu negocio de perfumes, bajo control.</div>
+  <a href="/index.html" class="cta-btn">Empezar gratis →</a>
+  <div class="contact-line">
+    <a href="mailto:parfumtrack@gmail.com">parfumtrack@gmail.com</a> · Montevideo, Uruguay
+  </div>
+</div>
+
+<!-- Nav dots -->
 <nav class="nav-dots" id="navDots">
-  <button class="nav-dot active" onclick="goSlide(1)" title="Inicio"></button>
-  <button class="nav-dot" onclick="goSlide(2)" title="El problema"></button>
-  <button class="nav-dot" onclick="goSlide(3)" title="La solución"></button>
-  <button class="nav-dot" onclick="goSlide(4)" title="WhatsApp"></button>
-  <button class="nav-dot" onclick="goSlide(5)" title="Números"></button>
-  <button class="nav-dot" onclick="goSlide(6)" title="Precios"></button>
-  <button class="nav-dot" onclick="goSlide(7)" title="Diferenciadores"></button>
-  <button class="nav-dot" onclick="goSlide(8)" title="Empezar"></button>
+  <button class="nav-dot active" onclick="goSlide(1)"></button>
+  <button class="nav-dot" onclick="goSlide(2)"></button>
+  <button class="nav-dot" onclick="goSlide(3)"></button>
+  <button class="nav-dot" onclick="goSlide(4)"></button>
+  <button class="nav-dot" onclick="goSlide(5)"></button>
+  <button class="nav-dot" onclick="goSlide(6)"></button>
+  <button class="nav-dot" onclick="goSlide(7)"></button>
+  <button class="nav-dot" onclick="goSlide(8)"></button>
+  <button class="nav-dot" onclick="goSlide(9)"></button>
 </nav>
 
 <script>
 function goSlide(n) {
   document.getElementById('s' + n).scrollIntoView({ behavior: 'smooth' });
 }
-
 const dots = document.querySelectorAll('.nav-dot');
 const slides = document.querySelectorAll('.slide');
-const observer = new IntersectionObserver(entries => {
+const obs = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if (e.isIntersecting) {
-      const idx = Array.from(slides).indexOf(e.target);
-      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+      const i = Array.from(slides).indexOf(e.target);
+      dots.forEach((d, j) => d.classList.toggle('active', j === i));
     }
   });
 }, { threshold: 0.5 });
-
-slides.forEach(s => observer.observe(s));
+slides.forEach(s => obs.observe(s));
 
 document.addEventListener('keydown', e => {
-  const current = Array.from(dots).findIndex(d => d.classList.contains('active'));
-  if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'ArrowRight') {
+  const cur = Array.from(dots).findIndex(d => d.classList.contains('active'));
+  if (['ArrowDown', ' ', 'ArrowRight'].includes(e.key)) {
     e.preventDefault();
-    if (current < slides.length - 1) goSlide(current + 2);
-  } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+    if (cur < slides.length - 1) goSlide(cur + 2);
+  } else if (['ArrowUp', 'ArrowLeft'].includes(e.key)) {
     e.preventDefault();
-    if (current > 0) goSlide(current);
+    if (cur > 0) goSlide(cur);
   }
 });
 </script>
