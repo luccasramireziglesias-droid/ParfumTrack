@@ -215,8 +215,8 @@ function sanitize(str) {
 // KV-based rate limiter: allows `max` requests per `windowSecs` seconds
 async function checkRateLimit(env, key, max, windowSecs) {
   if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — rate limiting desactivado');
-    return null;
+    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
+    return 'Service temporarily unavailable';
   }
 
   const now = Math.floor(Date.now() / 1000);
@@ -227,7 +227,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
     const stored = await env.PT_LICENSES.get(windowKey);
     count = stored ? parseInt(stored, 10) : 0;
   } catch {
-    return null;
+    return 'Rate limit check failed, please try again later';
   }
 
   if (count >= max) return "Too many requests, please try again later";

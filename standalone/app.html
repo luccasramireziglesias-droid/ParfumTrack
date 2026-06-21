@@ -14091,7 +14091,8 @@
         for (let i = 0; i < maxAttempts; i++) {
           await new Promise(r => setTimeout(r, interval));
           try {
-            const resp = await fetch(`/mp-payment-status?paymentId=${encodeURIComponent(paymentId)}`);
+            const _mpEmail = localStorage.getItem("pt_user_email") || "";
+            const resp = await fetch(`/mp-payment-status?paymentId=${encodeURIComponent(paymentId)}&email=${encodeURIComponent(_mpEmail)}`);
             if (!resp.ok) continue;
             const result = await resp.json();
             if (result.ok && result.status === "active") {

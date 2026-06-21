@@ -1,7 +1,8 @@
 // ══════════════════════════════════════════════════════════════
 // Parfum Track — Cloudflare Function: /mp-payment-status
-// GET /mp-payment-status?paymentId=123456789
+// GET /mp-payment-status?paymentId=123456789&email=user@example.com
 // Devuelve si la licencia asociada a un pago ya fue activada.
+// Requiere email del pagador para autenticar (verificado contra Mercado Pago).
 // No devuelve el código de licencia — solo el estado (activo/pendiente).
 // ══════════════════════════════════════════════════════════════
 
@@ -12,9 +13,14 @@ export async function onRequestGet(context) {
   const url     = new URL(request.url);
 
   const paymentId = url.searchParams.get('paymentId')?.trim();
+  const email = url.searchParams.get('email')?.trim().toLowerCase();
 
   if (!paymentId || !/^\d+$/.test(paymentId) || paymentId.length > 20) {
     return json({ ok: false, error: 'paymentId inválido' }, 400, headers);
+  }
+
+  if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    return json({ ok: false, error: 'email requerido' }, 400, headers);
   }
 
   if (!env.PT_LICENSES) {
@@ -25,6 +31,31 @@ export async function onRequestGet(context) {
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   const rlErr = await checkRateLimit(env, `rl_mpstatus_ip_${ip}`, 30, 3600);
   if (rlErr) return json({ ok: false, error: rlErr }, 429, headers);
+
+  // Verify email matches the payment's payer email via Mercado Pago API
+  if (!env.MP_ACCESS_TOKEN) {
+    console.error('[mp-payment-status] MP_ACCESS_TOKEN not configured');
+    return json({ ok: false, error: 'Server config error' }, 500, headers);
+  }
+
+  let payerEmail;
+  try {
+    const mpResp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      headers: { Authorization: `Bearer ${env.MP_ACCESS_TOKEN}` },
+    });
+    if (!mpResp.ok) {
+      return json({ ok: true, status: 'pending' }, 200, headers);
+    }
+    const mpData = await mpResp.json();
+    payerEmail = (mpData.payer?.email || '').toLowerCase().trim();
+  } catch (e) {
+    console.error('[mp-payment-status] MP API error:', e.message);
+    return json({ ok: false, error: 'Payment verification failed' }, 500, headers);
+  }
+
+  if (!payerEmail || payerEmail !== email) {
+    return json({ ok: false, error: 'Unauthorized' }, 401, headers);
+  }
 
   const licenseCode = await env.PT_LICENSES.get(`mp_pay:${paymentId}`);
   if (!licenseCode) {
@@ -62,14 +93,14 @@ function json(body, status, headers) {
 }
 
 async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) return null;
+  if (!env.PT_LICENSES) return 'Service temporarily unavailable';
   const now = Math.floor(Date.now() / 1000);
   const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
   let count = 0;
   try {
     const stored = await env.PT_LICENSES.get(windowKey);
     count = stored ? parseInt(stored, 10) : 0;
-  } catch { return null; }
+  } catch { return 'Rate limit check failed, please try again later'; }
   if (count >= max) return 'Too many requests, please try again later';
   try {
     await env.PT_LICENSES.put(windowKey, String(count + 1), { expirationTtl: windowSecs * 2 });

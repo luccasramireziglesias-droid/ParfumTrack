@@ -401,7 +401,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
     const stored = await env.PT_LICENSES.get(windowKey);
     count = stored ? parseInt(stored, 10) : 0;
   } catch {
-    return null;
+    return 'Rate limit check failed, please try again later';
   }
   if (count >= max) return "Too many requests";
   try {

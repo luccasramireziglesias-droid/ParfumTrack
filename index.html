@@ -88,7 +88,7 @@
         --gold-dim: rgba(201, 168, 76, 0.13);
         --text: #f0ece4;
         --text2: #b8b5d0;
-        --text3: #7a77a0;
+        --text3: #9a97c0;
         --danger: #e07070;
         --success: #70c9a0;
         --warn: #e0b060;
@@ -220,6 +220,8 @@
         cursor: pointer;
         font-size: 14px;
         flex-shrink: 0;
+        min-width: 40px;
+        min-height: 40px;
       }
       .header-stats {
         display: grid;
@@ -265,7 +267,7 @@
         flex-shrink: 0;
       }
       .meta-item-lbl {
-        font-size: 9px;
+        font-size: 10px;
         color: var(--text3);
         letter-spacing: 0.5px;
         text-transform: uppercase;
@@ -392,7 +394,7 @@
         transition: color 0.18s;
         position: relative;
         gap: 3px;
-        font-size: 9px;
+        font-size: 10px;
         letter-spacing: 0.3px;
         font-family: "DM Sans", sans-serif;
       }
@@ -425,7 +427,7 @@
         background: var(--danger);
         color: #fff;
         border-radius: 20px;
-        font-size: 9px;
+        font-size: 10px;
         font-weight: 700;
         padding: 1px 4px;
         min-width: 14px;
@@ -650,7 +652,7 @@
         background: rgba(224, 112, 112, 0.1);
         color: var(--danger);
         border: 0.5px solid rgba(224, 112, 112, 0.25);
-        font-size: 9px;
+        font-size: 10px;
       }
       .badge-dias.warn {
         background: rgba(224, 176, 96, 0.1);
@@ -1221,8 +1223,8 @@
         gap: 5px;
       }
       .qty-btn {
-        width: 26px;
-        height: 26px;
+        width: 40px;
+        height: 40px;
         border-radius: var(--radius-sm);
         background: var(--card2);
         border: 0.5px solid var(--border);
@@ -2170,7 +2172,7 @@
         /* Separadores de sección */
         .sidebar-section-lbl {
           display: block;
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 1.2px;
           color: var(--text3);
@@ -2496,10 +2498,10 @@
         .header-right .icon-btn {
           padding: 5px 6px !important;
           font-size: 13px !important;
-          min-width: 30px !important;
-          min-height: 30px !important;
-          width: 30px !important;
-          height: 30px !important;
+          min-width: 40px !important;
+          min-height: 40px !important;
+          width: 40px !important;
+          height: 40px !important;
         }
         /* Pill compacto */
         .sync-status-pill {
@@ -2723,6 +2725,14 @@
       @media (max-width: 768px) {
         .tour-tip {
           max-width: calc(100vw - 32px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
         }
       }
     </style>
@@ -3099,7 +3109,7 @@
               class="hstat-sub"
               id="st-cuotas-pendientes"
               style="
-                font-size: 9px;
+                font-size: 10px;
                 color: var(--text3);
                 margin-top: 1px;
                 display: none;
@@ -8387,7 +8397,7 @@
                 <div class="mes-sep-line"></div>
                 <div style="display:flex;align-items:center;gap:5px;white-space:nowrap">
                   <div class="mes-sep-label">${escapeHTML(mesLabel(mes))}</div>
-                  ${esActual ? `<span style="background:rgba(112,201,160,0.2);color:var(--success);border:0.5px solid rgba(112,201,160,0.4);border-radius:20px;font-size:9px;padding:1px 6px;font-weight:500">ACTUAL</span>` : ""}
+                  ${esActual ? `<span style="background:rgba(112,201,160,0.2);color:var(--success);border:0.5px solid rgba(112,201,160,0.4);border-radius:20px;font-size:10px;padding:1px 6px;font-weight:500">ACTUAL</span>` : ""}
                 </div>
                 <div class="mes-sep-line"></div>
                 <button onclick="eliminarMes(${escapeHTML(JSON.stringify(mes))})" style="background:none;border:0.5px solid rgba(224,112,112,0.3);color:var(--danger);border-radius:var(--radius-sm);padding:3px 8px;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">🗑 Mes</button>
@@ -10911,7 +10921,7 @@
               errores,
             };
             document.getElementById("import-stats").innerHTML = [
-              `<div class="import-stat"><span>Hojas leídas</span><span>${hojas.join(", ")}</span></div>`,
+              `<div class="import-stat"><span>Hojas leídas</span><span>${hojas.map(escapeHTML).join(", ")}</span></div>`,
               `<div class="import-stat"><span>✨ Ventas nuevas</span><span>${nuevas.length}</span></div>`,
               nuevas.filter((v) => v.esCuotas).length
                 ? `<div class="import-stat"><span>📆 En cuotas</span><span>${nuevas.filter((v) => v.esCuotas).length}</span></div>`
@@ -11821,9 +11831,9 @@
         clientName: "Demo",
         expiresAt: null,
         maxUses: null,
-        trialDays: 36500,
+        trialDays: 14,
         trialMinutes: null,
-        trialLimitedVentas: 999999,
+        trialLimitedVentas: 15,
         isDemo: false,
       });
 
@@ -11930,7 +11940,7 @@
           if (banner) banner.remove();
           document.body.classList.remove("has-top-banner");
           closeModal("modal-activacion");
-          _sec.setTrialExp(false);
+          _secSetTrialExp(false);
           toast(
             "🎉 ¡Licencia activada! Parfum Track está completamente desbloqueado.",
             4000,
@@ -12047,6 +12057,11 @@
             return;
           }
 
+          if (!/^https:\/\/(www|sandbox)\.mercadopago\.com/.test(data.initPoint)) {
+            if (win) win.close();
+            toast("Error: URL de pago inválida", 3000, "warning");
+            return;
+          }
           if (win) win.location.href = data.initPoint;
           closeModal("modal-activacion");
           trackEvent("mp_checkout_redirect", { tier: "basic" });
@@ -12089,6 +12104,7 @@
       // Capture Date.now before any external code can monkey-patch it.
       const _realDateNow = Date.now.bind(Date);
 
+      let _secSetTrialExp;
       const _sec = (() => {
         let _a = false;
         let _t = false;
@@ -12102,6 +12118,7 @@
             return await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, pubKey, sigBytes, data);
           } catch { return false; }
         }
+        _secSetTrialExp = (v) => { _t = !!v; };
         return Object.freeze({
           async activate(sigBytes) {
             if (!(sigBytes instanceof Uint8Array) || sigBytes.length < 64) return;
@@ -12117,18 +12134,17 @@
           isActivated() {
             return _a;
           },
-          setTrialExp(v) {
-            _t = !!v;
-          },
           isTrialExp() {
             return _t;
           },
         });
       })();
 
-      function isActivated() {
-        return _sec.isActivated();
-      }
+      Object.defineProperty(window, 'isActivated', {
+        value: () => _sec.isActivated(),
+        writable: false,
+        configurable: false
+      });
 
       async function verifyStoredLicense() {
         if (localStorage.getItem("pt_activation_mode") !== "server")
@@ -12604,7 +12620,7 @@
         const daysLeft = Math.ceil(msLeft / 86400000);
 
         if (msLeft <= 0) {
-          _sec.setTrialExp(true);
+          _secSetTrialExp(true);
           trackEvent("trial_vencido");
           const restantes = getTrialVentasRestantes();
           mostrarBannerTrialVencido(restantes);
@@ -12636,7 +12652,7 @@
               const ms = getTrialTimeLeft(trialStart);
               if (ms <= 0) {
                 clearInterval(_trialTickerRef[0]);
-                _sec.setTrialExp(true);
+                _secSetTrialExp(true);
                 trackEvent("trial_vencido");
                 const r = getTrialVentasRestantes();
                 mostrarBannerTrialVencido(r);
@@ -14091,7 +14107,8 @@
         for (let i = 0; i < maxAttempts; i++) {
           await new Promise(r => setTimeout(r, interval));
           try {
-            const resp = await fetch(`/mp-payment-status?paymentId=${encodeURIComponent(paymentId)}`);
+            const _mpEmail = localStorage.getItem("pt_user_email") || "";
+            const resp = await fetch(`/mp-payment-status?paymentId=${encodeURIComponent(paymentId)}&email=${encodeURIComponent(_mpEmail)}`);
             if (!resp.ok) continue;
             const result = await resp.json();
             if (result.ok && result.status === "active") {
@@ -14101,7 +14118,7 @@
                 msgEl.innerHTML = `<strong style="color:var(--success)">✅ ¡Tu licencia está lista!</strong><br><br>
                   Te enviamos el código por email a tu casilla. Revisá tu bandeja de entrada (y spam).<br><br>
                   Plan: <strong style="color:var(--gold2)">${result.plan === "basic_annual" ? "Básico Pro Anual" : "Básico Pro"}</strong><br>
-                  Válido hasta: <strong>${result.expiresAt}</strong>`;
+                  Válido hasta: <strong>${escapeHTML(result.expiresAt)}</strong>`;
               }
               toast("✅ ¡Tu licencia está lista! Revisá tu email para el código.", 5000);
               trackEvent("license_ready_polled");
@@ -15999,7 +16016,7 @@
         right: 6px;
         padding: 2px 7px;
         border-radius: 20px;
-        font-size: 9px;
+        font-size: 10px;
         font-weight: 600;
         backdrop-filter: blur(4px);
       }
@@ -16091,6 +16108,12 @@
       const CDN_XLSX =
         "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
 
+      const CDN_SRI = {
+        [CDN_CHART]: "sha384-MH6fLKOOSBBOmGNg451emtUq1stNkCCbMWJFJuy1J1LNjIGjyl9K2N0L3JHX/gM",
+        [CDN_JSPDF]: "sha384-3HMD0GBkO/GBqoGjnhMWjiJqNvHsKMh0pSkznosJyBEwF+dLGJ4VCw53yVjE3oG",
+        [CDN_XLSX]: "sha384-BxPMSYtVkOPMRyh7PlKkFzSr4mS4v1ek6fQwEaAC1HONzZ5l5ORxjl4eSbJbHPr"
+      };
+
       function loadScript(url) {
         return new Promise((resolve, reject) => {
           if (document.querySelector(`script[src="${url}"]`)) {
@@ -16099,6 +16122,10 @@
           }
           const s = document.createElement("script");
           s.src = url;
+          if (CDN_SRI[url]) {
+            s.integrity = CDN_SRI[url];
+            s.crossOrigin = "anonymous";
+          }
           s.onload = resolve;
           s.onerror = reject;
           document.head.appendChild(s);
@@ -18112,7 +18139,7 @@
                 transform: translateX(-50%);
                 background: var(--gold);
                 color: #1a1a2e;
-                font-size: 9px;
+                font-size: 10px;
                 font-weight: 700;
                 padding: 2px 10px;
                 border-radius: 20px;
@@ -19069,8 +19096,6 @@
               subscriptionId,
               title: "💰 Cobros pendientes — Parfum Track",
               message: `Tenés ${deudas.length} venta${deudas.length !== 1 ? "s" : ""} sin cobrar por ${fmtMonto}`,
-              code: localStorage.getItem("pt_sync_code") || undefined,
-              token: localStorage.getItem("pt_sync_token") || undefined,
               url: "/",
             }),
           });
@@ -19111,10 +19136,6 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               subscriptionId,
-              title: "📅 Cuotas vencidas — Parfum Track",
-              message: `${vencidas.length} cuota${vencidas.length !== 1 ? "s" : ""} sin cobrar hace más de 30 días (${fmtMonto})`,
-              code: localStorage.getItem("pt_sync_code") || undefined,
-              token: localStorage.getItem("pt_sync_token") || undefined,
               url: "/",
             }),
           });
@@ -19164,12 +19185,8 @@
           await fetch("/send-notification", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              subscriptionId,
               title: "🎯 ¡Meta mensual alcanzada! — Parfum Track",
               message: `¡Superaste tu meta! Ganancia del mes: ${fmtMonto}`,
-              code: localStorage.getItem("pt_sync_code") || undefined,
-              token: localStorage.getItem("pt_sync_token") || undefined,
               url: "/",
             }),
           });
@@ -19217,14 +19234,10 @@
           if (!subscriptionId) return;
 
           await fetch("/send-notification", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               subscriptionId,
               title: "📊 Resumen semanal — Parfum Track",
               message: `La semana pasada: ${ventasSemana.length} venta${ventasSemana.length !== 1 ? "s" : ""} · Ganancia: ${fmtMonto}`,
-              code: localStorage.getItem("pt_sync_code") || undefined,
-              token: localStorage.getItem("pt_sync_token") || undefined,
               url: "/",
             }),
           });
