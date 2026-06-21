@@ -326,7 +326,7 @@ async function sendEmail(env, to, template, data) {
   const tpl = EMAIL_TEMPLATES[template];
   if (!tpl) { console.warn('[mp-webhook] Template desconocido:', template); return; }
 
-  const appUrl = env.APP_URL || 'https://parfumtrack.workers.dev';
+  const appUrl = env.APP_URL || 'https://parfumtrack.pages.dev';
   const { subject, html, text } = tpl({ ...data, appUrl });
   try {
     const resp = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -369,7 +369,7 @@ const EMAIL_TEMPLATES = {
   <div style="background:#1e1e35;border-radius:16px;padding:28px 24px;border:1px solid rgba(201,168,76,0.3);">
     <h2 style="color:#f0eee8;font-size:20px;font-weight:700;margin:0 0 12px;">¡Tu plan está activo! ✅</h2>
     <p style="color:#b8b4a8;font-size:15px;line-height:1.7;margin:0 0 24px;">
-      Tu suscripción al plan <strong style="color:#e8cc7a;">Básico Pro</strong> fue procesada exitosamente.
+      Tu plan <strong style="color:#e8cc7a;">Básico Pro</strong> fue procesado exitosamente.
       Acá está tu código de activación:
     </p>
     <div style="background:#13132a;border:1.5px solid #e8cc7a;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
@@ -388,7 +388,7 @@ const EMAIL_TEMPLATES = {
   </div>
   <p style="color:#7a7870;font-size:11px;text-align:center;margin-top:24px;line-height:1.6;">
     Parfum Track — parfumtrack@gmail.com<br>
-    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a><br>
+    <a href="${appUrl}" style="color:#c9a84c;">${appUrl}</a><br>
     Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
   </p>
 </div>
@@ -398,7 +398,7 @@ const EMAIL_TEMPLATES = {
   }),
 
   subscription_renewed: ({ expiresAt, appUrl }) => ({
-    subject: '✅ Tu suscripción a Parfum Track se renovó',
+    subject: '✅ Tu plan de Parfum Track fue renovado',
     html: `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -422,7 +422,7 @@ const EMAIL_TEMPLATES = {
   </div>
   <p style="color:#7a7870;font-size:11px;text-align:center;margin-top:24px;line-height:1.6;">
     Parfum Track — parfumtrack@gmail.com<br>
-    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a><br>
+    <a href="${appUrl}" style="color:#c9a84c;">${appUrl}</a><br>
     Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
   </p>
 </div>
@@ -454,7 +454,7 @@ const EMAIL_TEMPLATES = {
   </div>
   <p style="color:#7a7870;font-size:11px;text-align:center;margin-top:24px;line-height:1.6;">
     Parfum Track — parfumtrack@gmail.com<br>
-    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a><br>
+    <a href="${appUrl}" style="color:#c9a84c;">${appUrl}</a><br>
     Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
   </p>
 </div>
@@ -464,7 +464,7 @@ const EMAIL_TEMPLATES = {
   }),
 
   subscription_cancelled: ({ expiresAt, appUrl }) => ({
-    subject: 'Tu suscripción a Parfum Track fue cancelada',
+    subject: 'Tu plan de Parfum Track fue cancelado',
     html: `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -475,28 +475,28 @@ const EMAIL_TEMPLATES = {
     <h1 style="color:#e8cc7a;font-size:24px;font-weight:700;margin:0;">Parfum Track</h1>
   </div>
   <div style="background:#1e1e35;border-radius:16px;padding:28px 24px;border:1px solid rgba(255,255,255,0.1);">
-    <h2 style="color:#f0eee8;font-size:20px;font-weight:700;margin:0 0 12px;">Suscripción cancelada</h2>
+    <h2 style="color:#f0eee8;font-size:20px;font-weight:700;margin:0 0 12px;">Plan cancelado</h2>
     <p style="color:#b8b4a8;font-size:15px;line-height:1.7;margin:0 0 20px;">
-      Tu suscripción al plan Básico Pro fue cancelada. Seguís teniendo acceso hasta
+      Tu plan Básico Pro fue cancelado. Seguís teniendo acceso hasta
       <strong style="color:#e8cc7a;">${expiresAt}</strong>, después la app pasa automáticamente al plan Free.
     </p>
     <p style="color:#b8b4a8;font-size:14px;margin:0 0 20px;">
-      Tus datos están guardados en tu dispositivo y nunca se borran. Podés reactivar tu suscripción cuando quieras.
+      Tus datos están guardados en tu dispositivo y nunca se borran. Podés reactivar tu plan cuando quieras.
     </p>
-    <a href="https://wa.me/59894466577?text=Hola!%20Quiero%20reactivar%20mi%20suscripción%20a%20Parfum%20Track%20🌸"
+    <a href="https://wa.me/59894466577?text=Hola!%20Quiero%20reactivar%20mi%20plan%20de%20Parfum%20Track%20🌸"
        style="display:block;text-align:center;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;">
-      Reactivar suscripción →
+      Reactivar plan →
     </a>
   </div>
   <p style="color:#7a7870;font-size:11px;text-align:center;margin-top:24px;line-height:1.6;">
     Parfum Track — parfumtrack@gmail.com<br>
-    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a><br>
+    <a href="${appUrl}" style="color:#c9a84c;">${appUrl}</a><br>
     Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
   </p>
 </div>
 </body>
 </html>`,
-    text: `Tu suscripción a Parfum Track fue cancelada. Seguís con acceso hasta ${expiresAt}. Después pasás al plan Free. Podés reactivar cuando quieras. ${appUrl} | Parfum Track — parfumtrack@gmail.com | Si no querés recibir más emails, escribinos a parfumtrack@gmail.com`,
+    text: `Tu plan de Parfum Track fue cancelado. Seguís con acceso hasta ${expiresAt}. Después pasás al plan Free. Podés reactivar cuando quieras. ${appUrl} | Parfum Track — parfumtrack@gmail.com | Si no querés recibir más emails, escribinos a parfumtrack@gmail.com`,
   }),
 
   owner_payment_notification: ({ clientEmail, code, plan, expiresAt, paymentId, type }) => {

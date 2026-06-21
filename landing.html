@@ -1819,8 +1819,8 @@ body.annual-mode [data-annual] { display: block; }
           <li><span class="pfl-check">✓</span> Soporte prioritario</li>
         </ul>
         <button class="btn-price primary" onclick="abrirCheckoutMP(document.body.classList.contains('annual-mode')?'annual':'monthly'); if(window.plausible)plausible('pricing_cta',{props:{tier:'basic',mode:document.body.classList.contains('annual-mode')?'annual':'monthly'}})">
-          <span data-monthly>Suscribirse — $9.99/mes →</span>
-          <span data-annual style="display:none;">Suscribirse — $7.99/mes →</span>
+          <span data-monthly>Activar plan — $9.99/mes →</span>
+          <span data-annual style="display:none;">Activar plan — $7.99/mes →</span>
         </button>
         <a href="https://wa.me/59894466577?text=Hola!%20Quiero%20activar%20el%20plan%20Básico%20Pro%20de%20Parfum%20Track"
            target="_blank" rel="noopener"
@@ -1927,7 +1927,7 @@ body.annual-mode [data-annual] { display: block; }
         ¿Puedo cancelar cuando quiero?
         <div class="faq-icon">+</div>
       </div>
-      <div class="faq-answer">Sí, los planes son sin contrato. Cancelás cuando querés escribiéndonos por WhatsApp. Tus datos se mantienen guardados en tu dispositivo aunque no renueves — nunca perdés tu historial.</div>
+      <div class="faq-answer">Sí, los planes son sin contrato. Cancelás cuando querés escribiéndonos por email a parfumtrack@gmail.com o por WhatsApp. Tus datos se mantienen guardados en tu dispositivo aunque no renueves — nunca perdés tu historial.</div>
     </div>
 
     <div class="faq-item">
@@ -2193,7 +2193,7 @@ window.addEventListener('scroll', () => {
       onkeydown="if(event.key==='Enter')iniciarCheckoutMP()"
       style="width:100%;padding:12px 16px;background:#13132a;border:1.5px solid rgba(201,168,76,0.3);border-radius:10px;color:#f0eee8;font-size:15px;margin-bottom:8px;outline:none;font-family:inherit;">
     <p id="mp-checkout-error" style="font-size:12px;color:#e07070;min-height:16px;margin-bottom:12px;"></p>
-    <p style="font-size:11px;color:#7a7870;text-align:center;margin-bottom:10px;line-height:1.5;">Política de reembolso: Los pagos no son reembolsables salvo error técnico o cobro duplicado (7 días). Consultar <a href="/terminos.html" target="_blank" style="color:#c9a84c;">Términos de Uso</a>.</p>
+    <p style="font-size:11px;color:#7a7870;text-align:center;margin-bottom:10px;line-height:1.5;">Política de reembolso: Los pagos no son reembolsables salvo error técnico, cobro duplicado o falla grave del servicio (7 días). Consultar <a href="/terminos.html" target="_blank" style="color:#c9a84c;">Términos de Uso</a>.</p>
     <button id="mp-checkout-btn" onclick="iniciarCheckoutMP()"
       style="width:100%;padding:14px;background:linear-gradient(135deg,#009ee3,#0070ba);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">
       Ir a pagar con Mercado Pago →

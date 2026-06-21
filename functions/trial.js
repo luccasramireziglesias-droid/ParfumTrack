@@ -337,7 +337,7 @@ async function sha256(str) {
 
 async function sendOtpEmail(email, otp, env) {
   const apiKey = env.BREVO_API_KEY;
-  const fromEmail = env.FROM_EMAIL || "noreply@parfumtrack.com";
+  const fromEmail = env.FROM_EMAIL || "hola@parfumtrack.com";
   const fromName = env.FROM_NAME || "Parfum Track";
   if (!apiKey) {
     console.error("[trial] BREVO_API_KEY not set — email not sent");

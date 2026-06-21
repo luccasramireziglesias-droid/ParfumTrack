@@ -45,7 +45,7 @@ export async function onRequestPost(context) {
     ? (env.MP_AMOUNT_ANNUAL  || '95.88')
     : (env.MP_AMOUNT_MONTHLY || '9.99'));
   const title    = `Parfum Track — Plan Básico Pro (${isAnnual ? 'Anual' : 'Mensual'})`;
-  const appUrl   = env.APP_URL || 'https://parfumtrack.luccasramireziglesias.workers.dev';
+  const appUrl   = env.APP_URL || 'https://parfumtrack.pages.dev';
 
   let mpResp;
   try {
