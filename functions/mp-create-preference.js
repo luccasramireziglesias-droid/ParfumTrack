@@ -89,7 +89,7 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Respuesta inesperada de Mercado Pago' }, 500, headers);
   }
 
-  console.log(`[mp-create-preference] Preferencia ${preferenceId} para ${email} (${plan}) → ${checkoutUrl}`);
+  console.log(`[mp-create-preference] Preferencia ${preferenceId} para ${email.split('@')[0].slice(0,2)}***@${email.split('@')[1]} (${plan}) → ${checkoutUrl}`);
   return json({ ok: true, initPoint: checkoutUrl }, 200, headers);
 }
 

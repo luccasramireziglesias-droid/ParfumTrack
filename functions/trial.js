@@ -375,6 +375,9 @@ async function sendOtpEmail(email, otp, env) {
         Si no solicitaste esto, ignorá este mensaje.
       </p>
     </div>
+    <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;line-height:1.6;">
+      Parfum Track — parfumtrack@gmail.com
+    </p>
   </div>
 </body>
 </html>`,

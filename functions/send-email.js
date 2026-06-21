@@ -74,6 +74,10 @@ const TEMPLATES = {
       Recibiste este email porque te registraste en Parfum Track.<br>
       <a href="${data.appUrl || "https://parfumtrack.pages.dev"}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
     </p>
+    <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:12px;line-height:1.6;">
+      Parfum Track — parfumtrack@gmail.com<br>
+      Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
+    </p>
   </div>
 </body>
 </html>`,
@@ -134,6 +138,10 @@ const TEMPLATES = {
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;line-height:1.6;">
       <a href="${data.appUrl || "https://parfumtrack.pages.dev"}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
     </p>
+    <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:12px;line-height:1.6;">
+      Parfum Track — parfumtrack@gmail.com<br>
+      Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
+    </p>
   </div>
 </body>
 </html>`,
@@ -182,6 +190,10 @@ const TEMPLATES = {
 
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;line-height:1.6;">
       <a href="${data.appUrl || "https://parfumtrack.pages.dev"}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
+    </p>
+    <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:12px;line-height:1.6;">
+      Parfum Track — parfumtrack@gmail.com<br>
+      Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
     </p>
   </div>
 </body>
@@ -374,7 +386,7 @@ export async function onRequestPost(context) {
       "[send-email] Sent:",
       template,
       "to",
-      to,
+      `${to.split('@')[0].slice(0,2)}***@${to.split('@')[1]}`,
       "— messageId:",
       result.messageId,
     );

@@ -6206,8 +6206,17 @@
             <p style="margin:0;font-size:11px;color:var(--text3);text-align:center;">Contacto: <a href="mailto:parfumtrack@gmail.com" style="color:var(--gold2)">parfumtrack@gmail.com</a></p>
           </div>
         </div>
-        <button class="btn-confirm-ok" style="width:100%;padding:14px;font-size:15px;font-weight:700;" onclick="aceptarTerminos()">
-          Acepto los Términos y la Política de Privacidad
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:14px;font-size:13px;color:var(--text2);line-height:1.5;">
+          <input type="checkbox" id="chk-acepto-terminos" onchange="var b=document.getElementById('btn-acepto-terminos');b.disabled=!this.checked;b.style.opacity=this.checked?'1':'0.5'"
+            style="accent-color:var(--gold2);width:20px;height:20px;min-width:20px;margin-top:2px;cursor:pointer;">
+          <span>He leído y acepto los
+            <span onclick="abrirModalLegal('terminos')" style="color:var(--gold2);cursor:pointer;text-decoration:underline;">Términos de Uso</span>
+            y la
+            <span onclick="abrirModalLegal('privacidad')" style="color:var(--gold2);cursor:pointer;text-decoration:underline;">Política de Privacidad</span>
+          </span>
+        </label>
+        <button id="btn-acepto-terminos" class="btn-confirm-ok" disabled style="width:100%;padding:14px;font-size:15px;font-weight:700;opacity:0.5;" onclick="aceptarTerminos()">
+          Continuar
         </button>
       </div>
     </div>

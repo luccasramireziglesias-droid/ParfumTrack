@@ -287,7 +287,7 @@ async function handleSinglePayment(paymentId, payment, env) {
   await env.PT_LICENSES.put(`email_license:${emailHash}`, code, { expirationTtl: TTL_3Y });
   await env.PT_LICENSES.put(`mp_pay:${paymentId}`, code, { expirationTtl: TTL_3Y });
 
-  console.log(`[mp-webhook] Licencia creada (pago único): ${code} para ${email}`);
+  console.log(`[mp-webhook] Licencia creada (pago único): ${code} para ${email.split('@')[0].slice(0,2)}***@${email.split('@')[1]}`);
   await sendEmail(env, email, 'subscription_activated', { code, expiresAt });
 
   const ownerEmail = env.OWNER_EMAIL || env.FROM_EMAIL;
@@ -338,7 +338,7 @@ async function sendEmail(env, to, template, data) {
         subject, htmlContent: html, textContent: text,
       }),
     });
-    if (resp.ok) console.log(`[mp-webhook] Email "${template}" → ${to}`);
+    if (resp.ok) console.log(`[mp-webhook] Email "${template}" → ${to.split('@')[0].slice(0,2)}***@${to.split('@')[1]}`);
     else console.error('[mp-webhook] Error Brevo:', resp.status, await resp.text());
   } catch (e) {
     console.error('[mp-webhook] Error enviando email:', e.message);
@@ -445,11 +445,7 @@ const EMAIL_TEMPLATES = {
   <div style="background:#1e1e35;border-radius:16px;padding:28px 24px;border:1px solid rgba(224,112,112,0.3);">
     <h2 style="color:#f0eee8;font-size:20px;font-weight:700;margin:0 0 12px;">Problema con tu pago ⚠</h2>
     <p style="color:#b8b4a8;font-size:15px;line-height:1.7;margin:0 0 20px;">
-      No pudimos procesar el pago de tu suscripción. Mercado Pago reintentará el cobro automáticamente.
-      Tu acceso sigue activo mientras tanto.
-    </p>
-    <p style="color:#b8b4a8;font-size:14px;margin:0 0 20px;">
-      Si querés actualizar tu método de pago o necesitás ayuda, escribinos por WhatsApp.
+      No pudimos procesar tu pago. Si querés renovar tu plan, podés hacerlo desde la app o escribinos por WhatsApp.
     </p>
     <a href="https://wa.me/59894466577?text=Hola!%20Tuve%20un%20problema%20con%20el%20pago%20de%20Parfum%20Track%20🌸"
        style="display:block;text-align:center;background:linear-gradient(135deg,#25d366,#1da851);color:#fff;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;">
@@ -464,7 +460,7 @@ const EMAIL_TEMPLATES = {
 </div>
 </body>
 </html>`,
-    text: `Hubo un problema con el pago de tu suscripción a Parfum Track. MP reintentará el cobro. ¿Necesitás ayuda? Escribinos: https://wa.me/59894466577 | Parfum Track — parfumtrack@gmail.com | Si no querés recibir más emails, escribinos a parfumtrack@gmail.com`,
+    text: `No pudimos procesar tu pago. Si querés renovar tu plan, podés hacerlo desde la app o escribinos por WhatsApp: https://wa.me/59894466577 | Parfum Track — parfumtrack@gmail.com | Si no querés recibir más emails, escribinos a parfumtrack@gmail.com`,
   }),
 
   subscription_cancelled: ({ expiresAt, appUrl }) => ({

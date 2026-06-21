@@ -19,6 +19,11 @@ export async function onRequestGet(context) {
     return json({ ok: false, error: 'Parámetros faltantes' }, 400, headers);
   }
 
+  // Rate limit: 30 requests per hour per IP
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const rlErr = await checkRateLimit(env, `rl_substatus_ip_${ip}`, 30, 3600);
+  if (rlErr) return json({ ok: false, error: rlErr }, 429, headers);
+
   // Verificar HMAC token
   const authError = await verifyToken(code, token, env);
   if (authError) return json({ ok: false, error: authError }, 401, headers);
@@ -68,6 +73,22 @@ async function verifyToken(code, token, env) {
 
 function json(body, status, headers) {
   return new Response(JSON.stringify(body), { status, headers });
+}
+
+async function checkRateLimit(env, key, max, windowSecs) {
+  if (!env.PT_LICENSES) return null;
+  const now = Math.floor(Date.now() / 1000);
+  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
+  let count = 0;
+  try {
+    const stored = await env.PT_LICENSES.get(windowKey);
+    count = stored ? parseInt(stored, 10) : 0;
+  } catch { return null; }
+  if (count >= max) return 'Too many requests, please try again later';
+  try {
+    await env.PT_LICENSES.put(windowKey, String(count + 1), { expirationTtl: windowSecs * 2 });
+  } catch { /* non-blocking */ }
+  return null;
 }
 
 function corsHeaders(origin) {

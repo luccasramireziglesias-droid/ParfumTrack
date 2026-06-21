@@ -133,7 +133,7 @@ export async function onRequestPost(context) {
     );
 
     console.log(
-      `[validate-license] Activada: ${normalizedCode.slice(0, 7)}*** (uso ${license.usedCount}/${license.maxUses ?? "∞"}, cliente: ${license.clientName})`,
+      `[validate-license] Activada: ${normalizedCode.slice(0, 7)}*** (uso ${license.usedCount}/${license.maxUses ?? "∞"}, cliente: ${license.clientName.slice(0,2)}***)`,
     );
   } else {
     console.log("[validate-license] Activada: código del dueño");

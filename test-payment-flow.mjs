@@ -51,7 +51,7 @@ const env = {
   MP_AMOUNT_MONTHLY: '9.99',
   MP_AMOUNT_ANNUAL:  '95.88',
   BREVO_API_KEY:     'TEST_BREVO_KEY',
-  FROM_EMAIL:        'luccasramireziglesias@gmail.com',
+  FROM_EMAIL:        'parfumtrack@gmail.com',
   FROM_NAME:         'Parfum Track',
   OWNER_EMAIL:       'parfumtrack@gmail.com',
   APP_URL:           'https://parfumtrack.luccasramireziglesias.workers.dev',
