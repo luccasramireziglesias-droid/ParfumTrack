@@ -14,11 +14,11 @@ android {
         versionName "1.0.0"
 
         manifestPlaceholders = [
-            hostName          : "parfumtrack.myapp.workers.dev",
-            defaultUrl        : "https://parfumtrack.myapp.workers.dev/index.html",
+            hostName          : "parfumtrack.luccasramireziglesias.workers.dev",
+            defaultUrl        : "https://parfumtrack.luccasramireziglesias.workers.dev/index.html",
             launcherName      : "Parfum Track",
             assetStatements   : '[{ "relation": ["delegate_permission/common.handle_all_urls"], ' +
-                                '"target": { "namespace": "web", "site": "https://parfumtrack.myapp.workers.dev" } }]',
+                                '"target": { "namespace": "web", "site": "https://parfumtrack.luccasramireziglesias.workers.dev" } }]',
             themeColor        : "#0f0f1a",
             navigationColor   : "#0f0f1a",
             navigationColorDark: "#0f0f1a",
@@ -47,4 +47,5 @@ android {
 
 dependencies {
     implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
 }
