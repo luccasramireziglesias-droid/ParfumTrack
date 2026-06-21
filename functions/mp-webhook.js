@@ -379,20 +379,22 @@ const EMAIL_TEMPLATES = {
     </div>
     <p style="color:#b8b4a8;font-size:13px;line-height:1.8;margin:0 0 20px;">
       ✓ Válido hasta: <strong style="color:#f0eee8;">${expiresAt}</strong><br>
-      ✓ Se renueva automáticamente cada mes via Mercado Pago<br>
+      ✓ Tu plan está activo hasta ${expiresAt}. Cuando se acerque el vencimiento, te avisamos para que decidas si renovar.<br>
       ✓ Podés cancelar cuando querás escribiéndonos por WhatsApp
     </p>
     <a href="${appUrl}" style="display:block;text-align:center;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;">
       Abrir Parfum Track y activar →
     </a>
   </div>
-  <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;">
-    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a>
+  <p style="color:#7a7870;font-size:11px;text-align:center;margin-top:24px;line-height:1.6;">
+    Parfum Track — parfumtrack@gmail.com<br>
+    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a><br>
+    Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
   </p>
 </div>
 </body>
 </html>`,
-    text: `¡Tu plan Básico Pro de Parfum Track está activo! Tu código: ${code}. Ingresalo en Ajustes → Licencia. Válido hasta: ${expiresAt}. Abrí la app: ${appUrl}`,
+    text: `¡Tu plan Básico Pro de Parfum Track está activo! Tu código: ${code}. Ingresalo en Ajustes → Licencia. Válido hasta: ${expiresAt}. Abrí la app: ${appUrl} | Parfum Track — parfumtrack@gmail.com | Si no querés recibir más emails, escribinos a parfumtrack@gmail.com`,
   }),
 
   subscription_renewed: ({ expiresAt, appUrl }) => ({
@@ -409,7 +411,7 @@ const EMAIL_TEMPLATES = {
   <div style="background:#1e1e35;border-radius:16px;padding:28px 24px;border:1px solid rgba(112,201,160,0.3);">
     <h2 style="color:#f0eee8;font-size:20px;font-weight:700;margin:0 0 12px;">Renovación exitosa ✓</h2>
     <p style="color:#b8b4a8;font-size:15px;line-height:1.7;margin:0 0 20px;">
-      Tu plan <strong style="color:#e8cc7a;">Básico Pro</strong> se renovó automáticamente. Seguís con acceso completo.
+      Tu plan <strong style="color:#e8cc7a;">Básico Pro</strong> fue renovado exitosamente. Seguís con acceso completo.
     </p>
     <div style="background:rgba(112,201,160,0.1);border:0.5px solid rgba(112,201,160,0.3);border-radius:10px;padding:14px;margin-bottom:20px;">
       <p style="color:#70c9a0;margin:0;">✓ Activo hasta: <strong>${expiresAt}</strong></p>
@@ -418,13 +420,15 @@ const EMAIL_TEMPLATES = {
       Abrir Parfum Track →
     </a>
   </div>
-  <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;">
-    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a>
+  <p style="color:#7a7870;font-size:11px;text-align:center;margin-top:24px;line-height:1.6;">
+    Parfum Track — parfumtrack@gmail.com<br>
+    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a><br>
+    Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
   </p>
 </div>
 </body>
 </html>`,
-    text: `Tu plan Básico Pro de Parfum Track se renovó. Activo hasta: ${expiresAt}. ${appUrl}`,
+    text: `Tu plan Básico Pro de Parfum Track fue renovado exitosamente. Activo hasta: ${expiresAt}. ${appUrl} | Parfum Track — parfumtrack@gmail.com | Si no querés recibir más emails, escribinos a parfumtrack@gmail.com`,
   }),
 
   payment_failed: ({ appUrl } = {}) => ({
@@ -452,13 +456,15 @@ const EMAIL_TEMPLATES = {
       📲 Escribirnos por WhatsApp
     </a>
   </div>
-  <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;">
-    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a>
+  <p style="color:#7a7870;font-size:11px;text-align:center;margin-top:24px;line-height:1.6;">
+    Parfum Track — parfumtrack@gmail.com<br>
+    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a><br>
+    Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
   </p>
 </div>
 </body>
 </html>`,
-    text: `Hubo un problema con el pago de tu suscripción a Parfum Track. MP reintentará el cobro. ¿Necesitás ayuda? Escribinos: https://wa.me/59894466577`,
+    text: `Hubo un problema con el pago de tu suscripción a Parfum Track. MP reintentará el cobro. ¿Necesitás ayuda? Escribinos: https://wa.me/59894466577 | Parfum Track — parfumtrack@gmail.com | Si no querés recibir más emails, escribinos a parfumtrack@gmail.com`,
   }),
 
   subscription_cancelled: ({ expiresAt, appUrl }) => ({
@@ -486,13 +492,15 @@ const EMAIL_TEMPLATES = {
       Reactivar suscripción →
     </a>
   </div>
-  <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;">
-    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a>
+  <p style="color:#7a7870;font-size:11px;text-align:center;margin-top:24px;line-height:1.6;">
+    Parfum Track — parfumtrack@gmail.com<br>
+    <a href="${appUrl}" style="color:#c9a84c;">parfumtrack.workers.dev</a><br>
+    Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
   </p>
 </div>
 </body>
 </html>`,
-    text: `Tu suscripción a Parfum Track fue cancelada. Seguís con acceso hasta ${expiresAt}. Después pasás al plan Free. Podés reactivar cuando quieras. ${appUrl}`,
+    text: `Tu suscripción a Parfum Track fue cancelada. Seguís con acceso hasta ${expiresAt}. Después pasás al plan Free. Podés reactivar cuando quieras. ${appUrl} | Parfum Track — parfumtrack@gmail.com | Si no querés recibir más emails, escribinos a parfumtrack@gmail.com`,
   }),
 
   owner_payment_notification: ({ clientEmail, code, plan, expiresAt, paymentId, type }) => {
@@ -517,7 +525,11 @@ const EMAIL_TEMPLATES = {
       <tr><td style="color:#7a7870;padding:6px 0;">Tipo</td><td style="color:${isNew ? '#70c9a0' : '#c9a84c'};font-weight:700;">${isNew ? 'NUEVA LICENCIA' : 'RENOVACIÓN'}</td></tr>
     </table>
   </div>
-  <p style="color:#4a4848;font-size:11px;text-align:center;margin-top:16px;">Parfum Track · Notificación automática</p>
+  <p style="color:#7a7870;font-size:11px;text-align:center;margin-top:16px;line-height:1.6;">
+    Parfum Track — parfumtrack@gmail.com<br>
+    Notificación automática<br>
+    Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
+  </p>
 </div>
 </body>
 </html>`,
