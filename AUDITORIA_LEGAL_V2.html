@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría Legal v2 — Parfum Track</title>
+<style>
+  @import url('/fonts/fonts.css');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:#0a0a15; color:#f0ece4; line-height:1.7; padding:0; }
+  .container { max-width:1000px; margin:0 auto; padding:24px 20px 60px; }
+  h1 { font-family:'Cormorant Garamond',serif; font-size:clamp(28px,5vw,42px); background:linear-gradient(135deg,#c9a84c,#e8c97e); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-align:center; margin:40px 0 8px; }
+  .subtitle { text-align:center; color:#a8a49c; font-size:14px; margin-bottom:40px; }
+  h2 { font-family:'Cormorant Garamond',serif; font-size:clamp(20px,3.5vw,28px); color:#e8c97e; margin:48px 0 16px; padding-bottom:8px; border-bottom:1px solid rgba(201,168,76,0.25); }
+  h3 { font-size:16px; color:#c9a84c; margin:24px 0 10px; }
+  p, li { font-size:14px; color:#d4d0c8; }
+  p { margin-bottom:12px; }
+  ul, ol { margin:8px 0 16px 20px; }
+  li { margin-bottom:6px; }
+  strong { color:#f0ece4; }
+  a { color:#e8c97e; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  code { background:#1a1a2e; padding:2px 6px; border-radius:4px; font-size:12px; color:#e8c97e; font-family:'DM Mono',monospace; }
+  table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:13px; }
+  th { background:#1a1a2e; color:#e8c97e; text-align:left; padding:10px 12px; font-weight:600; border:1px solid #2a2a45; }
+  td { padding:9px 12px; border:1px solid #1e1e35; color:#d4d0c8; vertical-align:top; }
+  tr:nth-child(even) td { background:rgba(30,30,53,0.4); }
+  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .badge-critical { background:rgba(224,80,80,0.2); color:#f06060; border:1px solid rgba(224,80,80,0.4); }
+  .badge-high { background:rgba(224,144,96,0.2); color:#e09060; border:1px solid rgba(224,144,96,0.4); }
+  .badge-medium { background:rgba(224,192,96,0.2); color:#e0c060; border:1px solid rgba(224,192,96,0.4); }
+  .badge-low { background:rgba(112,201,160,0.15); color:#70c9a0; border:1px solid rgba(112,201,160,0.3); }
+  .badge-ok { background:rgba(112,201,160,0.15); color:#70c9a0; border:1px solid rgba(112,201,160,0.3); }
+  .card { background:#1e1e35; border-radius:12px; padding:20px; margin:16px 0; border:1px solid #2a2a45; }
+  .card-critical { border-left:4px solid #f06060; }
+  .card-high { border-left:4px solid #e09060; }
+  .card-medium { border-left:4px solid #e0c060; }
+  .card-low { border-left:4px solid #70c9a0; }
+  .summary-box { background:linear-gradient(135deg, rgba(201,168,76,0.08), rgba(201,168,76,0.03)); border:1px solid rgba(201,168,76,0.2); border-radius:12px; padding:20px 24px; margin:20px 0; }
+  .positive-box { background:linear-gradient(135deg, rgba(112,201,160,0.08), rgba(112,201,160,0.03)); border:1px solid rgba(112,201,160,0.2); border-radius:12px; padding:20px 24px; margin:20px 0; }
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:24px 0 32px; }
+  @media (max-width:640px) { .grid-4 { grid-template-columns:repeat(2,1fr); } }
+  .stat-card { background:#1a1a2e; border-radius:10px; padding:16px 20px; text-align:center; border:1px solid #2a2a45; }
+  .stat-num { font-family:'Cormorant Garamond',serif; font-size:36px; font-weight:700; }
+  .stat-num.critical { color:#f06060; }
+  .stat-num.high { color:#e09060; }
+  .stat-num.medium { color:#e0c060; }
+  .stat-num.low { color:#70c9a0; }
+  .stat-label { font-size:12px; color:#a8a49c; margin-top:4px; }
+  .toc { background:#1a1a2e; border-radius:12px; padding:20px 24px; margin:0 0 32px; }
+  .toc ol { margin:8px 0 0 20px; }
+  .toc li { margin-bottom:4px; }
+  .toc a { color:#c9a84c; font-size:13px; }
+  .fix-block { background:#0f0f1a; border:1px solid #2a2a45; border-radius:8px; padding:14px 16px; margin:10px 0; font-size:12px; line-height:1.6; }
+  .fix-label { font-size:11px; font-weight:600; color:#c9a84c; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+  .reg-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:600; background:rgba(201,168,76,0.1); color:#c9a84c; border:1px solid rgba(201,168,76,0.2); margin:2px 2px 2px 0; }
+  .check-list { list-style:none; margin:0; padding:0; }
+  .check-list li { padding:8px 0; border-bottom:1px solid rgba(42,42,69,0.5); display:flex; align-items:flex-start; gap:10px; font-size:13px; }
+  .check-list li:last-child { border-bottom:none; }
+  .footer { text-align:center; margin-top:60px; padding-top:24px; border-top:1px solid #2a2a45; font-size:12px; color:#666; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Auditoría Legal v2</h1>
+<p class="subtitle">Revisión exhaustiva de cumplimiento legal y seguridad — 21 de junio de 2026</p>
+
+<!-- Stats -->
+<div class="grid-4">
+  <div class="stat-card">
+    <div class="stat-num critical">1</div>
+    <div class="stat-label">Crítico</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num high">2</div>
+    <div class="stat-label">Alto</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num medium">11</div>
+    <div class="stat-label">Medio</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num low">5</div>
+    <div class="stat-label">Bajo</div>
+  </div>
+</div>
+
+<!-- Resumen -->
+<div class="summary-box">
+  <p style="margin:0 0 8px;font-weight:600;color:#f0ece4;">Resumen ejecutivo</p>
+  <p style="margin:0;font-size:13px;">Se revisaron 18 archivos entre documentos legales, funciones backend, configuración, workflows y assets. La base legal es sólida: hay Términos y Privacidad detallados, CORS restrictivo, autenticación HMAC/ECDSA, rate limiting en casi todos los endpoints y security headers completos. Se encontraron 19 hallazgos, de los cuales 1 es crítico (afirmación falsa en email), 2 son altos (falta checkbox de consentimiento y email personal en código), 11 medios y 5 bajos.</p>
+</div>
+
+<!-- Lo positivo -->
+<div class="positive-box">
+  <p style="margin:0 0 10px;font-weight:600;color:#70c9a0;">Lo que ya está bien cubierto</p>
+  <ul class="check-list">
+    <li><span style="color:#70c9a0;flex-shrink:0;">&#10003;</span><div>Términos y Condiciones completos (20 cláusulas) con fuerza mayor, limitación de responsabilidad, indemnización</div></li>
+    <li><span style="color:#70c9a0;flex-shrink:0;">&#10003;</span><div>Política de Privacidad con 16 secciones, base legal GDPR declarada, tabla de retención, derechos ARCO</div></li>
+    <li><span style="color:#70c9a0;flex-shrink:0;">&#10003;</span><div>CORS restrictivo — solo orígenes autorizados, sin wildcard</div></li>
+    <li><span style="color:#70c9a0;flex-shrink:0;">&#10003;</span><div>Autenticación HMAC-SHA256 en backups y sync, ECDSA P-256 en licencias</div></li>
+    <li><span style="color:#70c9a0;flex-shrink:0;">&#10003;</span><div>Rate limiting en casi todos los endpoints (IP + recurso)</div></li>
+    <li><span style="color:#70c9a0;flex-shrink:0;">&#10003;</span><div>Security headers completos en <code>_headers</code>: HSTS, X-Frame-Options, CSP, nosniff, Permissions-Policy</div></li>
+    <li><span style="color:#70c9a0;flex-shrink:0;">&#10003;</span><div>Google Fonts self-hosted — no envía IPs a Google (GDPR/ePrivacy)</div></li>
+    <li><span style="color:#70c9a0;flex-shrink:0;">&#10003;</span><div>Plausible Analytics sin cookies — no rastrea individuos</div></li>
+    <li><span style="color:#70c9a0;flex-shrink:0;">&#10003;</span><div>Verificación de firma de Mercado Pago en webhooks</div></li>
+    <li><span style="color:#70c9a0;flex-shrink:0;">&#10003;</span><div>No se encontraron archivos .env ni credenciales commiteadas</div></li>
+    <li><span style="color:#70c9a0;flex-shrink:0;">&#10003;</span><div>Secretos en GitHub Actions via <code>secrets.*</code>, sin hardcoding</div></li>
+    <li><span style="color:#70c9a0;flex-shrink:0;">&#10003;</span><div>Política de reembolso visible antes del botón de pago</div></li>
+    <li><span style="color:#70c9a0;flex-shrink:0;">&#10003;</span><div>Identificación del proveedor en todas las superficies (sin nombre personal)</div></li>
+  </ul>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <strong style="font-size:14px;">Contenido</strong>
+  <ol>
+    <li><a href="#critico">Hallazgo crítico</a></li>
+    <li><a href="#alto">Hallazgos altos (2)</a></li>
+    <li><a href="#medio">Hallazgos medios (11)</a></li>
+    <li><a href="#bajo">Hallazgos bajos (5)</a></li>
+    <li><a href="#tabla">Tabla resumen completa</a></li>
+    <li><a href="#archivos">Archivos auditados</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="critico">1. Hallazgo crítico</h2>
+
+<div class="card card-critical">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-critical">CRITICO</span>
+    <strong style="font-size:15px;">#1 — Afirmación falsa sobre reintento automático de cobro</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>functions/mp-webhook.js</code> — línea 448</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>El template <code>payment_failed</code> dice: <em>"Mercado Pago reintentará el cobro automáticamente."</em> Esto <strong>contradice directamente</strong> los Términos de Uso (sección 5) que dicen: <em>"Los planes pagos no se renuevan automáticamente."</em> Si los planes no se auto-renuevan, Mercado Pago no reintentará ningún cobro.</td></tr>
+    <tr><td style="font-weight:600;">Riesgo</td><td>Información falsa al consumidor. El usuario podría creer que no necesita tomar acción cuando en realidad sí. Constituye publicidad engañosa y contradicción contractual.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección requerida</div>
+    Reemplazar el mensaje por: <em>"No pudimos procesar tu pago. Si querés renovar tu plan, podés hacerlo desde la app o escribinos por WhatsApp."</em>
+  </div>
+  <div style="margin-top:10px;">
+    <span class="reg-tag">Ley 17.250 (Uruguay) Art. 24</span>
+    <span class="reg-tag">Ley 24.240 (Argentina) Art. 8</span>
+    <span class="reg-tag">Información veraz al consumidor</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="alto">2. Hallazgos altos</h2>
+
+<div class="card card-high">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-high">ALTO</span>
+    <strong style="font-size:15px;">#2 — Modal de términos sin checkbox de consentimiento explícito</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>index.html</code> — línea ~6209</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>El modal de aceptación de términos tiene un botón único <em>"Acepto los Términos y la Política de Privacidad"</em> sin un checkbox previo que el usuario deba marcar. El GDPR Art. 7 exige que el consentimiento sea una <strong>acción afirmativa clara e inequívoca</strong>. Un botón único sin alternativa podría interpretarse como consentimiento forzado.</td></tr>
+    <tr><td style="font-weight:600;">Riesgo</td><td>Consentimiento legalmente cuestionable. Un regulador podría considerar que no es una acción suficientemente activa.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección requerida</div>
+    Agregar un checkbox desmarcado por defecto: <em>"He leído y acepto los Términos de Uso y la Política de Privacidad"</em>. El botón de aceptar debe estar deshabilitado hasta que el checkbox esté marcado.
+  </div>
+  <div style="margin-top:10px;">
+    <span class="reg-tag">GDPR Art. 7</span>
+    <span class="reg-tag">Directiva 2011/83/UE</span>
+    <span class="reg-tag">Ley 18.331 (Uruguay)</span>
+  </div>
+</div>
+
+<div class="card card-high">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-high">ALTO</span>
+    <strong style="font-size:15px;">#3 — Email personal del desarrollador en archivo de test</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>test-payment-flow.mjs</code> — línea 54</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td><code>FROM_EMAIL: 'luccasramireziglesias@gmail.com'</code> está hardcodeado en un archivo commiteado en el repositorio. Expone el email personal del desarrollador en el código fuente.</td></tr>
+    <tr><td style="font-weight:600;">Riesgo</td><td>Exposición de datos personales del titular. Vinculación directa persona-empresa que se quiere evitar.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección requerida</div>
+    Cambiar a <code>parfumtrack@gmail.com</code> o leer de variable de entorno <code>process.env.FROM_EMAIL</code>.
+  </div>
+  <div style="margin-top:10px;">
+    <span class="reg-tag">RGPD Art. 5(1)(c)</span>
+    <span class="reg-tag">Minimización de datos</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="medio">3. Hallazgos medios</h2>
+
+<!-- #4 -->
+<div class="card card-medium">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-medium">MEDIO</span>
+    <strong>#4 — Falta mención explícita de GDPR y LGPD en Política de Privacidad</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>privacidad.html</code> — sección 10 (Derechos)</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>La sección de derechos menciona leyes de Uruguay, Argentina, Colombia y México, pero no menciona el GDPR (UE) ni la LGPD (Brasil, Ley 13.709). Usuarios de la UE o Brasil podrían acceder a la app.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Agregar en sección 10: <em>"Si te encontrás en la Unión Europea, podés ejercer los derechos contemplados en el GDPR. Si te encontrás en Brasil, aplica la LGPD (Lei Geral de Proteção de Dados)."</em>
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">GDPR Art. 3</span>
+    <span class="reg-tag">LGPD Art. 3</span>
+  </div>
+</div>
+
+<!-- #5 -->
+<div class="card card-medium">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-medium">MEDIO</span>
+    <strong>#5 — Falta aclaración de rol Responsable vs Encargado para datos de clientes</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>privacidad.html</code></td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>El usuario carga datos de sus clientes (nombre, teléfono, historial). La versión inline dice "vos sos el responsable", pero la política standalone no tiene una sección explícita sobre este rol dual. El usuario es Responsable del Tratamiento de los datos de sus clientes; Parfum Track actúa como Encargado solo si el backup en la nube está activado.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Agregar una sección aclarando que el usuario es Responsable del Tratamiento de los datos de sus clientes, y que Parfum Track no accede a esos datos salvo con backup en la nube activado.
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">GDPR Art. 28</span>
+    <span class="reg-tag">Ley 18.331 Art. 17</span>
+  </div>
+</div>
+
+<!-- #6 -->
+<div class="card card-medium">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-medium">MEDIO</span>
+    <strong>#6 — Falta domicilio en sección de contacto de documentos legales</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>privacidad.html</code> (sección 1) y <code>terminos.html</code> (sección 20)</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>Las secciones de contacto solo listan el email. No incluyen "Montevideo, Uruguay" como domicilio. La Ley de Defensa del Consumidor (17.250) exige domicilio del proveedor.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Agregar "Parfum Track — Montevideo, Uruguay" en las secciones de contacto/responsable de ambos documentos.
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">Ley 17.250 Art. 6</span>
+    <span class="reg-tag">GDPR Art. 13(1)(a)</span>
+  </div>
+</div>
+
+<!-- #7 -->
+<div class="card card-medium">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-medium">MEDIO</span>
+    <strong>#7 — Falta autoridad de control de Brasil (ANPD)</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>privacidad.html</code> — sección 15</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>Lista autoridades de Uruguay (URCDP), Argentina (AAIP), Colombia (SIC) y México (INAI), pero falta Brasil: Autoridade Nacional de Proteção de Dados (ANPD).</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Agregar: <em>"Brasil: Autoridade Nacional de Proteção de Dados (ANPD)"</em>
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">LGPD Art. 55-A</span>
+  </div>
+</div>
+
+<!-- #8 -->
+<div class="card card-medium">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-medium">MEDIO</span>
+    <strong>#8 — Emails de trial sin footer legal ni unsubscribe</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>functions/send-email.js</code> — 3 templates (trial_welcome, trial_reminder, trial_expired)</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>Los footers solo dicen "Recibiste este email porque te registraste en Parfum Track" con link a la app. No ofrecen opción de desuscribirse ni identificación del proveedor (email de contacto, domicilio).</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Agregar a los 3 templates: <em>"Parfum Track — parfumtrack@gmail.com"</em> y <em>"Si no querés recibir más emails, escribinos a parfumtrack@gmail.com"</em>
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">CAN-SPAM Act</span>
+    <span class="reg-tag">LGPD Art. 15</span>
+    <span class="reg-tag">RGPD Art. 13/14</span>
+  </div>
+</div>
+
+<!-- #9 -->
+<div class="card card-medium">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-medium">MEDIO</span>
+    <strong>#9 — Mecanismo de unsubscribe manual en todos los emails</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>functions/mp-webhook.js</code> — 5 templates</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>Todos los templates dicen "escribinos a parfumtrack@gmail.com" para desuscribirse. Falta un link de unsubscribe automático y el header <code>List-Unsubscribe</code>. Google y Yahoo requieren este header desde febrero 2024 para buena deliverability.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Agregar header <code>List-Unsubscribe</code> en los envíos vía Brevo y un link funcional de baja en el footer. Brevo soporta esto con <code>{{ unsubscribe }}</code>.
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">CAN-SPAM Act Sec. 5(a)(3)</span>
+    <span class="reg-tag">RGPD Art. 21</span>
+    <span class="reg-tag">Google/Yahoo Sender Requirements 2024</span>
+  </div>
+</div>
+
+<!-- #10 -->
+<div class="card card-medium">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-medium">MEDIO</span>
+    <strong>#10 — PII (emails de clientes) en logs de producción</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivos</td><td><code>functions/send-email.js</code> (línea 374), <code>functions/mp-webhook.js</code> (líneas 290, 341), <code>functions/mp-create-preference.js</code> (línea 92), <code>functions/validate-license.js</code> (línea 136)</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>Múltiples <code>console.log()</code> registran emails completos y nombres de clientes en los logs de Cloudflare Workers. Los logs de producción no deben contener datos personales identificables.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Ofuscar emails en logs: <code>***@${to.split('@')[1]}</code> en lugar del email completo. Ofuscar nombres: <code>${name.slice(0,2)}***</code>.
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">RGPD Art. 5(1)(c) — Minimización</span>
+    <span class="reg-tag">RGPD Art. 32 — Seguridad</span>
+    <span class="reg-tag">Ley 25.326 Art. 9 (Argentina)</span>
+  </div>
+</div>
+
+<!-- #11 -->
+<div class="card card-medium">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-medium">MEDIO</span>
+    <strong>#11 — Número de WhatsApp hardcodeado</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>functions/mp-webhook.js</code> — líneas 454, 490</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>El número <code>59894466577</code> está hardcodeado en los templates de email. Expone un número personal y dificulta cambios futuros.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Mover a variable de entorno <code>WHATSAPP_NUMBER</code> en wrangler.jsonc y referenciar con <code>env.WHATSAPP_NUMBER</code>.
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">RGPD Art. 5(1)(c) — Minimización</span>
+    <span class="reg-tag">Buenas prácticas de configuración</span>
+  </div>
+</div>
+
+<!-- #12 -->
+<div class="card card-medium">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-medium">MEDIO</span>
+    <strong>#12 — Endpoint mp-payment-status sin autenticación</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>functions/mp-payment-status.js</code></td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>Cualquier persona con un <code>paymentId</code> numérico puede consultar el estado y obtener plan + fecha de expiración. Los paymentIds de Mercado Pago son secuenciales, lo que permite enumeración. Solo tiene rate limit de 30/hora por IP.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Agregar autenticación HMAC o un token temporal generado durante el checkout.
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">OWASP API1:2023 — Broken Object Level Authorization</span>
+    <span class="reg-tag">RGPD Art. 32</span>
+  </div>
+</div>
+
+<!-- #13 -->
+<div class="card card-medium">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-medium">MEDIO</span>
+    <strong>#13 — Endpoint mp-subscription-status sin rate limiting</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>functions/mp-subscription-status.js</code></td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>Es el único endpoint sin rate limiting. Aunque requiere token HMAC válido, la inconsistencia es un riesgo si el token se compromete.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Agregar rate limiting por IP, similar a los otros endpoints (ej. 30/hora).
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">OWASP API4:2023 — Unrestricted Resource Consumption</span>
+  </div>
+</div>
+
+<!-- #14 -->
+<div class="card card-medium">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-medium">MEDIO</span>
+    <strong>#14 — Claim "Cientos de revendedores" sin verificación</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>landing.html</code> — trust-bar y hero</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>La landing dice "Cientos de revendedores activos" y "Cientos de revendedores ya organizan su negocio". Si la cifra real es menor, constituye publicidad engañosa.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Verificar que la cifra es real, o cambiar a un lenguaje que no cuantifique: <em>"Revendedores en LATAM usan Parfum Track"</em>.
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">Ley 17.250 (Uruguay) Art. 24</span>
+    <span class="reg-tag">Ley 24.240 (Argentina) Art. 8</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="bajo">4. Hallazgos bajos</h2>
+
+<!-- #15 -->
+<div class="card card-low">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-low">BAJO</span>
+    <strong>#15 — Falta cláusula de resolución alternativa de disputas</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>terminos.html</code></td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>Solo establece jurisdicción de tribunales. Las normativas de defensa del consumidor promueven mediación o resolución amistosa previa.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Agregar: <em>"Antes de recurrir a la vía judicial, las partes procurarán resolver la controversia de forma amistosa contactando a parfumtrack@gmail.com."</em>
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">Ley 17.250 (Uruguay)</span>
+    <span class="reg-tag">Ley 24.240 (Argentina)</span>
+  </div>
+</div>
+
+<!-- #16 -->
+<div class="card card-low">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-low">BAJO</span>
+    <strong>#16 — Falta mención del derecho de retracto/arrepentimiento</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>terminos.html</code> — sección 6</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>La Ley 17.250 (Uruguay, art. 16-17) y la Ley 24.240 (Argentina, art. 34) otorgan derecho de arrepentimiento en compras a distancia. Aunque el servicio digital inmediato puede excluir este derecho, es recomendable mencionarlo.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Agregar en la sección de reembolsos: <em>"Conforme a la legislación aplicable, tenés derecho a retractarte de la compra dentro de los plazos legales. Dado que el acceso al servicio digital se otorga de forma inmediata, al realizar el pago consentís expresamente a la ejecución inmediata del servicio."</em>
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">Ley 17.250 Art. 16-17</span>
+    <span class="reg-tag">Ley 24.240 Art. 34</span>
+  </div>
+</div>
+
+<!-- #17 -->
+<div class="card card-low">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-low">BAJO</span>
+    <strong>#17 — Falta declaración sobre DPO</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>privacidad.html</code> — sección 1</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>No se menciona si hay un Delegado de Protección de Datos (DPO). Para una PyME de esta escala no es obligatorio, pero es buena práctica declararlo.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Agregar: <em>"Parfum Track no designa un Delegado de Protección de Datos (DPO) dado el tamaño y naturaleza de las operaciones. Todas las consultas de privacidad pueden dirigirse a parfumtrack@gmail.com."</em>
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">GDPR Art. 37 (informativo)</span>
+  </div>
+</div>
+
+<!-- #18 -->
+<div class="card card-low">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-low">BAJO</span>
+    <strong>#18 — Falta domicilio en sección Contacto de terminos.html</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>terminos.html</code> — sección 20</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>Solo lista el email. No incluye "Montevideo, Uruguay".</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Agregar "Parfum Track — Montevideo, Uruguay" antes del email.
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">Ley 17.250 Art. 6</span>
+  </div>
+</div>
+
+<!-- #19 -->
+<div class="card card-low">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-low">BAJO</span>
+    <strong>#19 — Email OTP sin footer de identificación del proveedor</strong>
+  </div>
+  <table>
+    <tr><td style="width:120px;font-weight:600;">Archivo</td><td><code>functions/trial.js</code> — líneas 357-380</td></tr>
+    <tr><td style="font-weight:600;">Problema</td><td>El email de código OTP no tiene footer con identificación del proveedor. Aunque es un email transaccional (exento de unsubscribe), la identificación del remitente sigue siendo requerida.</td></tr>
+  </table>
+  <div class="fix-block">
+    <div class="fix-label">Corrección</div>
+    Agregar <em>"Parfum Track — parfumtrack@gmail.com"</em> al final del email.
+  </div>
+  <div style="margin-top:8px;">
+    <span class="reg-tag">CAN-SPAM — Identificación del remitente</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="tabla">5. Tabla resumen completa</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:30px;">#</th>
+      <th style="width:90px;">Severidad</th>
+      <th>Hallazgo</th>
+      <th>Archivo</th>
+      <th style="width:140px;">Regulación</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><span class="badge badge-critical">CRITICO</span></td>
+      <td>Afirmación falsa: "MP reintentará cobro automáticamente"</td>
+      <td><code>mp-webhook.js</code></td>
+      <td>Ley 17.250, Ley 24.240</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><span class="badge badge-high">ALTO</span></td>
+      <td>Modal de términos sin checkbox de consentimiento</td>
+      <td><code>index.html</code></td>
+      <td>GDPR Art. 7</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><span class="badge badge-high">ALTO</span></td>
+      <td>Email personal en archivo de test</td>
+      <td><code>test-payment-flow.mjs</code></td>
+      <td>RGPD Art. 5(1)(c)</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><span class="badge badge-medium">MEDIO</span></td>
+      <td>Falta GDPR/LGPD en sección de derechos</td>
+      <td><code>privacidad.html</code></td>
+      <td>GDPR Art. 3, LGPD Art. 3</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><span class="badge badge-medium">MEDIO</span></td>
+      <td>Falta rol Responsable vs Encargado</td>
+      <td><code>privacidad.html</code></td>
+      <td>GDPR Art. 28</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><span class="badge badge-medium">MEDIO</span></td>
+      <td>Falta domicilio en secciones de contacto</td>
+      <td><code>privacidad.html</code>, <code>terminos.html</code></td>
+      <td>Ley 17.250 Art. 6</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td><span class="badge badge-medium">MEDIO</span></td>
+      <td>Falta ANPD (Brasil) en autoridades</td>
+      <td><code>privacidad.html</code></td>
+      <td>LGPD Art. 55-A</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td><span class="badge badge-medium">MEDIO</span></td>
+      <td>Emails de trial sin footer legal ni unsubscribe</td>
+      <td><code>send-email.js</code></td>
+      <td>CAN-SPAM, LGPD Art. 15</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td><span class="badge badge-medium">MEDIO</span></td>
+      <td>Unsubscribe manual, falta List-Unsubscribe header</td>
+      <td><code>mp-webhook.js</code></td>
+      <td>CAN-SPAM, RGPD Art. 21</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td><span class="badge badge-medium">MEDIO</span></td>
+      <td>PII (emails) en logs de producción</td>
+      <td><code>4 archivos functions/</code></td>
+      <td>RGPD Art. 5(1)(c)</td>
+    </tr>
+    <tr>
+      <td>11</td>
+      <td><span class="badge badge-medium">MEDIO</span></td>
+      <td>WhatsApp hardcodeado en templates</td>
+      <td><code>mp-webhook.js</code></td>
+      <td>RGPD Art. 5(1)(c)</td>
+    </tr>
+    <tr>
+      <td>12</td>
+      <td><span class="badge badge-medium">MEDIO</span></td>
+      <td>mp-payment-status sin autenticación</td>
+      <td><code>mp-payment-status.js</code></td>
+      <td>OWASP API1:2023</td>
+    </tr>
+    <tr>
+      <td>13</td>
+      <td><span class="badge badge-medium">MEDIO</span></td>
+      <td>mp-subscription-status sin rate limiting</td>
+      <td><code>mp-subscription-status.js</code></td>
+      <td>OWASP API4:2023</td>
+    </tr>
+    <tr>
+      <td>14</td>
+      <td><span class="badge badge-medium">MEDIO</span></td>
+      <td>"Cientos de revendedores" sin verificar</td>
+      <td><code>landing.html</code></td>
+      <td>Ley 17.250 Art. 24</td>
+    </tr>
+    <tr>
+      <td>15</td>
+      <td><span class="badge badge-low">BAJO</span></td>
+      <td>Falta resolución alternativa de disputas</td>
+      <td><code>terminos.html</code></td>
+      <td>Ley 17.250, Ley 24.240</td>
+    </tr>
+    <tr>
+      <td>16</td>
+      <td><span class="badge badge-low">BAJO</span></td>
+      <td>Falta derecho de retracto/arrepentimiento</td>
+      <td><code>terminos.html</code></td>
+      <td>Ley 17.250 Art. 16-17</td>
+    </tr>
+    <tr>
+      <td>17</td>
+      <td><span class="badge badge-low">BAJO</span></td>
+      <td>Falta declaración sobre DPO</td>
+      <td><code>privacidad.html</code></td>
+      <td>GDPR Art. 37</td>
+    </tr>
+    <tr>
+      <td>18</td>
+      <td><span class="badge badge-low">BAJO</span></td>
+      <td>Falta domicilio en contacto de términos</td>
+      <td><code>terminos.html</code></td>
+      <td>Ley 17.250 Art. 6</td>
+    </tr>
+    <tr>
+      <td>19</td>
+      <td><span class="badge badge-low">BAJO</span></td>
+      <td>Email OTP sin footer de proveedor</td>
+      <td><code>trial.js</code></td>
+      <td>CAN-SPAM</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="archivos">6. Archivos auditados</h2>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>Archivo</th><th>Resultado</th><th>Hallazgos</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>terminos.html</code></td><td><span class="badge badge-ok">Sólido</span></td><td>2 bajos, 1 medio</td></tr>
+      <tr><td><code>privacidad.html</code></td><td><span class="badge badge-ok">Sólido</span></td><td>3 medios, 1 bajo</td></tr>
+      <tr><td><code>index.html</code></td><td><span class="badge badge-high">1 alto</span></td><td>Falta checkbox de consentimiento</td></tr>
+      <tr><td><code>landing.html</code></td><td><span class="badge badge-medium">1 medio</span></td><td>Claim no verificable</td></tr>
+      <tr><td><code>functions/mp-webhook.js</code></td><td><span class="badge badge-critical">1 crítico</span></td><td>Afirmación falsa + 2 medios</td></tr>
+      <tr><td><code>functions/send-email.js</code></td><td><span class="badge badge-medium">1 medio</span></td><td>Trial emails sin footer</td></tr>
+      <tr><td><code>functions/trial.js</code></td><td><span class="badge badge-low">1 bajo</span></td><td>OTP sin footer</td></tr>
+      <tr><td><code>functions/mp-payment-status.js</code></td><td><span class="badge badge-medium">1 medio</span></td><td>Sin autenticación</td></tr>
+      <tr><td><code>functions/mp-subscription-status.js</code></td><td><span class="badge badge-medium">1 medio</span></td><td>Sin rate limiting</td></tr>
+      <tr><td><code>functions/validate-license.js</code></td><td><span class="badge badge-ok">OK</span></td><td>PII en logs</td></tr>
+      <tr><td><code>functions/mp-create-preference.js</code></td><td><span class="badge badge-ok">OK</span></td><td>PII en logs</td></tr>
+      <tr><td><code>functions/backup.js</code></td><td><span class="badge badge-ok">OK</span></td><td>Sin hallazgos</td></tr>
+      <tr><td><code>functions/sync.js</code></td><td><span class="badge badge-ok">OK</span></td><td>Sin hallazgos</td></tr>
+      <tr><td><code>functions/send-notification.js</code></td><td><span class="badge badge-ok">OK</span></td><td>Sin hallazgos</td></tr>
+      <tr><td><code>worker.js</code></td><td><span class="badge badge-ok">OK</span></td><td>CORS bien configurado</td></tr>
+      <tr><td><code>sw.js</code></td><td><span class="badge badge-ok">OK</span></td><td>Sin hallazgos</td></tr>
+      <tr><td><code>_headers</code></td><td><span class="badge badge-ok">OK</span></td><td>Security headers completos</td></tr>
+      <tr><td><code>test-payment-flow.mjs</code></td><td><span class="badge badge-high">1 alto</span></td><td>Email personal hardcodeado</td></tr>
+      <tr><td><code>wrangler.jsonc</code></td><td><span class="badge badge-ok">OK</span></td><td>Emails correctos</td></tr>
+      <tr><td><code>.github/workflows/deploy.yml</code></td><td><span class="badge badge-ok">OK</span></td><td>Secretos bien manejados</td></tr>
+      <tr><td><code>manifest.json</code></td><td><span class="badge badge-ok">OK</span></td><td>Sin hallazgos</td></tr>
+      <tr><td><code>.well-known/assetlinks.json</code></td><td><span class="badge badge-ok">OK</span></td><td>Configuración correcta</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <p>Auditoría generada el 21 de junio de 2026</p>
+  <p>Parfum Track — parfumtrack@gmail.com</p>
+  <p style="margin-top:8px;">Este documento es de uso interno y no constituye asesoramiento legal profesional.</p>
+</div>
+
+</div>
+</body>
+</html>
