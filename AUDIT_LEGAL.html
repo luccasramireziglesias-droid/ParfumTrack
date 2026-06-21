@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría Legal Completa — Parfum Track</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Cormorant+Garamond:wght@600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:#0a0a15; color:#f0ece4; line-height:1.7; padding:0; }
+  .container { max-width:960px; margin:0 auto; padding:24px 20px 60px; }
+  h1 { font-family:'Cormorant Garamond',serif; font-size:clamp(28px,5vw,42px); background:linear-gradient(135deg,#c9a84c,#e8c97e); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-align:center; margin:40px 0 8px; }
+  .subtitle { text-align:center; color:#a8a49c; font-size:14px; margin-bottom:40px; }
+  h2 { font-family:'Cormorant Garamond',serif; font-size:clamp(20px,3.5vw,28px); color:#e8c97e; margin:48px 0 16px; padding-bottom:8px; border-bottom:1px solid rgba(201,168,76,0.25); }
+  h3 { font-size:16px; color:#c9a84c; margin:24px 0 10px; }
+  h4 { font-size:14px; color:#f5dfa0; margin:16px 0 8px; }
+  p, li { font-size:14px; color:#d4d0c8; }
+  p { margin-bottom:12px; }
+  ul, ol { margin:8px 0 16px 20px; }
+  li { margin-bottom:6px; }
+  strong { color:#f0ece4; }
+  table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:13px; }
+  th { background:#1a1a2e; color:#e8c97e; text-align:left; padding:10px 12px; font-weight:600; border:1px solid #2a2a45; }
+  td { padding:9px 12px; border:1px solid #1e1e35; color:#d4d0c8; }
+  tr:nth-child(even) td { background:rgba(30,30,53,0.4); }
+  .card { background:#1e1e35; border-radius:12px; padding:20px; margin:16px 0; border:1px solid #2a2a45; }
+  .card-critical { border-left:4px solid #e07070; }
+  .card-high { border-left:4px solid #e09060; }
+  .card-medium { border-left:4px solid #e0c060; }
+  .card-low { border-left:4px solid #70c9a0; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; margin-right:6px; }
+  .badge-critical { background:rgba(224,112,112,0.2); color:#e07070; }
+  .badge-high { background:rgba(224,144,96,0.2); color:#e09060; }
+  .badge-medium { background:rgba(224,192,96,0.2); color:#e0c060; }
+  .badge-low { background:rgba(112,201,160,0.2); color:#70c9a0; }
+  .badge-ok { background:rgba(112,201,160,0.2); color:#70c9a0; }
+  .badge-missing { background:rgba(224,112,112,0.2); color:#e07070; }
+  .badge-partial { background:rgba(224,192,96,0.2); color:#e0c060; }
+  .score-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; margin:16px 0; }
+  .score-item { background:#1e1e35; border-radius:10px; padding:16px; border:1px solid #2a2a45; }
+  .score-label { font-size:13px; color:#a8a49c; margin-bottom:6px; }
+  .score-val { font-size:28px; font-weight:700; font-family:'Cormorant Garamond',serif; }
+  .score-bar { height:6px; background:#2a2a45; border-radius:3px; margin-top:8px; overflow:hidden; }
+  .score-fill { height:100%; border-radius:3px; }
+  .verdict-box { background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.03)); border:1px solid rgba(201,168,76,0.3); border-radius:14px; padding:28px; margin:24px 0; }
+  .verdict-q { font-weight:600; color:#e8c97e; margin:16px 0 6px; font-size:15px; }
+  .verdict-a { color:#d4d0c8; font-size:14px; margin-bottom:12px; }
+  .avg-score { text-align:center; font-family:'Cormorant Garamond',serif; font-size:64px; font-weight:700; background:linear-gradient(135deg,#e07070,#e09060); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:20px 0 4px; }
+  .avg-label { text-align:center; color:#a8a49c; font-size:14px; margin-bottom:24px; }
+  .check { color:#70c9a0; }
+  .cross { color:#e07070; }
+  .warn { color:#e0c060; }
+  code { background:#1a1a2e; padding:2px 6px; border-radius:4px; font-size:12px; color:#e8c97e; }
+  .toc { background:#1e1e35; border-radius:12px; padding:20px 24px; margin:20px 0 40px; border:1px solid #2a2a45; }
+  .toc-title { color:#c9a84c; font-weight:600; margin-bottom:12px; font-size:15px; }
+  .toc a { color:#d4d0c8; text-decoration:none; font-size:13px; display:block; padding:4px 0; }
+  .toc a:hover { color:#e8c97e; }
+  .divider { border:none; border-top:1px solid rgba(201,168,76,0.15); margin:40px 0; }
+  @media(max-width:600px) {
+    .container { padding:16px 14px 40px; }
+    table { font-size:11px; }
+    th, td { padding:6px 8px; }
+    .score-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Auditoría Legal Completa</h1>
+<p class="subtitle">Parfum Track — Equipo Legal Internacional de Tecnología y SaaS<br>Fecha: 21 de junio de 2026</p>
+
+<div class="toc">
+  <div class="toc-title">Índice</div>
+  <a href="#fase1">Fase 1 — Estructura Legal</a>
+  <a href="#fase2">Fase 2 — Privacidad y Datos</a>
+  <a href="#fase3">Fase 3 — Suscripciones y Pagos</a>
+  <a href="#fase4">Fase 4 — Limitación de Responsabilidad</a>
+  <a href="#fase5">Fase 5 — Propiedad Intelectual</a>
+  <a href="#fase6">Fase 6 — Marketing</a>
+  <a href="#fase7">Fase 7 — Seguridad y Responsabilidad</a>
+  <a href="#fase8">Fase 8 — Documentos Legales</a>
+  <a href="#fase9">Fase 9 — Expansión Internacional</a>
+  <a href="#fase10">Fase 10 — Auditoría Brutal</a>
+  <a href="#puntuacion">Puntuación Final</a>
+  <a href="#veredicto">Veredicto Final</a>
+</div>
+
+<!-- ═══════════════ FASE 1 ═══════════════ -->
+<h2 id="fase1">Fase 1 — Estructura Legal</h2>
+
+<h3>Documentos existentes</h3>
+<table>
+  <tr><th>Documento</th><th>Estado</th><th>Versión</th></tr>
+  <tr><td>Términos y Condiciones</td><td><code>terminos.html</code> — 20 secciones, completo</td><td>v2.0, 17/06/2026</td></tr>
+  <tr><td>Política de Privacidad</td><td><code>privacidad.html</code> — 16 secciones, completo</td><td>v2.0, 17/06/2026</td></tr>
+  <tr><td>Versiones resumidas in-app</td><td>Modales con link a versión completa</td><td>OK</td></tr>
+  <tr><td>Modal de aceptación obligatoria</td><td>Primera vez, con botón "Acepto"</td><td>OK</td></tr>
+</table>
+
+<h3>Documentos faltantes</h3>
+<table>
+  <tr><th>Documento</th><th>Prioridad</th><th>Motivo</th></tr>
+  <tr><td>Aviso Legal / Identificación del proveedor</td><td><span class="badge badge-critical">CRÍTICA</span></td><td>No hay nombre legal, domicilio ni RUT/CUIT en ningún lugar</td></tr>
+  <tr><td>Política de Cookies</td><td><span class="badge badge-high">ALTA</span></td><td>Google Fonts puede establecer cookies. No hay banner ni documento</td></tr>
+  <tr><td>Política de Reembolso separada</td><td><span class="badge badge-medium">MEDIA</span></td><td>Está enterrada en Términos (sección 6), no accesible antes del pago</td></tr>
+  <tr><td>Plan de Respuesta a Incidentes</td><td><span class="badge badge-medium">MEDIA</span></td><td>Sin procedimiento documentado de notificación de breach</td></tr>
+  <tr><td>Registro de Tratamiento de Datos</td><td><span class="badge badge-medium">MEDIA</span></td><td>Requerido por GDPR Art. 30</td></tr>
+</table>
+
+<h3>Riesgos de la estructura actual</h3>
+<ul>
+  <li><strong>"Parfum Track" no es una entidad jurídica formal.</strong> Falta nombre legal, domicilio fiscal y número de identificación tributaria — requerido en UY, AR, CO, MX y UE.</li>
+  <li><strong>Consentimiento bundled:</strong> un solo botón para Términos + Privacidad. GDPR requiere consentimiento granular separado.</li>
+  <li><strong>Sin detección de cambios en términos:</strong> si se actualizan, la app no re-solicita aceptación al usuario.</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ═══════════════ FASE 2 ═══════════════ -->
+<h2 id="fase2">Fase 2 — Privacidad y Datos</h2>
+
+<h3>Datos recopilados</h3>
+<table>
+  <tr><th>Dato</th><th>Dónde</th><th>Obligatorio</th></tr>
+  <tr><td>Email</td><td>Onboarding, trial, checkout</td><td>No (onboarding) / Sí (trial/pago)</td></tr>
+  <tr><td>Nombre / negocio</td><td>Onboarding</td><td>No</td></tr>
+  <tr><td>WhatsApp</td><td>Onboarding</td><td>No</td></tr>
+  <tr><td>Device ID</td><td>Auto-generado</td><td>Sí (automático, sin consentimiento explícito)</td></tr>
+  <tr><td>Ventas/stock/gastos/clientes</td><td>Uso de la app</td><td>N/A (datos del usuario)</td></tr>
+</table>
+
+<h3>Analytics y tracking</h3>
+<table>
+  <tr><th>Servicio</th><th>Cookies</th><th>Consentimiento</th><th>Riesgo</th></tr>
+  <tr><td>Plausible</td><td>No</td><td>No pedido (GDPR-compliant)</td><td><span class="badge badge-low">BAJO</span></td></tr>
+  <tr><td>OneSignal</td><td>Posible</td><td>Opt-in explícito</td><td><span class="badge badge-low">BAJO</span></td></tr>
+  <tr><td>Google Fonts</td><td>Sí (IP a Google/EEUU)</td><td><strong>NO pedido</strong></td><td><span class="badge badge-high">ALTO en UE</span></td></tr>
+  <tr><td>Brevo (emails)</td><td>N/A</td><td>Documentado en privacidad</td><td><span class="badge badge-low">BAJO</span></td></tr>
+</table>
+
+<h3>Incumplimientos por regulación</h3>
+
+<h4>GDPR (Europa)</h4>
+<ul>
+  <li><span class="cross">✗</span> Google Fonts sin consentimiento = transferencia de IP a EEUU no autorizada</li>
+  <li><span class="cross">✗</span> Sin DPO designado</li>
+  <li><span class="cross">✗</span> Sin banner de cookies</li>
+  <li><span class="cross">✗</span> Consentimiento bundled (1 botón para todo)</li>
+  <li><span class="cross">✗</span> Eliminación de datos del servidor solo manual (email)</li>
+  <li><span class="cross">✗</span> Device ID persistente no documentado</li>
+</ul>
+
+<h4>CCPA (California)</h4>
+<ul>
+  <li><span class="cross">✗</span> Sin mención de CCPA/CPRA</li>
+  <li><span class="cross">✗</span> Sin link "Do Not Sell or Share My Personal Information"</li>
+  <li><span class="cross">✗</span> Sin aviso de categorías de datos recopilados</li>
+</ul>
+
+<h4>LGPD (Brasil)</h4>
+<ul>
+  <li><span class="cross">✗</span> Sin mención de LGPD ni ANPD</li>
+  <li><span class="cross">✗</span> Sin "Encarregado" (equivalente a DPO)</li>
+</ul>
+
+<h4>LATAM (UY/AR/CO/MX)</h4>
+<ul>
+  <li><span class="check">✓</span> Política referencia correctamente leyes de 4 países</li>
+  <li><span class="check">✓</span> Autoridades de control listadas correctamente</li>
+  <li><span class="cross">✗</span> Falta identificación del proveedor (requerida en todas)</li>
+</ul>
+
+<div class="card card-medium">
+  <h4>Hallazgo: <code>resetApp()</code> no borra todo</h4>
+  <p>La función "Borrar todos los datos" preserva sin informar al usuario: PIN hash, licencia, código de activación, firma ECDSA, trial start, perfiles y tema.</p>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════ FASE 3 ═══════════════ -->
+<h2 id="fase3">Fase 3 — Suscripciones y Pagos</h2>
+
+<h3>Modelo de negocio</h3>
+<table>
+  <tr><th>Plan</th><th>Precio</th><th>Estado</th></tr>
+  <tr><td>Free</td><td>USD 0, permanente</td><td><span class="badge badge-ok">ACTIVO</span></td></tr>
+  <tr><td>Básico Pro</td><td>USD 9.99/mes o USD 95.88/año</td><td><span class="badge badge-ok">ACTIVO</span></td></tr>
+  <tr><td>Pro</td><td>USD 19.99/mes</td><td><span class="badge badge-partial">PRÓXIMAMENTE</span></td></tr>
+  <tr><td>Trial</td><td>7 días gratis (verificación email OTP)</td><td><span class="badge badge-ok">ACTIVO</span></td></tr>
+</table>
+
+<div class="card card-critical">
+  <h4>🔴 HALLAZGO CRÍTICO: Contradicción en renovación automática</h4>
+  <table>
+    <tr><th>Fuente</th><th>Dice</th></tr>
+    <tr><td>Términos (sección 5)</td><td>"No se renuevan automáticamente"</td></tr>
+    <tr><td>App (línea 6966)</td><td>"No se renuevan automáticamente"</td></tr>
+    <tr><td><strong>Email de activación</strong></td><td><strong>"Se renueva automáticamente cada mes vía Mercado Pago"</strong></td></tr>
+    <tr><td><strong>Email de renovación</strong></td><td><strong>"Tu plan se renovó automáticamente"</strong></td></tr>
+    <tr><td>FAQ landing</td><td>"No hay débito automático ni cargo sorpresa"</td></tr>
+  </table>
+  <p style="margin-top:12px"><strong>El email le dice al usuario lo CONTRARIO de lo que dicen los Términos.</strong> Esto es información falsa al consumidor y una infracción directa en todas las jurisdicciones LATAM. Archivo: <code>mp-webhook.js</code> líneas 382 y 412.</p>
+</div>
+
+<h3>Cancelación</h3>
+<ul>
+  <li><span class="cross">✗</span> Solo manual vía email/WhatsApp — sin self-service en la app</li>
+  <li><span class="cross">✗</span> Inconsistencia: Términos dicen email, emails dicen WhatsApp</li>
+  <li><span class="cross">✗</span> En la UE, cancelar debe ser tan fácil como suscribirse</li>
+</ul>
+
+<h3>Reembolsos</h3>
+<ul>
+  <li><span class="warn">⚠</span> Regla: no reembolsable, excepto error técnico/cobro duplicado (7 días)</li>
+  <li><span class="cross">✗</span> No se muestra la política antes del pago</li>
+  <li><span class="cross">✗</span> Argentina requiere 10 días de arrepentimiento (Ley 24.240)</li>
+  <li><span class="cross">✗</span> UE requiere 14 días de desistimiento (Directiva 2011/83/UE)</li>
+</ul>
+
+<h3>Emails transaccionales</h3>
+<ul>
+  <li><span class="cross">✗</span> Sin enlace de "dejar de recibir emails" (unsubscribe)</li>
+  <li><span class="cross">✗</span> Sin identificación del vendedor (nombre legal, domicilio, RUT)</li>
+  <li><span class="cross">✗</span> Sin comprobante/recibo propio del servicio</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ═══════════════ FASE 4 ═══════════════ -->
+<h2 id="fase4">Fase 4 — Limitación de Responsabilidad</h2>
+
+<h3>Cláusulas existentes</h3>
+<ul>
+  <li><span class="check">✓</span> Limitación de responsabilidad por daños indirectos</li>
+  <li><span class="check">✓</span> Disclaimers de disponibilidad del servicio</li>
+  <li><span class="check">✓</span> Indemnización por parte del usuario</li>
+  <li><span class="check">✓</span> Fuerza mayor</li>
+  <li><span class="check">✓</span> Datos y backups bajo responsabilidad del usuario</li>
+</ul>
+
+<h3>Cláusulas faltantes</h3>
+<ul>
+  <li><span class="cross">✗</span> <strong>Sin cap de responsabilidad monetario</strong> (ej: "no excederá el monto pagado en los últimos 12 meses")</li>
+  <li><span class="cross">✗</span> <strong>Sin disclaimer de exactitud de cálculos</strong> — si un error de ganancia/margen causa pérdida económica</li>
+  <li><span class="cross">✗</span> <strong>Sin cláusula de migración de datos</strong> — qué pasa con los datos si la app cierra</li>
+  <li><span class="cross">✗</span> <strong>Sin SLA</strong> — no hay compromiso de uptime ni compensación por caídas</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ═══════════════ FASE 5 ═══════════════ -->
+<h2 id="fase5">Fase 5 — Propiedad Intelectual</h2>
+
+<table>
+  <tr><th>Activo</th><th>Protección actual</th><th>Recomendación</th></tr>
+  <tr><td>Nombre "Parfum Track"</td><td><span class="badge badge-missing">SIN REGISTRO</span></td><td>Registrar en Clase 9 y 42 (INPI/DNPI)</td></tr>
+  <tr><td>Logo / ícono</td><td>Declarado en Términos (sección 8)</td><td>Registrar como marca figurativa</td></tr>
+  <tr><td>Código fuente</td><td>Copyright automático</td><td>Documentar autoría</td></tr>
+  <tr><td>Diseño UI</td><td>Sin protección formal</td><td>N/A</td></tr>
+</table>
+
+<h3>Riesgos</h3>
+<ul>
+  <li><span class="cross">✗</span> <strong>Sin registro de marca:</strong> Cualquiera podría registrar "Parfum Track" primero</li>
+  <li><span class="warn">⚠</span> <strong>Marcas de terceros en mockups:</strong> "Bharara King", "Lattafa" — riesgo de reclamo</li>
+  <li><span class="warn">⚠</span> <strong>"Parfum" es descriptivo:</strong> Dificulta el registro en algunas jurisdicciones</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ═══════════════ FASE 6 ═══════════════ -->
+<h2 id="fase6">Fase 6 — Marketing</h2>
+
+<h3>Claims problemáticos</h3>
+<table>
+  <tr><th>Claim</th><th>Riesgo</th><th>Problema</th></tr>
+  <tr><td>"La <strong>única</strong> app diseñada para revendedores"</td><td><span class="badge badge-high">ALTO</span></td><td>Inverificable — publicidad engañosa si existe otra</td></tr>
+  <tr><td>"+340 revendedores activos"</td><td><span class="badge badge-high">ALTO</span></td><td>Si no es verificable, es social proof fabricado</td></tr>
+  <tr><td>"Gratis para siempre" (×5)</td><td><span class="badge badge-medium">MEDIO</span></td><td>Infraestructura de paywall construida — si cambian los parámetros, se vuelve falso</td></tr>
+  <tr><td>"Tus datos solo en tu celular"</td><td><span class="badge badge-medium">MEDIO</span></td><td>Email, device ID, analytics, backups van a servidores</td></tr>
+  <tr><td>"100% offline"</td><td><span class="badge badge-low">BAJO-MEDIO</span></td><td>Pagos, backup, notificaciones requieren internet</td></tr>
+</table>
+
+<h3>Información de empresa</h3>
+<div class="card card-critical">
+  <p><strong>AUSENCIA TOTAL</strong> de razón social, domicilio e identificación fiscal. Solo hay un email (<code>parfumtrack@gmail.com</code>) y WhatsApp (<code>+598 94 466 577</code>). Incumple obligaciones de identificación en UY, AR, CO, MX y UE.</p>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════ FASE 7 ═══════════════ -->
+<h2 id="fase7">Fase 7 — Seguridad y Responsabilidad</h2>
+
+<h3>Fortalezas</h3>
+<ul>
+  <li><span class="check">✓</span> ECDSA P-256 + HMAC-SHA256 para autenticación</li>
+  <li><span class="check">✓</span> CORS restrictivo con allowlist regex</li>
+  <li><span class="check">✓</span> Headers de seguridad completos (HSTS 2 años, X-Frame-Options DENY, COOP, CORP, Permissions-Policy)</li>
+  <li><span class="check">✓</span> Rate limiting en todos los endpoints</li>
+  <li><span class="check">✓</span> <code>escapeHTML()</code> consistente contra XSS</li>
+  <li><span class="check">✓</span> Comparación timing-safe en tokens</li>
+  <li><span class="check">✓</span> Secretos gestionados vía Cloudflare Dashboard (no en código)</li>
+  <li><span class="check">✓</span> <code>.assetsignore</code> protege código del servidor</li>
+</ul>
+
+<h3>Vulnerabilidades</h3>
+<table>
+  <tr><th>ID</th><th>Severidad</th><th>Problema</th></tr>
+  <tr><td>V-01</td><td><span class="badge badge-high">ALTA</span></td><td>Sin cifrado de datos en reposo (R2 ni cliente). Breach del bucket = todos los backups legibles</td></tr>
+  <tr><td>V-02</td><td><span class="badge badge-high">ALTA</span></td><td><code>unsafe-inline</code> en CSP — XSS bypasea el CSP completamente</td></tr>
+  <tr><td>V-03</td><td><span class="badge badge-medium">MEDIA</span></td><td>PIN de 4 dígitos con SHA-256 simple (sin KDF). Brute-force offline en milisegundos</td></tr>
+  <tr><td>V-04</td><td><span class="badge badge-medium">MEDIA</span></td><td>Rate limiting se desactiva silenciosamente si KV no está configurado</td></tr>
+  <tr><td>V-05</td><td><span class="badge badge-medium">MEDIA</span></td><td>Sin SRI en scripts CDN. CDN comprometido = código malicioso en la app</td></tr>
+  <tr><td>V-06</td><td><span class="badge badge-low">BAJA</span></td><td>Código de licencia en texto plano en localStorage</td></tr>
+  <tr><td>V-07</td><td><span class="badge badge-low">BAJA</span></td><td>Race condition en contadores KV (no atómicos)</td></tr>
+  <tr><td>V-08</td><td><span class="badge badge-low">BAJA</span></td><td>Tokens en query string del GET /backup (aparecen en logs)</td></tr>
+</table>
+
+<h3>Responsabilidad ante incidentes</h3>
+<table>
+  <tr><th>Escenario</th><th>Datos expuestos</th><th>Impacto</th></tr>
+  <tr><td>Breach de R2</td><td>Todos los backups en JSON plano (ventas, clientes, gastos)</td><td><span class="badge badge-critical">CATASTRÓFICO</span></td></tr>
+  <tr><td>Breach de secreto HMAC</td><td>Acceso a backup/sync de cualquier usuario</td><td><span class="badge badge-high">ALTO</span></td></tr>
+  <tr><td>Breach de clave ECDSA</td><td>Generación de licencias fraudulentas</td><td><span class="badge badge-high">ALTO</span></td></tr>
+  <tr><td>XSS exitoso</td><td>localStorage completo + IndexedDB</td><td><span class="badge badge-high">ALTO</span></td></tr>
+</table>
+
+<hr class="divider">
+
+<!-- ═══════════════ FASE 8 ═══════════════ -->
+<h2 id="fase8">Fase 8 — Documentos Legales</h2>
+
+<h3>Obligatorios</h3>
+<table>
+  <tr><th>Documento</th><th>Estado</th><th>Prioridad</th></tr>
+  <tr><td>Términos y Condiciones</td><td><span class="check">✓</span> Existe</td><td>—</td></tr>
+  <tr><td>Política de Privacidad</td><td><span class="check">✓</span> Existe</td><td>—</td></tr>
+  <tr><td>Identificación del proveedor</td><td><span class="cross">✗</span> Falta</td><td><span class="badge badge-critical">CRÍTICA</span></td></tr>
+  <tr><td>Info pre-contractual (reembolso, desistimiento)</td><td><span class="cross">✗</span> Falta</td><td><span class="badge badge-high">ALTA</span></td></tr>
+</table>
+
+<h3>Recomendados</h3>
+<table>
+  <tr><th>Documento</th><th>Estado</th><th>Prioridad</th></tr>
+  <tr><td>Política de Cookies</td><td><span class="cross">✗</span> Falta</td><td><span class="badge badge-high">ALTA</span></td></tr>
+  <tr><td>Plan de Respuesta a Incidentes</td><td><span class="cross">✗</span> Falta</td><td><span class="badge badge-medium">MEDIA</span></td></tr>
+  <tr><td>SLA / Acuerdo de Nivel de Servicio</td><td><span class="cross">✗</span> Falta</td><td><span class="badge badge-medium">MEDIA</span></td></tr>
+  <tr><td>Registro de Tratamiento (GDPR Art. 30)</td><td><span class="cross">✗</span> Falta</td><td><span class="badge badge-medium">MEDIA</span></td></tr>
+</table>
+
+<h3>Opcionales</h3>
+<table>
+  <tr><th>Documento</th><th>Estado</th><th>Prioridad</th></tr>
+  <tr><td>Aviso Legal / Impressum (para UE)</td><td><span class="cross">✗</span> Falta</td><td><span class="badge badge-low">BAJA</span></td></tr>
+  <tr><td>Política CCPA</td><td><span class="cross">✗</span> Falta</td><td><span class="badge badge-low">BAJA</span></td></tr>
+  <tr><td>Código de Conducta</td><td><span class="cross">✗</span> Falta</td><td><span class="badge badge-low">BAJA</span></td></tr>
+</table>
+
+<hr class="divider">
+
+<!-- ═══════════════ FASE 9 ═══════════════ -->
+<h2 id="fase9">Fase 9 — Expansión Internacional</h2>
+
+<h3>América Latina <span class="warn">⚠</span> Parcialmente preparada</h3>
+<ul>
+  <li><span class="check">✓</span> Política de privacidad referencia leyes de UY, AR, CO, MX</li>
+  <li><span class="check">✓</span> Precios en USD (universal para LATAM)</li>
+  <li><span class="cross">✗</span> Falta identificación del proveedor</li>
+  <li><span class="cross">✗</span> Falta derecho de arrepentimiento argentino (10 días)</li>
+  <li><span class="cross">✗</span> Social proof debe ser verificable</li>
+</ul>
+
+<h3>Estados Unidos <span class="cross">✗</span> No preparada</h3>
+<ul>
+  <li><span class="cross">✗</span> Sin mención de CCPA/CPRA</li>
+  <li><span class="cross">✗</span> Sin "Do Not Sell" link</li>
+  <li><span class="cross">✗</span> Claims de marketing podrían ser "deceptive practices" (FTC)</li>
+</ul>
+
+<h3>Europa <span class="cross">✗</span> No preparada</h3>
+<ul>
+  <li><span class="cross">✗</span> Google Fonts sin consentimiento = violación GDPR</li>
+  <li><span class="cross">✗</span> Sin banner de cookies</li>
+  <li><span class="cross">✗</span> Sin DPO ni Impressum</li>
+  <li><span class="cross">✗</span> Sin mención de GDPR en la política</li>
+  <li><span class="cross">✗</span> Sin derecho de desistimiento de 14 días</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ═══════════════ FASE 10 ═══════════════ -->
+<h2 id="fase10">Fase 10 — Auditoría Brutal</h2>
+
+<h3>🔴 Riesgos Críticos</h3>
+
+<div class="card card-critical">
+  <h4>1. Email de activación afirma renovación automática cuando NO existe</h4>
+  <p><strong>Problema:</strong> El email dice "Se renueva automáticamente" — los Términos dicen que NO.</p>
+  <p><strong>Impacto:</strong> Información falsa al consumidor. Infracción directa en todas las jurisdicciones.</p>
+  <p><strong>Probabilidad:</strong> 100% — cada usuario activado recibe este email.</p>
+  <p><strong>Solución:</strong> Corregir templates en <code>mp-webhook.js</code> líneas 382 y 412.</p>
+</div>
+
+<div class="card card-critical">
+  <h4>2. Sin identificación legal del proveedor</h4>
+  <p><strong>Problema:</strong> No hay razón social, domicilio ni ID fiscal en ningún lugar.</p>
+  <p><strong>Impacto:</strong> Incumple ley de consumidor en UY, AR, CO, MX y UE.</p>
+  <p><strong>Probabilidad:</strong> 100% — ausencia permanente.</p>
+  <p><strong>Solución:</strong> Agregar footer legal con datos del responsable en landing, app y emails.</p>
+</div>
+
+<div class="card card-critical">
+  <h4>3. Sin cifrado de datos en reposo (R2)</h4>
+  <p><strong>Problema:</strong> Backups almacenados como JSON plano. Si el bucket se compromete, todos los datos de todos los usuarios quedan expuestos.</p>
+  <p><strong>Impacto:</strong> Catastrófico para reputación y responsabilidad legal.</p>
+  <p><strong>Probabilidad:</strong> Baja (Cloudflare R2 es seguro), pero el impacto es devastador.</p>
+  <p><strong>Solución:</strong> Cifrar con AES-GCM derivado del código de licencia antes de subir.</p>
+</div>
+
+<h3>🟠 Riesgos Altos</h3>
+
+<div class="card card-high">
+  <h4>4. "+340 revendedores" posiblemente fabricado</h4>
+  <p><strong>Solución:</strong> Verificar con datos reales de Plausible o eliminar el claim.</p>
+</div>
+<div class="card card-high">
+  <h4>5. "La única app" — claim inverificable</h4>
+  <p><strong>Solución:</strong> Cambiar a "Diseñada especialmente para revendedores de perfumes".</p>
+</div>
+<div class="card card-high">
+  <h4>6. Google Fonts sin consentimiento (GDPR)</h4>
+  <p><strong>Solución:</strong> Self-host las fuentes o agregar banner de consentimiento.</p>
+</div>
+<div class="card card-high">
+  <h4>7. Sin enlace de unsubscribe en emails transaccionales</h4>
+  <p><strong>Solución:</strong> Agregar link de baja en todos los templates de email.</p>
+</div>
+<div class="card card-high">
+  <h4>8. <code>unsafe-inline</code> en CSP</h4>
+  <p><strong>Solución:</strong> Refactorización a largo plazo (archivos JS separados + nonces).</p>
+</div>
+<div class="card card-high">
+  <h4>9. Sin derecho de arrepentimiento (AR: 10 días, UE: 14 días)</h4>
+  <p><strong>Solución:</strong> Agregar cláusula en Términos y mostrar antes del pago.</p>
+</div>
+
+<h3>🟡 Riesgos Medios</h3>
+
+<div class="card card-medium">
+  <ul>
+    <li><strong>10.</strong> Cancelación solo manual, sin self-service</li>
+    <li><strong>11.</strong> PIN de 4 dígitos sin KDF (brute-force offline trivial)</li>
+    <li><strong>12.</strong> Rate limiting se desactiva si KV falla</li>
+    <li><strong>13.</strong> Sin SRI en scripts CDN externos</li>
+    <li><strong>14.</strong> Device ID persistente no documentado ni consentido</li>
+    <li><strong>15.</strong> <code>resetApp()</code> preserva datos sin informar al usuario</li>
+    <li><strong>16.</strong> Reembolso no visible antes del pago</li>
+    <li><strong>17.</strong> Contraste de colores insuficiente (WCAG)</li>
+    <li><strong>18.</strong> "Gratis para siempre" con infraestructura de paywall lista</li>
+  </ul>
+</div>
+
+<h3>🟢 Riesgos Bajos</h3>
+
+<div class="card card-low">
+  <ul>
+    <li><strong>19.</strong> Código de licencia en texto plano en localStorage</li>
+    <li><strong>20.</strong> Race condition en contadores KV</li>
+    <li><strong>21.</strong> Tokens en query string (GET /backup)</li>
+    <li><strong>22.</strong> Mockups sin disclaimer "ejemplo ilustrativo"</li>
+    <li><strong>23.</strong> Schema.org solo declara precio $0</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════ PUNTUACIÓN ═══════════════ -->
+<h2 id="puntuacion">Puntuación Final</h2>
+
+<div class="score-grid">
+  <div class="score-item">
+    <div class="score-label">Privacidad</div>
+    <div class="score-val" style="color:#e0c060">6<span style="font-size:16px;color:#6a6660">/10</span></div>
+    <div class="score-bar"><div class="score-fill" style="width:60%;background:linear-gradient(90deg,#e0c060,#e09060)"></div></div>
+  </div>
+  <div class="score-item">
+    <div class="score-label">Protección Legal</div>
+    <div class="score-val" style="color:#e07070">4<span style="font-size:16px;color:#6a6660">/10</span></div>
+    <div class="score-bar"><div class="score-fill" style="width:40%;background:linear-gradient(90deg,#e07070,#e09060)"></div></div>
+  </div>
+  <div class="score-item">
+    <div class="score-label">Protección de Datos</div>
+    <div class="score-val" style="color:#e09060">5<span style="font-size:16px;color:#6a6660">/10</span></div>
+    <div class="score-bar"><div class="score-fill" style="width:50%;background:linear-gradient(90deg,#e09060,#e0c060)"></div></div>
+  </div>
+  <div class="score-item">
+    <div class="score-label">Cumplimiento SaaS</div>
+    <div class="score-val" style="color:#e0c060">6<span style="font-size:16px;color:#6a6660">/10</span></div>
+    <div class="score-bar"><div class="score-fill" style="width:60%;background:linear-gradient(90deg,#e0c060,#e09060)"></div></div>
+  </div>
+  <div class="score-item">
+    <div class="score-label">Suscripciones</div>
+    <div class="score-val" style="color:#e09060">5<span style="font-size:16px;color:#6a6660">/10</span></div>
+    <div class="score-bar"><div class="score-fill" style="width:50%;background:linear-gradient(90deg,#e09060,#e0c060)"></div></div>
+  </div>
+  <div class="score-item">
+    <div class="score-label">Propiedad Intelectual</div>
+    <div class="score-val" style="color:#e07070">3<span style="font-size:16px;color:#6a6660">/10</span></div>
+    <div class="score-bar"><div class="score-fill" style="width:30%;background:linear-gradient(90deg,#e07070,#e07070)"></div></div>
+  </div>
+  <div class="score-item">
+    <div class="score-label">Marketing</div>
+    <div class="score-val" style="color:#e07070">4<span style="font-size:16px;color:#6a6660">/10</span></div>
+    <div class="score-bar"><div class="score-fill" style="width:40%;background:linear-gradient(90deg,#e07070,#e09060)"></div></div>
+  </div>
+  <div class="score-item">
+    <div class="score-label">Preparación Internacional</div>
+    <div class="score-val" style="color:#e07070">4<span style="font-size:16px;color:#6a6660">/10</span></div>
+    <div class="score-bar"><div class="score-fill" style="width:40%;background:linear-gradient(90deg,#e07070,#e09060)"></div></div>
+  </div>
+  <div class="score-item">
+    <div class="score-label">Protección General</div>
+    <div class="score-val" style="color:#e09060">5<span style="font-size:16px;color:#6a6660">/10</span></div>
+    <div class="score-bar"><div class="score-fill" style="width:50%;background:linear-gradient(90deg,#e09060,#e0c060)"></div></div>
+  </div>
+</div>
+
+<div class="avg-score">4.7</div>
+<div class="avg-label">PROMEDIO GENERAL / 10</div>
+
+<hr class="divider">
+
+<!-- ═══════════════ VEREDICTO ═══════════════ -->
+<h2 id="veredicto">Veredicto Final</h2>
+
+<div class="verdict-box">
+  <div class="verdict-q">1. ¿Lanzarías esta app mañana?</div>
+  <div class="verdict-a"><strong>No en el estado actual.</strong> Hay 3 issues críticos que deben resolverse antes del lanzamiento: corregir los emails contradictorios (1 hora de trabajo), agregar identificación legal del proveedor (30 minutos), y verificar/corregir el claim de "+340 revendedores" (5 minutos). Con esos 3 cambios, se puede lanzar.</div>
+
+  <div class="verdict-q">2. ¿Qué riesgos legales podrían generar problemas?</div>
+  <div class="verdict-a">
+    <ul>
+      <li><strong>Reclamo de consumidor</strong> por información contradictoria sobre renovación automática</li>
+      <li><strong>Sanción de autoridad de consumo</strong> (COPREC en Argentina, Defensa del Consumidor en Uruguay) por falta de identificación del proveedor</li>
+      <li><strong>Denuncia por publicidad engañosa</strong> si el social proof es fabricado</li>
+      <li><strong>Breach de datos sin cifrado</strong> que expone información de todos los usuarios</li>
+    </ul>
+  </div>
+
+  <div class="verdict-q">3. ¿Qué documentos faltan?</div>
+  <div class="verdict-a">
+    <ul>
+      <li>Identificación legal completa del proveedor (nombre, domicilio, RUT)</li>
+      <li>Política de cookies</li>
+      <li>Información de derecho de desistimiento/arrepentimiento</li>
+      <li>Plan de respuesta a incidentes</li>
+    </ul>
+  </div>
+
+  <div class="verdict-q">4. ¿Qué implementar ANTES del lanzamiento?</div>
+  <div class="verdict-a">
+    <ol>
+      <li><strong>Corregir emails</strong> de activación/renovación (eliminar "renovación automática")</li>
+      <li><strong>Agregar datos legales</strong> del proveedor en footer (nombre, domicilio, RUT)</li>
+      <li><strong>Verificar o eliminar</strong> el claim "+340 revendedores"</li>
+      <li><strong>Cambiar</strong> "La única app" por un claim no absoluto</li>
+      <li><strong>Mostrar política de reembolso</strong> antes del checkout</li>
+      <li><strong>Self-host Google Fonts</strong> (elimina riesgo GDPR)</li>
+      <li><strong>Agregar unsubscribe</strong> en emails transaccionales</li>
+    </ol>
+  </div>
+
+  <div class="verdict-q">5. ¿Qué haría una startup SaaS internacional para estar mejor protegida?</div>
+  <div class="verdict-a">
+    <ul>
+      <li>Constituir entidad jurídica formal (SAS en Uruguay o LLC en Delaware)</li>
+      <li>Registrar la marca "Parfum Track" en clases 9 y 42</li>
+      <li>Implementar cifrado end-to-end de backups (AES-GCM)</li>
+      <li>Contratar o designar un DPO</li>
+      <li>Implementar cancelación self-service en la app</li>
+      <li>Agregar banner de consentimiento de cookies/tracking</li>
+      <li>Crear página de Impressum/Aviso Legal</li>
+      <li>Documentar plan de respuesta a incidentes</li>
+      <li>Implementar SRI en todos los scripts CDN</li>
+    </ul>
+  </div>
+</div>
+
+<p style="text-align:center;color:#6a6660;font-size:12px;margin-top:40px">
+  Auditoría generada el 21/06/2026 — Parfum Track Legal Audit v1.0<br>
+  Los items 1-3 del punto 4 son bloqueantes para lanzamiento.
+</p>
+
+</div>
+</body>
+</html>
