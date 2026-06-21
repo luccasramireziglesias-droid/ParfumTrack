@@ -6595,29 +6595,35 @@
         },
         async set(key, value) {
           if (!this.db) return;
-          return new Promise((resolve) => {
-            const tx = this.db.transaction("data", "readwrite");
-            tx.objectStore("data").put(value, key);
-            tx.oncomplete = resolve;
-            tx.onerror = resolve;
+          return new Promise((resolve, reject) => {
+            try {
+              const tx = this.db.transaction("data", "readwrite");
+              tx.objectStore("data").put(value, key);
+              tx.oncomplete = resolve;
+              tx.onerror = () => { console.error("[PTDB] set failed:", key); reject(tx.error); };
+            } catch(e) { console.error("[PTDB] set error:", key, e); reject(e); }
           });
         },
         async delete(key) {
           if (!this.db) return;
-          return new Promise((resolve) => {
-            const tx = this.db.transaction("data", "readwrite");
-            tx.objectStore("data").delete(key);
-            tx.oncomplete = resolve;
-            tx.onerror = resolve;
+          return new Promise((resolve, reject) => {
+            try {
+              const tx = this.db.transaction("data", "readwrite");
+              tx.objectStore("data").delete(key);
+              tx.oncomplete = resolve;
+              tx.onerror = () => { console.error("[PTDB] delete failed:", key); reject(tx.error); };
+            } catch(e) { console.error("[PTDB] delete error:", key, e); reject(e); }
           });
         },
         async clear() {
           if (!this.db) return;
-          return new Promise((resolve) => {
-            const tx = this.db.transaction("data", "readwrite");
-            tx.objectStore("data").clear();
-            tx.oncomplete = resolve;
-            tx.onerror = resolve;
+          return new Promise((resolve, reject) => {
+            try {
+              const tx = this.db.transaction("data", "readwrite");
+              tx.objectStore("data").clear();
+              tx.oncomplete = resolve;
+              tx.onerror = () => { console.error("[PTDB] clear failed"); reject(tx.error); };
+            } catch(e) { console.error("[PTDB] clear error:", e); reject(e); }
           });
         },
       };
@@ -6685,14 +6691,22 @@
       let _saveRunning = false;
       let _savePendingRetry = false;
       function save(immediate) {
-        _clientesMapDirty = true; // invalidar cache de clientes
+        _clientesMapDirty = true;
         if (immediate) {
           _saveNow();
           return;
         }
+        _saveDirty = true;
         clearTimeout(_saveTimer);
         _saveTimer = setTimeout(_saveNow, 500);
       }
+      var _saveDirty = false;
+      document.addEventListener("visibilitychange", function() {
+        if (document.visibilityState === "hidden" && _saveDirty) _saveNow();
+      });
+      window.addEventListener("beforeunload", function() {
+        if (_saveDirty) _saveNow();
+      });
       async function _saveNow() {
         if (_saveRunning) {
           _savePendingRetry = true;
@@ -6700,6 +6714,7 @@
         }
         _saveRunning = true;
         _savePendingRetry = false;
+        _saveDirty = false;
         try {
           await Promise.all([
             PTDB.set(profileKey("vip_ventas_v2"), ventas),
@@ -7661,8 +7676,8 @@
           { l: "🏪 Proveedores", v: provsUnicos, s: "distintos" },
           {
             l: "💸 Gasto promedio",
-            v: fmt(totGast / (filtered.length || 1)),
-            s: "por venta",
+            v: fmt(totGast / (gastFilt.length || 1)),
+            s: "por gasto",
           },
         ]
           .map(
@@ -9279,7 +9294,7 @@
           activeMesCaja === "todos"
             ? caja
             : caja.filter((m) => mesKey(m.fecha) === activeMesCaja);
-        const saldo = caja.reduce(
+        const saldo = filtered.reduce(
           (s, m) => s + (m.tipo === "entrada" ? m.monto : -m.monto),
           0,
         );
@@ -10624,12 +10639,19 @@
             return;
           }
         }
+        const oldPerfume = v.perfume;
         v.perfume = perfume;
         v.precioVenta = pv;
         v.precioCompra = pc;
         v.ganancia = Math.round(pv - pc);
         v.cliente = cliente;
         v.nota = nota;
+        if (oldPerfume !== perfume) {
+          const oldP = perfumes.find((x) => x.nombre === oldPerfume);
+          if (oldP) oldP.stock = (oldP.stock || 0) + 1;
+          const newP = perfumes.find((x) => x.nombre === perfume);
+          if (newP && newP.stock > 0) newP.stock--;
+        }
         // Si es cuotas y cambió el precio, recalcular cuotas pendientes proporcionalmente
         if (v.esCuotas) {
           const pagado = (v.cuotasPagos || []).reduce((s, p) => s + p.monto, 0);
@@ -10874,7 +10896,6 @@
                 errores.push(`"${sn}": sin ventas válidas`);
                 continue;
               }
-              const anio = new Date().getFullYear();
               const miMap = {
                 ENERO: "01",
                 FEBRERO: "02",
@@ -10896,6 +10917,8 @@
                   break;
                 }
               }
+              const yearMatch = sn.match(/\b(20\d{2})\b/);
+              const anio = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
               filas.forEach((f, idx) => {
                 if (!f.fecha) f.fecha = `01/${mm}/${anio}`;
                 f.id = Date.now() * 1000 + Math.floor(Math.random() * 1000) + idx;
@@ -11041,6 +11064,7 @@
         if (!(await ensureXLSX())) {
           return;
         }
+        try {
         const wb2 = XLSX.utils.book_new();
         const porMes = {};
         ventas.forEach((v) => {
@@ -11243,6 +11267,7 @@
         XLSX.utils.book_append_sheet(wb2, wsCaj, "CAJA");
         XLSX.writeFile(wb2, `VIP_Parfums_${hoy().replace(/\//g, "-")}.xlsx`);
         toast("📥 Excel exportado en formato VIP");
+        } catch(e) { console.error("[exportExcel]", e); toast("⚠ Error al exportar Excel. Intentá de nuevo.", 3000); }
       }
       // Modal close on backdrop click + initial tab — moved to DOMContentLoaded
       // (see DOMContentLoaded handler below)
@@ -14271,28 +14296,38 @@
         const v = ventas.find((x) => x.id === pagoVentaId);
         if (!v) return;
         const monto = getMontoVenta();
+        if (!v.cuotasPagos) v.cuotasPagos = [];
+        v.cuotasPagos.push({ monto, fecha: hoy(), numCuota: v.cuotasPagos.length + 1, medio: "mercadopago" });
+        caja.push({ id: Date.now(), tipo: "entrada", monto, desc: `Cobro MercadoPago: ${v.perfume}${v.cliente ? " — " + v.cliente : ""}`, fecha: hoy() });
+        save();
+        updateStats();
+        renderVentas();
+        const resta = calcDebe(v);
         const alias = PAYMENT_CONFIG.mercadopago.alias;
         if (alias) {
-          // MP link with amount pre-filled
           const url = `https://link.mercadopago.com.ar/${alias}`;
-          // Copy amount to clipboard too
           navigator.clipboard?.writeText(String(monto)).catch(() => {});
           openLink(url);
-          toast(`💚 Abriendo MP · Monto copiado: ${fmt(monto)}`);
         } else {
-          // Fallback — copy amount and open MP
           navigator.clipboard?.writeText(String(monto)).catch(() => {});
           openLink("https://www.mercadopago.com.ar/");
-          toast(`💚 Monto copiado al portapapeles: ${fmt(monto)}
-      Configurá tu alias en Ajustes`);
         }
         closeModal("modal-pago");
+        toast(resta <= 0 ? `✅ Cobro completo: ${fmt(monto)}` : `💚 Cobrado ${fmt(monto)} vía MP · Resta: ${fmt(resta)}`);
       }
 
       function cobrarTransferencia() {
+        const v = ventas.find((x) => x.id === pagoVentaId);
+        if (!v) return;
         const monto = getMontoVenta();
         const cfg = PAYMENT_CONFIG.transferencia;
-        const v = ventas.find((x) => x.id === pagoVentaId);
+        if (!v.cuotasPagos) v.cuotasPagos = [];
+        v.cuotasPagos.push({ monto, fecha: hoy(), numCuota: v.cuotasPagos.length + 1, medio: "transferencia" });
+        caja.push({ id: Date.now(), tipo: "entrada", monto, desc: `Cobro transferencia: ${v.perfume}${v.cliente ? " — " + v.cliente : ""}`, fecha: hoy() });
+        save();
+        updateStats();
+        renderVentas();
+        const resta = calcDebe(v);
         const lines = [
           `💳 Datos de transferencia — Parfum Track`,
           ``,
@@ -14301,7 +14336,7 @@
           cfg.cbu ? `CBU/CVU: ${cfg.cbu}` : "",
           cfg.alias ? `Alias: ${cfg.alias}` : "",
           ``,
-          `Perfume: ${v?.perfume || ""}`,
+          `Perfume: ${v.perfume || ""}`,
           `Monto: ${fmt(monto)}`,
           ``,
           `_${getProfileName(activeProfile) || "Parfum Track"}_ 🍶`,
@@ -14311,20 +14346,17 @@
 
         navigator.clipboard
           ?.writeText(lines)
-          .then(() => {
-            toast("🏦 Datos copiados al portapapeles");
-          })
+          .then(() => {})
           .catch(() => {
-            // Fallback for mobile
             const el = document.createElement("textarea");
             el.value = lines;
             document.body.appendChild(el);
             el.select();
             document.execCommand("copy");
             document.body.removeChild(el);
-            toast("🏦 Datos copiados al portapapeles");
           });
         closeModal("modal-pago");
+        toast(resta <= 0 ? `✅ Cobro completo: ${fmt(monto)}` : `🏦 Cobrado ${fmt(monto)} vía transferencia · Resta: ${fmt(resta)}`);
       }
 
       function cobrarEfectivo() {
@@ -14415,7 +14447,7 @@
               });
             }
             // ── PIN SYSTEM — SHA-256, lockout, modal propio ──
-            (function () {
+            (async function () {
               var PIN_HASH_KEY = "pt_pin_hash"; // Guardamos el hash, nunca el PIN en claro
               var PIN_SALT_KEY = "pt_pin_salt"; // Salt aleatorio por usuario (32 hex chars)
               var PIN_LOCK_KEY = "pt_pin_lockout";
@@ -14537,7 +14569,7 @@
                   buf = buf.slice(0, -1);
                   updateDots("pin-dots");
                 } else if (val === "ok") {
-                  if (buf.length > 0) tryUnlock();
+                  if (buf.length > 0) tryUnlock().catch(function(e) { console.error("[PIN]", e); });
                 } else if (buf.length < 4) {
                   buf += val;
                   updateDots("pin-dots");
@@ -14563,7 +14595,7 @@
                   if (screen) screen.style.display = "none";
                   buf = "";
                   updateDots("pin-dots");
-                  enterAppAfterPin();
+                  await enterAppAfterPin();
                 } else {
                   var fails = recordFail();
                   buf = "";
@@ -14808,13 +14840,12 @@
                   updateDots("pin-dots");
                 }
               } else {
-                // Sin PIN configurado → entrar directo
-                enterAppAfterPin();
+                await enterAppAfterPin();
               }
 
               // Compatibilidad: exponer cambiarPin por si algún otro código lo llama
               window.cambiarPin = window.abrirSetupPin;
-            })();
+            })().catch(function(e) { console.error("[PIN init]", e); });
           })
           .catch(function (err) {
             console.error("[PT] _appDataReady rejected:", err);
