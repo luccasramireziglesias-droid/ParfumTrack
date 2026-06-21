@@ -9,4 +9,5 @@ inservible/
 worker.js
 wrangler.jsonc
 netlify.toml
+standalone/
 *.log
