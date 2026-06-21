@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.parfumtrack.app",
+      "sha256_cert_fingerprints": [
+        "2B:E7:52:D7:91:42:D4:04:16:8F:D6:E0:85:07:0C:91:C7:AC:7D:91:FE:D6:79:28:B3:FE:F5:3F:5F:4C:70:7A"
+      ]
+    }
+  }
+]
