@@ -3,9 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tu negocio bajo control — Parfum Track</title>
+<title>Parfum Track — Tu negocio de perfumes, bajo control</title>
+<meta name="description" content="La plataforma que organiza tus ventas, cuotas, stock y ganancia desde el celular.">
+<link rel="icon" href="/icon-192.png">
 <style>
 @import url('/fonts/fonts.css');
+
+/* ========== RESET & BASE ========== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
   --bg: #0f0f1a;
@@ -16,526 +21,909 @@
   --gold3: #f5dfa0;
   --text: #f0ece4;
   --text2: #a8a49c;
-  --text3: #6b6660;
   --green: #70c9a0;
   --red: #e07070;
-  --border: rgba(201,168,76,0.12);
+  --font-heading: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
 html {
-  scroll-behavior: smooth;
   scroll-snap-type: y mandatory;
-  overflow-y: scroll;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  background: var(--bg);
 }
 
 body {
-  font-family: 'DM Sans', system-ui, sans-serif;
-  background: var(--bg);
+  font-family: var(--font-body);
   color: var(--text);
+  background: var(--bg);
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* ========== SLIDE BASE ========== */
 .slide {
   min-height: 100vh;
+  width: 100%;
+  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 40px;
-  scroll-snap-align: start;
+  padding: 60px 24px;
   position: relative;
   overflow: hidden;
 }
 
-/* ── Typography ── */
-.eyebrow {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 3.5px;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 24px;
-}
-
-.slide h2 {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: clamp(34px, 5.5vw, 60px);
-  font-weight: 700;
-  line-height: 1.12;
-  margin-bottom: 24px;
-  max-width: 780px;
-  text-align: center;
-}
-
-.slide h2 em {
-  font-style: italic;
-  background: linear-gradient(135deg, var(--gold), var(--gold2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.slide-body {
-  font-size: clamp(16px, 2vw, 20px);
-  color: var(--text2);
-  max-width: 600px;
-  text-align: center;
-  line-height: 1.7;
-}
-
-.slide-num {
-  position: absolute;
-  top: 28px;
-  left: 40px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: rgba(201,168,76,0.2);
-}
-
-.scroll-hint {
-  position: absolute;
-  bottom: 28px;
-  font-size: 13px;
-  color: var(--text2);
-  opacity: 0.5;
-  animation: bounce 2.5s ease infinite;
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(8px); }
-}
-
-/* ═══════════════════════════════
-   SLIDE 1 — HOOK
-═══════════════════════════════ */
-.slide-hook {
-  background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
-  text-align: center;
-}
-
-.hook-question {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: clamp(38px, 6vw, 72px);
-  font-weight: 700;
-  line-height: 1.1;
-  margin-bottom: 32px;
-  max-width: 700px;
-}
-
-.hook-question em {
-  font-style: italic;
-  background: linear-gradient(135deg, var(--gold), var(--gold2), var(--gold3));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ═══════════════════════════════
-   SLIDE 2 — DAILY REALITY
-═══════════════════════════════ */
-.slide-reality { background: var(--bg2); }
-
-.reality-list {
-  list-style: none;
-  max-width: 620px;
+.slide-inner {
+  max-width: 1100px;
   width: 100%;
-  margin-top: 16px;
-}
-
-.reality-list li {
-  font-size: clamp(16px, 2vw, 19px);
-  padding: 18px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  color: var(--text2);
-  line-height: 1.6;
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-}
-
-.reality-list li:last-child { border-bottom: none; }
-
-.reality-list .li-marker {
-  color: var(--red);
-  font-size: 18px;
-  flex-shrink: 0;
-  margin-top: 2px;
-  opacity: 0.8;
-}
-
-/* ═══════════════════════════════
-   SLIDE 3 — IMAGINE
-═══════════════════════════════ */
-.slide-imagine { background: var(--bg); }
-
-.imagine-list {
-  list-style: none;
-  max-width: 620px;
-  width: 100%;
-  margin-top: 16px;
-}
-
-.imagine-list li {
-  font-size: clamp(16px, 2vw, 19px);
-  padding: 18px 0;
-  border-bottom: 1px solid rgba(201,168,76,0.08);
-  color: var(--text);
-  line-height: 1.6;
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-}
-
-.imagine-list li:last-child { border-bottom: none; }
-
-.imagine-list .li-marker {
-  color: var(--green);
-  font-size: 18px;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-/* ═══════════════════════════════
-   SLIDE 4 — CONTROL
-═══════════════════════════════ */
-.slide-control { background: var(--bg2); }
-
-.control-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
-  max-width: 880px;
-  width: 100%;
-  margin-top: 16px;
-}
-
-.control-card {
-  background: rgba(30,30,53,0.6);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 32px 26px;
-  text-align: left;
-}
-
-.control-card h3 {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--gold2);
-  margin-bottom: 10px;
-}
-
-.control-card p {
-  font-size: 15px;
-  color: var(--text2);
-  line-height: 1.6;
-}
-
-/* ═══════════════════════════════
-   SLIDE 5 — TIME
-═══════════════════════════════ */
-.slide-time { background: var(--bg); }
-
-.time-comparison {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 32px;
-  align-items: center;
-  max-width: 800px;
-  width: 100%;
-  margin-top: 20px;
 }
 
-.time-col {
-  text-align: center;
-  padding: 32px 24px;
-  border-radius: 18px;
+/* ========== TYPOGRAPHY ========== */
+h1, h2, h3 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
-.time-col.before {
-  background: rgba(224,112,112,0.06);
-  border: 1px solid rgba(224,112,112,0.12);
+h1 { font-size: clamp(2.4rem, 5vw, 4rem); }
+h2 { font-size: clamp(1.8rem, 4vw, 3rem); }
+h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); }
+
+.subtitle {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: var(--text2);
+  max-width: 640px;
+  line-height: 1.7;
 }
 
-.time-col.after {
-  background: rgba(112,201,160,0.06);
-  border: 1px solid rgba(112,201,160,0.12);
-}
+.gold { color: var(--gold); }
+.gold2 { color: var(--gold2); }
+.gold3 { color: var(--gold3); }
+.green { color: var(--green); }
+.red { color: var(--red); }
 
-.time-col h3 {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 2px;
+.label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  margin-bottom: 20px;
-}
-
-.time-col.before h3 { color: var(--red); }
-.time-col.after h3 { color: var(--green); }
-
-.time-number {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 52px;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.time-col.before .time-number { color: var(--red); }
-.time-col.after .time-number { color: var(--green); }
-
-.time-label {
-  font-size: 14px;
-  color: var(--text2);
-  line-height: 1.5;
-}
-
-.time-arrow {
-  font-size: 32px;
   color: var(--gold);
-  opacity: 0.6;
+  margin-bottom: -16px;
 }
 
-.time-footer {
-  margin-top: 36px;
-  font-size: 17px;
+/* ========== DECORATIVE ========== */
+.slide::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent);
+}
+
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.glow-gold {
+  background: var(--gold);
+  width: 400px;
+  height: 400px;
+}
+
+/* ========== CARDS ========== */
+.cards {
+  display: grid;
+  gap: 20px;
+  width: 100%;
+}
+
+.cards-2 { grid-template-columns: repeat(2, 1fr); }
+.cards-3 { grid-template-columns: repeat(3, 1fr); }
+.cards-4 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+.card {
+  background: var(--card);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: 16px;
+  padding: 28px 24px;
+  text-align: left;
+  transition: border-color 0.3s, transform 0.3s;
+}
+
+.card:hover {
+  border-color: rgba(201,168,76,0.3);
+  transform: translateY(-2px);
+}
+
+.card h3 {
+  margin-bottom: 8px;
+  font-size: 1.2rem;
+}
+
+.card p {
   color: var(--text2);
-  text-align: center;
-  max-width: 500px;
+  font-size: 0.92rem;
   line-height: 1.6;
 }
 
-.time-footer strong {
-  color: var(--gold2);
-}
-
-/* ═══════════════════════════════
-   SLIDE 6 — PROFIT CLARITY
-═══════════════════════════════ */
-.slide-profit { background: var(--bg2); }
-
-.profit-story {
-  max-width: 640px;
-  width: 100%;
-  margin-top: 20px;
-}
-
-.profit-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  padding: 20px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-}
-
-.profit-step:last-child { border-bottom: none; }
-
-.step-num {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold), var(--gold2));
-  color: #1a1400;
-  font-size: 14px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.profit-step h3 {
-  font-size: 17px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.profit-step p {
-  font-size: 15px;
-  color: var(--text2);
-  line-height: 1.5;
-}
-
-/* ═══════════════════════════════
-   SLIDE 7 — COBROS + WA IMAGE
-═══════════════════════════════ */
-.slide-cobros { background: var(--bg); }
-
-.cobros-row {
-  display: flex;
-  align-items: center;
-  gap: 56px;
-  max-width: 920px;
-  width: 100%;
-}
-
-.cobros-text { flex: 1; }
-
-.cobros-text h2 {
-  text-align: left;
-  margin-bottom: 20px;
-}
-
-.cobros-text p {
-  font-size: 17px;
-  color: var(--text2);
-  line-height: 1.7;
-  margin-bottom: 8px;
-}
-
-.cobros-text .highlight-line {
-  font-size: 16px;
-  color: var(--green);
-  font-weight: 600;
-  margin-top: 16px;
-}
-
-.cobros-img {
-  flex: 0 0 280px;
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.12);
-}
-
-.cobros-img img {
-  width: 100%;
-  height: auto;
+.card-icon {
+  font-size: 1.8rem;
+  margin-bottom: 12px;
   display: block;
 }
 
-/* ═══════════════════════════════
-   SLIDE 8 — GROWTH
-═══════════════════════════════ */
-.slide-growth { background: var(--bg2); }
+/* ========== PHONE MOCKUP ========== */
+.phone-mockup {
+  width: 280px;
+  border-radius: 32px;
+  border: 3px solid rgba(201,168,76,0.3);
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.1);
+  flex-shrink: 0;
+}
 
-.growth-pillars {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 28px;
-  max-width: 800px;
+.phone-mockup img {
   width: 100%;
-  margin-top: 20px;
+  display: block;
 }
 
-.pillar {
-  text-align: center;
-  padding: 28px 20px;
-}
-
-.pillar-icon {
-  font-size: 44px;
-  margin-bottom: 18px;
-}
-
-.pillar h3 {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--gold2);
-  margin-bottom: 10px;
-}
-
-.pillar p {
-  font-size: 14px;
-  color: var(--text2);
-  line-height: 1.6;
-}
-
-/* ═══════════════════════════════
-   SLIDE 9 — CLOSE
-═══════════════════════════════ */
-.slide-close {
-  background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
-  text-align: center;
-}
-
-.close-phrase {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: clamp(28px, 4vw, 44px);
-  font-weight: 600;
-  color: var(--text2);
-  max-width: 600px;
-  line-height: 1.5;
-  margin-bottom: 48px;
-  font-style: italic;
-}
-
-.close-phrase strong {
-  color: var(--gold2);
-  font-weight: 700;
-}
-
-.logo-mark {
-  width: 64px;
-  height: 64px;
+.phone-whatsapp {
+  width: 320px;
   border-radius: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 24px rgba(201,168,76,0.2);
+  border: 2px solid rgba(201,168,76,0.2);
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
 }
 
-.close-name {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 28px;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--gold), var(--gold2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 8px;
+.phone-whatsapp img {
+  width: 100%;
+  display: block;
 }
 
-.close-tagline {
-  font-size: 15px;
-  color: var(--text2);
-  margin-bottom: 32px;
+/* ========== LOGO ========== */
+.logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
 }
 
-.cta-btn {
+.logo-lg {
+  width: 96px;
+  height: 96px;
+  border-radius: 22px;
+}
+
+/* ========== BUTTONS ========== */
+.btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 15px 36px;
-  border-radius: 50px;
-  border: none;
-  background: linear-gradient(135deg, var(--gold), var(--gold2));
-  color: #1a1400;
-  font-size: 16px;
-  font-weight: 700;
-  font-family: inherit;
+  padding: 16px 40px;
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 600;
   text-decoration: none;
-  box-shadow: 0 4px 24px rgba(201,168,76,0.3);
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   cursor: pointer;
+  border: none;
 }
 
-.cta-btn:hover {
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #0f0f1a;
+  box-shadow: 0 4px 24px rgba(201,168,76,0.3);
+}
+
+.btn-gold:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 32px rgba(201,168,76,0.45);
 }
 
-.contact-line {
-  margin-top: 32px;
-  font-size: 13px;
-  color: var(--text3);
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid rgba(201,168,76,0.4);
+  color: var(--gold2);
 }
 
-.contact-line a {
+.btn-outline:hover {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.08);
+}
+
+/* ========== STEPS ========== */
+.steps {
+  display: flex;
+  gap: 40px;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.step {
+  flex: 1;
+  min-width: 220px;
+  max-width: 300px;
+  text-align: center;
+}
+
+.step-num {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #0f0f1a;
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.step h3 {
+  margin-bottom: 8px;
+}
+
+.step p {
   color: var(--text2);
-  text-decoration: none;
+  font-size: 0.92rem;
 }
 
-/* ── Nav dots ── */
+/* ========== COMPARISON TABLE ========== */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.compare-table th,
+.compare-table td {
+  padding: 14px 16px;
+  text-align: center;
+  border-bottom: 1px solid rgba(201,168,76,0.08);
+}
+
+.compare-table th {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding-bottom: 20px;
+}
+
+.compare-table td:first-child {
+  text-align: left;
+  color: var(--text2);
+  font-weight: 500;
+}
+
+.compare-table .col-highlight {
+  background: rgba(201,168,76,0.06);
+  border-left: 1px solid rgba(201,168,76,0.15);
+  border-right: 1px solid rgba(201,168,76,0.15);
+}
+
+.compare-table .col-highlight-head {
+  background: rgba(201,168,76,0.1);
+  color: var(--gold);
+  border-left: 1px solid rgba(201,168,76,0.15);
+  border-right: 1px solid rgba(201,168,76,0.15);
+  border-top: 2px solid var(--gold);
+  border-radius: 8px 8px 0 0;
+}
+
+.check { color: var(--green); }
+.cross { color: var(--red); opacity: 0.7; }
+.mid { color: var(--gold3); }
+
+/* ========== TIMELINE ========== */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  max-width: 600px;
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 24px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--gold), rgba(201,168,76,0.1));
+}
+
+.timeline-item {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 20px 0;
+  position: relative;
+}
+
+.timeline-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex-shrink: 0;
+  margin-top: 6px;
+  margin-left: 19px;
+  box-shadow: 0 0 12px rgba(201,168,76,0.4);
+}
+
+.timeline-content {
+  text-align: left;
+}
+
+.timeline-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+
+.timeline-content p {
+  color: var(--text2);
+  font-size: 0.95rem;
+}
+
+/* ========== PRICING ========== */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+
+.pricing-card {
+  background: var(--card);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: 20px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.pricing-card.featured {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, rgba(201,168,76,0.08), var(--card));
+  transform: scale(1.03);
+  box-shadow: 0 8px 40px rgba(201,168,76,0.15);
+}
+
+.pricing-name {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.pricing-price {
+  font-family: var(--font-heading);
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--gold);
+  margin: 12px 0;
+}
+
+.pricing-price span {
+  font-size: 1rem;
+  color: var(--text2);
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+.pricing-features {
+  list-style: none;
+  text-align: left;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--text2);
+}
+
+.pricing-features li::before {
+  content: '\2713';
+  color: var(--green);
+  font-weight: 700;
+  margin-right: 10px;
+}
+
+.pricing-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #0f0f1a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+/* ========== FAQ ========== */
+.faq-list {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.faq-item {
+  border-bottom: 1px solid rgba(201,168,76,0.1);
+}
+
+.faq-question {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+  padding: 20px 0;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  transition: color 0.2s;
+}
+
+.faq-question:hover {
+  color: var(--gold2);
+}
+
+.faq-chevron {
+  font-size: 0.8rem;
+  color: var(--gold);
+  transition: transform 0.3s;
+  flex-shrink: 0;
+}
+
+.faq-item.open .faq-chevron {
+  transform: rotate(180deg);
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.35s ease;
+  color: var(--text2);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.faq-item.open .faq-answer {
+  max-height: 200px;
+  padding-bottom: 20px;
+}
+
+/* ========== FEATURES GRID ========== */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+.feature-item {
+  background: var(--card);
+  border: 1px solid rgba(201,168,76,0.08);
+  border-radius: 14px;
+  padding: 24px 18px;
+  text-align: left;
+  transition: border-color 0.3s;
+}
+
+.feature-item:hover {
+  border-color: rgba(201,168,76,0.25);
+}
+
+.feature-icon {
+  font-size: 1.6rem;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.feature-item h3 {
+  font-size: 1rem;
+  margin-bottom: 6px;
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.feature-item p {
+  color: var(--text2);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+/* ========== STATS ROW ========== */
+.stats-row {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-num {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--text2);
+  margin-top: 6px;
+}
+
+/* ========== COLUMNS ========== */
+.cols {
+  display: flex;
+  gap: 48px;
+  width: 100%;
+  align-items: center;
+}
+
+.cols-reverse {
+  flex-direction: row-reverse;
+}
+
+.col-text {
+  flex: 1;
+  text-align: left;
+}
+
+.col-visual {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+}
+
+.col-text h2 {
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.col-text p {
+  color: var(--text2);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.col-text ul {
+  list-style: none;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.col-text ul li {
+  font-size: 0.92rem;
+  color: var(--text2);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.col-text ul li::before {
+  content: '\25C8';
+  color: var(--gold);
+  font-size: 0.7rem;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+/* ========== ROADMAP ========== */
+.roadmap-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 700px;
+}
+
+.roadmap-item {
+  background: var(--card);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: 14px;
+  padding: 22px 20px;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.roadmap-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.roadmap-item h3 {
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.roadmap-item p {
+  font-size: 0.82rem;
+  color: var(--text2);
+}
+
+.coming-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  background: rgba(201,168,76,0.12);
+  padding: 3px 10px;
+  border-radius: 6px;
+  margin-left: 8px;
+}
+
+/* ========== FLOW STEPS ========== */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.flow-step {
+  background: var(--card);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 12px;
+  padding: 14px 22px;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.flow-arrow {
+  color: var(--gold);
+  font-size: 1.2rem;
+}
+
+/* ========== PERSONAS ========== */
+.persona-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+
+.persona-card {
+  background: var(--card);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: 18px;
+  padding: 30px 24px;
+  text-align: left;
+  transition: border-color 0.3s;
+}
+
+.persona-card:hover {
+  border-color: rgba(201,168,76,0.25);
+}
+
+.persona-emoji {
+  font-size: 2rem;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.persona-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  color: var(--gold2);
+}
+
+.persona-card p {
+  color: var(--text2);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+/* ========== COST COLUMNS ========== */
+.cost-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+}
+
+.cost-col {
+  background: var(--card);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: 18px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.cost-icon {
+  font-size: 2.2rem;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.cost-stat {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--red);
+  margin-bottom: 8px;
+}
+
+.cost-col h3 {
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.cost-col p {
+  color: var(--text2);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+/* ========== BENEFITS GRID ========== */
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+.benefit-card {
+  background: var(--card);
+  border: 1px solid rgba(201,168,76,0.08);
+  border-radius: 16px;
+  padding: 26px 22px;
+  text-align: left;
+  transition: border-color 0.3s;
+}
+
+.benefit-card:hover {
+  border-color: rgba(201,168,76,0.22);
+}
+
+.benefit-icon {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.benefit-card h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.benefit-card p {
+  color: var(--text2);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* ========== DEVICES ========== */
+.devices-row {
+  display: flex;
+  gap: 40px;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.device-desktop {
+  width: 380px;
+  height: 240px;
+  background: var(--card);
+  border: 2px solid rgba(201,168,76,0.2);
+  border-radius: 12px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.device-desktop::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 20px;
+  background: rgba(201,168,76,0.1);
+  border-radius: 0 0 8px 8px;
+}
+
+.device-desktop img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.device-phone {
+  width: 140px;
+  height: 260px;
+  background: var(--card);
+  border: 2px solid rgba(201,168,76,0.2);
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.device-phone::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  width: 40px;
+  height: 4px;
+  background: rgba(201,168,76,0.15);
+  border-radius: 4px;
+  z-index: 2;
+}
+
+.device-phone img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ========== NAVIGATION DOTS ========== */
 .nav-dots {
   position: fixed;
-  right: 24px;
+  right: 20px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   z-index: 100;
 }
 
@@ -544,294 +932,1054 @@ body {
   height: 8px;
   border-radius: 50%;
   background: rgba(201,168,76,0.2);
-  border: none;
   cursor: pointer;
   transition: all 0.3s;
+  border: none;
   padding: 0;
 }
 
-.nav-dot.active, .nav-dot:hover {
+.nav-dot.active {
   background: var(--gold);
-  transform: scale(1.4);
+  box-shadow: 0 0 8px rgba(201,168,76,0.4);
+  transform: scale(1.3);
 }
 
-/* ── Responsive ── */
-@media (max-width: 768px) {
-  .slide { padding: 48px 24px; }
-  .cobros-row { flex-direction: column; gap: 32px; }
-  .cobros-text h2 { text-align: center; }
-  .cobros-img { flex: none; max-width: 260px; margin: 0 auto; }
-  .time-comparison { grid-template-columns: 1fr; gap: 16px; }
-  .time-arrow { transform: rotate(90deg); justify-self: center; }
-  .growth-pillars { grid-template-columns: 1fr; }
+.nav-dot:hover {
+  background: rgba(201,168,76,0.5);
+}
+
+/* ========== SLIDE COUNTER ========== */
+.slide-counter {
+  position: fixed;
+  top: 20px;
+  left: 24px;
+  font-size: 0.75rem;
+  color: rgba(201,168,76,0.35);
+  font-weight: 500;
+  z-index: 100;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ========== TRUST LINE ========== */
+.trust-line {
+  font-size: 0.9rem;
+  color: var(--text2);
+  letter-spacing: 0.02em;
+}
+
+.trust-line .sep {
+  margin: 0 10px;
+  color: rgba(201,168,76,0.3);
+}
+
+/* ========== DIVIDER ========== */
+.divider-gold {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), var(--gold2));
+  border-radius: 2px;
+  margin: 0 auto;
+}
+
+/* ========== ALTERNATING BG ========== */
+.slide-alt {
+  background: var(--bg2);
+}
+
+/* ========== SCROLL REVEAL ========== */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ========== INCOME/EXPENSE VISUAL ========== */
+.balance-circle {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.balance-label {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.balance-sub {
+  font-size: 0.85rem;
+  color: var(--text2);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 900px) {
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+  .pricing-card.featured { transform: scale(1); }
+  .persona-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+  .cost-cols { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+  .benefits-grid { grid-template-columns: repeat(2, 1fr); }
+  .roadmap-grid { grid-template-columns: 1fr; }
+  .compare-table { font-size: 0.8rem; }
+  .compare-table th, .compare-table td { padding: 10px 8px; }
+  .cols, .cols-reverse { flex-direction: column; gap: 32px; }
+  .col-text h2 { text-align: center; }
+  .col-text { text-align: center; }
+  .col-text ul li { justify-content: center; }
+  .devices-row { flex-direction: column; align-items: center; gap: 20px; }
+  .device-desktop { width: 300px; height: 190px; }
+}
+
+@media (max-width: 600px) {
+  .slide { padding: 40px 16px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .benefits-grid { grid-template-columns: 1fr; }
+  .cards-2, .cards-3 { grid-template-columns: 1fr; }
   .nav-dots { display: none; }
-  .slide-num { left: 24px; top: 20px; }
+  .flow { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  .phone-mockup { width: 220px; }
+  .phone-whatsapp { width: 260px; }
+  .stats-row { gap: 24px; }
+  .stat-num { font-size: 2rem; }
 }
 </style>
 </head>
 <body>
 
-<!-- ══════ 1. HOOK ══════ -->
-<div class="slide slide-hook" id="s1">
-  <span class="slide-num">01</span>
-  <div class="eyebrow">Para revendedores de perfumes</div>
-  <div class="hook-question">
-    ¿Cuánto ganaste<br><em>este mes?</em>
-  </div>
-  <p class="slide-body">
-    Si para responder necesitás un cuaderno, una calculadora y dos horas libres... el problema no sos vos. Es cómo estás llevando tu negocio.
-  </p>
-  <div class="scroll-hint">▼ Deslizá</div>
-</div>
+<!-- ==================== NAVIGATION ==================== -->
+<nav class="nav-dots" id="navDots" aria-label="Navegacion por diapositivas"></nav>
+<div class="slide-counter" id="slideCounter">01 / 25</div>
 
-<!-- ══════ 2. DAILY REALITY ══════ -->
-<div class="slide slide-reality" id="s2">
-  <span class="slide-num">02</span>
-  <div class="eyebrow">La realidad de cada día</div>
-  <h2>Suena familiar, <em>¿no?</em></h2>
-  <ul class="reality-list">
-    <li>
-      <span class="li-marker">✗</span>
-      <span>Vendés mucho, pero a fin de mes no sabés si realmente ganaste o solo moviste plata.</span>
-    </li>
-    <li>
-      <span class="li-marker">✗</span>
-      <span>Tres clientes te deben cuotas. No recordás cuánto, ni desde cuándo. Te da cosa reclamar.</span>
-    </li>
-    <li>
-      <span class="li-marker">✗</span>
-      <span>Anotás en un cuaderno, en un Excel, en notas del celular... y al final no encontrás nada.</span>
-    </li>
-    <li>
-      <span class="li-marker">✗</span>
-      <span>No sabés qué perfumes tenés en stock, cuáles se venden más, ni cuándo reponer.</span>
-    </li>
-    <li>
-      <span class="li-marker">✗</span>
-      <span>Dedicás horas a hacer cuentas que deberían tardar segundos.</span>
-    </li>
-  </ul>
-</div>
-
-<!-- ══════ 3. IMAGINE ══════ -->
-<div class="slide slide-imagine" id="s3">
-  <span class="slide-num">03</span>
-  <div class="eyebrow">Ahora imaginá esto</div>
-  <h2>Cada día, <em>sabés exactamente</em> dónde estás</h2>
-  <ul class="imagine-list">
-    <li>
-      <span class="li-marker">✓</span>
-      <span>Registrás una venta en 10 segundos. La ganancia se calcula sola.</span>
-    </li>
-    <li>
-      <span class="li-marker">✓</span>
-      <span>Sabés quién te debe, cuánto y desde cuándo — sin revisar cuadernos.</span>
-    </li>
-    <li>
-      <span class="li-marker">✓</span>
-      <span>El stock se actualiza con cada venta. Siempre sabés qué tenés.</span>
-    </li>
-    <li>
-      <span class="li-marker">✓</span>
-      <span>A fin de mes abrís tu celular y ahí está: tu ganancia real, exacta, sin adivinar.</span>
-    </li>
-    <li>
-      <span class="li-marker">✓</span>
-      <span>Dedicás tu tiempo a vender, no a hacer cuentas.</span>
-    </li>
-  </ul>
-</div>
-
-<!-- ══════ 4. CONTROL ══════ -->
-<div class="slide slide-control" id="s4">
-  <span class="slide-num">04</span>
-  <div class="eyebrow">Control total</div>
-  <h2>Tu negocio entero, <em>en la palma de tu mano</em></h2>
-  <div class="control-grid">
-    <div class="control-card">
-      <h3>Ventas</h3>
-      <p>Cada venta queda registrada con fecha, producto, cliente, precio de compra y de venta. Tu historial completo, siempre disponible.</p>
-    </div>
-    <div class="control-card">
-      <h3>Clientes y cuotas</h3>
-      <p>Sabés quién te compró, quién te debe y cuántas cuotas faltan. Sin anotar en papelitos que se pierden.</p>
-    </div>
-    <div class="control-card">
-      <h3>Stock</h3>
-      <p>Se actualiza con cada venta. Sabés qué tenés disponible, qué se agotó y qué necesitás reponer.</p>
-    </div>
-    <div class="control-card">
-      <h3>Ganancia real</h3>
-      <p>No "más o menos" ni "creo que gané". Tu margen exacto, tu ticket promedio, tu mejor día — números reales.</p>
-    </div>
-    <div class="control-card">
-      <h3>Gastos y caja</h3>
-      <p>Registrá los gastos de tu negocio y tené un flujo de caja real. Sabé si estás ganando o perdiendo de verdad.</p>
-    </div>
-    <div class="control-card">
-      <h3>Todo sin internet</h3>
-      <p>Estés donde estés — en una feria, en la calle, en tu casa — tu negocio está ahí, sin depender de la señal.</p>
+<!-- ==================== SLIDE 1 — PORTADA ==================== -->
+<section class="slide" id="s1">
+  <div class="glow-orb glow-gold" style="top: -100px; left: 50%; transform: translateX(-50%);"></div>
+  <div class="slide-inner reveal">
+    <img src="/icon-192.png" alt="Parfum Track" class="logo-lg">
+    <h1>Tu negocio de perfumes,<br><span class="gold">bajo control.</span></h1>
+    <p class="subtitle">La plataforma que organiza tus ventas, cuotas, stock y ganancia &mdash; desde el celular.</p>
+    <div style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 8px;">
+      <a href="/index.html" class="btn btn-gold">Probar gratis</a>
+      <a href="#s2" class="btn btn-outline">Conocer mas</a>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ══════ 5. TIME ══════ -->
-<div class="slide slide-time" id="s5">
-  <span class="slide-num">05</span>
-  <div class="eyebrow">Tu tiempo vale</div>
-  <h2>Dejá de hacer cuentas.<br><em>Dedicate a vender.</em></h2>
-  <div class="time-comparison">
-    <div class="time-col before">
-      <h3>Antes</h3>
-      <div class="time-number">2h+</div>
-      <div class="time-label">por semana haciendo cuentas,<br>revisando cuadernos,<br>buscando datos</div>
-    </div>
-    <div class="time-arrow">→</div>
-    <div class="time-col after">
-      <h3>Ahora</h3>
-      <div class="time-number">10s</div>
-      <div class="time-label">por venta registrada.<br>El resto se calcula solo.<br>Vos vendés.</div>
-    </div>
+<!-- ==================== SLIDE 2 — EL PROBLEMA ==================== -->
+<section class="slide slide-alt" id="s2">
+  <div class="slide-inner reveal">
+    <p class="label">El problema</p>
+    <h2>&laquo;Cuanto ganaste este mes?&raquo;</h2>
+    <div class="divider-gold"></div>
+    <p class="subtitle">Si para responder esa pregunta necesitas un cuaderno, una calculadora y dos horas... el problema no sos vos.<br><br><strong class="gold2">Es que no tenes las herramientas correctas.</strong></p>
   </div>
-  <p class="time-footer">
-    Esas 2 horas semanales son <strong>más de 100 horas al año</strong> que podrías dedicar a vender, a tus clientes, o a lo que quieras.
-  </p>
-</div>
+</section>
 
-<!-- ══════ 6. PROFIT ══════ -->
-<div class="slide slide-profit" id="s6">
-  <span class="slide-num">06</span>
-  <div class="eyebrow">Claridad financiera</div>
-  <h2>Sabé cuánto ganás.<br><em>De verdad.</em></h2>
-  <div class="profit-story">
-    <div class="profit-step">
-      <div class="step-num">1</div>
-      <div>
-        <h3>Registrás la venta</h3>
-        <p>Precio de compra, precio de venta, medio de pago. 10 segundos.</p>
+<!-- ==================== SLIDE 3 — CONSECUENCIAS ==================== -->
+<section class="slide" id="s3">
+  <div class="slide-inner reveal">
+    <p class="label">Consecuencias</p>
+    <h2>Lo que pasa cuando tu negocio<br>crece <span class="red">sin un sistema</span></h2>
+    <div class="cards cards-4" style="margin-top: 12px;">
+      <div class="card">
+        <span class="card-icon">&#x1F4C9;</span>
+        <h3>Ventas sin registrar</h3>
+        <p>Vendiste, pero no sabes cuanto ganaste. Cada venta sin registrar es plata que se pierde de vista.</p>
       </div>
-    </div>
-    <div class="profit-step">
-      <div class="step-num">2</div>
-      <div>
-        <h3>Tu ganancia aparece al instante</h3>
-        <p>Cuánto ganaste hoy, esta semana, este mes. Sin calculadora, sin dudas.</p>
+      <div class="card">
+        <span class="card-icon">&#x1F4AD;</span>
+        <h3>Cuotas olvidadas</h3>
+        <p>Te deben plata, pero no recordas cuanto, ni quien, ni desde cuando. El cuaderno no te avisa.</p>
       </div>
-    </div>
-    <div class="profit-step">
-      <div class="step-num">3</div>
-      <div>
-        <h3>Ves tus números reales</h3>
-        <p>Margen de ganancia, ticket promedio, mejor día de venta, producto más vendido.</p>
+      <div class="card">
+        <span class="card-icon">&#x1F4E6;</span>
+        <h3>Stock descontrolado</h3>
+        <p>No sabes cuantas unidades te quedan de cada perfume. Cuando un cliente pide, improvisas.</p>
       </div>
-    </div>
-    <div class="profit-step">
-      <div class="step-num">4</div>
-      <div>
-        <h3>Tomás decisiones con información</h3>
-        <p>Sabés qué perfume te deja más ganancia, cuándo vendés más y dónde poner el foco.</p>
+      <div class="card">
+        <span class="card-icon">&#x1F648;</span>
+        <h3>Decisiones a ciegas</h3>
+        <p>Sin datos claros, elegis por intuicion. No sabes que perfume rinde mas ni que cliente compra mas.</p>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ══════ 7. COBROS ══════ -->
-<div class="slide slide-cobros" id="s7">
-  <span class="slide-num">07</span>
-  <div class="cobros-row">
-    <div class="cobros-text">
-      <div class="eyebrow">Sin perseguir a nadie</div>
-      <h2>Tus cobros, <em>sin incomodidad</em></h2>
-      <p>No te acordás quién te debe, te da cosa reclamar, dejás pasar el tiempo y perdés plata.</p>
-      <p>Con un recordatorio claro y profesional por WhatsApp, tu cliente se acuerda solo. Sin drama, sin presión.</p>
-      <div class="highlight-line">→ "Disculpa, me había olvidado. Enseguida te pago!"</div>
-    </div>
-    <div class="cobros-img">
-      <img src="/img/whatsapp-cobro.jpg" alt="Recordatorio de cobro profesional" loading="lazy">
-    </div>
-  </div>
-</div>
-
-<!-- ══════ 8. GROWTH ══════ -->
-<div class="slide slide-growth" id="s8">
-  <span class="slide-num">08</span>
-  <div class="eyebrow">Crecimiento</div>
-  <h2>No es solo una app.<br>Es <em>otro nivel para tu negocio.</em></h2>
-  <div class="growth-pillars">
-    <div class="pillar">
-      <div class="pillar-icon">🧘</div>
-      <h3>Tranquilidad</h3>
-      <p>No más "¿habré cobrado esa cuota?", "¿cuánto tenía en stock?", "¿estoy ganando o perdiendo?". Está todo ahí.</p>
-    </div>
-    <div class="pillar">
-      <div class="pillar-icon">🎯</div>
-      <h3>Control</h3>
-      <p>Cada venta, cada cobro, cada número de tu negocio — organizado, claro, siempre a mano. Sin depender de la memoria.</p>
-    </div>
-    <div class="pillar">
-      <div class="pillar-icon">📈</div>
-      <h3>Crecimiento</h3>
-      <p>Cuando sabés tus números reales, podés crecer con confianza. Más stock, más clientes, más ganancia — con datos, no intuición.</p>
+<!-- ==================== SLIDE 4 — COSTOS OCULTOS ==================== -->
+<section class="slide slide-alt" id="s4">
+  <div class="slide-inner reveal">
+    <p class="label">Costos ocultos</p>
+    <h2>El verdadero costo de usar<br><span class="red">Excel y cuadernos</span></h2>
+    <div class="cost-cols" style="margin-top: 12px;">
+      <div class="cost-col">
+        <span class="cost-icon">&#x23F0;</span>
+        <div class="cost-stat">+100h/ano</div>
+        <h3>Tiempo perdido</h3>
+        <p>Mas de 2 horas por semana buscando datos, sumando numeros y organizando papeles. Eso son 100+ horas al ano que no recuperas.</p>
+      </div>
+      <div class="cost-col">
+        <span class="cost-icon">&#x1F4B8;</span>
+        <div class="cost-stat">$$$</div>
+        <h3>Plata sin cobrar</h3>
+        <p>Cuotas que se te olvidan, clientes que no pagas a tiempo. Cada cuota olvidada es plata que perdes para siempre.</p>
+      </div>
+      <div class="cost-col">
+        <span class="cost-icon">&#x1F680;</span>
+        <div class="cost-stat">0 datos</div>
+        <h3>Oportunidades perdidas</h3>
+        <p>Sin datos, no podes crecer. No sabes que reponer, que dejar de comprar ni cual es tu mejor mes para invertir.</p>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ══════ 9. CLOSE ══════ -->
-<div class="slide slide-close" id="s9">
-  <span class="slide-num">09</span>
-  <p class="close-phrase">
-    No necesitás ser contador.<br>
-    No necesitás un sistema complicado.<br>
-    Solo necesitás <strong>saber dónde estás</strong>.
-  </p>
-  <img src="/icon-192.png" alt="Parfum Track" class="logo-mark">
-  <div class="close-name">Parfum Track</div>
-  <div class="close-tagline">Tu negocio de perfumes, bajo control.</div>
-  <a href="/index.html" class="cta-btn">Empezar gratis →</a>
-  <div class="contact-line">
-    <a href="mailto:parfumtrack@gmail.com">parfumtrack@gmail.com</a> · Montevideo, Uruguay
+<!-- ==================== SLIDE 5 — PRESENTACION ==================== -->
+<section class="slide" id="s5">
+  <div class="glow-orb glow-gold" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+  <div class="slide-inner reveal">
+    <p class="label">La solucion</p>
+    <h2>Hay una mejor manera</h2>
+    <div class="divider-gold" style="margin: 8px auto;"></div>
+    <img src="/icon-192.png" alt="Parfum Track" class="logo-lg" style="margin: 16px 0;">
+    <h1 class="gold" style="font-size: clamp(2rem, 4.5vw, 3.5rem);">Parfum Track</h1>
+    <p class="subtitle">La plataforma disenada para revendedores de perfumes que quieren <strong class="gold2">control total</strong> de su negocio.</p>
   </div>
-</div>
+</section>
 
-<!-- Nav dots -->
-<nav class="nav-dots" id="navDots">
-  <button class="nav-dot active" onclick="goSlide(1)"></button>
-  <button class="nav-dot" onclick="goSlide(2)"></button>
-  <button class="nav-dot" onclick="goSlide(3)"></button>
-  <button class="nav-dot" onclick="goSlide(4)"></button>
-  <button class="nav-dot" onclick="goSlide(5)"></button>
-  <button class="nav-dot" onclick="goSlide(6)"></button>
-  <button class="nav-dot" onclick="goSlide(7)"></button>
-  <button class="nav-dot" onclick="goSlide(8)"></button>
-  <button class="nav-dot" onclick="goSlide(9)"></button>
-</nav>
+<!-- ==================== SLIDE 6 — COMO FUNCIONA ==================== -->
+<section class="slide slide-alt" id="s6">
+  <div class="slide-inner reveal">
+    <p class="label">Como funciona</p>
+    <h2>Tres pasos. Diez segundos.</h2>
+    <div class="steps" style="margin-top: 16px;">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Registras una venta</h3>
+        <p>10 segundos. Elegis el perfume, el precio, el cliente. Listo.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Todo se calcula solo</h3>
+        <p>Ganancia, stock, cuotas, estadisticas. Automatico, sin errores.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Tomas decisiones con datos</h3>
+        <p>Sabes que vender, a quien cobrar, cuando reponer. Sin adivinar.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
+<!-- ==================== SLIDE 7 — BENEFICIOS ==================== -->
+<section class="slide" id="s7">
+  <div class="slide-inner reveal">
+    <p class="label">Beneficios</p>
+    <h2>Lo que cambia cuando<br>tenes <span class="gold">el control</span></h2>
+    <div class="benefits-grid" style="margin-top: 12px;">
+      <div class="benefit-card">
+        <span class="benefit-icon">&#x1F3AF;</span>
+        <h3>Control total</h3>
+        <p>Sabes exactamente cuanto ganaste, cuanto te deben y cuanto stock tenes. Sin adivinar.</p>
+      </div>
+      <div class="benefit-card">
+        <span class="benefit-icon">&#x26A1;</span>
+        <h3>Ahorro de tiempo</h3>
+        <p>Lo que antes te llevaba horas, ahora toma segundos. Registrar, calcular, consultar: todo al instante.</p>
+      </div>
+      <div class="benefit-card">
+        <span class="benefit-icon">&#x1F4B0;</span>
+        <h3>Cobros al dia</h3>
+        <p>Nunca mas te olvidas de una cuota. El sistema te muestra quien debe y facilita el cobro por WhatsApp.</p>
+      </div>
+      <div class="benefit-card">
+        <span class="benefit-icon">&#x1F4CA;</span>
+        <h3>Decisiones inteligentes</h3>
+        <p>Con datos reales, decidis que perfume reponer, que linea dejar y donde poner el foco. Datos, no corazonadas.</p>
+      </div>
+      <div class="benefit-card">
+        <span class="benefit-icon">&#x1F4E6;</span>
+        <h3>Stock organizado</h3>
+        <p>Siempre sabes cuantas unidades tenes de cada producto. Se actualiza solo con cada venta.</p>
+      </div>
+      <div class="benefit-card">
+        <span class="benefit-icon">&#x1F4C8;</span>
+        <h3>Crecimiento real</h3>
+        <p>Crece con confianza. Cuando tenes los numeros claros, podes planificar, invertir y escalar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 8 — FUNCIONALIDADES CLAVE ==================== -->
+<section class="slide slide-alt" id="s8">
+  <div class="slide-inner reveal">
+    <p class="label">Funcionalidades</p>
+    <h2>Todo lo que necesitas,<br><span class="gold">en un solo lugar</span></h2>
+    <div class="features-grid" style="margin-top: 12px;">
+      <div class="feature-item">
+        <span class="feature-icon">&#x1F4CA;</span>
+        <h3>Dashboard inteligente</h3>
+        <p>Tu negocio completo de un vistazo: ventas, ganancia, deuda, stock.</p>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">&#x1F4B3;</span>
+        <h3>Ventas en 10 segundos</h3>
+        <p>Registra una venta en cuatro toques. La ganancia se calcula sola.</p>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">&#x1F514;</span>
+        <h3>Cuotas con alerta</h3>
+        <p>Todas tus cuotas pendientes, siempre visibles. Cobra por WhatsApp con un toque.</p>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">&#x1F4E6;</span>
+        <h3>Stock automatico</h3>
+        <p>Cada venta descuenta automaticamente. Sabes exactamente que tenes.</p>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">&#x1F4F1;</span>
+        <h3>Catalogo WhatsApp</h3>
+        <p>Compartilo con tus clientes para que vean tus productos y precios al instante.</p>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">&#x1F4C8;</span>
+        <h3>Estadisticas reales</h3>
+        <p>Ganancia por mes, margen, ticket promedio, ranking de productos y clientes.</p>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">&#x1F4B5;</span>
+        <h3>Gastos y caja</h3>
+        <p>Registra tus gastos y ve el balance real de tu negocio. Ingresos vs egresos.</p>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">&#x1F512;</span>
+        <h3>Backup seguro</h3>
+        <p>Tus datos protegidos. Exporta, respalda y restaura cuando quieras.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 9 — CAPTURAS: DASHBOARD ==================== -->
+<section class="slide" id="s9">
+  <div class="slide-inner reveal">
+    <div class="cols">
+      <div class="col-visual">
+        <div class="phone-mockup">
+          <img src="/img/sc-dashboard.png" alt="Dashboard de ParfumTrack mostrando ventas, ganancia y estadisticas">
+        </div>
+      </div>
+      <div class="col-text">
+        <p class="label">Dashboard</p>
+        <h2>Todo tu negocio,<br>de un vistazo</h2>
+        <p style="margin-top: 8px;">Un solo lugar para ver lo que importa. Sin buscar, sin calcular, sin perder tiempo.</p>
+        <ul style="margin-top: 20px;">
+          <li><strong class="gold2">12 ventas</strong> registradas este mes</li>
+          <li><strong class="green">$9.750</strong> de ganancia neta</li>
+          <li><strong class="red">$9.700</strong> en deuda pendiente</li>
+          <li><strong class="gold2">$817</strong> de ticket promedio</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 10 — GESTION DE STOCK ==================== -->
+<section class="slide slide-alt" id="s10">
+  <div class="slide-inner reveal">
+    <p class="label">Stock</p>
+    <h2>Nunca te quedes sin<br><span class="gold">tu perfume mas vendido</span></h2>
+    <p class="subtitle">El stock se actualiza solo con cada venta. Siempre sabes cuantas unidades tenes de cada producto.</p>
+    <div class="cards cards-4" style="margin-top: 12px;">
+      <div class="card">
+        <span class="card-icon">&#x1F504;</span>
+        <h3>Actualizacion automatica</h3>
+        <p>Cada venta descuenta del stock. Sin intervenir, sin errores manuales.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">&#x26A0;&#xFE0F;</span>
+        <h3>Alertas de stock bajo</h3>
+        <p>Sabes cuando un producto esta por agotarse antes de que sea tarde.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">&#x1F4B2;</span>
+        <h3>Precio de compra</h3>
+        <p>Registra tu costo para calcular el margen real de cada perfume.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">&#x1F3C6;</span>
+        <h3>Ranking de productos</h3>
+        <p>Sabes cuales son los que mas se venden y cuales conviene reponer primero.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 11 — GESTION DE VENTAS ==================== -->
+<section class="slide" id="s11">
+  <div class="slide-inner reveal">
+    <div class="cols cols-reverse">
+      <div class="col-visual">
+        <div class="phone-mockup">
+          <img src="/img/sc-dashboard.png" alt="Vista de ventas en ParfumTrack">
+        </div>
+      </div>
+      <div class="col-text">
+        <p class="label">Ventas</p>
+        <h2>Registra una venta<br>en <span class="gold">10 segundos</span></h2>
+        <p style="margin-top: 8px;">La ganancia se calcula sola. Vos solo elegis el perfume, el precio y el cliente.</p>
+        <div class="flow" style="margin-top: 24px; justify-content: flex-start;">
+          <div class="flow-step">Perfume</div>
+          <span class="flow-arrow">&#x2192;</span>
+          <div class="flow-step">Precio</div>
+          <span class="flow-arrow">&#x2192;</span>
+          <div class="flow-step">Cliente</div>
+          <span class="flow-arrow">&#x2192;</span>
+          <div class="flow-step" style="border-color: var(--gold); color: var(--gold);">Listo</div>
+        </div>
+        <p style="color: var(--text2); margin-top: 20px; font-size: 0.92rem;">12 ventas, $9.750 de ganancia. Asi se ve cuando tu negocio esta bajo control.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 12 — GESTION DE CLIENTES ==================== -->
+<section class="slide slide-alt" id="s12">
+  <div class="slide-inner reveal">
+    <p class="label">Clientes</p>
+    <h2>Sabe exactamente quien te compra,<br><span class="gold">quien te debe y cuanto</span></h2>
+    <p class="subtitle">Cada cliente tiene su historial completo: compras, pagos, deuda. Todo organizado, todo a la vista.</p>
+    <div class="cards cards-3" style="margin-top: 12px;">
+      <div class="card" style="text-align: center;">
+        <span class="card-icon" style="text-align: center;">&#x1F4CB;</span>
+        <h3>Historial completo</h3>
+        <p>Cada compra, cada pago, cada cuota. Todo el recorrido de cada cliente en un lugar.</p>
+      </div>
+      <div class="card" style="text-align: center;">
+        <span class="card-icon" style="text-align: center;">&#x1F4B3;</span>
+        <h3>Seguimiento de pagos</h3>
+        <p>Sabes quien pago, quien debe y cuanto falta. Sin anotar en papelitos.</p>
+      </div>
+      <div class="card" style="text-align: center;">
+        <span class="card-icon" style="text-align: center;">&#x1F4F2;</span>
+        <h3>WhatsApp integrado</h3>
+        <p>Envia recordatorios de pago profesionales directo desde la app. Un toque y listo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 13 — GESTION DE GASTOS ==================== -->
+<section class="slide" id="s13">
+  <div class="slide-inner reveal">
+    <p class="label">Gastos</p>
+    <h2>Conoce exactamente cuanto<br><span class="green">entra</span> y cuanto <span class="red">sale</span></h2>
+    <p class="subtitle">Registra tus gastos, ve tu balance real y toma decisiones con numeros claros. Nunca mas a ojo.</p>
+    <div style="display: flex; gap: 40px; justify-content: center; margin-top: 24px; flex-wrap: wrap; align-items: center;">
+      <div style="text-align: center;">
+        <div class="balance-circle" style="border: 4px solid var(--green);">
+          <span style="font-size: 1.6rem;">&#x2191;</span>
+          <span class="balance-label" style="color: var(--green);">Ingresos</span>
+          <span class="balance-sub">Ventas + cobros</span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center;">
+        <span style="font-size: 2rem; color: var(--gold);">&#x2194;</span>
+      </div>
+      <div style="text-align: center;">
+        <div class="balance-circle" style="border: 4px solid var(--red);">
+          <span style="font-size: 1.6rem;">&#x2193;</span>
+          <span class="balance-label" style="color: var(--red);">Gastos</span>
+          <span class="balance-sub">Compras + gastos</span>
+        </div>
+      </div>
+    </div>
+    <p style="color: var(--gold2); font-weight: 500; margin-top: 24px; font-size: 1.05rem;">= Balance real de tu negocio</p>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 14 — CUOTAS Y COBROS ==================== -->
+<section class="slide slide-alt" id="s14">
+  <div class="slide-inner reveal">
+    <div class="cols">
+      <div class="col-visual">
+        <div class="phone-mockup">
+          <img src="/img/sc-cuotas.png" alt="Vista de cuotas pendientes en ParfumTrack">
+        </div>
+      </div>
+      <div class="col-text">
+        <p class="label">Cuotas</p>
+        <h2>Tus cuotas pendientes,<br><span class="gold">siempre a la vista</span></h2>
+        <p style="margin-top: 8px;">Ves quien te debe, cuanto y desde cuando. Con un toque, envias un recordatorio por WhatsApp.</p>
+        <ul style="margin-top: 20px;">
+          <li>Todas las cuotas pendientes en un solo lugar</li>
+          <li>Recordatorio automatico por WhatsApp</li>
+          <li>Historial de pagos por cliente</li>
+          <li>Cuotas vencidas destacadas en rojo</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 15 — ESTADISTICAS ==================== -->
+<section class="slide" id="s15">
+  <div class="slide-inner reveal">
+    <p class="label">Estadisticas</p>
+    <h2>Deja de adivinar.<br><span class="gold">Empeza a saber.</span></h2>
+    <p class="subtitle">Datos reales sobre tu negocio. No estimaciones, no sensaciones: numeros.</p>
+    <div class="benefits-grid" style="margin-top: 16px;">
+      <div class="benefit-card" style="text-align: center;">
+        <span class="benefit-icon" style="text-align: center;">&#x1F4B0;</span>
+        <h3>Ganancia por mes</h3>
+        <p>Cuanto ganaste cada mes, con grafico de evolucion.</p>
+      </div>
+      <div class="benefit-card" style="text-align: center;">
+        <span class="benefit-icon" style="text-align: center;">&#x1F4CA;</span>
+        <h3>Margen real</h3>
+        <p>Cuanto ganas por cada peso que invertis. El margen verdadero.</p>
+      </div>
+      <div class="benefit-card" style="text-align: center;">
+        <span class="benefit-icon" style="text-align: center;">&#x1F3AF;</span>
+        <h3>Ticket promedio</h3>
+        <p>Cuanto gasta en promedio cada cliente que te compra.</p>
+      </div>
+      <div class="benefit-card" style="text-align: center;">
+        <span class="benefit-icon" style="text-align: center;">&#x1F4C5;</span>
+        <h3>Mejor dia de ventas</h3>
+        <p>Sabes cual es tu dia fuerte para planificar mejor.</p>
+      </div>
+      <div class="benefit-card" style="text-align: center;">
+        <span class="benefit-icon" style="text-align: center;">&#x1F947;</span>
+        <h3>Producto mas vendido</h3>
+        <p>Cuales rinden mas. Cuales conviene reponer. Cuales no.</p>
+      </div>
+      <div class="benefit-card" style="text-align: center;">
+        <span class="benefit-icon" style="text-align: center;">&#x1F451;</span>
+        <h3>Ranking de clientes</h3>
+        <p>Quienes son tus mejores clientes. A quienes cuidar y premiar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 16 — CELULAR Y PC ==================== -->
+<section class="slide slide-alt" id="s16">
+  <div class="slide-inner reveal">
+    <p class="label">Multiplataforma</p>
+    <h2>Tu negocio siempre con vos &mdash;<br><span class="gold">desde cualquier dispositivo</span></h2>
+    <p class="subtitle">Funciona en tu celular, en tu tablet, en tu computadora. Sin descargar nada, sin instalar nada.</p>
+    <div class="devices-row" style="margin-top: 24px;">
+      <div class="device-desktop">
+        <img src="/img/sc-ventas-empty.png" alt="ParfumTrack en escritorio">
+      </div>
+      <div class="device-phone">
+        <img src="/img/sc-dashboard.png" alt="ParfumTrack en celular">
+      </div>
+    </div>
+    <div class="cards cards-3" style="margin-top: 32px;">
+      <div class="card" style="text-align: center;">
+        <h3>Sin descargar</h3>
+        <p>Funciona directo desde el navegador. No necesitas Google Play ni App Store.</p>
+      </div>
+      <div class="card" style="text-align: center;">
+        <h3>Funciona offline</h3>
+        <p>Sin internet, seguis usando la app. Tus datos se sincronizan cuando vuelvas a conectarte.</p>
+      </div>
+      <div class="card" style="text-align: center;">
+        <h3>Acceso instantaneo</h3>
+        <p>Agrega la app a tu pantalla de inicio y accede con un toque, como cualquier app nativa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 17 — COBROS POR WHATSAPP ==================== -->
+<section class="slide" id="s17">
+  <div class="slide-inner reveal">
+    <div class="cols cols-reverse">
+      <div class="col-visual">
+        <div class="phone-whatsapp">
+          <img src="/img/whatsapp-cobro.jpg" alt="Recordatorio de cobro por WhatsApp con respuesta del cliente">
+        </div>
+      </div>
+      <div class="col-text">
+        <p class="label">Cobros</p>
+        <h2>Cobra sin incomodidad</h2>
+        <p style="margin-top: 8px;">Un mensaje profesional, un pago al toque. Sin llamar, sin insistir, sin incomodar.</p>
+        <div style="background: var(--card); border-left: 3px solid var(--green); border-radius: 0 12px 12px 0; padding: 20px; margin-top: 24px; text-align: left;">
+          <p style="font-style: italic; color: var(--text); font-size: 0.95rem;">&laquo;Disculpa, me habia olvidado. Enseguida te pago!&raquo;</p>
+          <p style="color: var(--text2); font-size: 0.82rem; margin-top: 8px;">&mdash; Respuesta real de un cliente</p>
+        </div>
+        <p style="color: var(--text2); margin-top: 20px; font-size: 0.92rem;">Un recordatorio amable y profesional resuelve el 90% de los cobros pendientes. Sin drama.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 18 — COMPARACION ==================== -->
+<section class="slide slide-alt" id="s18">
+  <div class="slide-inner reveal">
+    <p class="label">Comparacion</p>
+    <h2>ParfumTrack vs. metodos tradicionales</h2>
+    <div style="width: 100%; overflow-x: auto; margin-top: 16px;">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Cuaderno</th>
+            <th>Excel</th>
+            <th class="col-highlight-head">ParfumTrack</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Tiempo por venta</td>
+            <td>2-3 min</td>
+            <td>1-2 min</td>
+            <td class="col-highlight"><strong class="gold">10 seg</strong></td>
+          </tr>
+          <tr>
+            <td>Tasa de error</td>
+            <td><span class="red">Alta</span></td>
+            <td><span class="mid">Media</span></td>
+            <td class="col-highlight"><span class="green">Cero</span></td>
+          </tr>
+          <tr>
+            <td>Seguimiento de cuotas</td>
+            <td><span class="cross">&#x2717;</span> Manual</td>
+            <td><span class="cross">&#x2717;</span> Manual</td>
+            <td class="col-highlight"><span class="check">&#x2713;</span> Automatico</td>
+          </tr>
+          <tr>
+            <td>Control de stock</td>
+            <td><span class="cross">&#x2717;</span> No</td>
+            <td><span class="mid">~</span> Basico</td>
+            <td class="col-highlight"><span class="check">&#x2713;</span> Automatico</td>
+          </tr>
+          <tr>
+            <td>Estadisticas</td>
+            <td><span class="cross">&#x2717;</span> No</td>
+            <td><span class="mid">~</span> Limitado</td>
+            <td class="col-highlight"><span class="check">&#x2713;</span> Completas</td>
+          </tr>
+          <tr>
+            <td>Cobro por WhatsApp</td>
+            <td><span class="cross">&#x2717;</span> No</td>
+            <td><span class="cross">&#x2717;</span> No</td>
+            <td class="col-highlight"><span class="check">&#x2713;</span> Un toque</td>
+          </tr>
+          <tr>
+            <td>Funciona offline</td>
+            <td><span class="check">&#x2713;</span> Si</td>
+            <td><span class="cross">&#x2717;</span> Depende</td>
+            <td class="col-highlight"><span class="check">&#x2713;</span> 100%</td>
+          </tr>
+          <tr>
+            <td>Costo</td>
+            <td>$0</td>
+            <td>$0 - $$$</td>
+            <td class="col-highlight"><strong class="gold">Desde $0</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 19 — RESULTADOS ESPERADOS ==================== -->
+<section class="slide" id="s19">
+  <div class="slide-inner reveal">
+    <p class="label">Resultados</p>
+    <h2>Lo que podes esperar<br>en los <span class="gold">primeros 30 dias</span></h2>
+    <div class="cols" style="margin-top: 16px;">
+      <div class="col-text" style="max-width: 520px;">
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-label">Dia 1</div>
+              <p>Registras tu primera venta y tu primer producto. En 5 minutos ya tenes todo armado.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-label">Semana 1</div>
+              <p>Tenes tu stock completo cargado y tus primeras ventas registradas con ganancia calculada.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-label">Dia 15</div>
+              <p>Sabes exactamente cuanto ganaste, cuanto te deben y que producto rinde mas.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-label">Dia 30</div>
+              <p>Control total. Decisiones con datos. Tu negocio organizado como nunca antes.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 24px; align-items: center;">
+        <div class="stats-row" style="flex-direction: column; gap: 28px;">
+          <div class="stat">
+            <div class="stat-num">2h</div>
+            <div class="stat-label">Ahorro semanal</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num" style="color: var(--green);">0</div>
+            <div class="stat-label">Cuotas olvidadas</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">100%</div>
+            <div class="stat-label">Visibilidad de stock</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 20 — CASOS DE USO ==================== -->
+<section class="slide slide-alt" id="s20">
+  <div class="slide-inner reveal">
+    <p class="label">Para vos</p>
+    <h2>No importa en que etapa estes,<br><span class="gold">ParfumTrack se adapta</span></h2>
+    <div class="persona-grid" style="margin-top: 16px;">
+      <div class="persona-card">
+        <span class="persona-emoji">&#x1F331;</span>
+        <h3>El que recien empieza</h3>
+        <p>Tenes pocos productos y pocos clientes, pero queres empezar con orden desde el dia uno. ParfumTrack te da la estructura para crecer bien, sin vicios del cuaderno.</p>
+      </div>
+      <div class="persona-card">
+        <span class="persona-emoji">&#x1F4AA;</span>
+        <h3>El que ya vende bien</h3>
+        <p>Tenes muchos clientes, cuotas pendientes y cada vez se te complica mas llevar todo en la cabeza. Necesitas un sistema que haga los calculos por vos.</p>
+      </div>
+      <div class="persona-card">
+        <span class="persona-emoji">&#x1F680;</span>
+        <h3>El que quiere crecer</h3>
+        <p>Manejas varias lineas de perfumes y queres datos para decidir que stockear, que dejar y donde invertir. ParfumTrack te da los numeros para escalar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 21 — PLANES Y PRECIOS ==================== -->
+<section class="slide" id="s21">
+  <div class="slide-inner reveal">
+    <p class="label">Precios</p>
+    <h2>Planes para cada etapa<br><span class="gold">de tu negocio</span></h2>
+    <p class="subtitle" style="margin-bottom: 8px;">Sin tarjeta. Sin compromiso. Empeza gratis hoy.</p>
+    <div class="pricing-grid" style="margin-top: 8px;">
+      <div class="pricing-card">
+        <div class="pricing-name">Free</div>
+        <div class="pricing-price">$0 <span>/ para siempre</span></div>
+        <ul class="pricing-features">
+          <li>Hasta 20 productos</li>
+          <li>Hasta 15 ventas/mes</li>
+          <li>Control de stock basico</li>
+          <li>Dashboard principal</li>
+          <li>Funciona offline</li>
+        </ul>
+        <a href="/index.html" class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 24px;">Empezar gratis</a>
+      </div>
+      <div class="pricing-card featured">
+        <div class="pricing-badge">Mas popular</div>
+        <div class="pricing-name">Basico Pro</div>
+        <div class="pricing-price">$9.99 <span>/ mes</span></div>
+        <ul class="pricing-features">
+          <li>Productos ilimitados</li>
+          <li>Ventas ilimitadas</li>
+          <li>Cuotas y cobros por WhatsApp</li>
+          <li>Estadisticas completas</li>
+          <li>Catalogo compartible</li>
+          <li>Backup y restauracion</li>
+        </ul>
+        <a href="/index.html" class="btn btn-gold" style="width: 100%; justify-content: center; margin-top: 24px;">Elegir plan</a>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-name">Pro</div>
+        <div class="pricing-price">$19.99 <span>/ mes</span></div>
+        <ul class="pricing-features">
+          <li>Todo lo de Basico Pro</li>
+          <li>Gastos y balance de caja</li>
+          <li>Reportes avanzados</li>
+          <li>Multi-dispositivo (pronto)</li>
+          <li>Soporte prioritario</li>
+          <li>Acceso a funciones beta</li>
+        </ul>
+        <a href="/index.html" class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 24px;">Elegir plan</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 22 — PROXIMAS FUNCIONALIDADES ==================== -->
+<section class="slide slide-alt" id="s22">
+  <div class="slide-inner reveal">
+    <p class="label">Roadmap</p>
+    <h2>Estamos construyendo el futuro<br><span class="gold">de la gestion de perfumes</span></h2>
+    <p class="subtitle">ParfumTrack evoluciona con vos. Estas son las funcionalidades que vienen.</p>
+    <div class="roadmap-grid" style="margin-top: 16px;">
+      <div class="roadmap-item">
+        <span class="roadmap-icon">&#x1F504;</span>
+        <div>
+          <h3>Sincronizacion multi-dispositivo <span class="coming-badge">Pronto</span></h3>
+          <p>Usa ParfumTrack en tu celular y en tu computadora. Todo sincronizado en tiempo real.</p>
+        </div>
+      </div>
+      <div class="roadmap-item">
+        <span class="roadmap-icon">&#x1F4F1;</span>
+        <div>
+          <h3>App en Google Play <span class="coming-badge">2026</span></h3>
+          <p>Descargala directamente desde la tienda de Google. Aun mas rapida y accesible.</p>
+        </div>
+      </div>
+      <div class="roadmap-item">
+        <span class="roadmap-icon">&#x1F4C4;</span>
+        <div>
+          <h3>Reportes PDF automaticos <span class="coming-badge">Pronto</span></h3>
+          <p>Genera reportes profesionales de tu negocio con un toque. Ideal para llevar cuentas claras.</p>
+        </div>
+      </div>
+      <div class="roadmap-item">
+        <span class="roadmap-icon">&#x1F4B3;</span>
+        <div>
+          <h3>Integracion con Mercado Pago <span class="coming-badge">2026</span></h3>
+          <p>Recibe pagos directamente desde la app. Tus clientes pagan, vos cobras. Sin friccion.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 23 — FAQ ==================== -->
+<section class="slide" id="s23">
+  <div class="slide-inner reveal">
+    <p class="label">Preguntas frecuentes</p>
+    <h2>Todo lo que necesitas saber</h2>
+    <div class="faq-list" style="margin-top: 16px;">
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Necesito descargar algo?
+          <span class="faq-chevron">&#x25BC;</span>
+        </button>
+        <div class="faq-answer">No. ParfumTrack funciona directo desde el navegador de tu celular o computadora. No necesitas descargar nada de ninguna tienda. Tambien podes agregarlo a tu pantalla de inicio para acceder con un toque.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Funciona sin internet?
+          <span class="faq-chevron">&#x25BC;</span>
+        </button>
+        <div class="faq-answer">Si, 100% offline. Todos tus datos se guardan en tu dispositivo. Podes registrar ventas, consultar stock y ver tus estadisticas sin conexion. Cuando vuelvas a conectarte, todo sigue igual.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Mis datos estan seguros?
+          <span class="faq-chevron">&#x25BC;</span>
+        </button>
+        <div class="faq-answer">Si. Tus datos se almacenan en tu dispositivo y no se comparten con nadie. Ademas, podes hacer backups para resguardar tu informacion y restaurarla cuando quieras.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          El plan Free es gratis para siempre?
+          <span class="faq-chevron">&#x25BC;</span>
+        </button>
+        <div class="faq-answer">Si, el plan Free es gratuito para siempre. Sin letra chica, sin limite de tiempo, sin tarjeta de credito. Usalo todo el tiempo que quieras.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Puedo usar en mas de un dispositivo?
+          <span class="faq-chevron">&#x25BC;</span>
+        </button>
+        <div class="faq-answer">Si. Hoy podes usar ParfumTrack en cualquier dispositivo con navegador. La sincronizacion automatica entre dispositivos esta en desarrollo y sera parte de las proximas actualizaciones.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Puedo cancelar cuando quiera?
+          <span class="faq-chevron">&#x25BC;</span>
+        </button>
+        <div class="faq-answer">Si, sin permanencia. Podes cancelar tu suscripcion en cualquier momento, sin penalidades ni preguntas. Tus datos siempre son tuyos.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 24 — CTA ==================== -->
+<section class="slide slide-alt" id="s24">
+  <div class="glow-orb glow-gold" style="top: 40%; left: 50%; transform: translate(-50%, -50%);"></div>
+  <div class="slide-inner reveal">
+    <img src="/icon-192.png" alt="Parfum Track" class="logo">
+    <h1>Empeza a controlar<br><span class="gold">tu negocio hoy</span></h1>
+    <p class="subtitle">No necesitas tarjeta, no necesitas instalar nada. Funciona desde el navegador, funciona offline. Empeza gratis y pasa a un plan pago solo si lo necesitas.</p>
+    <a href="/index.html" class="btn btn-gold" style="font-size: 1.15rem; padding: 18px 48px; margin-top: 8px;">
+      Probar gratis &#x2192;
+    </a>
+    <p class="trust-line" style="margin-top: 16px;">
+      Sin tarjeta <span class="sep">&#x00B7;</span> Sin instalar <span class="sep">&#x00B7;</span> Funciona offline
+    </p>
+    <p style="color: var(--text2); font-size: 0.88rem; margin-top: 24px;">
+      parfumtrack@gmail.com <span class="sep" style="margin: 0 10px; color: rgba(201,168,76,0.3);">&#x00B7;</span> Montevideo, Uruguay
+    </p>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 25 — CIERRE PROFESIONAL ==================== -->
+<section class="slide" id="s25">
+  <div class="slide-inner reveal">
+    <img src="/icon-192.png" alt="Parfum Track" class="logo-lg" style="opacity: 0.9;">
+    <h1 class="gold" style="font-size: clamp(1.8rem, 4vw, 3rem);">Parfum Track</h1>
+    <div class="divider-gold"></div>
+    <p style="font-family: var(--font-heading); font-size: 1.3rem; color: var(--text2); font-style: italic;">Tu negocio de perfumes, bajo control.</p>
+    <div style="margin-top: 32px; display: flex; flex-direction: column; gap: 8px; align-items: center;">
+      <a href="mailto:parfumtrack@gmail.com" style="color: var(--gold2); text-decoration: none; font-size: 0.92rem;">parfumtrack@gmail.com</a>
+      <p style="color: var(--text2); font-size: 0.82rem;">Montevideo, Uruguay</p>
+    </div>
+    <p style="color: rgba(168,164,156,0.4); font-size: 0.75rem; margin-top: 40px;">&copy; 2026 Parfum Track. Todos los derechos reservados.</p>
+  </div>
+</section>
+
+<!-- ==================== JAVASCRIPT ==================== -->
 <script>
-function goSlide(n) {
-  document.getElementById('s' + n).scrollIntoView({ behavior: 'smooth' });
-}
-const dots = document.querySelectorAll('.nav-dot');
-const slides = document.querySelectorAll('.slide');
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      const i = Array.from(slides).indexOf(e.target);
-      dots.forEach((d, j) => d.classList.toggle('active', j === i));
+(function() {
+  'use strict';
+
+  var TOTAL_SLIDES = 25;
+
+  // ===== NAVIGATION DOTS =====
+  var navDots = document.getElementById('navDots');
+  for (var i = 1; i <= TOTAL_SLIDES; i++) {
+    (function(idx) {
+      var dot = document.createElement('button');
+      dot.className = 'nav-dot';
+      dot.setAttribute('aria-label', 'Ir a diapositiva ' + idx);
+      dot.dataset.slide = idx;
+      dot.addEventListener('click', function() {
+        var target = document.getElementById('s' + idx);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      });
+      navDots.appendChild(dot);
+    })(i);
+  }
+
+  // ===== SCROLL OBSERVER =====
+  var counter = document.getElementById('slideCounter');
+  var dots = navDots.querySelectorAll('.nav-dot');
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        var id = entry.target.id;
+        var num = parseInt(id.replace('s', ''));
+
+        // Update counter
+        counter.textContent = String(num).padStart(2, '0') + ' / ' + String(TOTAL_SLIDES).padStart(2, '0');
+
+        // Update dots
+        dots.forEach(function(d, idx) {
+          if (idx === num - 1) {
+            d.classList.add('active');
+          } else {
+            d.classList.remove('active');
+          }
+        });
+      }
+    });
+  }, {
+    threshold: 0.5
+  });
+
+  for (var j = 1; j <= TOTAL_SLIDES; j++) {
+    var slide = document.getElementById('s' + j);
+    if (slide) observer.observe(slide);
+  }
+
+  // ===== SCROLL REVEAL =====
+  var revealObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, {
+    threshold: 0.15
+  });
+
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    revealObserver.observe(el);
+  });
+
+  // ===== KEYBOARD NAVIGATION =====
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      navigateSlide(1);
+    } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+      e.preventDefault();
+      navigateSlide(-1);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      document.getElementById('s1').scrollIntoView({ behavior: 'smooth' });
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      document.getElementById('s' + TOTAL_SLIDES).scrollIntoView({ behavior: 'smooth' });
     }
   });
-}, { threshold: 0.5 });
-slides.forEach(s => obs.observe(s));
 
-document.addEventListener('keydown', e => {
-  const cur = Array.from(dots).findIndex(d => d.classList.contains('active'));
-  if (['ArrowDown', ' ', 'ArrowRight'].includes(e.key)) {
-    e.preventDefault();
-    if (cur < slides.length - 1) goSlide(cur + 2);
-  } else if (['ArrowUp', 'ArrowLeft'].includes(e.key)) {
-    e.preventDefault();
-    if (cur > 0) goSlide(cur);
+  function getCurrentSlide() {
+    var current = 1;
+    var windowHeight = window.innerHeight;
+    var slides = document.querySelectorAll('.slide');
+
+    slides.forEach(function(slide) {
+      var rect = slide.getBoundingClientRect();
+      if (rect.top < windowHeight / 2 && rect.bottom > windowHeight / 2) {
+        current = parseInt(slide.id.replace('s', ''));
+      }
+    });
+    return current;
   }
-});
+
+  function navigateSlide(direction) {
+    var current = getCurrentSlide();
+    var next = Math.max(1, Math.min(TOTAL_SLIDES, current + direction));
+    var target = document.getElementById('s' + next);
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  }
+
+})();
+
+// ===== FAQ TOGGLE =====
+function toggleFaq(btn) {
+  var item = btn.parentElement;
+  var wasOpen = item.classList.contains('open');
+
+  // Close all
+  document.querySelectorAll('.faq-item').forEach(function(el) {
+    el.classList.remove('open');
+  });
+
+  // Toggle clicked
+  if (!wasOpen) {
+    item.classList.add('open');
+  }
+}
 </script>
 
 </body>
