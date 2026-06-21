@@ -16,7 +16,7 @@
 
         <meta-data
             android:name="web_manifest_url"
-            android:value="https://parfumtrack.myapp.workers.dev/manifest.json" />
+            android:value="https://parfumtrack.luccasramireziglesias.workers.dev/manifest.json" />
 
         <meta-data
             android:name="twa_generator"
@@ -89,14 +89,17 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />
+        <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity"
+            android:exported="false" />
 
         <activity
             android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
-            android:configChanges="orientation|screenSize" />
+            android:configChanges="orientation|screenSize"
+            android:exported="false" />
 
         <activity
-            android:name="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity">
+            android:name="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
@@ -119,7 +122,8 @@
 
         <activity
             android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity"
-            android:enabled="${enableNotifications}" />
+            android:enabled="${enableNotifications}"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
