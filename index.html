@@ -5078,77 +5078,6 @@
               </button>
             </div>
 
-            <!-- OPTIMIZAR FOTOS -->
-            <div
-              class="card"
-              style="padding: 20px; border-color: rgba(251, 191, 36, 0.2)"
-            >
-              <div
-                style="
-                  font-size: 13px;
-                  font-weight: 600;
-                  color: var(--text);
-                  margin-bottom: 4px;
-                "
-              >
-                🗜 Optimizar fotos del stock
-              </div>
-              <div
-                style="
-                  font-size: 12px;
-                  color: var(--text3);
-                  margin-bottom: 12px;
-                "
-              >
-                Las fotos guardadas antes de esta versión pueden estar ocupando
-                mucho espacio. Optimizarlas las comprime sin perder calidad
-                visible.
-              </div>
-              <div
-                id="opt-fotos-info"
-                style="
-                  font-size: 12px;
-                  color: var(--text2);
-                  margin-bottom: 12px;
-                  padding: 10px 12px;
-                  background: var(--bg3);
-                  border-radius: var(--radius-sm);
-                  display: none;
-                "
-              ></div>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap">
-                <button
-                  onclick="analizarFotos()"
-                  style="
-                    padding: 9px 16px;
-                    background: var(--card2);
-                    border: 0.5px solid var(--border);
-                    color: var(--text2);
-                    border-radius: var(--radius-sm);
-                    font-size: 12px;
-                    cursor: pointer;
-                  "
-                >
-                  🔍 Analizar espacio
-                </button>
-                <button
-                  onclick="optimizarTodasLasFotos()"
-                  id="btn-opt-fotos"
-                  style="
-                    padding: 9px 16px;
-                    background: rgba(251, 191, 36, 0.1);
-                    border: 0.5px solid rgba(251, 191, 36, 0.35);
-                    color: var(--warn);
-                    border-radius: var(--radius-sm);
-                    font-size: 12px;
-                    cursor: pointer;
-                    display: none;
-                  "
-                >
-                  ⚡ Optimizar todas
-                </button>
-              </div>
-            </div>
 
             <!-- NOTIFICACIONES -->
             <!-- WHATSAPP DEL NEGOCIO -->
@@ -9611,15 +9540,24 @@
         }
         const img = new Image();
         img.onload = () => {
-          editFotoTemporal = url;
+          const MAX = 400;
+          let w = img.width, h = img.height;
+          if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
+          else { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
+          const cvs = document.createElement("canvas");
+          cvs.width = w; cvs.height = h;
+          cvs.getContext("2d").drawImage(img, 0, 0, w, h);
+          editFotoTemporal = cvs.toDataURL("image/jpeg", 0.72);
           document.getElementById("edit-foto-preview").innerHTML =
-            `<img src="${escapeHTML(url)}" style="width:100%;height:100%;object-fit:cover">`;
+            `<img src="${editFotoTemporal}" style="width:100%;height:100%;object-fit:cover">`;
           document.getElementById("edit-foto-quitar").style.display = "block";
-          if (forzar) toast("✓ Imagen cargada");
+          const kb = Math.round((editFotoTemporal.length * 0.75) / 1024);
+          if (forzar) toast("📷 Foto optimizada · " + kb + "KB", 2000);
         };
         img.onerror = () => {
           if (forzar) toast("⚠ No se pudo cargar esa URL");
         };
+        img.crossOrigin = "anonymous";
         img.src = url;
       }
       function buscarEnPinterest() {
@@ -14073,6 +14011,23 @@
             );
           }
         } catch (e) {}
+
+        // Auto-optimizar fotos viejas en segundo plano
+        setTimeout(async () => {
+          try {
+            const conFoto = (perfumes || []).filter(p => p.foto && p.foto.startsWith("data:"));
+            let changed = false;
+            for (const p of conFoto) {
+              const kb = Math.round((p.foto.length * 0.75) / 1024);
+              if (kb <= 30) continue;
+              try {
+                p.foto = await comprimirFotoBase64(p.foto, 400, 0.72);
+                changed = true;
+              } catch (_) {}
+            }
+            if (changed) save();
+          } catch (_) {}
+        }, 5000);
 
         // Update header with current profile name
         const profiles = getProfiles();
