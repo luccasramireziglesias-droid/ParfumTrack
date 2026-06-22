@@ -1304,6 +1304,7 @@ body.annual-mode [data-annual] { display: block; }
 </style>
 </head>
 <body>
+<a href="#contenido-principal" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:999;" onfocus="this.style.cssText='position:fixed;top:8px;left:8px;z-index:9999;background:var(--gold);color:#1a1400;padding:12px 24px;border-radius:8px;font-weight:700;text-decoration:none;font-size:14px;';" onblur="this.style.cssText='position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;';">Saltar al contenido</a>
 <noscript>
   <div style="background:#c9a84c;color:#1a1a2e;text-align:center;padding:16px;font-family:sans-serif;font-weight:700">
     Parfum Track necesita JavaScript para funcionar. Activá JavaScript en tu navegador para usar la app.
@@ -1344,6 +1345,7 @@ body.annual-mode [data-annual] { display: block; }
   </div>
 </nav>
 
+<main id="contenido-principal">
 <!-- ══════════════════════════════════
      HERO
 ══════════════════════════════════ -->
@@ -1448,7 +1450,7 @@ body.annual-mode [data-annual] { display: block; }
       <div class="pain-card">
         <div class="pain-emoji">😤</div>
         <div class="pain-title">"No me acordaba que me debía"</div>
-        <p class="pain-desc">Clientas que pagan en cuotas y vos perdiste la cuenta de quién pagó qué. Le escribís por WhatsApp y te das cuenta que ya pasaron 3 meses.</p>
+        <p class="pain-desc">Clientes que pagan en cuotas y vos perdiste la cuenta de quién pagó qué. Le escribís por WhatsApp y te das cuenta que ya pasaron 3 meses.</p>
       </div>
       <div class="pain-card">
         <div class="pain-emoji">📦</div>
@@ -1458,7 +1460,7 @@ body.annual-mode [data-annual] { display: block; }
       <div class="pain-card">
         <div class="pain-emoji">⏰</div>
         <div class="pain-title">"Me pasé 2 horas haciendo cuentas"</div>
-        <p class="pain-desc">Fin de mes, cuaderno, calculadora, Excel... y todavía no estás segura del número. Ese tiempo lo podías estar usando para vender más.</p>
+        <p class="pain-desc">Fin de mes, cuaderno, calculadora, Excel... y todavía no tenés certeza del número. Ese tiempo lo podrías estar usando para vender más.</p>
       </div>
     </div>
 
@@ -1537,7 +1539,7 @@ body.annual-mode [data-annual] { display: block; }
       </div>
       <div class="feature-visual reveal reveal-d1">
         <div class="feature-mockup" style="padding:0;overflow:hidden;">
-          <img src="/screenshot-catalogo.jpg" alt="Catálogo de perfumes real generado con Parfum Track" style="display:block;width:100%;border-radius:16px;">
+          <img src="/screenshot-catalogo.jpg" alt="Catálogo de perfumes real generado con Parfum Track" width="1763" height="2048" loading="lazy" style="display:block;width:100%;height:auto;border-radius:16px;">
         </div>
       </div>
     </div>
@@ -1557,7 +1559,7 @@ body.annual-mode [data-annual] { display: block; }
         <ul class="feature-list">
           <li>Alertas automáticas de cuotas vencidas</li>
           <li>Mensaje de cobro pre-escrito listo para enviar</li>
-          <li>Historial completo de pagos por clienta</li>
+          <li>Historial completo de pagos por cliente</li>
           <li>Vista de "quién me debe más" al instante</li>
         </ul>
       </div>
@@ -1589,7 +1591,7 @@ body.annual-mode [data-annual] { display: block; }
       </div>
       <div class="feature-visual reveal reveal-d1">
         <div class="feature-mockup" style="padding:0;overflow:hidden;">
-          <img src="/screenshot-estadisticas.jpg" alt="Estadísticas reales de Parfum Track — ganancia por mes, ticket promedio, margen" style="display:block;width:100%;border-radius:16px;">
+          <img src="/screenshot-estadisticas.jpg" alt="Estadísticas reales de Parfum Track — ganancia por mes, ticket promedio, margen" width="1080" height="1213" loading="lazy" style="display:block;width:100%;height:auto;border-radius:16px;">
         </div>
       </div>
     </div>
@@ -1602,7 +1604,7 @@ body.annual-mode [data-annual] { display: block; }
 <section class="section bg2">
   <div class="container text-center">
     <span class="eyebrow">Cómo funciona</span>
-    <h2 class="section-h2">De cero a organizada<br>en <span class="hl">2 minutos</span></h2>
+    <h2 class="section-h2">De cero al control total<br>en <span class="hl">2 minutos</span></h2>
     <p class="section-sub" style="max-width:480px;margin:0 auto;">Sin crear cuenta, sin contraseñas. Abrís el link y empezás hoy mismo.</p>
 
     <div class="steps-grid reveal">
@@ -1615,12 +1617,12 @@ body.annual-mode [data-annual] { display: block; }
       <div class="step-item">
         <div class="step-num">2</div>
         <div class="step-title">Configurás tu negocio</div>
-        <p class="step-desc">Nombre y número de WhatsApp. En 30 segundos estás lista.</p>
+        <p class="step-desc">Nombre y número de WhatsApp. En 30 segundos estás usando la app.</p>
       </div>
       <div class="step-item">
         <div class="step-num">3</div>
         <div class="step-title">Registrás ventas</div>
-        <p class="step-desc">Perfume, monto, clienta, cuotas. 10 segundos por venta.</p>
+        <p class="step-desc">Perfume, monto, cliente, cuotas. 10 segundos por venta.</p>
       </div>
       <div class="step-item">
         <div class="step-num">4</div>
@@ -1685,7 +1687,7 @@ body.annual-mode [data-annual] { display: block; }
         </div>
         <div class="compare-item">
           <span class="ci-bullet" style="color:#facc15">△</span>
-          <span>Gratis, pero tenés que armarlo vos sola desde cero</span>
+          <span>Gratis, pero tenés que armarlo vos desde cero</span>
         </div>
         <div class="compare-item">
           <span class="ci-bullet">❌</span>
@@ -1871,67 +1873,67 @@ body.annual-mode [data-annual] { display: block; }
 
   <div class="faq-grid">
     <div class="faq-item">
-      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false" aria-controls="faq-a1">
         ¿Necesito descargar algo de la App Store o Play Store?
         <div class="faq-icon">+</div>
       </div>
-      <div class="faq-answer">No. Parfum Track es una aplicación web progresiva (PWA) que funciona directo desde el navegador de tu celular. Entrás al link, y en segundos estás usando la app. Podés agregarla a tu pantalla de inicio para tenerla como una app nativa si querés, pero no es obligatorio.</div>
+      <div class="faq-answer" id="faq-a1">No. Parfum Track es una aplicación web progresiva (PWA) que funciona directo desde el navegador de tu celular. Entrás al link, y en segundos estás usando la app. Podés agregarla a tu pantalla de inicio para tenerla como una app nativa si querés, pero no es obligatorio.</div>
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false" aria-controls="faq-a2">
         ¿Mis datos y los de mis clientes están seguros?
         <div class="faq-icon">+</div>
       </div>
-      <div class="faq-answer">Sí. Tus datos de ventas, clientes y stock se guardan en tu dispositivo (en el almacenamiento local del navegador). Algunos servicios como analytics o pagos pasan por servidores externos, pero tu información comercial queda en tu celular. Si querés, podés hacer un backup manual para tenerlo de respaldo.</div>
+      <div class="faq-answer" id="faq-a2">Sí. Tus datos de ventas, clientes y stock se guardan en tu dispositivo (en el almacenamiento local del navegador). Algunos servicios como analytics o pagos pasan por servidores externos, pero tu información comercial queda en tu celular. Si querés, podés hacer un backup manual para tenerlo de respaldo.</div>
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false" aria-controls="faq-a3">
         ¿Funciona sin internet?
         <div class="faq-icon">+</div>
       </div>
-      <div class="faq-answer">Sí, funciona sin internet. Podés registrar ventas, ver estadísticas, gestionar cobros y consultar tu stock sin conexión. Algunas funciones como pagos o actualizaciones sí necesitan internet, pero el uso diario funciona offline. Esto es clave para quienes trabajan en zonas con señal mala o usan datos móviles limitados.</div>
+      <div class="faq-answer" id="faq-a3">Sí, funciona sin internet. Podés registrar ventas, ver estadísticas, gestionar cobros y consultar tu stock sin conexión. Algunas funciones como pagos o actualizaciones sí necesitan internet, pero el uso diario funciona offline. Esto es clave para quienes trabajan en zonas con señal mala o usan datos móviles limitados.</div>
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false" aria-controls="faq-a4">
         ¿El plan Free es realmente gratis para siempre?
         <div class="faq-icon">+</div>
       </div>
-      <div class="faq-answer">Sí, completamente. El plan Free no tiene fecha de vencimiento ni te pide tarjeta de crédito. Podés registrar ventas, controlar tu stock, ver tus ganancias y gestionar cobros por WhatsApp sin pagar nada. Si querés funciones más avanzadas como recordatorios automáticos o estadísticas detalladas, podés pasarte al plan Básico Pro en cualquier momento.</div>
+      <div class="faq-answer" id="faq-a4">Sí, completamente. El plan Free no tiene fecha de vencimiento ni te pide tarjeta de crédito. Podés registrar ventas, controlar tu stock, ver tus ganancias y gestionar cobros por WhatsApp sin pagar nada. Si querés funciones más avanzadas como recordatorios automáticos o estadísticas detalladas, podés pasarte al plan Básico Pro en cualquier momento.</div>
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false" aria-controls="faq-a5">
         ¿Cómo funciona el pago?
         <div class="faq-icon">+</div>
       </div>
-      <div class="faq-answer">El proceso es simple: tocás "Suscribirse" en el plan Básico Pro, ingresás tu email y te redirige a MercadoPago donde podés pagar con tarjeta, transferencia o dinero en cuenta. En minutos recibís tu código de activación por email y lo ingresás en la app. También podés consultar por WhatsApp si preferís otro medio de pago.</div>
+      <div class="faq-answer" id="faq-a5">El proceso es simple: tocás "Suscribirse" en el plan Básico Pro, ingresás tu email y te redirige a MercadoPago donde podés pagar con tarjeta, transferencia o dinero en cuenta. En minutos recibís tu código de activación por email y lo ingresás en la app. También podés consultar por WhatsApp si preferís otro medio de pago.</div>
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false" aria-controls="faq-a6">
         ¿Puedo usar la app en más de un celular?
         <div class="faq-icon">+</div>
       </div>
-      <div class="faq-answer">El plan Free y Básico Pro incluyen 1 perfil para uso personal. Si querés usar la app en varios dispositivos o compartirla con otra persona, el plan Pro (próximamente) permitirá múltiples perfiles y sincronización entre dispositivos.</div>
+      <div class="faq-answer" id="faq-a6">El plan Free y Básico Pro incluyen 1 perfil para uso personal. Si querés usar la app en varios dispositivos o compartirla con otra persona, el plan Pro (próximamente) permitirá múltiples perfiles y sincronización entre dispositivos.</div>
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false" aria-controls="faq-a7">
         ¿Puedo cancelar cuando quiero?
         <div class="faq-icon">+</div>
       </div>
-      <div class="faq-answer">Sí, los planes son sin contrato. Cancelás cuando querés escribiéndonos por email a parfumtrack@gmail.com o por WhatsApp. Tus datos se mantienen guardados en tu dispositivo aunque no renueves — nunca perdés tu historial.</div>
+      <div class="faq-answer" id="faq-a7">Sí, los planes son sin contrato. Cancelás cuando querés escribiéndonos por email a parfumtrack@gmail.com o por WhatsApp. Tus datos se mantienen guardados en tu dispositivo aunque no renueves — nunca perdés tu historial.</div>
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false" aria-controls="faq-a8">
         ¿Sirve aunque no venda perfumes? ¿Puedo usarla para otro producto?
         <div class="faq-icon">+</div>
       </div>
-      <div class="faq-answer">Parfum Track está diseñada y optimizada para revendedores de perfumes y cosméticos. Si vendés otro tipo de productos puede funcionar igual, pero algunas features están pensadas específicamente para el negocio de perfumes — catálogo de fragancias, stock de aromas, etc.</div>
+      <div class="faq-answer" id="faq-a8">Parfum Track está diseñada y optimizada para revendedores de perfumes y cosméticos. Si vendés otro tipo de productos puede funcionar igual, pero algunas features están pensadas específicamente para el negocio de perfumes — catálogo de fragancias, stock de aromas, etc.</div>
     </div>
   </div>
 </section>
@@ -1984,6 +1986,8 @@ body.annual-mode [data-annual] { display: block; }
     </div>
   </div>
 </section>
+
+</main>
 
 <!-- ══════════════════════════════════
      FOOTER
