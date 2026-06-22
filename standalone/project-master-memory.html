@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParfumTrack — Project Master Memory</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0f1a;--bg2:#1a1a2e;--card:#1e1e35;--gold:#c9a84c;--gold2:#e8c97e;--gold3:#f5dfa0;--text:#f0ece4;--text2:#a8a49c;--text3:#7a77a0;--green:#70c9a0;--red:#e07070;--orange:#e8a84c;--blue:#60a5fa;--font-h:'Cormorant Garamond',Georgia,serif;--font-b:'DM Sans',system-ui,sans-serif}
+html{background:var(--bg);scroll-behavior:smooth}
+body{font-family:var(--font-b);color:var(--text);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;padding:0}
+.container{max-width:1100px;margin:0 auto;padding:24px 20px}
+
+/* Header */
+.header{text-align:center;padding:60px 20px 40px;border-bottom:1px solid rgba(201,168,76,.15)}
+.header h1{font-family:var(--font-h);font-size:clamp(2rem,5vw,3.2rem);font-weight:700;color:var(--gold);letter-spacing:-.02em;margin-bottom:8px}
+.header .sub{color:var(--text2);font-size:1rem;margin-bottom:8px}
+.header .date{color:var(--text3);font-size:.85rem}
+
+/* TOC */
+.toc{background:var(--card);border:1px solid rgba(201,168,76,.15);border-radius:16px;padding:28px;margin:32px 0}
+.toc h2{font-family:var(--font-h);font-size:1.3rem;color:var(--gold);margin-bottom:16px}
+.toc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}
+.toc a{color:var(--text2);font-size:.88rem;text-decoration:none;padding:6px 0;display:flex;align-items:center;gap:8px;transition:color .2s}
+.toc a:hover{color:var(--gold2)}
+.toc a .num{color:var(--gold);font-weight:700;font-size:.75rem;min-width:22px}
+
+/* Sections */
+.section{padding:40px 0;border-bottom:1px solid rgba(201,168,76,.08)}
+.section-title{font-family:var(--font-h);font-size:clamp(1.4rem,3vw,2rem);font-weight:600;margin-bottom:24px;color:var(--text);display:flex;align-items:center;gap:12px}
+.section-title .icon{font-size:1.4rem}
+.section-title .num{background:var(--card);border:1px solid rgba(201,168,76,.2);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:var(--gold);flex-shrink:0}
+
+/* Cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid rgba(201,168,76,.08);border-radius:14px;padding:24px;transition:border-color .3s}
+.card:hover{border-color:rgba(201,168,76,.25)}
+.card h3{font-family:var(--font-h);font-size:1.1rem;margin-bottom:8px;color:var(--gold2)}
+.card p,.card li{color:var(--text2);font-size:.88rem;line-height:1.6}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:.85rem;margin:16px 0}
+th{text-align:left;color:var(--gold);font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:12px 10px;border-bottom:2px solid rgba(201,168,76,.2)}
+td{padding:10px;border-bottom:1px solid rgba(201,168,76,.06);color:var(--text2);vertical-align:top}
+tr:hover td{background:rgba(201,168,76,.03)}
+.mono{font-family:monospace;font-size:.8rem;color:var(--text3)}
+
+/* Delta box */
+.delta-box{background:var(--card);border:1px solid rgba(201,168,76,.15);border-radius:16px;padding:28px;margin:16px 0}
+.delta-box h3{font-family:var(--font-h);font-size:1.15rem;color:var(--gold);margin-bottom:16px}
+.delta-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(201,168,76,.06);flex-wrap:wrap;gap:4px}
+.delta-row:last-child{border:none}
+.delta-label{color:var(--text2);font-size:.88rem}
+.delta-val{font-weight:700;font-size:.88rem}
+
+/* Badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.b-green{background:rgba(112,201,160,.12);color:var(--green);border:1px solid rgba(112,201,160,.3)}
+.b-gold{background:rgba(201,168,76,.12);color:var(--gold2);border:1px solid rgba(201,168,76,.3)}
+.b-red{background:rgba(224,112,112,.12);color:var(--red);border:1px solid rgba(224,112,112,.3)}
+.b-blue{background:rgba(96,165,250,.12);color:var(--blue);border:1px solid rgba(96,165,250,.3)}
+
+/* Code block */
+.code-block{background:#0d0d18;border:1px solid rgba(201,168,76,.1);border-radius:10px;padding:16px 20px;font-family:monospace;font-size:.82rem;color:var(--text2);overflow-x:auto;margin:12px 0;line-height:1.7;white-space:pre-wrap}
+
+/* Rules */
+.rule-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.rule-list li{background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.1);border-radius:10px;padding:12px 16px;font-size:.88rem;color:var(--text2);display:flex;align-items:flex-start;gap:10px}
+.rule-list li .r-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
+
+/* Memory box */
+.memory-box{background:linear-gradient(135deg,rgba(201,168,76,.06),rgba(30,30,53,.8));border:2px solid rgba(201,168,76,.25);border-radius:20px;padding:32px;margin:24px 0}
+.memory-box h3{font-family:var(--font-h);font-size:1.2rem;color:var(--gold);margin-bottom:16px}
+.memory-box p{color:var(--text2);font-size:.9rem;line-height:1.7;margin-bottom:12px}
+
+/* File tree */
+.file-tree{font-family:monospace;font-size:.82rem;color:var(--text2);line-height:2;padding:16px 20px;background:#0d0d18;border-radius:10px;border:1px solid rgba(201,168,76,.1)}
+.file-tree .dir{color:var(--gold2)}
+.file-tree .file{color:var(--text2)}
+.file-tree .comment{color:var(--text3);font-style:italic}
+
+/* Checklist */
+.checklist{list-style:none;display:flex;flex-direction:column;gap:6px}
+.checklist li{font-size:.88rem;color:var(--text2);padding:6px 0;display:flex;align-items:flex-start;gap:8px}
+.checklist .check{color:var(--green);font-weight:700;flex-shrink:0}
+.checklist .pending{color:var(--orange);flex-shrink:0}
+.checklist .no{color:var(--red);flex-shrink:0}
+
+@media(max-width:600px){
+.card-grid{grid-template-columns:1fr}
+.toc-grid{grid-template-columns:1fr}
+table{font-size:.75rem}
+th,td{padding:6px 4px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════════════════════ -->
+<div class="header">
+  <h1>🍶 ParfumTrack — Project Master Memory</h1>
+  <p class="sub">Fuente única de verdad · Memoria maestra del proyecto</p>
+  <p class="date">Generado: 22 de junio de 2026 · Versión 1.0</p>
+</div>
+
+<div class="container">
+
+<!-- ═══════ TOC ═══════ -->
+<div class="toc">
+  <h2>Índice</h2>
+  <div class="toc-grid">
+    <a href="#f1"><span class="num">01</span> Resumen Ejecutivo</a>
+    <a href="#f2"><span class="num">02</span> Producto y Funcionalidades</a>
+    <a href="#f3"><span class="num">03</span> Decisiones Confirmadas</a>
+    <a href="#f4"><span class="num">04</span> Branding e Identidad Visual</a>
+    <a href="#f5"><span class="num">05</span> Arquitectura y Desarrollo</a>
+    <a href="#f6"><span class="num">06</span> Mapa de Archivos</a>
+    <a href="#f7"><span class="num">07</span> Negocio y Monetización</a>
+    <a href="#f8"><span class="num">08</span> Marketing y Crecimiento</a>
+    <a href="#f9"><span class="num">09</span> Reglas Globales del Proyecto</a>
+    <a href="#f10"><span class="num">10</span> Auditorías Realizadas</a>
+    <a href="#f11"><span class="num">11</span> Pendientes y Roadmap</a>
+    <a href="#f12"><span class="num">12</span> Riesgos y Gaps</a>
+    <a href="#f13"><span class="num">13</span> Project Master Memory</a>
+    <a href="#f14"><span class="num">14</span> Contexto Optimizado (1000 palabras)</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 1 — RESUMEN EJECUTIVO
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f1">
+  <div class="section-title"><span class="num">01</span> Resumen Ejecutivo</div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>¿Qué es?</h3>
+      <p><strong>Parfum Track</strong> es una PWA (Progressive Web App) de gestión de ventas diseñada específicamente para revendedores de perfumes en Latinoamérica. Permite registrar ventas en 10 segundos, calcular ganancia real automáticamente, controlar stock, gestionar cuotas/cobros y compartir catálogos por WhatsApp.</p>
+    </div>
+    <div class="card">
+      <h3>Problema que resuelve</h3>
+      <p>Los revendedores de perfumes manejan su negocio con cuaderno, Excel o WhatsApp. No saben su ganancia real, olvidan cobros, no controlan stock y pierden 2+ horas por mes haciendo cuentas. Parfum Track automatiza todo esto desde el celular, sin internet.</p>
+    </div>
+    <div class="card">
+      <h3>Público objetivo</h3>
+      <p>Revendedores de perfumes y cosméticos en <strong>Argentina, Uruguay, Colombia y México</strong>. Perfil: emprendedores individuales que venden de forma informal, manejan cuotas y operan desde el celular. Nivel técnico bajo-medio.</p>
+    </div>
+    <div class="card">
+      <h3>Estado actual</h3>
+      <p><strong>Producción.</strong> App desplegada y funcional en Cloudflare Workers. Landing page activa. Checkout con Mercado Pago operativo. Trial con OTP por email. 8 auditorías completadas (app: v1→v7, landing: v1). Score actual: app 95/100, landing 91+/100 (post-fixes).</p>
+    </div>
+  </div>
+
+  <div class="delta-box">
+    <h3>Métricas clave</h3>
+    <div class="delta-row"><span class="delta-label">URL de producción</span><span class="delta-val" style="color:var(--gold2)">parfumtrack.luccasramireziglesias.workers.dev</span></div>
+    <div class="delta-row"><span class="delta-label">Revendedores activos (claim)</span><span class="delta-val" style="color:var(--green)">+340 en LATAM</span></div>
+    <div class="delta-row"><span class="delta-label">Tiempo por venta</span><span class="delta-val" style="color:var(--green)">10 segundos</span></div>
+    <div class="delta-row"><span class="delta-label">Score auditoría app</span><span class="delta-val" style="color:var(--green)">95/100 (v7)</span></div>
+    <div class="delta-row"><span class="delta-label">Score auditoría landing</span><span class="delta-val" style="color:var(--green)">91+/100 (v1 post-fix)</span></div>
+    <div class="delta-row"><span class="delta-label">Hallazgos críticos abiertos</span><span class="delta-val" style="color:var(--green)">0</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 2 — PRODUCTO Y FUNCIONALIDADES
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f2">
+  <div class="section-title"><span class="num">02</span> Producto y Funcionalidades</div>
+
+  <h3 style="font-family:var(--font-h);color:var(--gold);margin-bottom:16px;font-size:1.1rem;">Funcionalidades actuales <span class="badge b-green">CONFIRMADO</span></h3>
+  <table>
+    <thead><tr><th>Módulo</th><th>Descripción</th><th>Plan</th></tr></thead>
+    <tbody>
+      <tr><td>Registro de ventas</td><td>Registrar venta con perfume, monto, cliente, cuotas en 10 segundos</td><td>Free</td></tr>
+      <tr><td>Ganancia en tiempo real</td><td>Cálculo automático de ganancia real (ingresos - costos)</td><td>Free</td></tr>
+      <tr><td>Control de stock</td><td>Stock en tiempo real, alertas de bajo stock</td><td>Free</td></tr>
+      <tr><td>Gestión de cuotas</td><td>Tracking de cuotas, vencimientos, pagos parciales</td><td>Free</td></tr>
+      <tr><td>Cobros por WhatsApp</td><td>Mensaje de cobro pre-escrito listo para enviar por WA</td><td>Free</td></tr>
+      <tr><td>Catálogo WhatsApp</td><td>Generar imagen de catálogo de perfumes para compartir</td><td>Básico Pro</td></tr>
+      <tr><td>Estadísticas avanzadas</td><td>Margen, ticket promedio, mejor día, evolución mensual, gráficos</td><td>Básico Pro</td></tr>
+      <tr><td>Ranking de clientes</td><td>Segmentación: mejores clientes, deudores, inactivos</td><td>Básico Pro</td></tr>
+      <tr><td>Meta mensual</td><td>Objetivo de ventas con seguimiento visual</td><td>Básico Pro</td></tr>
+      <tr><td>Exportar PDF/Excel</td><td>Exportar ventas, estadísticas y reportes</td><td>Básico Pro</td></tr>
+      <tr><td>Notificaciones push</td><td>Recordatorios de cobros vencidos via OneSignal</td><td>Básico Pro</td></tr>
+      <tr><td>Backup manual</td><td>Backup/restore de datos vía R2 con auth HMAC</td><td>Free</td></tr>
+      <tr><td>Sincronización cloud</td><td>Sync de datos entre sesiones vía KV</td><td>Free (post-trial)</td></tr>
+      <tr><td>Offline completo</td><td>PWA con Service Worker, funciona sin internet</td><td>Free</td></tr>
+      <tr><td>Trial con OTP</td><td>7 días gratis verificado por email con código de 6 dígitos</td><td>Sistema</td></tr>
+      <tr><td>Pagos Mercado Pago</td><td>Suscripción mensual/anual con webhooks</td><td>Sistema</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-family:var(--font-h);color:var(--gold);margin:32px 0 16px;font-size:1.1rem;">Funcionalidades futuras <span class="badge b-gold">PENDIENTE</span></h3>
+  <table>
+    <thead><tr><th>Feature</th><th>Descripción</th><th>Plan</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td>Múltiples perfiles</td><td>Más de un negocio por cuenta</td><td>Pro ($19.99)</td><td><span class="badge b-gold">Próximamente</span></td></tr>
+      <tr><td>Backup automático</td><td>Backup periódico sin intervención del usuario</td><td>Pro</td><td><span class="badge b-gold">Próximamente</span></td></tr>
+      <tr><td>Sync multi-dispositivo</td><td>Usar la app en varios celulares simultáneamente</td><td>Pro</td><td><span class="badge b-gold">Próximamente</span></td></tr>
+      <tr><td>Video demo en landing</td><td>Video 15-30s mostrando flujo de venta</td><td>Marketing</td><td><span class="badge b-blue">Backlog</span></td></tr>
+      <tr><td>Landing por país</td><td>Contenido localizado AR/UY/CO/MX</td><td>Marketing</td><td><span class="badge b-blue">90 días</span></td></tr>
+      <tr><td>Blog SEO</td><td>Contenido long-tail para adquisición orgánica</td><td>Marketing</td><td><span class="badge b-blue">90 días</span></td></tr>
+      <tr><td>Tests automatizados</td><td>Vitest + Miniflare para funciones backend</td><td>Técnico</td><td><span class="badge b-blue">30 días</span></td></tr>
+      <tr><td>Refactor monolito</td><td>Separar index.html en módulos</td><td>Técnico</td><td><span class="badge b-blue">90 días</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 3 — DECISIONES CONFIRMADAS
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f3">
+  <div class="section-title"><span class="num">03</span> Decisiones Confirmadas</div>
+
+  <ul class="checklist">
+    <li><span class="check">✓</span> <strong>Nombre:</strong> "Parfum Track" — sin cambios planificados</li>
+    <li><span class="check">✓</span> <strong>Plataforma:</strong> PWA en Cloudflare Workers (NO Pages, NO Netlify)</li>
+    <li><span class="check">✓</span> <strong>URL:</strong> parfumtrack.luccasramireziglesias.workers.dev</li>
+    <li><span class="check">✓</span> <strong>Email oficial:</strong> parfumtrack@gmail.com — nunca usar "hola@parfumtrack.com"</li>
+    <li><span class="check">✓</span> <strong>Idioma:</strong> Español con voseo argentino</li>
+    <li><span class="check">✓</span> <strong>Lenguaje:</strong> Género neutro — "revendedores" NO "revendedoras"</li>
+    <li><span class="check">✓</span> <strong>Entidad legal:</strong> "Parfum Track" — sin nombres personales en documentos legales</li>
+    <li><span class="check">✓</span> <strong>Paleta:</strong> Dark theme con acentos dorados (detallada en Fase 4)</li>
+    <li><span class="check">✓</span> <strong>Fuentes:</strong> Cormorant Garamond (títulos) + DM Sans (body)</li>
+    <li><span class="check">✓</span> <strong>Analytics:</strong> Plausible (privacy-friendly, sin cookies, GDPR compliant)</li>
+    <li><span class="check">✓</span> <strong>Pagos:</strong> Mercado Pago (suscripciones + webhooks)</li>
+    <li><span class="check">✓</span> <strong>Email transaccional:</strong> Brevo (Sendinblue) con List-Unsubscribe</li>
+    <li><span class="check">✓</span> <strong>Push notifications:</strong> OneSignal</li>
+    <li><span class="check">✓</span> <strong>Moneda de pricing:</strong> USD (cobro en moneda local vía MP)</li>
+    <li><span class="check">✓</span> <strong>Modelo:</strong> Freemium (Free gratis para siempre + Básico Pro $9.99/mes)</li>
+    <li><span class="check">✓</span> <strong>Datos del usuario:</strong> Almacenados localmente (IndexedDB/localStorage), NO en servidores</li>
+    <li><span class="check">✓</span> <strong>CDN:</strong> Chart.js 4.4.0, jsPDF 2.5.1, XLSX 0.18.5 (lazy-loaded con SRI)</li>
+    <li><span class="check">✓</span> <strong>CI/CD:</strong> GitHub Actions auto-deploy on push to main</li>
+    <li><span class="check">✓</span> <strong>Seguridad:</strong> CSP, HSTS, X-Frame-Options DENY, rate limiting fail-closed en todos los endpoints</li>
+    <li><span class="check">✓</span> <strong>CORS whitelist:</strong> localhost, 127.0.0.1, parfumtrack.pages.dev, parfumtrack.luccasramireziglesias.workers.dev</li>
+    <li><span class="check">✓</span> <strong>Trial:</strong> 7 días, verificado por email OTP de 6 dígitos, anclado por email+device+IP</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 4 — BRANDING
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f4">
+  <div class="section-title"><span class="num">04</span> Branding e Identidad Visual</div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Nombre y Posicionamiento</h3>
+      <p><strong>Parfum Track</strong> — "La app pensada especialmente para revendedores de perfumes"</p>
+      <p style="margin-top:8px">Headline principal: "Dejá de adivinar cuánto ganás"</p>
+      <p style="margin-top:8px">Emoji de marca: 🍶 (botella dorada)</p>
+    </div>
+    <div class="card">
+      <h3>Contacto oficial</h3>
+      <p>Email: parfumtrack@gmail.com</p>
+      <p>WhatsApp: +598 94 466 577</p>
+      <p>Ubicación: Montevideo, Uruguay</p>
+      <p>Entidad: "Parfum Track" (sin nombres personales)</p>
+    </div>
+  </div>
+
+  <div class="delta-box">
+    <h3>Paleta de colores</h3>
+    <div class="delta-row"><span class="delta-label">Background principal</span><span class="delta-val" style="color:#f0ece4">#0f0f1a</span></div>
+    <div class="delta-row"><span class="delta-label">Background secundario</span><span class="delta-val" style="color:#f0ece4">#1a1a2e</span></div>
+    <div class="delta-row"><span class="delta-label">Cards</span><span class="delta-val" style="color:#f0ece4">#1e1e35</span></div>
+    <div class="delta-row"><span class="delta-label">Gold primario</span><span class="delta-val" style="color:#c9a84c">#c9a84c</span></div>
+    <div class="delta-row"><span class="delta-label">Gold claro</span><span class="delta-val" style="color:#e8c97e">#e8c97e</span></div>
+    <div class="delta-row"><span class="delta-label">Gold highlight</span><span class="delta-val" style="color:#f5dfa0">#f5dfa0</span></div>
+    <div class="delta-row"><span class="delta-label">Texto principal</span><span class="delta-val" style="color:#f0ece4">#f0ece4</span></div>
+    <div class="delta-row"><span class="delta-label">Success (verde)</span><span class="delta-val" style="color:#70c9a0">#70c9a0</span></div>
+    <div class="delta-row"><span class="delta-label">Danger (rojo)</span><span class="delta-val" style="color:#e07070">#e07070</span></div>
+  </div>
+
+  <div class="delta-box">
+    <h3>Tipografía</h3>
+    <div class="delta-row"><span class="delta-label">Títulos / Headings</span><span class="delta-val" style="color:var(--gold2)">Cormorant Garamond (bold)</span></div>
+    <div class="delta-row"><span class="delta-label">Body / UI</span><span class="delta-val" style="color:var(--gold2)">DM Sans (regular/500/600/700)</span></div>
+    <div class="delta-row"><span class="delta-label">Carga</span><span class="delta-val" style="color:var(--green)">Local desde /fonts/fonts.css</span></div>
+    <div class="delta-row"><span class="delta-label">Gradiente gold</span><span class="delta-val" style="color:var(--gold2)">#c9a84c → #e8c97e (135deg)</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 5 — ARQUITECTURA
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f5">
+  <div class="section-title"><span class="num">05</span> Arquitectura y Desarrollo</div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Stack tecnológico</h3>
+      <p><strong>Frontend:</strong> HTML + CSS + JS vanilla (monolito index.html ~19.5K líneas). Sin framework, sin build step.</p>
+      <p style="margin-top:8px"><strong>Backend:</strong> Cloudflare Workers (10 funciones JS). KV para datos temporales, R2 para backups.</p>
+      <p style="margin-top:8px"><strong>CDN lazy-load:</strong> Chart.js 4.4.0, jsPDF 2.5.1, XLSX 0.18.5 con SRI hashes.</p>
+    </div>
+    <div class="card">
+      <h3>Infraestructura</h3>
+      <p><strong>Hosting:</strong> Cloudflare Workers con Assets (wrangler.jsonc)</p>
+      <p style="margin-top:8px"><strong>KV Namespace:</strong> PT_LICENSES — trial, rate limiting, licencias</p>
+      <p style="margin-top:8px"><strong>R2 Bucket:</strong> parfumtrack-backups — backups de usuarios</p>
+      <p style="margin-top:8px"><strong>CI/CD:</strong> GitHub Actions → auto-deploy on push to main</p>
+    </div>
+    <div class="card">
+      <h3>Seguridad implementada</h3>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:4px;margin-top:4px">
+        <li>✓ CSP restrictivo con whitelist de scripts</li>
+        <li>✓ HSTS con preload (2 años)</li>
+        <li>✓ X-Frame-Options DENY</li>
+        <li>✓ Rate limiting KV-based fail-closed en 10 endpoints</li>
+        <li>✓ CORS whitelist con regex estricta</li>
+        <li>✓ HMAC auth para backup/sync</li>
+        <li>✓ ECDSA para validación de licencias</li>
+        <li>✓ List-Unsubscribe en todos los emails</li>
+        <li>✓ SRI hashes para CDN resources</li>
+        <li>✓ Brevo con timeout 8s + AbortSignal</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Servicios externos</h3>
+      <table style="margin:0">
+        <tr><td><strong>Mercado Pago</strong></td><td>Suscripciones + webhooks</td></tr>
+        <tr><td><strong>Brevo</strong></td><td>Email transaccional (OTP, notificaciones)</td></tr>
+        <tr><td><strong>OneSignal</strong></td><td>Push notifications</td></tr>
+        <tr><td><strong>Plausible</strong></td><td>Analytics sin cookies</td></tr>
+        <tr><td><strong>cdnjs</strong></td><td>Chart.js, jsPDF, XLSX</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="delta-box">
+    <h3>Secrets requeridos (Cloudflare Dashboard)</h3>
+    <div class="delta-row"><span class="delta-label">BREVO_API_KEY</span><span class="delta-val mono">Email transaccional</span></div>
+    <div class="delta-row"><span class="delta-label">LICENSE_SERVER_SECRET</span><span class="delta-val mono">HMAC para sync/backup auth</span></div>
+    <div class="delta-row"><span class="delta-label">LICENSE_PRIVATE_KEY</span><span class="delta-val mono">ECDSA para firmar licencias</span></div>
+    <div class="delta-row"><span class="delta-label">MP_ACCESS_TOKEN</span><span class="delta-val mono">Mercado Pago API</span></div>
+    <div class="delta-row"><span class="delta-label">MP_WEBHOOK_SECRET</span><span class="delta-val mono">Verificación de webhooks MP</span></div>
+    <div class="delta-row"><span class="delta-label">ONESIGNAL_APP_ID</span><span class="delta-val mono">Push notifications</span></div>
+    <div class="delta-row"><span class="delta-label">ONESIGNAL_API_KEY</span><span class="delta-val mono">Push notifications API</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 6 — MAPA DE ARCHIVOS
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f6">
+  <div class="section-title"><span class="num">06</span> Mapa de Archivos</div>
+
+  <div class="file-tree">
+<span class="dir">ParfumTrack/</span>
+├── <span class="file">index.html</span>          <span class="comment">← App principal monolítica (19,479 líneas)</span>
+├── <span class="file">landing.html</span>        <span class="comment">← Landing page de marketing (2,218 líneas)</span>
+├── <span class="file">worker.js</span>           <span class="comment">← Router entry point Cloudflare Workers (66 líneas)</span>
+├── <span class="file">sw.js</span>               <span class="comment">← Service Worker v5 (96 líneas)</span>
+├── <span class="file">manifest.json</span>       <span class="comment">← PWA manifest con shortcuts y screenshots</span>
+├── <span class="file">wrangler.jsonc</span>      <span class="comment">← Config de Cloudflare Workers</span>
+├── <span class="file">_headers</span>            <span class="comment">← Security headers (CSP, HSTS, etc.)</span>
+├── <span class="file">terminos.html</span>       <span class="comment">← Términos y condiciones v2.0</span>
+├── <span class="file">privacidad.html</span>     <span class="comment">← Política de privacidad v2.0</span>
+├── <span class="file">checkout-success.html</span> <span class="comment">← Post-pago exitoso</span>
+├── <span class="file">checkout-pending.html</span> <span class="comment">← Post-pago pendiente</span>
+├── <span class="file">icon-192.png / icon-512.png</span> <span class="comment">← Íconos PWA</span>
+├── <span class="file">favicon.ico / .svg / -32.png</span> <span class="comment">← Favicons</span>
+├── <span class="file">bg-perfumes.jpg</span>     <span class="comment">← Background hero de landing</span>
+├── <span class="file">screenshot-app.jpg</span>  <span class="comment">← Screenshot real del dashboard (1080x2093)</span>
+├── <span class="file">screenshot-catalogo.jpg</span> <span class="comment">← Screenshot real del catálogo (1763x2048)</span>
+├── <span class="file">screenshot-estadisticas.jpg</span> <span class="comment">← Screenshot real de estadísticas (1080x1213)</span>
+├── <span class="dir">fonts/</span>
+│   └── <span class="file">fonts.css</span>       <span class="comment">← Fuentes locales (Cormorant + DM Sans)</span>
+├── <span class="dir">img/</span>
+│   └── <span class="file">whatsapp-cobro.jpg</span> <span class="comment">← Screenshot de cobro WA</span>
+├── <span class="dir">functions/</span>           <span class="comment">← 10 Cloudflare Worker functions</span>
+│   ├── <span class="file">trial.js</span>        <span class="comment">← OTP email + trial anchor (410 líneas)</span>
+│   ├── <span class="file">validate-license.js</span> <span class="comment">← ECDSA license validation (251 líneas)</span>
+│   ├── <span class="file">backup.js</span>       <span class="comment">← R2 backup GET/POST con HMAC (205 líneas)</span>
+│   ├── <span class="file">sync.js</span>         <span class="comment">← Cloud sync GET/POST con HMAC (236 líneas)</span>
+│   ├── <span class="file">send-email.js</span>   <span class="comment">← Email via Brevo con templates (427 líneas)</span>
+│   ├── <span class="file">send-notification.js</span> <span class="comment">← Push via OneSignal (208 líneas)</span>
+│   ├── <span class="file">mp-create-preference.js</span> <span class="comment">← Crear preferencia MP (130 líneas)</span>
+│   ├── <span class="file">mp-webhook.js</span>   <span class="comment">← Webhook de pagos MP (536 líneas)</span>
+│   ├── <span class="file">mp-subscription-status.js</span> <span class="comment">← Status suscripción (106 líneas)</span>
+│   └── <span class="file">mp-payment-status.js</span> <span class="comment">← Status pago (120 líneas)</span>
+├── <span class="dir">standalone/</span>          <span class="comment">← Reportes y assets (excluidos del deploy)</span>
+│   ├── <span class="file">auditoria-completa-v1..v7.html</span>
+│   ├── <span class="file">auditoria-landing-v1.html</span>
+│   └── <span class="file">presentacion.html</span>
+└── <span class="dir">.github/workflows/</span>  <span class="comment">← CI/CD auto-deploy</span>
+  </div>
+
+  <div class="delta-box" style="margin-top:16px">
+    <h3>Rutas API (worker.js)</h3>
+    <div class="delta-row"><span class="delta-label">POST /trial</span><span class="delta-val mono">OTP register + verify</span></div>
+    <div class="delta-row"><span class="delta-label">POST /validate-license</span><span class="delta-val mono">ECDSA license check</span></div>
+    <div class="delta-row"><span class="delta-label">POST /send-email</span><span class="delta-val mono">Enviar email via Brevo</span></div>
+    <div class="delta-row"><span class="delta-label">POST /send-notification</span><span class="delta-val mono">Push via OneSignal</span></div>
+    <div class="delta-row"><span class="delta-label">GET|POST /backup</span><span class="delta-val mono">R2 backup con HMAC</span></div>
+    <div class="delta-row"><span class="delta-label">GET|POST /sync</span><span class="delta-val mono">Cloud sync con HMAC</span></div>
+    <div class="delta-row"><span class="delta-label">POST /mp-create-preference</span><span class="delta-val mono">Crear preferencia MP</span></div>
+    <div class="delta-row"><span class="delta-label">GET|POST /mp-webhook</span><span class="delta-val mono">Webhook pagos MP</span></div>
+    <div class="delta-row"><span class="delta-label">GET /mp-subscription-status</span><span class="delta-val mono">Status suscripción</span></div>
+    <div class="delta-row"><span class="delta-label">GET /mp-payment-status</span><span class="delta-val mono">Status pago</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 7 — NEGOCIO
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f7">
+  <div class="section-title"><span class="num">07</span> Negocio y Monetización</div>
+
+  <table>
+    <thead><tr><th>Plan</th><th>Precio</th><th>Features clave</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Free</strong></td>
+        <td>USD 0 — para siempre</td>
+        <td>Ventas ilimitadas, stock, ganancia, cuotas, cobros WA, offline, 1 perfil</td>
+        <td><span class="badge b-green">ACTIVO</span></td>
+      </tr>
+      <tr>
+        <td><strong>Básico Pro</strong></td>
+        <td>USD 9.99/mes o USD 7.99/mes (anual: $95.88/año)</td>
+        <td>Todo Free + estadísticas avanzadas, catálogo WA, ranking clientes, PDF/Excel, push, meta mensual, soporte prioritario</td>
+        <td><span class="badge b-green">ACTIVO</span></td>
+      </tr>
+      <tr>
+        <td><strong>Pro</strong></td>
+        <td>USD 19.99/mes o USD 15.99/mes (anual)</td>
+        <td>Todo Básico Pro + múltiples perfiles, backup automático, sync multi-dispositivo, soporte preferencial</td>
+        <td><span class="badge b-gold">PRÓXIMAMENTE</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card-grid" style="margin-top:20px">
+    <div class="card">
+      <h3>Flujo de pago</h3>
+      <p>1. Usuario toca "Activar plan" en landing o app</p>
+      <p>2. Ingresa email en modal de checkout</p>
+      <p>3. Redirect a Mercado Pago (nueva pestaña)</p>
+      <p>4. Pago con tarjeta/transferencia/cuenta MP</p>
+      <p>5. Webhook → genera código de activación</p>
+      <p>6. Email con código → usuario ingresa en la app</p>
+      <p>Alternativa: pago por WhatsApp manual</p>
+    </div>
+    <div class="card">
+      <h3>Mercados objetivo</h3>
+      <p><strong>Primario:</strong> Argentina, Uruguay</p>
+      <p><strong>Secundario:</strong> Colombia, México</p>
+      <p><strong>Diferencial:</strong> Única app específica para revendedores de perfumes. Offline-first para LATAM. Sin descarga (PWA). Cobros por WhatsApp integrados.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 8 — MARKETING
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f8">
+  <div class="section-title"><span class="num">08</span> Marketing y Crecimiento</div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Estrategia de ads (Meta/Instagram)</h3>
+      <p>Plan de 12 ads cubriendo todo el funnel: 4 awareness, 4 consideration, 4 conversion. Distribución: 4 stories (1080x1920), 4 feed portrait (1080x1350), 4 feed square (1080x1080). Copy en voseo argentino. Existe un plan detallado.</p>
+    </div>
+    <div class="card">
+      <h3>Canales de adquisición</h3>
+      <p><strong>Pagos:</strong> Meta Ads (IG/FB) con Canva para diseños</p>
+      <p><strong>Orgánico:</strong> SEO (structured data + FAQ schema activos), WhatsApp viral (catálogo compartido), referrals de usuarios</p>
+      <p><strong>Tracking:</strong> Plausible analytics con eventos custom (cta_hero, cta_nav, pricing_cta, scroll_depth, mp_checkout_redirect)</p>
+    </div>
+    <div class="card">
+      <h3>Landing page</h3>
+      <p>Estructura profesional SaaS: Hero → Pain → Solution → Features (3 con screenshots) → How it works → Comparación 3 columnas → Pricing → FAQ (8) → CTA final → Contacto → Footer. Score auditoría: 91+/100.</p>
+    </div>
+    <div class="card">
+      <h3>Conversión actual</h3>
+      <p>7+ CTAs distribuidos en la landing. Fricción mínima: CTA → app directa (sin registro). Trial 7 días con OTP email. Plan Free sin tarjeta. Social proof: "+340 revendedores en LATAM".</p>
+    </div>
+  </div>
+
+  <div class="delta-box">
+    <h3>Eventos Plausible configurados</h3>
+    <div class="delta-row"><span class="delta-label">cta_announce, cta_nav, cta_hero_primary</span><span class="delta-val mono">CTAs de landing</span></div>
+    <div class="delta-row"><span class="delta-label">cta_feature_catalogo, cta_how, cta_footer</span><span class="delta-val mono">CTAs de secciones</span></div>
+    <div class="delta-row"><span class="delta-label">pricing_cta (tier, mode)</span><span class="delta-val mono">Clicks en pricing</span></div>
+    <div class="delta-row"><span class="delta-label">mp_checkout_redirect (plan)</span><span class="delta-val mono">Redirect a MP</span></div>
+    <div class="delta-row"><span class="delta-label">scroll_depth (25/50/75/100%)</span><span class="delta-val mono">Scroll tracking</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 9 — REGLAS GLOBALES
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f9">
+  <div class="section-title"><span class="num">09</span> Reglas Globales del Proyecto</div>
+
+  <ul class="rule-list">
+    <li><span class="r-icon">🗣️</span> <strong>Comunicación siempre en español.</strong> Todo el copy, documentación y comunicación del proyecto es en español con voseo argentino.</li>
+    <li><span class="r-icon">⚖️</span> <strong>Lenguaje de género neutro.</strong> Usar "revendedores" NO "revendedoras". "Clientes" NO "clientas". Evitar adjetivos con género explícito cuando se refieren a personas.</li>
+    <li><span class="r-icon">📧</span> <strong>Email oficial: parfumtrack@gmail.com.</strong> Nunca usar "hola@parfumtrack.com" en ningún archivo. Todos los fallbacks de email deben apuntar a parfumtrack@gmail.com.</li>
+    <li><span class="r-icon">🚫</span> <strong>No usar Netlify.</strong> El hosting es Cloudflare Workers con Assets. URL: parfumtrack.luccasramireziglesias.workers.dev (Workers, NO Pages).</li>
+    <li><span class="r-icon">👤</span> <strong>Sin nombres personales en documentos legales.</strong> La entidad es "Parfum Track" a secas. No incluir nombre del desarrollador en términos, privacidad o documentación pública.</li>
+    <li><span class="r-icon">📸</span> <strong>Usar material real siempre que sea posible.</strong> Screenshots reales de la app, no mockups genéricos. En ads, usar screenshots del dashboard, catálogo y estadísticas.</li>
+    <li><span class="r-icon">🎯</span> <strong>Priorizar conversión sobre likes.</strong> En ads y landing, el objetivo es que el usuario abra la app, no engagement vacío.</li>
+    <li><span class="r-icon">🔒</span> <strong>Rate limiting fail-closed.</strong> Si KV no está configurado, bloquear requests (no dejar pasar). Todos los endpoints deben tener rate limiting.</li>
+    <li><span class="r-icon">📬</span> <strong>List-Unsubscribe obligatorio.</strong> Todos los emails transaccionales deben incluir headers List-Unsubscribe y List-Unsubscribe-Post.</li>
+    <li><span class="r-icon">🎨</span> <strong>Paleta dark consistente.</strong> Fondos #0f0f1a/#1a1a2e, acentos gold #c9a84c/#e8c97e. Nunca fondos blancos en la app o landing.</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 10 — AUDITORÍAS
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f10">
+  <div class="section-title"><span class="num">10</span> Auditorías Realizadas</div>
+
+  <table>
+    <thead><tr><th>Versión</th><th>Tipo</th><th>Score</th><th>Hallazgos</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">App v1</td><td>Completa</td><td style="color:var(--red)">53/100</td><td>3 críticos, 4 altos, múltiples medios</td><td><span class="badge b-green">RESUELTO</span></td></tr>
+      <tr><td class="mono">App v2</td><td>Post-fix seguridad</td><td style="color:var(--orange)">81/100</td><td>0 críticos, mejoras de UX/seguridad</td><td><span class="badge b-green">RESUELTO</span></td></tr>
+      <tr><td class="mono">App v3</td><td>Post-fix accesibilidad</td><td style="color:var(--orange)">87/100</td><td>Mejoras A11y, UTM, noscript</td><td><span class="badge b-green">RESUELTO</span></td></tr>
+      <tr><td class="mono">App v4</td><td>Post-fix SEO</td><td style="color:var(--green)">92/100</td><td>0 hallazgos abiertos</td><td><span class="badge b-green">RESUELTO</span></td></tr>
+      <tr><td class="mono">App v5</td><td>Completa fresca</td><td style="color:var(--green)">92/100</td><td>4 medios, 1 bajo</td><td><span class="badge b-green">RESUELTO</span></td></tr>
+      <tr><td class="mono">App v6</td><td>Post-fix v5</td><td style="color:var(--green)"><strong>95/100</strong></td><td>0 nuevos</td><td><span class="badge b-green">OBJETIVO ALCANZADO</span></td></tr>
+      <tr><td class="mono">App v7</td><td>Completa fresca</td><td style="color:var(--green)"><strong>95/100</strong></td><td>1 medio, 2 bajos (todos resueltos)</td><td><span class="badge b-green">RESUELTO</span></td></tr>
+      <tr><td class="mono">Landing v1</td><td>Completa</td><td style="color:var(--green)"><strong>91+/100</strong></td><td>3 medios, 8 bajos (5 resueltos)</td><td><span class="badge b-green">PLAN 24H COMPLETADO</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="delta-box" style="margin-top:16px">
+    <h3>Progreso de score: 53 → 95 (app) en 7 iteraciones</h3>
+    <div class="delta-row"><span class="delta-label">Fixes de seguridad</span><span class="delta-val" style="color:var(--green)">15+ (XSS, rate limiting, CORS, CSP, HMAC, ECDSA)</span></div>
+    <div class="delta-row"><span class="delta-label">Fixes de accesibilidad</span><span class="delta-val" style="color:var(--green)">10+ (skip-link, aria, alt text, main, keyboard nav)</span></div>
+    <div class="delta-row"><span class="delta-label">Fixes de SEO</span><span class="delta-val" style="color:var(--green)">8+ (structured data, FAQ schema, canonical, og tags)</span></div>
+    <div class="delta-row"><span class="delta-label">Fixes de UX</span><span class="delta-val" style="color:var(--green)">5+ (género neutro, noscript, loaders, messages)</span></div>
+    <div class="delta-row"><span class="delta-label">Fixes de email</span><span class="delta-val" style="color:var(--green)">5+ (List-Unsubscribe, fallback emails, timeout)</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 11 — PENDIENTES Y ROADMAP
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f11">
+  <div class="section-title"><span class="num">11</span> Pendientes y Roadmap</div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Inmediato (landing)</h3>
+      <ul class="checklist">
+        <li><span class="check">✓</span> LP-M01: Género neutro en landing</li>
+        <li><span class="check">✓</span> LP-M03: &lt;main&gt; + skip-link</li>
+        <li><span class="check">✓</span> LP-L01: width/height + lazy en imágenes</li>
+        <li><span class="check">✓</span> LP-L07: aria-controls en FAQs</li>
+        <li><span class="pending">◯</span> LP-M02: Imagen OG profesional 1200x630</li>
+        <li><span class="pending">◯</span> LP-L03: Plan Pro → "Avisame" con captura email</li>
+        <li><span class="pending">◯</span> LP-L04: Mejorar UX checkout (loader)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>7 días</h3>
+      <ul class="checklist">
+        <li><span class="pending">◯</span> Crear imagen OG para compartir en redes</li>
+        <li><span class="pending">◯</span> 12 ads Meta/IG (plan existe, no ejecutados)</li>
+        <li><span class="pending">◯</span> Verificar SRI hashes en producción</li>
+        <li><span class="pending">◯</span> Testimonios reales con foto/nombre</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>30 días</h3>
+      <ul class="checklist">
+        <li><span class="pending">◯</span> Video demo de 15-30 segundos</li>
+        <li><span class="pending">◯</span> Tests automatizados (Vitest + Miniflare)</li>
+        <li><span class="pending">◯</span> A/B test headlines con Plausible</li>
+        <li><span class="pending">◯</span> Review schema para testimonios</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>90 días</h3>
+      <ul class="checklist">
+        <li><span class="pending">◯</span> Refactor monolito index.html → módulos</li>
+        <li><span class="pending">◯</span> Landing localizada por país (AR/UY/CO/MX)</li>
+        <li><span class="pending">◯</span> Blog con SEO long-tail</li>
+        <li><span class="pending">◯</span> Plan Pro: multi-perfil, backup auto, sync</li>
+        <li><span class="pending">◯</span> Case studies de revendedores reales</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 12 — RIESGOS Y GAPS
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f12">
+  <div class="section-title"><span class="num">12</span> Riesgos y Gaps Detectados</div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Riesgos técnicos</h3>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:6px">
+        <li>⚠️ Monolito index.html de 19.5K líneas — mantenibilidad a largo plazo</li>
+        <li>⚠️ Sin tests automatizados — riesgo de regresiones</li>
+        <li>⚠️ Dependencia de Cloudflare Workers — vendor lock-in parcial</li>
+        <li>⚠️ Datos en localStorage/IndexedDB — pérdida si usuario limpia navegador sin backup</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Riesgos de negocio</h3>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:6px">
+        <li>⚠️ Sin métricas de conversión verificadas (Plausible configurado pero sin baseline)</li>
+        <li>⚠️ Social proof "+340 revendedores" no verificado externamente</li>
+        <li>⚠️ Testimonios con iniciales — credibilidad cuestionable</li>
+        <li>⚠️ Un solo desarrollador — bus factor = 1</li>
+        <li>⚠️ Sin política de reembolso clara más allá de 7 días</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Información faltante</h3>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:6px">
+        <li>❓ Lighthouse scores reales de producción (TTFB, FCP, LCP, CLS)</li>
+        <li>❓ Métricas reales: DAU, MAU, churn, conversión Free→Pro</li>
+        <li>❓ Costos mensuales reales (Workers, R2, Brevo, OneSignal)</li>
+        <li>❓ CAC y LTV reales</li>
+        <li>❓ Tasa de éxito del checkout MP end-to-end</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Suposiciones sin evidencia</h3>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:6px">
+        <li>❓ Se asume que los SRI hashes de CDN son correctos (no verificados en prod)</li>
+        <li>❓ Se asume que la doble carga de fuentes NO ocurre (fonts.css es local)</li>
+        <li>❓ Se asume que los testimonios son de usuarios reales</li>
+        <li>❓ Se asume que el claim de "+340 revendedores" es verificable</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 13 — PROJECT MASTER MEMORY
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f13">
+  <div class="section-title"><span class="num">13</span> Project Master Memory</div>
+
+  <div class="memory-box">
+    <h3>Instrucciones para IA en futuras conversaciones</h3>
+    <p>Copiar el siguiente bloque al inicio de cualquier nueva conversación sobre ParfumTrack para dar contexto completo sin necesidad de leer el historial.</p>
+  </div>
+
+  <div class="code-block">## PARFUMTRACK — PROJECT MASTER MEMORY v1.0 (22/06/2026)
+
+### REGLAS INQUEBRANTABLES
+- Comunicación SIEMPRE en español (voseo argentino)
+- Género neutro: "revendedores" NO "revendedoras", "clientes" NO "clientas"
+- Email oficial: parfumtrack@gmail.com (NUNCA "hola@parfumtrack.com")
+- Hosting: Cloudflare Workers (NO Pages, NO Netlify)
+- URL: https://parfumtrack.luccasramireziglesias.workers.dev
+- Entidad legal: "Parfum Track" (sin nombres personales)
+- Paleta: dark theme (#0f0f1a, #1a1a2e, #1e1e35) + gold (#c9a84c, #e8c97e)
+- Fuentes: Cormorant Garamond (headings) + DM Sans (body)
+- Rate limiting fail-closed en TODOS los endpoints
+- List-Unsubscribe en TODOS los emails
+
+### QUÉ ES
+PWA de gestión de ventas para revendedores de perfumes en LATAM
+(Argentina, Uruguay, Colombia, México). Registro de ventas en 10 seg,
+ganancia real automática, control de stock, cuotas, cobros por WhatsApp,
+catálogo WA, estadísticas. Funciona offline. Sin descarga.
+
+### STACK
+- Frontend: HTML+CSS+JS vanilla (monolito index.html ~19.5K líneas)
+- Backend: 10 Cloudflare Worker functions (worker.js como router)
+- Storage: KV (trial, rate limit, licencias), R2 (backups)
+- Datos usuario: IndexedDB/localStorage (local, NO servidor)
+- CDN: Chart.js 4.4.0, jsPDF 2.5.1, XLSX 0.18.5 (lazy + SRI)
+- Service Worker v5 (sw.js)
+- CI/CD: GitHub Actions → auto-deploy on push to main
+
+### SERVICIOS EXTERNOS
+Mercado Pago (pagos) · Brevo (email) · OneSignal (push) · Plausible (analytics)
+
+### MONETIZACIÓN
+Free: $0 siempre (ventas, stock, ganancia, cobros WA, offline)
+Básico Pro: $9.99/mes o $7.99/mes anual ($95.88/año)
+Pro: $19.99/mes (PRÓXIMAMENTE — multi-perfil, backup auto, sync)
+
+### ESTADO
+- App: producción, score auditoría 95/100 (v7, 0 hallazgos abiertos)
+- Landing: producción, score 91+/100 (v1 post-fixes, 3 pendientes menores)
+- 8 auditorías completadas (app v1→v7, landing v1)
+- Score progression: 53 → 81 → 87 → 92 → 92 → 95 → 95 (app)
+
+### ARCHIVOS CLAVE
+index.html (app 19.5K), landing.html (2.2K), worker.js (router),
+sw.js (SW), manifest.json, wrangler.jsonc, _headers,
+functions/*.js (10 archivos), terminos.html, privacidad.html
+
+### PENDIENTES PRINCIPALES
+- LP-M02: imagen OG profesional 1200x630
+- 12 ads Meta/IG (plan detallado existe)
+- Tests automatizados (Vitest + Miniflare)
+- Refactor monolito (roadmap 90 días)
+- Plan Pro (multi-perfil, backup auto, sync)
+- Video demo 15-30s</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FASE 14 — CONTEXTO OPTIMIZADO
+═══════════════════════════════════════════════════════════ -->
+<div class="section" id="f14" style="border-bottom:none">
+  <div class="section-title"><span class="num">14</span> Contexto Optimizado (para futuras conversaciones)</div>
+
+  <div class="memory-box">
+    <h3>Versión ultra-resumida (~900 palabras)</h3>
+    <p>Diseñada para pegar al inicio de un nuevo chat y que cualquier IA entienda el proyecto completamente.</p>
+  </div>
+
+  <div class="code-block">## PARFUMTRACK — CONTEXTO RÁPIDO
+
+**Parfum Track** es una PWA de gestión de ventas para revendedores de perfumes en LATAM (Argentina, Uruguay, Colombia, México). Desplegada en producción en Cloudflare Workers en parfumtrack.luccasramireziglesias.workers.dev.
+
+**Problema:** Los revendedores de perfumes manejan su negocio con cuaderno/Excel/WhatsApp. No saben su ganancia real, olvidan cobros de cuotas, no controlan stock y pierden horas haciendo cuentas.
+
+**Solución:** App que permite registrar ventas en 10 segundos. Calcula ganancia real automáticamente, alerta de cuotas vencidas, genera mensajes de cobro por WhatsApp, controla stock y genera catálogos para compartir. Todo funciona offline desde el celular.
+
+**Reglas de comunicación:** Español con voseo argentino. Género neutro ("revendedores", no "revendedoras"; "clientes", no "clientas"). Email: parfumtrack@gmail.com. Entidad: "Parfum Track" (sin nombres personales). No usar Netlify.
+
+**Stack:** Frontend HTML+CSS+JS vanilla en un monolito index.html (~19.5K líneas). Backend: 10 funciones Cloudflare Workers (trial.js, validate-license.js, backup.js, sync.js, send-email.js, send-notification.js, mp-create-preference.js, mp-webhook.js, mp-subscription-status.js, mp-payment-status.js). Router en worker.js. Service Worker v5 en sw.js. Datos del usuario almacenados localmente (IndexedDB/localStorage). KV namespace PT_LICENSES para trial, rate limiting y licencias. R2 bucket parfumtrack-backups para backups. CDN lazy-loaded: Chart.js 4.4.0, jsPDF 2.5.1, XLSX 0.18.5 con SRI hashes. CI/CD via GitHub Actions.
+
+**Servicios externos:** Mercado Pago (suscripciones y webhooks de pago), Brevo/Sendinblue (email transaccional con List-Unsubscribe), OneSignal (push notifications), Plausible (analytics sin cookies).
+
+**Branding:** Dark theme con gold. Background: #0f0f1a, #1a1a2e. Cards: #1e1e35. Gold: #c9a84c, #e8c97e. Texto: #f0ece4. Verde: #70c9a0. Rojo: #e07070. Fuentes: Cormorant Garamond (títulos), DM Sans (body). Gradiente gold: #c9a84c → #e8c97e.
+
+**Monetización (Freemium):**
+- Free: $0 para siempre. Ventas ilimitadas, stock, ganancia, cuotas, cobros WA, offline.
+- Básico Pro: $9.99/mes o $7.99/mes anual ($95.88/año). Todo Free + estadísticas avanzadas, catálogo WA, ranking clientes, exportar PDF/Excel, push, meta mensual.
+- Pro: $19.99/mes (próximamente). Multi-perfil, backup auto, sync multi-dispositivo.
+
+**Seguridad:** CSP restrictivo, HSTS preload, X-Frame-Options DENY, rate limiting KV-based fail-closed en todos los endpoints, CORS whitelist, HMAC auth para backup/sync, ECDSA para licencias, SRI hashes para CDN, List-Unsubscribe obligatorio.
+
+**Trial:** 7 días gratis verificado por email OTP de 6 dígitos. Anclado por email + device + IP. Anti-brute-force con delay de 1.5s.
+
+**Landing (landing.html, 2218 líneas):** Hero con screenshot real → Trust bar → Pain points → 6 beneficios → 3 features con screenshots reales (catálogo WA, cobros WA, estadísticas) → 4 pasos "cómo funciona" → Comparación 3 columnas (Cuaderno vs Sheets vs PT) → Pricing con toggle mensual/anual → 8 FAQs con accordion → CTA final → Contacto (WA + email) → Footer con links legales. Modal de checkout MP integrado.
+
+**Legal:** terminos.html y privacidad.html completos (v2.0, junio 2026). GDPR-aware. Datos locales, analytics anónimos. Contacto: parfumtrack@gmail.com, Montevideo Uruguay.
+
+**Auditorías completadas:** 8 en total. App: v1 (53/100) → v7 (95/100). Landing: v1 (85/100 → 91+ post-fixes). Score objetivo de 95/100 alcanzado. 0 hallazgos críticos o altos abiertos.
+
+**Pendientes principales:** Imagen OG profesional para sharing en redes. 12 ads Meta/IG (plan detallado existe pero no ejecutado). Tests automatizados. Refactor del monolito index.html. Plan Pro. Video demo 15-30s. Testimonios reales con foto.
+
+**Secrets (Cloudflare Dashboard):** BREVO_API_KEY, LICENSE_SERVER_SECRET, LICENSE_PRIVATE_KEY, MP_ACCESS_TOKEN, MP_WEBHOOK_SECRET, ONESIGNAL_APP_ID, ONESIGNAL_API_KEY.
+
+**Config (wrangler.jsonc):** FROM_EMAIL=parfumtrack@gmail.com, FROM_NAME="Parfum Track", APP_URL=https://parfumtrack.luccasramireziglesias.workers.dev, MP_CURRENCY_ID=USD, MP_AMOUNT_MONTHLY=9.99, MP_AMOUNT_ANNUAL=95.88, OWNER_EMAIL=parfumtrack@gmail.com.</div>
+
+</div>
+
+</div>
+</body>
+</html>
