@@ -76,7 +76,7 @@ const TEMPLATES = {
     </p>
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:12px;line-height:1.6;">
       Parfum Track — parfumtrack@gmail.com<br>
-      Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
+      <a href="mailto:parfumtrack@gmail.com?subject=unsubscribe" style="color:#4a4848;text-decoration:underline;">Cancelar suscripción</a>
     </p>
   </div>
 </body>
@@ -140,7 +140,7 @@ const TEMPLATES = {
     </p>
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:12px;line-height:1.6;">
       Parfum Track — parfumtrack@gmail.com<br>
-      Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
+      <a href="mailto:parfumtrack@gmail.com?subject=unsubscribe" style="color:#4a4848;text-decoration:underline;">Cancelar suscripción</a>
     </p>
   </div>
 </body>
@@ -193,7 +193,7 @@ const TEMPLATES = {
     </p>
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:12px;line-height:1.6;">
       Parfum Track — parfumtrack@gmail.com<br>
-      Si no querés recibir más emails, escribinos a parfumtrack@gmail.com
+      <a href="mailto:parfumtrack@gmail.com?subject=unsubscribe" style="color:#4a4848;text-decoration:underline;">Cancelar suscripción</a>
     </p>
   </div>
 </body>
@@ -360,6 +360,10 @@ export async function onRequestPost(context) {
     subject: tpl.subject,
     htmlContent: tpl.html,
     textContent: tpl.text,
+    headers: {
+      "List-Unsubscribe": `<mailto:parfumtrack@gmail.com?subject=unsubscribe>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
   };
 
   try {
