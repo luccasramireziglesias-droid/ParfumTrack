@@ -330,7 +330,7 @@ export async function onRequestPost(context) {
   }
 
   const apiKey = env.BREVO_API_KEY;
-  const fromEmail = env.FROM_EMAIL || "hola@parfumtrack.com";
+  const fromEmail = env.FROM_EMAIL || "parfumtrack@gmail.com";
   const fromName = env.FROM_NAME || "Parfum Track";
 
   if (!apiKey) {

@@ -148,7 +148,7 @@ async function processEvent({ type, resourceId, env, idKey }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'api-key': env.BREVO_API_KEY },
         body: JSON.stringify({
-          sender: { name: env.FROM_NAME || 'Parfum Track', email: env.FROM_EMAIL || 'hola@parfumtrack.com' },
+          sender: { name: env.FROM_NAME || 'Parfum Track', email: env.FROM_EMAIL || 'parfumtrack@gmail.com' },
           to: [{ email: ownerEmail }],
           subject: `⚠ Error en webhook MP — ${type}:${resourceId}`,
           textContent: `Error procesando pago.\nTipo: ${type}\nID: ${resourceId}\nError: ${e.message}\n\nRevisar Cloudflare Workers Logs para más detalles.`,
@@ -333,9 +333,13 @@ async function sendEmail(env, to, template, data) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'api-key': env.BREVO_API_KEY },
       body: JSON.stringify({
-        sender: { name: env.FROM_NAME || 'Parfum Track', email: env.FROM_EMAIL || 'hola@parfumtrack.com' },
+        sender: { name: env.FROM_NAME || 'Parfum Track', email: env.FROM_EMAIL || 'parfumtrack@gmail.com' },
         to: [{ email: to }],
         subject, htmlContent: html, textContent: text,
+        headers: {
+          'List-Unsubscribe': '<mailto:parfumtrack@gmail.com?subject=unsubscribe>',
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
       }),
     });
     if (resp.ok) console.log(`[mp-webhook] Email "${template}" → ${to.split('@')[0].slice(0,2)}***@${to.split('@')[1]}`);

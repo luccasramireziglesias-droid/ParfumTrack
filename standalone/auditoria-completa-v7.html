@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría Completa v7 — ParfumTrack</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0f1a;--bg2:#1a1a2e;--card:#1e1e35;--gold:#c9a84c;--gold2:#e8c97e;--gold3:#f5dfa0;--text:#f0ece4;--text2:#a8a49c;--text3:#7a77a0;--green:#70c9a0;--red:#e07070;--orange:#e8a84c;--font-h:'Cormorant Garamond',Georgia,serif;--font-b:'DM Sans',system-ui,sans-serif}
+html{background:var(--bg);scroll-behavior:smooth}
+body{font-family:var(--font-b);color:var(--text);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;padding:0}
+.container{max-width:1100px;margin:0 auto;padding:24px 20px}
+.audit-header{text-align:center;padding:60px 20px 40px;border-bottom:1px solid rgba(201,168,76,.15)}
+.audit-header h1{font-family:var(--font-h);font-size:clamp(2rem,5vw,3.2rem);font-weight:700;color:var(--gold);letter-spacing:-.02em;margin-bottom:8px}
+.audit-header .sub{color:var(--text2);font-size:1rem;margin-bottom:16px}
+.audit-header .date{color:var(--text3);font-size:.85rem}
+.badge-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.badge-green{background:rgba(112,201,160,.12);color:var(--green);border:1px solid rgba(112,201,160,.3)}
+.badge-gold{background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
+.section{padding:40px 0;border-bottom:1px solid rgba(201,168,76,.08)}
+.section-title{font-family:var(--font-h);font-size:clamp(1.4rem,3vw,2rem);font-weight:600;margin-bottom:24px;color:var(--text);display:flex;align-items:center;gap:12px}
+.section-title .icon{font-size:1.4rem}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid rgba(201,168,76,.08);border-radius:14px;padding:24px;transition:border-color .3s}
+.card:hover{border-color:rgba(201,168,76,.25)}
+.card h3{font-family:var(--font-h);font-size:1.15rem;margin-bottom:8px;color:var(--text)}
+.card p{color:var(--text2);font-size:.88rem;line-height:1.6}
+.card .sev{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:12px;display:inline-block;margin-bottom:10px}
+.sev-medium{background:rgba(201,168,76,.12);color:var(--gold2)}
+.sev-low{background:rgba(112,201,160,.1);color:var(--green)}
+.scores-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.score-card{background:var(--card);border:1px solid rgba(201,168,76,.1);border-radius:14px;padding:20px;text-align:center}
+.score-card .score-label{font-size:.78rem;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.score-card .score-num{font-family:var(--font-h);font-size:2.4rem;font-weight:700;line-height:1}
+.score-card .score-bar{height:6px;background:rgba(255,255,255,.06);border-radius:3px;margin-top:12px;overflow:hidden}
+.score-card .score-bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.score-green .score-num{color:var(--green)}
+.score-green .score-bar-fill{background:var(--green)}
+.verdict-box{background:linear-gradient(135deg,rgba(112,201,160,.08),rgba(30,30,53,.8));border:2px solid rgba(112,201,160,.3);border-radius:20px;padding:40px 32px;text-align:center;margin:32px 0}
+.verdict-box h2{font-family:var(--font-h);font-size:clamp(1.6rem,4vw,2.4rem);color:var(--green);margin-bottom:12px}
+.verdict-box .verdict-answer{font-size:1.4rem;font-weight:700;margin-bottom:16px}
+.verdict-box p{color:var(--text2);font-size:.95rem;max-width:700px;margin:0 auto;line-height:1.7}
+.findings-table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:16px}
+.findings-table th{text-align:left;color:var(--gold);font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:12px 10px;border-bottom:2px solid rgba(201,168,76,.2)}
+.findings-table td{padding:10px;border-bottom:1px solid rgba(201,168,76,.06);color:var(--text2);vertical-align:top}
+.findings-table tr:hover td{background:rgba(201,168,76,.03)}
+.findings-table .id-col{color:var(--text3);font-family:monospace;font-size:.78rem;white-space:nowrap}
+.delta-box{background:var(--card);border:1px solid rgba(201,168,76,.15);border-radius:16px;padding:28px;margin:24px 0}
+.delta-box h3{font-family:var(--font-h);font-size:1.2rem;color:var(--gold);margin-bottom:16px}
+.delta-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(201,168,76,.06)}
+.delta-row:last-child{border:none}
+.delta-label{color:var(--text2);font-size:.88rem}
+.delta-val{font-weight:700;font-size:.88rem}
+.metrics-row{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin:24px 0}
+.metric{text-align:center;min-width:120px}
+.metric .m-num{font-family:var(--font-h);font-size:2rem;font-weight:700;color:var(--gold)}
+.metric .m-label{font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
+.resolved-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:12px}
+.resolved-item{background:rgba(112,201,160,.04);border:1px solid rgba(112,201,160,.1);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--text2)}
+.resolved-item .check{color:var(--green);font-size:1.1rem;flex-shrink:0}
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.plan-card{background:var(--card);border:1px solid rgba(201,168,76,.1);border-radius:14px;padding:24px}
+.plan-card h3{font-family:var(--font-h);font-size:1.1rem;color:var(--gold);margin-bottom:12px}
+.plan-card ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.plan-card li{color:var(--text2);font-size:.85rem;padding-left:18px;position:relative}
+.plan-card li::before{content:'◆';position:absolute;left:0;color:var(--gold);font-size:.6rem;top:4px}
+@media(max-width:600px){
+.card-grid{grid-template-columns:1fr}
+.scores-grid{grid-template-columns:repeat(2,1fr)}
+.findings-table{font-size:.75rem}
+.findings-table th,.findings-table td{padding:6px 4px}
+.resolved-grid{grid-template-columns:1fr}
+.plan-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="audit-header">
+  <h1>Auditoría Completa v7</h1>
+  <p class="sub">ParfumTrack — PWA para revendedores de perfumes</p>
+  <p class="date">22 de junio de 2026 — Auditoría fresca completa, 11 fases, 9 perspectivas</p>
+  <div class="badge-row">
+    <span class="badge badge-green">0 Críticos</span>
+    <span class="badge badge-green">0 Altos</span>
+    <span class="badge badge-gold">1 Medio</span>
+    <span class="badge badge-gold">6 Bajos / Backlog</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ═══════ EVOLUCIÓN ═══════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">📈</span> Evolución del Score</div>
+  <div class="delta-box">
+    <h3>Progreso v1 → v7 (7 auditorías, 35+ fixes)</h3>
+    <div class="delta-row"><span class="delta-label">v1 — Línea base</span><span class="delta-val" style="color:var(--red)">53/100 · 3 Críticos</span></div>
+    <div class="delta-row"><span class="delta-label">v2 — Post-fix seguridad + UX</span><span class="delta-val" style="color:var(--orange)">81/100</span></div>
+    <div class="delta-row"><span class="delta-label">v3 — Post-fix URLs + rate limits</span><span class="delta-val" style="color:var(--gold)">88/100</span></div>
+    <div class="delta-row"><span class="delta-label">v4 — Post-fix SEO + email + a11y</span><span class="delta-val" style="color:var(--green)">92/100</span></div>
+    <div class="delta-row"><span class="delta-label">v5 — Auditoría fresca (4 medios)</span><span class="delta-val" style="color:var(--green)">92/100</span></div>
+    <div class="delta-row"><span class="delta-label">v6 — Post-fix CORS + rate limit + email</span><span class="delta-val" style="color:var(--green)">95/100</span></div>
+    <div class="delta-row"><span class="delta-label">v7 — Auditoría fresca completa</span><span class="delta-val" style="color:var(--green)">95/100 · 1 Medio, 6 Backlog</span></div>
+  </div>
+</div>
+
+<!-- ═══════ HALLAZGOS NUEVOS ═══════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">🔍</span> Hallazgos Nuevos v7</div>
+
+  <table class="findings-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Sev</th>
+        <th>Área</th>
+        <th>Hallazgo</th>
+        <th>Impacto</th>
+        <th>Solución</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id-col">V7-M01</td>
+        <td><span class="sev sev-medium">MEDIO</span></td>
+        <td>Email</td>
+        <td>mp-webhook.js <code>sendEmail()</code> no incluye headers <code>List-Unsubscribe</code> ni <code>List-Unsubscribe-Post</code> en sus 5 templates (subscription_activated, subscription_renewed, payment_failed, subscription_cancelled, owner_payment_notification). Solo trial.js y send-email.js los tienen.</td>
+        <td>Los emails de activación/renovación/cancelación podrían marcar como spam en proveedores estrictos. Afecta deliverability de emails críticos de negocio (códigos de licencia).</td>
+        <td>Agregar <code>headers: { "List-Unsubscribe": "&lt;mailto:parfumtrack@gmail.com?subject=unsubscribe&gt;", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" }</code> al payload de sendEmail() en mp-webhook.js.</td>
+      </tr>
+      <tr>
+        <td class="id-col">V7-L01</td>
+        <td><span class="sev sev-low">BAJO</span></td>
+        <td>Config</td>
+        <td>Fallback email <code>"hola@parfumtrack.com"</code> en 4 funciones backend (trial.js:300, send-email.js:333, mp-webhook.js:151, mp-webhook.js:336). El dominio parfumtrack.com no parece estar registrado. El email correcto es parfumtrack@gmail.com.</td>
+        <td>Si FROM_EMAIL no está configurada (improbable en prod, ya está en wrangler.jsonc), los emails se enviarían desde un dominio inexistente, provocando bounces.</td>
+        <td>Cambiar fallback de "hola@parfumtrack.com" a "parfumtrack@gmail.com" en las 4 ocurrencias.</td>
+      </tr>
+      <tr>
+        <td class="id-col">V7-L02</td>
+        <td><span class="sev sev-low">BAJO</span></td>
+        <td>Código</td>
+        <td>Comentario HTML obsoleto en index.html línea 73: <code>&lt;!-- Reemplazá "parfumtrack.com" con tu dominio real en Cloudflare Pages --&gt;</code>. Referencia a Pages cuando el deploy es en Workers.</td>
+        <td>Confusión para quien lea el código fuente. No afecta funcionalidad.</td>
+        <td>Actualizar o eliminar el comentario.</td>
+      </tr>
+      <tr>
+        <td class="id-col">V7-L03</td>
+        <td><span class="sev sev-low">BACKLOG</span></td>
+        <td>PWA</td>
+        <td>manifest.json tiene <code>"screenshots": []</code> vacío.</td>
+        <td>La experiencia de instalación PWA se ve menos profesional.</td>
+        <td>Agregar 2-3 screenshots del dashboard.</td>
+      </tr>
+      <tr>
+        <td class="id-col">V7-L04</td>
+        <td><span class="sev sev-low">BACKLOG</span></td>
+        <td>Técnico</td>
+        <td>Monolito index.html (~19.5K líneas).</td>
+        <td>Mantenibilidad a largo plazo.</td>
+        <td>Refactor roadmap 90 días.</td>
+      </tr>
+      <tr>
+        <td class="id-col">V7-L05</td>
+        <td><span class="sev sev-low">BACKLOG</span></td>
+        <td>QA</td>
+        <td>Sin tests automatizados.</td>
+        <td>Riesgo de regresiones.</td>
+        <td>Vitest + Miniflare roadmap 30 días.</td>
+      </tr>
+      <tr>
+        <td class="id-col">V7-L06</td>
+        <td><span class="sev sev-low">VERIFICAR</span></td>
+        <td>CDN</td>
+        <td>SRI hashes para Chart.js, jsPDF y XLSX no verificados.</td>
+        <td>Funcionalidades podrían no cargar en prod.</td>
+        <td>Verificar en producción.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════ ESTADO SEGURIDAD ═══════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">🔒</span> Estado de Seguridad — 96/100</div>
+  <div class="resolved-grid">
+    <div class="resolved-item"><span class="check">✓</span> ECDSA P-256 firma de licencias + HMAC-SHA256 auth en 4 endpoints</div>
+    <div class="resolved-item"><span class="check">✓</span> Timing-safe comparison en todas las verificaciones de tokens</div>
+    <div class="resolved-item"><span class="check">✓</span> 10/10 funciones con rate limiting KV-based fail-closed</div>
+    <div class="resolved-item"><span class="check">✓</span> CORS whitelist consistente (worker.js + 9 funciones)</div>
+    <div class="resolved-item"><span class="check">✓</span> Preflight OPTIONS con X-PT-Code/X-PT-Token headers</div>
+    <div class="resolved-item"><span class="check">✓</span> CSP + HSTS 2 años + X-Frame-Options DENY + nosniff</div>
+    <div class="resolved-item"><span class="check">✓</span> escapeHTML() en todos los innerHTML con datos de usuario</div>
+    <div class="resolved-item"><span class="check">✓</span> MP webhook: firma verificada + timestamp anti-replay ±5 min</div>
+    <div class="resolved-item"><span class="check">✓</span> Idempotencia doble en webhook (event ID + payment ID)</div>
+    <div class="resolved-item"><span class="check">✓</span> send-email: anti-relay (verifica email registrado en KV)</div>
+    <div class="resolved-item"><span class="check">✓</span> send-notification: auth HMAC obligatorio</div>
+    <div class="resolved-item"><span class="check">✓</span> MP checkout URL validation regex anti-redirect</div>
+    <div class="resolved-item"><span class="check">✓</span> _sec closure: flags de activación inaccesibles desde DevTools</div>
+    <div class="resolved-item"><span class="check">✓</span> Date.now capturado antes de monkey-patch</div>
+    <div class="resolved-item"><span class="check">✓</span> Input sanitization + length guards en todos los endpoints</div>
+    <div class="resolved-item"><span class="check">✓</span> OTP: crypto.getRandomValues + 5 intentos máx + 10min TTL</div>
+  </div>
+</div>
+
+<!-- ═══════ SCORES ═══════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">🎯</span> Scores v7</div>
+  <div class="scores-grid">
+    <div class="score-card score-green">
+      <div class="score-label">Seguridad</div>
+      <div class="score-num">96</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:96%;background:var(--green)"></div></div>
+    </div>
+    <div class="score-card score-green">
+      <div class="score-label">Técnico</div>
+      <div class="score-num">95</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:95%;background:var(--green)"></div></div>
+    </div>
+    <div class="score-card score-green">
+      <div class="score-label">UX / UI</div>
+      <div class="score-num">93</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:93%;background:var(--green)"></div></div>
+    </div>
+    <div class="score-card score-green">
+      <div class="score-label">Ventas</div>
+      <div class="score-num">88</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:88%;background:var(--green)"></div></div>
+    </div>
+    <div class="score-card score-green">
+      <div class="score-label">Negocio</div>
+      <div class="score-num">85</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:85%;background:var(--green)"></div></div>
+    </div>
+    <div class="score-card score-green">
+      <div class="score-label">Escalabilidad</div>
+      <div class="score-num">86</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:86%;background:var(--green)"></div></div>
+    </div>
+  </div>
+
+  <div class="metrics-row">
+    <div class="metric"><div class="m-num" style="color:var(--green)">95</div><div class="m-label">Score Total</div></div>
+    <div class="metric"><div class="m-num">+42</div><div class="m-label">vs v1 (53)</div></div>
+    <div class="metric"><div class="m-num">75%</div><div class="m-label">Prob. Éxito</div></div>
+    <div class="metric"><div class="m-num">0</div><div class="m-label">Bloqueantes</div></div>
+  </div>
+</div>
+
+<!-- ═══════ PLAN ═══════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">📋</span> Plan de Acción</div>
+  <div class="plan-grid">
+    <div class="plan-card">
+      <h3>Inmediato (30 min)</h3>
+      <ul>
+        <li>V7-M01: List-Unsubscribe en mp-webhook emails</li>
+        <li>V7-L01: Fallback email → parfumtrack@gmail.com</li>
+        <li>V7-L02: Eliminar comentario obsoleto de Pages</li>
+      </ul>
+    </div>
+    <div class="plan-card">
+      <h3>7 días</h3>
+      <ul>
+        <li>Verificar SRI hashes en prod</li>
+        <li>Screenshots en manifest.json</li>
+        <li>Deploy y smoke test</li>
+      </ul>
+    </div>
+    <div class="plan-card">
+      <h3>30 días</h3>
+      <ul>
+        <li>Tests unitarios (Vitest + Miniflare)</li>
+        <li>Video demo y testimonios reales</li>
+        <li>Onboarding guiado</li>
+      </ul>
+    </div>
+    <div class="plan-card">
+      <h3>90 días</h3>
+      <ul>
+        <li>Refactor monolito</li>
+        <li>Features premium diferenciados</li>
+        <li>E2E tests con Playwright</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ VEREDICTO ═══════ -->
+<div class="section" style="border:none">
+  <div class="verdict-box">
+    <h2>Score: 95/100 — Confirmado</h2>
+    <div class="verdict-answer" style="color:var(--green)">LISTO PARA PRODUCCIÓN</div>
+    <p>Auditoría fresca independiente confirma el score de 95/100 de la v6. Se encontró 1 hallazgo medio nuevo (List-Unsubscribe faltante en emails de mp-webhook) y 2 bajos (fallback email incorrecto, comentario obsoleto). Ambos son correcciones de 5 minutos. La seguridad está en 96/100 con 0 vulnerabilidades abiertas. El proyecto está listo para deploy a producción.</p>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
