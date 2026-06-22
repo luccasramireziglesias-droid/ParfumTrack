@@ -326,7 +326,7 @@ async function sendEmail(env, to, template, data) {
   const tpl = EMAIL_TEMPLATES[template];
   if (!tpl) { console.warn('[mp-webhook] Template desconocido:', template); return; }
 
-  const appUrl = env.APP_URL || 'https://parfumtrack.pages.dev';
+  const appUrl = env.APP_URL || 'https://parfumtrack.luccasramireziglesias.workers.dev';
   const { subject, html, text } = tpl({ ...data, appUrl });
   try {
     const resp = await fetch('https://api.brevo.com/v3/smtp/email', {

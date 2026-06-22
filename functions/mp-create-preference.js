@@ -45,7 +45,7 @@ export async function onRequestPost(context) {
     ? (env.MP_AMOUNT_ANNUAL  || '95.88')
     : (env.MP_AMOUNT_MONTHLY || '9.99'));
   const title    = `Parfum Track — Plan Básico Pro (${isAnnual ? 'Anual' : 'Mensual'})`;
-  const appUrl   = env.APP_URL || 'https://parfumtrack.pages.dev';
+  const appUrl   = env.APP_URL || 'https://parfumtrack.luccasramireziglesias.workers.dev';
 
   let mpResp;
   try {
@@ -102,13 +102,13 @@ export async function onRequestOptions(context) {
 
 async function checkRateLimit(env, key, max, windowSecs) {
   if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — rate limiting desactivado');
-    return null;
+    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
+    return 'Service temporarily unavailable';
   }
   const now  = Math.floor(Date.now() / 1000);
   const wKey = `${key}_${Math.floor(now / windowSecs)}`;
   let count  = 0;
-  try { count = parseInt(await env.PT_LICENSES.get(wKey) || '0', 10); } catch { return null; }
+  try { count = parseInt(await env.PT_LICENSES.get(wKey) || '0', 10); } catch { return 'Rate limit check failed, please try again later'; }
   if (count >= max) return 'Demasiados intentos. Intentá de nuevo en unos minutos.';
   try { await env.PT_LICENSES.put(wKey, String(count + 1), { expirationTtl: windowSecs * 2 }); } catch { /* */ }
   return null;

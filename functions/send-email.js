@@ -59,7 +59,7 @@ const TEMPLATES = {
       </div>
 
       <!-- CTA -->
-      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}"
+      <a href="${data.appUrl || "https://parfumtrack.luccasramireziglesias.workers.dev"}"
          style="display:block;text-align:center;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:16px;">
         Abrir Parfum Track →
       </a>
@@ -72,7 +72,7 @@ const TEMPLATES = {
     <!-- Footer -->
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;line-height:1.6;">
       Recibiste este email porque te registraste en Parfum Track.<br>
-      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
+      <a href="${data.appUrl || "https://parfumtrack.luccasramireziglesias.workers.dev"}" style="color:#c9a84c;">parfumtrack.luccasramireziglesias.workers.dev</a>
     </p>
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:12px;line-height:1.6;">
       Parfum Track — parfumtrack@gmail.com<br>
@@ -81,7 +81,7 @@ const TEMPLATES = {
   </div>
 </body>
 </html>`,
-    text: `¡Hola ${data.name}! Tu prueba gratuita de 7 días de Parfum Track ya está activa. Abrí la app: ${data.appUrl || "https://parfumtrack.pages.dev"}`,
+    text: `¡Hola ${data.name}! Tu prueba gratuita de 7 días de Parfum Track ya está activa. Abrí la app: ${data.appUrl || "https://parfumtrack.luccasramireziglesias.workers.dev"}`,
   }),
 
   trial_reminder: (data) => ({
@@ -125,7 +125,7 @@ const TEMPLATES = {
           : ""
       }
 
-      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}#activar"
+      <a href="${data.appUrl || "https://parfumtrack.luccasramireziglesias.workers.dev"}#activar"
          style="display:block;text-align:center;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:12px;">
         🔑 Activar mi licencia ahora
       </a>
@@ -136,7 +136,7 @@ const TEMPLATES = {
     </div>
 
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;line-height:1.6;">
-      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
+      <a href="${data.appUrl || "https://parfumtrack.luccasramireziglesias.workers.dev"}" style="color:#c9a84c;">parfumtrack.luccasramireziglesias.workers.dev</a>
     </p>
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:12px;line-height:1.6;">
       Parfum Track — parfumtrack@gmail.com<br>
@@ -145,7 +145,7 @@ const TEMPLATES = {
   </div>
 </body>
 </html>`,
-    text: `Hola ${data.name}, tu prueba de Parfum Track vence en ${data.daysLeft} días. Activá tu licencia: ${data.appUrl || "https://parfumtrack.pages.dev"}`,
+    text: `Hola ${data.name}, tu prueba de Parfum Track vence en ${data.daysLeft} días. Activá tu licencia: ${data.appUrl || "https://parfumtrack.luccasramireziglesias.workers.dev"}`,
   }),
 
   trial_expired: (data) => ({
@@ -178,7 +178,7 @@ const TEMPLATES = {
         <p style="color:#7a7870;font-size:13px;margin:0;">o $7.99/mes eligiendo el plan anual · Cancelás cuando querés</p>
       </div>
 
-      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}/landing.html#pricing"
+      <a href="${data.appUrl || "https://parfumtrack.luccasramireziglesias.workers.dev"}/landing.html#pricing"
          style="display:block;text-align:center;background:linear-gradient(135deg,#009ee3,#0070ba);color:#fff;padding:14px 24px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:12px;">
         Activar plan con Mercado Pago →
       </a>
@@ -189,7 +189,7 @@ const TEMPLATES = {
     </div>
 
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:24px;line-height:1.6;">
-      <a href="${data.appUrl || "https://parfumtrack.pages.dev"}" style="color:#c9a84c;">parfumtrack.pages.dev</a>
+      <a href="${data.appUrl || "https://parfumtrack.luccasramireziglesias.workers.dev"}" style="color:#c9a84c;">parfumtrack.luccasramireziglesias.workers.dev</a>
     </p>
     <p style="color:#4a4848;font-size:12px;text-align:center;margin-top:12px;line-height:1.6;">
       Parfum Track — parfumtrack@gmail.com<br>
@@ -198,7 +198,7 @@ const TEMPLATES = {
   </div>
 </body>
 </html>`,
-    text: `Tu prueba de Parfum Track venció, ${data.name}. Activá el plan Básico Pro por $9.99/mes: ${data.appUrl || "https://parfumtrack.pages.dev"}/landing.html#pricing`,
+    text: `Tu prueba de Parfum Track venció, ${data.name}. Activá el plan Básico Pro por $9.99/mes: ${data.appUrl || "https://parfumtrack.luccasramireziglesias.workers.dev"}/landing.html#pricing`,
   }),
 };
 
@@ -349,7 +349,7 @@ export async function onRequestPost(context) {
     ventas: Math.max(0, parseInt(data.ventas, 10) || 0),
     appUrl: /^https:\/\//.test(data.appUrl || "")
       ? data.appUrl
-      : "https://parfumtrack.pages.dev",
+      : "https://parfumtrack.luccasramireziglesias.workers.dev",
     waUrl: /^https:\/\//.test(data.waUrl || "") ? data.waUrl : null,
   };
   const tpl = TEMPLATES[template](safeData);
