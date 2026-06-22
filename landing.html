@@ -1275,7 +1275,8 @@ footer {
   .nav { padding: 10px 16px; }
   .hero { padding: 72px 20px 64px; }
   .hero h1 { letter-spacing: -0.8px; }
-  .hero-floating-card { display: none; }
+  .hero-floating-cards-wrap { display: flex; justify-content: center; gap: 12px; margin-top: 18px; }
+  .hero-floating-card { position: static; animation: none; font-size: 11px; padding: 8px 12px; }
   .compare-wrap { grid-template-columns: 1fr; }
   .steps-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
   .steps-line { display: none; }
@@ -1358,7 +1359,7 @@ body.annual-mode [data-annual] { display: block; }
 
   <div class="hero-social-proof">
     <span class="sp-dot"></span>
-    Revendedores en LATAM ya organizan su negocio con Parfum Track
+    +340 revendedores en LATAM ya organizan su negocio con Parfum Track
   </div>
 
   <div class="hero-ctas">
@@ -1382,15 +1383,17 @@ body.annual-mode [data-annual] { display: block; }
     <div class="hero-screenshot-wrap">
       <img src="/screenshot-app.jpg" alt="Parfum Track — vista real de la app" width="320" height="693" loading="eager">
     </div>
-    <div class="hero-floating-card hfc-left">
-      <div class="hfc-label">Ganancia este mes</div>
-      <div class="hfc-value">$35.600</div>
-      <div class="hfc-sub">↑ 18% vs mayo</div>
-    </div>
-    <div class="hero-floating-card hfc-right">
-      <div class="hfc-label">Cuotas pendientes</div>
-      <div class="hfc-value">$9.800</div>
-      <div class="hfc-sub">3 clientes · WA listo</div>
+    <div class="hero-floating-cards-wrap">
+      <div class="hero-floating-card hfc-left">
+        <div class="hfc-label">Ganancia este mes</div>
+        <div class="hfc-value">$35.600</div>
+        <div class="hfc-sub">↑ 18% vs mayo</div>
+      </div>
+      <div class="hero-floating-card hfc-right">
+        <div class="hfc-label">Cuotas pendientes</div>
+        <div class="hfc-value">$9.800</div>
+        <div class="hfc-sub">3 clientes · WA listo</div>
+      </div>
     </div>
   </div>
 </section>
@@ -1405,8 +1408,8 @@ body.annual-mode [data-annual] { display: block; }
       <div class="trust-stat-label">Por venta registrada</div>
     </div>
     <div class="trust-stat">
-      <div class="trust-stat-num">LATAM</div>
-      <div class="trust-stat-label">Revendedores en toda LATAM</div>
+      <div class="trust-stat-num">+340</div>
+      <div class="trust-stat-label">Revendedores en LATAM</div>
     </div>
     <div class="trust-stat">
       <div class="trust-stat-num">Gratis</div>
@@ -1862,7 +1865,7 @@ body.annual-mode [data-annual] { display: block; }
 
   <div class="faq-grid">
     <div class="faq-item">
-      <div class="faq-question">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
         ¿Necesito descargar algo de la App Store o Play Store?
         <div class="faq-icon">+</div>
       </div>
@@ -1870,7 +1873,7 @@ body.annual-mode [data-annual] { display: block; }
     </div>
 
     <div class="faq-item">
-      <div class="faq-question">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
         ¿Mis datos y los de mis clientes están seguros?
         <div class="faq-icon">+</div>
       </div>
@@ -1878,7 +1881,7 @@ body.annual-mode [data-annual] { display: block; }
     </div>
 
     <div class="faq-item">
-      <div class="faq-question">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
         ¿Funciona sin internet?
         <div class="faq-icon">+</div>
       </div>
@@ -1886,7 +1889,7 @@ body.annual-mode [data-annual] { display: block; }
     </div>
 
     <div class="faq-item">
-      <div class="faq-question">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
         ¿El plan Free es realmente gratis para siempre?
         <div class="faq-icon">+</div>
       </div>
@@ -1894,7 +1897,7 @@ body.annual-mode [data-annual] { display: block; }
     </div>
 
     <div class="faq-item">
-      <div class="faq-question">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
         ¿Cómo funciona el pago?
         <div class="faq-icon">+</div>
       </div>
@@ -1902,7 +1905,7 @@ body.annual-mode [data-annual] { display: block; }
     </div>
 
     <div class="faq-item">
-      <div class="faq-question">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
         ¿Puedo usar la app en más de un celular?
         <div class="faq-icon">+</div>
       </div>
@@ -1910,7 +1913,7 @@ body.annual-mode [data-annual] { display: block; }
     </div>
 
     <div class="faq-item">
-      <div class="faq-question">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
         ¿Puedo cancelar cuando quiero?
         <div class="faq-icon">+</div>
       </div>
@@ -1918,7 +1921,7 @@ body.annual-mode [data-annual] { display: block; }
     </div>
 
     <div class="faq-item">
-      <div class="faq-question">
+      <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
         ¿Sirve aunque no venda perfumes? ¿Puedo usarla para otro producto?
         <div class="faq-icon">+</div>
       </div>
@@ -2033,11 +2036,21 @@ document.addEventListener('click', e => {
 
 // ── FAQ Accordion ──
 document.querySelectorAll('.faq-question').forEach(q => {
-  q.addEventListener('click', () => {
+  function toggleFaq() {
     const item = q.parentElement;
     const isOpen = item.classList.contains('open');
-    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
-    if (!isOpen) item.classList.add('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => {
+      i.classList.remove('open');
+      i.querySelector('.faq-question')?.setAttribute('aria-expanded', 'false');
+    });
+    if (!isOpen) {
+      item.classList.add('open');
+      q.setAttribute('aria-expanded', 'true');
+    }
+  }
+  q.addEventListener('click', toggleFaq);
+  q.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleFaq(); }
   });
 });
 

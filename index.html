@@ -792,6 +792,24 @@
       .sw-del {
         background: #e07070;
       }
+      /* ── SWIPE HINT INDICATOR ── */
+      .swipe-wrap .swipe-inner::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 24px;
+        background: var(--gold);
+        opacity: 0.18;
+        border-radius: 2px;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      .swipe-wrap.swiped .swipe-inner::after {
+        opacity: 0;
+      }
       .cuotas-panel {
         border-top: 0.5px solid var(--border);
         background: var(--bg3);
@@ -3555,7 +3573,13 @@
 
         <!-- CUOTAS -->
         <div id="tab-cuotas" class="section">
-          <div id="cuotas-pendientes-list"></div>
+          <div id="cuotas-pendientes-list">
+            <div class="empty-state" id="cuotas-empty" style="text-align:center;padding:40px 20px;color:var(--text3);">
+              <div style="font-size:2.5rem;margin-bottom:12px;">✨</div>
+              <p style="font-size:1rem;font-weight:600;color:var(--text2);margin-bottom:8px;">Sin cuotas pendientes</p>
+              <p style="font-size:.88rem;">Cuando registres ventas en cuotas, aparecerán acá.</p>
+            </div>
+          </div>
         </div>
 
         <!-- GASTOS -->
@@ -3591,7 +3615,7 @@
               ✦ NUEVO GASTO
             </div>
             <div class="form-group">
-              <label class="form-label">Categoría</label>
+              <label class="form-label" for="g-categoria">Categoría</label>
               <select id="g-categoria" onchange="toggleGastoCat()">
                 <option value="envio_compra">📦 Envío de compra</option>
                 <option value="envio_venta">🚚 Envío de venta</option>
@@ -3673,7 +3697,7 @@
             </div>
             <div id="g-otro-extra" style="display: none">
               <div class="form-group">
-                <label class="form-label">Nombre del gasto</label>
+                <label class="form-label" for="g-otro-nombre">Nombre del gasto</label>
                 <input
                   type="text"
                   id="g-otro-nombre"
@@ -3737,7 +3761,7 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Monto</label>
+                <label class="form-label" for="g-monto">Monto</label>
                 <input
                   type="number"
                   id="g-monto"
@@ -3747,12 +3771,12 @@
                 />
               </div>
               <div class="form-group">
-                <label class="form-label">Fecha</label>
+                <label class="form-label" for="g-fecha">Fecha</label>
                 <input type="date" id="g-fecha" />
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label">Descripción (opcional)</label>
+              <label class="form-label" for="g-descripcion">Descripción (opcional)</label>
               <input
                 type="text"
                 id="g-descripcion"
@@ -3983,14 +4007,14 @@
               ✦ NUEVO MOVIMIENTO
             </div>
             <div class="form-group">
-              <label class="form-label">Tipo</label>
+              <label class="form-label" for="caja-tipo">Tipo</label>
               <select id="caja-tipo">
                 <option value="entrada">💚 Entrada</option>
                 <option value="salida">🔴 Salida</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Descripción</label>
+              <label class="form-label" for="caja-desc">Descripción</label>
               <input
                 type="text"
                 id="caja-desc"
@@ -3999,7 +4023,7 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Monto</label>
+                <label class="form-label" for="caja-monto">Monto</label>
                 <input
                   type="number"
                   id="caja-monto"
@@ -4009,7 +4033,7 @@
                 />
               </div>
               <div class="form-group">
-                <label class="form-label">Fecha</label>
+                <label class="form-label" for="caja-fecha">Fecha</label>
                 <input type="date" id="caja-fecha" />
               </div>
             </div>
@@ -4364,7 +4388,7 @@
                 salida.
               </div>
               <div class="form-group">
-                <label class="form-label">Perfume</label>
+                <label class="form-label" for="as-perfume">Perfume</label>
                 <input
                   type="text"
                   id="as-perfume"
@@ -4375,7 +4399,7 @@
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label">Cantidad</label>
+                  <label class="form-label" for="as-cantidad">Cantidad</label>
                   <input
                     type="number"
                     id="as-cantidad"
@@ -4387,7 +4411,7 @@
                   />
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Precio compra (c/u)</label>
+                  <label class="form-label" for="as-precio">Precio compra (c/u)</label>
                   <input
                     type="number"
                     id="as-precio"
@@ -4400,7 +4424,7 @@
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label">Proveedor</label>
+                  <label class="form-label" for="as-proveedor">Proveedor</label>
                   <input
                     type="text"
                     id="as-proveedor"
@@ -4410,7 +4434,7 @@
                   <datalist id="sug-as-proveedor"></datalist>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Precio venta habitual</label>
+                  <label class="form-label" for="as-pventa">Precio venta habitual</label>
                   <input
                     type="number"
                     id="as-pventa"
@@ -5565,7 +5589,7 @@
         <!-- NUEVA VENTA -->
         <div id="tab-add" class="section">
           <div class="form-group">
-            <label class="form-label">Perfume</label>
+            <label class="form-label" for="f-perfume">Perfume</label>
             <input
               type="text"
               id="f-perfume"
@@ -5583,7 +5607,7 @@
           <div class="precio-sugerido" id="precio-sugerido"></div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Precio venta</label>
+              <label class="form-label" for="f-pventa">Precio venta</label>
               <input
                 type="number"
                 id="f-pventa"
@@ -5601,7 +5625,7 @@
               <div class="field-error-msg" id="err-f-pventa"></div>
             </div>
             <div class="form-group">
-              <label class="form-label">Precio compra</label>
+              <label class="form-label" for="f-pcompra">Precio compra</label>
               <input
                 type="number"
                 id="f-pcompra"
@@ -5618,7 +5642,7 @@
           </div>
           <!-- DESCUENTO -->
           <div class="descuento-row">
-            <label>% Descuento:</label>
+            <label for="f-descuento">% Descuento:</label>
             <input
               type="number"
               id="f-descuento"
@@ -5640,7 +5664,7 @@
             ></span>
           </div>
           <div class="form-group">
-            <label class="form-label">¿Venta en cuotas?</label>
+            <label class="form-label" for="f-tipo-cuota">¿Venta en cuotas?</label>
             <select id="f-tipo-cuota" onchange="toggleCuotasForm()">
               <option value="contado">Contado</option>
               <option value="cuotas">En cuotas</option>
@@ -5649,7 +5673,7 @@
           <div id="cuotas-form-extra" style="display: none">
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Cant. cuotas</label>
+                <label class="form-label" for="f-num-cuotas">Cant. cuotas</label>
                 <input
                   type="number"
                   id="f-num-cuotas"
@@ -5662,7 +5686,7 @@
                 />
               </div>
               <div class="form-group">
-                <label class="form-label">Monto 1ra cuota</label>
+                <label class="form-label" for="f-primera-cuota">Monto 1ra cuota</label>
                 <input
                   type="number"
                   id="f-primera-cuota"
@@ -5687,7 +5711,7 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Proveedor</label>
+              <label class="form-label" for="f-proveedor">Proveedor</label>
               <input
                 type="text"
                 id="f-proveedor"
@@ -5698,7 +5722,7 @@
               <datalist id="sug-proveedor"></datalist>
             </div>
             <div class="form-group">
-              <label class="form-label">Vendedor</label>
+              <label class="form-label" for="f-vendedor">Vendedor</label>
               <input
                 type="text"
                 id="f-vendedor"
@@ -5710,7 +5734,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Cliente</label>
+            <label class="form-label" for="f-cliente">Cliente</label>
             <input
               type="text"
               id="f-cliente"
@@ -5722,7 +5746,7 @@
             <datalist id="sug-cliente"></datalist>
           </div>
           <div class="form-group">
-            <label class="form-label">Nota interna</label>
+            <label class="form-label" for="f-nota">Nota interna</label>
             <textarea
               id="f-nota"
               maxlength="400"
@@ -5743,7 +5767,7 @@
             ></textarea>
           </div>
           <div class="form-group">
-            <label class="form-label">Fecha de la venta</label>
+            <label class="form-label" for="f-fecha">Fecha de la venta</label>
             <input
               type="date"
               id="f-fecha"
@@ -5788,10 +5812,11 @@
       class="modal-overlay"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="del-stock-title"
       id="del-stock-modal"
     >
       <div class="modal">
-        <h3>Eliminar perfume</h3>
+        <h3 id="del-stock-title">Eliminar perfume</h3>
         <p id="del-stock-msg">¿Eliminar este perfume del stock?</p>
         <div class="modal-btns">
           <button class="btn-cancel" onclick="closeModal('del-stock-modal')">
@@ -5831,10 +5856,11 @@
       class="modal-overlay"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="del-mes-title"
       id="modal-del-mes"
     >
       <div class="modal">
-        <h3>⚠ Eliminar mes</h3>
+        <h3 id="del-mes-title">⚠ Eliminar mes</h3>
         <p>
           Vas a eliminar todas las ventas de
           <strong id="del-mes-label" style="color: var(--gold2)"></strong>
@@ -5909,7 +5935,7 @@
           ✏️ Editar venta
         </h3>
         <div class="form-group">
-          <label class="form-label">Perfume</label>
+          <label class="form-label" for="ev-perfume">Perfume</label>
           <input
             type="text"
             id="ev-perfume"
@@ -5928,7 +5954,7 @@
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
           <div class="form-group">
-            <label class="form-label">Precio venta</label>
+            <label class="form-label" for="ev-pventa">Precio venta</label>
             <input
               type="number"
               id="ev-pventa"
@@ -5946,7 +5972,7 @@
             />
           </div>
           <div class="form-group">
-            <label class="form-label">Precio compra</label>
+            <label class="form-label" for="ev-pcompra">Precio compra</label>
             <input
               type="number"
               id="ev-pcompra"
@@ -5965,7 +5991,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Cliente</label>
+          <label class="form-label" for="ev-cliente">Cliente</label>
           <input
             type="text"
             id="ev-cliente"
@@ -5983,7 +6009,7 @@
           />
         </div>
         <div class="form-group">
-          <label class="form-label">Nota interna</label>
+          <label class="form-label" for="ev-nota">Nota interna</label>
           <textarea
             id="ev-nota"
             maxlength="400"
@@ -6033,7 +6059,7 @@
         <h3 id="modal-cuota-title">Registrar pago</h3>
         <p id="modal-cuota-desc"></p>
         <div class="form-group">
-          <label class="form-label">Monto recibido</label>
+          <label class="form-label" for="modal-cuota-monto">Monto recibido</label>
           <input
             type="number"
             id="modal-cuota-monto"
@@ -6060,12 +6086,12 @@
         </div>
       </div>
     </div>
-    <div class="modal-overlay" role="dialog" aria-modal="true" id="modal-meta">
+    <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-meta-title" id="modal-meta">
       <div class="modal">
-        <h3>🎯 Meta mensual</h3>
+        <h3 id="modal-meta-title">🎯 Meta mensual</h3>
         <p>Definí cuánto querés ganar este mes para ver tu progreso.</p>
         <div class="form-group">
-          <label class="form-label">Meta de ganancia ($)</label>
+          <label class="form-label" for="meta-input">Meta de ganancia ($)</label>
           <input
             type="number"
             id="meta-input"
@@ -6129,11 +6155,12 @@
       class="modal-overlay"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="modal-terminos-title"
       id="modal-terminos-acepto"
       style="z-index:99999"
     >
       <div class="modal" style="max-width:520px;max-height:85vh;display:flex;flex-direction:column;">
-        <h3 style="margin-bottom:14px;text-align:center;">Antes de empezar</h3>
+        <h3 id="modal-terminos-title" style="margin-bottom:14px;text-align:center;">Antes de empezar</h3>
         <div style="flex:1;overflow-y:auto;margin-bottom:16px;">
           <div style="font-size:13px;line-height:1.7;color:var(--text2);text-align:left;">
             <p style="margin:0 0 12px">Para usar Parfum Track necesitás leer y aceptar nuestros Términos de Uso y Política de Privacidad.</p>
@@ -6175,10 +6202,11 @@
       class="modal-overlay"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="modal-editar-title"
       id="modal-editar"
     >
       <div class="modal">
-        <h3>Editar perfume</h3>
+        <h3 id="modal-editar-title">Editar perfume</h3>
         <div style="margin-bottom: 13px">
           <div class="form-label" style="margin-bottom: 7px">
             Foto del perfume
@@ -6301,7 +6329,7 @@
           />
         </div>
         <div class="form-group">
-          <label class="form-label">Nombre</label>
+          <label class="form-label" for="edit-nombre">Nombre</label>
           <input
             type="text"
             id="edit-nombre"
@@ -6311,7 +6339,7 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Mililitros (ml)</label>
+            <label class="form-label" for="edit-ml">Mililitros (ml)</label>
             <input
               type="number"
               id="edit-ml"
@@ -6321,7 +6349,7 @@
             />
           </div>
           <div class="form-group">
-            <label class="form-label">Precio compra</label>
+            <label class="form-label" for="edit-precio">Precio compra</label>
             <input
               type="number"
               id="edit-precio"
@@ -6332,7 +6360,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Precio venta habitual</label>
+          <label class="form-label" for="edit-pventa">Precio venta habitual</label>
           <input
             type="number"
             id="edit-pventa"
@@ -6343,7 +6371,7 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Proveedor</label>
+            <label class="form-label" for="edit-proveedor">Proveedor</label>
             <input
               type="text"
               id="edit-proveedor"
@@ -6352,7 +6380,7 @@
             />
           </div>
           <div class="form-group">
-            <label class="form-label">Stock actual</label>
+            <label class="form-label" for="edit-stock">Stock actual</label>
             <input
               type="number"
               id="edit-stock"
@@ -6363,7 +6391,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Stock mínimo (alerta)</label>
+          <label class="form-label" for="edit-stock-min">Stock mínimo (alerta)</label>
           <input
             type="number"
             id="edit-stock-min"
@@ -6373,7 +6401,7 @@
           />
         </div>
         <div class="form-group">
-          <label class="form-label">Notas</label>
+          <label class="form-label" for="edit-notas">Notas</label>
           <input
             type="text"
             id="edit-notas"
@@ -8598,7 +8626,7 @@
       function _waFirma() {
         return localStorage.getItem("pt_wa_firma") === "0"
           ? ""
-          : "\n\n_Gestionado con Parfum Track 🍶_";
+          : "\n\n_Gestionado con Parfum Track_ 🍶\nOrganizá tus ventas gratis → parfumtrack.luccasramireziglesias.workers.dev";
       }
       function toggleWaFirma(checked) {
         localStorage.setItem("pt_wa_firma", checked ? "1" : "0");
@@ -11350,7 +11378,7 @@
       <div class="modal">
         <h3 id="modal-perfil-title">Nuevo perfil</h3>
         <div class="form-group">
-          <label class="form-label">Nombre del perfil</label>
+          <label class="form-label" for="perfil-nombre-input">Nombre del perfil</label>
           <input
             type="text"
             id="perfil-nombre-input"
@@ -11718,6 +11746,7 @@
       class="modal-overlay"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="license-title"
       style="z-index: 10000"
     >
       <div class="modal" style="text-align: center">
@@ -11742,10 +11771,11 @@
       class="modal-overlay"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="backup-modal-title"
     >
       <div class="modal" style="text-align: center">
         <div style="font-size: 36px; margin-bottom: 12px">💾</div>
-        <h3>¡Hacé un backup!</h3>
+        <h3 id="backup-modal-title">¡Hacé un backup!</h3>
         <p style="margin-bottom: 8px">
           No hiciste un backup en más de 7 días. Si borrás el caché del
           navegador
@@ -12559,8 +12589,8 @@
         if (!LICENSE.trialDays && !LICENSE.trialMinutes) return;
         if (LICENSE.expiresAt) return;
 
-        // Email registration required before trial starts
-        if (!localStorage.getItem("pt_trial_email")) {
+        // Email registration required before trial starts (skip if user chose to try without)
+        if (!localStorage.getItem("pt_trial_email") && !localStorage.getItem("pt_trial_skip_email")) {
           document.getElementById("modal-trial-email").classList.add("open");
           setTimeout(
             () => document.getElementById("trial-email-input")?.focus(),
@@ -14416,6 +14446,11 @@
               "modal-trial-bienvenida",
               "modal-detalle-cliente",
               "modal-bulk-remind",
+              "modal-legal",
+              "modal-editar-venta",
+              "modal-catalogo-preview",
+              "modal-mp-pago-ok",
+              "modal-nube-restore",
             ].forEach((id) => {
               const el = document.getElementById(id);
               if (el)
@@ -15535,6 +15570,7 @@
       class="modal-overlay"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="catalogo-preview-title"
       style="z-index: 10000"
     >
       <div
@@ -15569,7 +15605,7 @@
                 color: var(--gold2);
               "
             >
-              Vista previa del catálogo
+              <span id="catalogo-preview-title">Vista previa del catálogo</span>
             </div>
             <div
               style="font-size: 11px; color: var(--text3); margin-top: 2px"
@@ -17395,6 +17431,7 @@
       class="modal-overlay"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="pin-setup-title"
       style="z-index: 10001"
     >
       <div class="modal" style="text-align: center; max-width: 340px">
@@ -17792,6 +17829,7 @@
       class="modal-overlay"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="nube-restore-title"
       style="z-index: 10002"
     >
       <div class="modal" style="max-width: 360px; padding: 28px 24px 32px">
@@ -17805,7 +17843,7 @@
               margin-bottom: 6px;
             "
           >
-            Datos encontrados
+            <span id="nube-restore-title">Datos encontrados</span>
           </h3>
           <p
             id="nube-restore-desc"
@@ -17917,6 +17955,25 @@
           >
             Continuar →
           </button>
+          <button
+            onclick="localStorage.setItem('pt_trial_skip_email','1');document.getElementById('modal-trial-email').classList.remove('open');checkTrial();"
+            style="
+              width: 100%;
+              padding: 10px;
+              background: transparent;
+              color: var(--text3);
+              border: 1px solid var(--border);
+              border-radius: var(--radius);
+              font-size: 13px;
+              cursor: pointer;
+              margin-top: 8px;
+            "
+          >
+            Probar sin registrarse
+          </button>
+          <p style="font-size: 11px; color: var(--text3); text-align: center; margin-top: 6px; line-height: 1.4; opacity: 0.7">
+            Sin email no podrás recuperar tus datos en otro dispositivo
+          </p>
         </div>
 
         <!-- Step 2: OTP -->
@@ -18027,6 +18084,7 @@
       class="modal-overlay"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="modal-activacion-title"
       style="z-index: 10000"
     >
       <div class="modal" style="max-width: 420px; padding: 24px 20px 28px">
@@ -18041,7 +18099,7 @@
               margin-bottom: 4px;
             "
           >
-            Activar Parfum Track
+            <span id="modal-activacion-title">Activar Parfum Track</span>
           </h3>
           <p style="font-size: 12px; color: var(--text3); line-height: 1.5">
             Elegí el plan que mejor se adapta a tu negocio
@@ -18541,10 +18599,10 @@
     </div>
 
     <!-- ═══════ MODAL PAGO APROBADO MP ═══════ -->
-    <div id="modal-mp-pago-ok" class="modal-overlay" role="dialog" aria-modal="true" style="z-index:10001">
+    <div id="modal-mp-pago-ok" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="mp-pago-ok-title" style="z-index:10001">
       <div class="modal" style="max-width:380px;padding:28px 24px;text-align:center">
         <div style="font-size:48px;margin-bottom:8px">🎉</div>
-        <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold2);margin-bottom:8px">¡Pago recibido!</h3>
+        <h3 id="mp-pago-ok-title" style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold2);margin-bottom:8px">¡Pago recibido!</h3>
         <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px">
           Tu pago fue aprobado. <strong style="color:var(--text)">En minutos te enviamos el código de activación por email.</strong><br><br>
           Cuando lo recibas, ingresá acá abajo para activar tu plan.
@@ -18568,6 +18626,7 @@
       class="modal-overlay"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="trial-bienvenida-title"
       style="z-index: 10000"
     >
       <div
@@ -18583,7 +18642,7 @@
             margin-bottom: 4px;
           "
         >
-          ¡Bienvenido a Parfum Track!
+          <span id="trial-bienvenida-title">¡Bienvenido a Parfum Track!</span>
         </h3>
         <p style="font-size: 12px; color: var(--text3); margin-bottom: 18px">
           Plan Free — gratis para siempre · Sin tarjeta
@@ -19343,6 +19402,7 @@
       class="modal-overlay"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="bulk-remind-title"
     >
       <div class="modal" style="max-width: 380px; padding: 20px 16px 16px">
         <div
@@ -19361,7 +19421,7 @@
               font-weight: 700;
             "
           >
-            📲 Recordar a todas
+            <span id="bulk-remind-title">📲 Recordar a todas</span>
           </h3>
           <button
             onclick="closeModal('modal-bulk-remind')"
