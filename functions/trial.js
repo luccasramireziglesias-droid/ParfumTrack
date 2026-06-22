@@ -314,6 +314,10 @@ async function sendOtpEmail(email, otp, env) {
       sender: { name: fromName, email: fromEmail },
       to: [{ email }],
       subject: `Tu código de acceso a Parfum Track`,
+      headers: {
+        "List-Unsubscribe": `<mailto:parfumtrack@gmail.com?subject=unsubscribe>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
       htmlContent: `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -354,6 +358,10 @@ async function sendOtpEmail(email, otp, env) {
 }
 
 async function checkRateLimit(env, key, max, windowSecs) {
+  if (!env.PT_LICENSES) {
+    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
+    return 'Service temporarily unavailable';
+  }
   const now = Math.floor(Date.now() / 1000);
   const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
   let count = 0;
