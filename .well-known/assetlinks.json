@@ -1,12 +1,8 @@
-[
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "com.parfumtrack.app",
-      "sha256_cert_fingerprints": [
-        "2B:E7:52:D7:91:42:D4:04:16:8F:D6:E0:85:07:0C:91:C7:AC:7D:91:FE:D6:79:28:B3:FE:F5:3F:5F:4C:70:7A"
-      ]
-    }
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.parfumtrack.app",
+    "sha256_cert_fingerprints": ["59:82:C3:8D:B1:EC:22:D2:C5:1C:CD:B9:6B:EC:A4:C6:9A:5D:7D:D8:04:7A:7A:8F:FC:56:5A:36:7F:34:D7:4E"]
   }
-]
+}]

@@ -1,50 +1,81 @@
-# Cómo generar el AAB (Android App Bundle)
+# Parfum Track — Guía para Play Store
 
-## Opción 1: Android Studio (recomendado)
+## Pre-requisitos
 
-1. Abrí Android Studio
-2. Click en **File > Open** y seleccioná la carpeta `twa-project`
-3. Esperá a que Gradle sincronice (puede tardar unos minutos la primera vez)
-4. Andá a **Build > Generate Signed Bundle / APK...**
-5. Seleccioná **Android App Bundle** y click en **Next**
-6. En Key Store:
-   - Si no tenés keystore: click en **Create new...**
-   - Elegí ubicación, password, alias y completá los datos
-   - **GUARDÁ ESTE ARCHIVO Y LA PASSWORD** — los vas a necesitar para cada actualización
-7. Click en **Next**, seleccioná **release**, click en **Create**
-8. El AAB se genera en `app/release/app-release.aab`
+- Android Studio (o Java 17+ y Gradle)
+- Cuenta Google Play Developer (USD 25 única vez)
 
-## Opción 2: Línea de comandos
+## Paso 1: Generar el AAB
+
+### Opción A: Línea de comandos (más rápido)
 
 ```bash
-cd twa-project
+cd PLAYSTORE/twa-project
 ./gradlew bundleRelease
 ```
 
 El AAB se genera en `app/build/outputs/bundle/release/app-release.aab`
 
-## Después de generar el AAB
+### Opción B: Android Studio
 
-1. Subí el AAB a Google Play Console > Tu app > Producción > Crear nueva versión
-2. Configurá el assetlinks.json en tu servidor (ver paso siguiente)
+1. **File > Open** → seleccioná `PLAYSTORE/twa-project`
+2. Esperá Gradle sync
+3. **Build > Generate Signed Bundle / APK...**
+4. Seleccioná **Android App Bundle** > **Next**
+5. Keystore: seleccioná `PLAYSTORE/parfumtrack-release.jks`
+   - Password: (la que definiste al crear el keystore)
+   - Alias: `parfumtrack`
+   - Key password: (la que definiste al crear el keystore)
+6. **Next** > **release** > **Create**
 
-## Configurar Digital Asset Links
+## Paso 2: assetlinks.json (YA CONFIGURADO)
 
-Después de firmar el AAB, necesitás el SHA-256 del certificado:
+El archivo `/.well-known/assetlinks.json` ya está creado con el SHA-256 del keystore.
+Se sirve automáticamente via Cloudflare Workers.
 
+Verificar después del deploy: `https://parfumtrack.luccasramireziglesias.workers.dev/.well-known/assetlinks.json`
+
+## Paso 3: Subir a Play Console
+
+1. Entrá a [Google Play Console](https://play.google.com/console)
+2. **Crear aplicación** → Nombre: "Parfum Track"
+3. Completar la ficha:
+   - **Título:** Parfum Track — Gestión de ventas de perfumes
+   - **Descripción corta (80 chars):** Organizá tus ventas de perfumes. Ganancia, stock, cuotas y cobros en segundos.
+   - **Categoría:** Herramientas / Negocios
+   - **Política de privacidad:** https://parfumtrack.luccasramireziglesias.workers.dev/privacidad.html
+4. **Testing cerrado** → Crear track → Subir el AAB
+5. Invitar 20 testers (emails Gmail) → esperar 14 días
+6. Solicitar acceso a producción
+
+## Datos del keystore (GUARDAR EN LUGAR SEGURO)
+
+- **Archivo:** `PLAYSTORE/parfumtrack-release.jks`
+- **Store password:** (guardada localmente, NO en el repo)
+- **Key alias:** `parfumtrack`
+- **Key password:** (guardada localmente, NO en el repo)
+- **SHA-256:** `59:82:C3:8D:B1:EC:22:D2:C5:1C:CD:B9:6B:EC:A4:C6:9A:5D:7D:D8:04:7A:7A:8F:FC:56:5A:36:7F:34:D7:4E`
+
+Para buildear, exportar las variables de entorno:
 ```bash
-keytool -list -v -keystore tu-keystore.jks -alias tu-alias
+export KEYSTORE_PASSWORD=tu_password
+export KEY_PASSWORD=tu_password
+./gradlew bundleRelease
 ```
 
-Copiá el SHA-256 fingerprint y creá el archivo `/.well-known/assetlinks.json` en tu servidor con:
+**IMPORTANTE:** Si perdés el keystore no podés actualizar la app nunca más. Hacé backup en Google Drive o similar.
 
-```json
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "com.parfumtrack.app",
-    "sha256_cert_fingerprints": ["TU_SHA256_FINGERPRINT_ACÁ"]
-  }
-}]
-```
+## Assets gráficos necesarios para la ficha
+
+| Asset | Tamaño | Estado |
+|-------|--------|--------|
+| Ícono | 512x512 PNG | Ya tenés (icon-512.png) |
+| Feature graphic | 1024x500 PNG | Pendiente |
+| Screenshots (2-8) | Variable | Ya tenés 3 screenshots |
+
+## Configuración de la app
+
+- **Package:** `com.parfumtrack.app`
+- **Version:** 1.0.0 (versionCode 1)
+- **Min SDK:** 19 (Android 4.4+)
+- **Target SDK:** 34 (Android 14)

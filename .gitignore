@@ -17,3 +17,4 @@ PLAYSTORE/twa-project/app/build/
 PLAYSTORE/twa-project/local.properties
 *.apk
 *.aab
+*.jks
