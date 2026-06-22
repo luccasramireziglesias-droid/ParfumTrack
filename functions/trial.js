@@ -257,46 +257,6 @@ async function handleVerify(body, ip, env, headers) {
   return json({ startAt, verified: true, syncCode, syncToken }, 200, headers);
 }
 
-// ── Legacy: { deviceId } with no step ────────────────────────
-
-async function handleLegacy(body, ip, env, headers) {
-  const { deviceId } = body;
-
-  // Rate limit: 20 req/hr per IP
-  const ipHash = await sha256(ip);
-  const rl = await checkRateLimit(env, `rl_trial_ip_${ipHash}`, 20, 3600);
-  if (rl) return json({ error: rl }, 429, headers);
-
-  const now = Date.now();
-  const ipKey = `trial_ip:${ipHash}`;
-  const devHash = deviceId ? await sha256(String(deviceId)) : null;
-  const devKey = devHash ? `trial_dev:${devHash}` : null;
-
-  const [ipTs, devTs] = await Promise.all([
-    getTs(env, ipKey),
-    devKey ? getTs(env, devKey) : Promise.resolve(null),
-  ]);
-
-  const startAt = Math.min(...[ipTs, devTs, now].filter(Boolean));
-
-  const saves = [];
-  if (!ipTs)
-    saves.push(
-      env.PT_LICENSES.put(ipKey, String(startAt), {
-        expirationTtl: KV_TTL_SECS,
-      }),
-    );
-  if (devKey && !devTs)
-    saves.push(
-      env.PT_LICENSES.put(devKey, String(startAt), {
-        expirationTtl: KV_TTL_SECS,
-      }),
-    );
-  if (saves.length) await Promise.all(saves);
-
-  return json({ startAt }, 200, headers);
-}
-
 // ── Helpers ───────────────────────────────────────────────────
 
 async function getTs(env, key) {

@@ -3948,7 +3948,7 @@
           <!-- GRÁFICO -->
           <div class="chart-wrap">
             <div class="chart-title">📈 Ganancia por mes</div>
-            <canvas id="chart-meses" height="160"></canvas>
+            <canvas id="chart-meses" height="160" role="img" aria-label="Gráfico de barras mostrando la ganancia por mes"></canvas>
           </div>
           <!-- STATS AVANZADAS -->
           <div class="section-title">📊 Estadísticas avanzadas</div>
@@ -9393,7 +9393,7 @@
                   ? '<span class="stock-pill pill-low">Stock bajo</span>'
                   : '<span class="stock-pill pill-ok">En stock</span>';
             const thumb = p.foto
-              ? `<img src="${escapeHTML(p.foto)}" alt="" style="width:100%;height:100%;object-fit:cover">`
+              ? `<img src="${escapeHTML(p.foto)}" alt="${escapeHTML(p.nombre || 'Perfume')}" style="width:100%;height:100%;object-fit:cover">`
               : "🍶";
             const mlB = p.ml
               ? `<span style="font-size:10px;background:var(--gold-dim);color:var(--gold);border:0.5px solid var(--border);border-radius:20px;padding:1px 6px">${p.ml}ml</span>`
@@ -9519,7 +9519,7 @@
         const prev = document.getElementById("edit-foto-preview");
         const qBtn = document.getElementById("edit-foto-quitar");
         if (p.foto) {
-          prev.innerHTML = `<img src="${escapeHTML(p.foto)}" style="width:100%;height:100%;object-fit:cover">`;
+          prev.innerHTML = `<img src="${escapeHTML(p.foto)}" alt="${escapeHTML(p.nombre || 'Foto del perfume')}" style="width:100%;height:100%;object-fit:cover">`;
           qBtn.style.display = "block";
         } else {
           prev.innerHTML = "🍶";
@@ -9557,7 +9557,7 @@
             ctx.drawImage(img, 0, 0, w, h);
             editFotoTemporal = cvs.toDataURL("image/jpeg", 0.72); // JPEG 72% calidad
             document.getElementById("edit-foto-preview").innerHTML =
-              `<img src="${editFotoTemporal}" style="width:100%;height:100%;object-fit:cover">`;
+              `<img src="${editFotoTemporal}" alt="Vista previa de la foto del perfume" style="width:100%;height:100%;object-fit:cover">`;
             document.getElementById("edit-foto-quitar").style.display = "block";
             document.getElementById("edit-foto-url").value = "";
             // Mostrar tamaño resultante
@@ -9587,7 +9587,7 @@
           cvs.getContext("2d").drawImage(img, 0, 0, w, h);
           editFotoTemporal = cvs.toDataURL("image/jpeg", 0.72);
           document.getElementById("edit-foto-preview").innerHTML =
-            `<img src="${editFotoTemporal}" style="width:100%;height:100%;object-fit:cover">`;
+            `<img src="${editFotoTemporal}" alt="Vista previa de la foto del perfume" style="width:100%;height:100%;object-fit:cover">`;
           document.getElementById("edit-foto-quitar").style.display = "block";
           const kb = Math.round((editFotoTemporal.length * 0.75) / 1024);
           if (forzar) toast("📷 Foto optimizada · " + kb + "KB", 2000);
@@ -15703,6 +15703,8 @@
             >
               <canvas
                 id="catalogo-canvas"
+                role="img"
+                aria-label="Vista previa del catálogo de perfumes para compartir por WhatsApp"
                 style="width: 100%; display: block; border-radius: 10px"
               ></canvas>
               <div
