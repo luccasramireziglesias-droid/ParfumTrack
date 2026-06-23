@@ -2,7 +2,7 @@
   "relation": ["delegate_permission/common.handle_all_urls"],
   "target": {
     "namespace": "android_app",
-    "package_name": "app.parfumtrack.android",
+    "package_name": "com.parfumtrack.app",
     "sha256_cert_fingerprints": ["3A:32:60:1C:D6:DE:46:31:91:D5:6D:F6:B7:07:33:8A:1D:F3:8C:D0:66:8D:E4:18:FD:8C:C5:F9:F8:22:0E:1A"]
   }
 }]

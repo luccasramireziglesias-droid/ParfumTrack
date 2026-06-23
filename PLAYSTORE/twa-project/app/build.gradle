@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'app.parfumtrack.android'
+    namespace 'com.parfumtrack.app'
     compileSdk 34
 
     defaultConfig {
-        applicationId "app.parfumtrack.android"
+        applicationId "com.parfumtrack.app"
         minSdk 21
         targetSdk 34
         versionCode 1
