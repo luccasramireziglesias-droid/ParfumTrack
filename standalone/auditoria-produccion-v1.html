@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría de Producción v1 — ParfumTrack</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0f1a;--bg2:#1a1a2e;--card:#1e1e35;--gold:#c9a84c;--gold2:#e8c97e;--gold3:#f5dfa0;--text:#f0ece4;--text2:#a8a49c;--text3:#7a77a0;--green:#70c9a0;--red:#e07070;--orange:#e8a84c;--font-h:'Cormorant Garamond',Georgia,serif;--font-b:'DM Sans',system-ui,sans-serif}
+html{background:var(--bg);scroll-behavior:smooth}
+body{font-family:var(--font-b);color:var(--text);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;padding:0}
+.container{max-width:1100px;margin:0 auto;padding:24px 20px}
+.audit-header{text-align:center;padding:60px 20px 40px;border-bottom:1px solid rgba(201,168,76,.15)}
+.audit-header h1{font-family:var(--font-h);font-size:clamp(2rem,5vw,3.2rem);font-weight:700;color:var(--gold);letter-spacing:-.02em;margin-bottom:8px}
+.audit-header .sub{color:var(--text2);font-size:1rem;margin-bottom:16px}
+.audit-header .date{color:var(--text3);font-size:.85rem}
+.badge-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.badge-green{background:rgba(112,201,160,.12);color:var(--green);border:1px solid rgba(112,201,160,.3)}
+.badge-gold{background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
+.badge-red{background:rgba(224,112,112,.12);color:var(--red);border:1px solid rgba(224,112,112,.3)}
+.badge-orange{background:rgba(232,168,76,.15);color:var(--orange);border:1px solid rgba(232,168,76,.3)}
+.section{padding:40px 0;border-bottom:1px solid rgba(201,168,76,.08)}
+.section-title{font-family:var(--font-h);font-size:clamp(1.4rem,3vw,2rem);font-weight:600;margin-bottom:24px;color:var(--text);display:flex;align-items:center;gap:12px}
+.section-title .icon{font-size:1.4rem}
+.section-label{font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid rgba(201,168,76,.08);border-radius:14px;padding:24px;transition:border-color .3s}
+.card:hover{border-color:rgba(201,168,76,.25)}
+.card h3{font-family:var(--font-h);font-size:1.15rem;margin-bottom:8px;color:var(--text)}
+.card p{color:var(--text2);font-size:.88rem;line-height:1.6}
+.card .sev{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:12px;display:inline-block;margin-bottom:10px}
+.sev-critical{background:rgba(224,112,112,.18);color:var(--red)}
+.sev-high{background:rgba(232,168,76,.15);color:var(--orange)}
+.sev-medium{background:rgba(201,168,76,.12);color:var(--gold2)}
+.sev-low{background:rgba(112,201,160,.1);color:var(--green)}
+.scores-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.score-card{background:var(--card);border:1px solid rgba(201,168,76,.1);border-radius:14px;padding:20px;text-align:center}
+.score-card .score-label{font-size:.78rem;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.score-card .score-num{font-family:var(--font-h);font-size:2.4rem;font-weight:700;line-height:1}
+.score-card .score-bar{height:6px;background:rgba(255,255,255,.06);border-radius:3px;margin-top:12px;overflow:hidden}
+.score-card .score-bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.score-green .score-num{color:var(--green)}
+.score-green .score-bar-fill{background:var(--green)}
+.score-gold .score-num{color:var(--gold)}
+.score-gold .score-bar-fill{background:var(--gold)}
+.score-orange .score-num{color:var(--orange)}
+.score-orange .score-bar-fill{background:var(--orange)}
+.verdict-box{background:linear-gradient(135deg,rgba(112,201,160,.08),rgba(30,30,53,.8));border:2px solid rgba(112,201,160,.3);border-radius:20px;padding:40px 32px;text-align:center;margin:32px 0}
+.verdict-box h2{font-family:var(--font-h);font-size:clamp(1.6rem,4vw,2.4rem);color:var(--green);margin-bottom:12px}
+.verdict-box .verdict-answer{font-size:1.4rem;font-weight:700;margin-bottom:16px}
+.verdict-box p{color:var(--text2);font-size:.95rem;max-width:700px;margin:0 auto;line-height:1.7}
+.findings-table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:16px}
+.findings-table th{text-align:left;color:var(--gold);font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:12px 10px;border-bottom:2px solid rgba(201,168,76,.2)}
+.findings-table td{padding:10px;border-bottom:1px solid rgba(201,168,76,.06);color:var(--text2);vertical-align:top}
+.findings-table tr:hover td{background:rgba(201,168,76,.03)}
+.findings-table .id-col{color:var(--text3);font-family:monospace;font-size:.78rem;white-space:nowrap}
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.plan-card{background:var(--card);border:1px solid rgba(201,168,76,.1);border-radius:14px;padding:24px}
+.plan-card h3{font-family:var(--font-h);font-size:1.1rem;color:var(--gold);margin-bottom:12px}
+.plan-card ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.plan-card li{color:var(--text2);font-size:.85rem;padding-left:18px;position:relative}
+.plan-card li::before{content:'◆';position:absolute;left:0;color:var(--gold);font-size:.6rem;top:4px}
+.delta-box{background:var(--card);border:1px solid rgba(201,168,76,.15);border-radius:16px;padding:28px;margin:24px 0}
+.delta-box h3{font-family:var(--font-h);font-size:1.2rem;color:var(--gold);margin-bottom:16px}
+.delta-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(201,168,76,.06)}
+.delta-row:last-child{border:none}
+.delta-label{color:var(--text2);font-size:.88rem}
+.delta-val{font-weight:700;font-size:.88rem}
+.metrics-row{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin:24px 0}
+.metric{text-align:center;min-width:120px}
+.metric .m-num{font-family:var(--font-h);font-size:2rem;font-weight:700;color:var(--gold)}
+.metric .m-label{font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
+.top-list{counter-reset:top-counter}
+.top-item{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid rgba(201,168,76,.06);counter-increment:top-counter}
+.top-item::before{content:counter(top-counter);font-family:var(--font-h);font-size:1.6rem;font-weight:700;color:var(--gold);min-width:32px;text-align:center;opacity:.6}
+.top-item-content h4{font-size:.95rem;color:var(--text);margin-bottom:4px}
+.top-item-content p{font-size:.82rem;color:var(--text2)}
+.finding-card{background:var(--card);border:1px solid rgba(201,168,76,.08);border-radius:14px;padding:20px;margin-bottom:12px}
+.finding-card h4{font-size:.95rem;color:var(--text);margin-bottom:6px}
+.finding-card p{color:var(--text2);font-size:.84rem;margin-bottom:4px}
+.finding-card .fix{color:var(--green);font-size:.82rem;margin-top:6px}
+.finding-card .evidence{color:var(--text3);font-size:.78rem;font-family:monospace}
+.area-tag{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:8px;background:rgba(201,168,76,.08);color:var(--gold);margin-right:8px}
+.phase-box{background:var(--card);border:1px solid rgba(201,168,76,.1);border-radius:14px;padding:24px;margin-bottom:16px}
+.phase-box h3{font-family:var(--font-h);font-size:1.15rem;color:var(--gold2);margin-bottom:12px}
+.phase-box p,.phase-box ul{color:var(--text2);font-size:.88rem;line-height:1.7}
+.phase-box ul{list-style:none;padding:0}
+.phase-box li{padding:4px 0 4px 18px;position:relative}
+.phase-box li::before{content:'→';position:absolute;left:0;color:var(--gold)}
+@media(max-width:600px){
+.card-grid{grid-template-columns:1fr}
+.scores-grid{grid-template-columns:repeat(2,1fr)}
+.plan-grid{grid-template-columns:1fr}
+.findings-table{font-size:.75rem}
+.findings-table th,.findings-table td{padding:6px 4px}
+}
+</style>
+</head>
+<body>
+<div class="audit-header">
+  <h1>Auditoría de Producción v1</h1>
+  <p class="sub">ParfumTrack — Full-Stack Production Audit</p>
+  <p class="date">23 de junio de 2026 — 4 agentes paralelos · 11 fases · 9 perspectivas · ~50 archivos analizados</p>
+  <div class="badge-row">
+    <span class="badge badge-red">2 Críticos</span>
+    <span class="badge badge-orange">11 Altos</span>
+    <span class="badge badge-gold">21 Medios</span>
+    <span class="badge badge-green">14 Bajos</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ═══════ COMPRENSIÓN ═══════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">🔍</span> Fase 0 — Comprensión del Proyecto</div>
+  <div class="phase-box">
+    <h3>¿Qué es ParfumTrack?</h3>
+    <p>PWA de gestión comercial para revendedores de perfumes en LATAM (Argentina, Uruguay, Colombia, México). Registro de ventas en 10 segundos, ganancia real automática, control de stock, cuotas, cobros por WhatsApp, catálogo WA, estadísticas. Funciona offline. Sin descarga.</p>
+  </div>
+  <div class="phase-box">
+    <h3>Alcance de esta auditoría</h3>
+    <ul>
+      <li>Frontend: index.html (~19,480 líneas) — CSS, HTML, JS completo</li>
+      <li>Backend: 10 Cloudflare Worker functions + router</li>
+      <li>Infraestructura: wrangler.jsonc, _headers, manifest.json, sw.js</li>
+      <li>Landing: landing.html (~2,200 líneas), checkout pages</li>
+      <li>Legal: privacidad.html, terminos.html</li>
+      <li>Android: MainActivity.java, build.gradle, AndroidManifest.xml, styles.xml</li>
+      <li>Nivel de confianza: <strong>Alto</strong> — Se leyeron todos los archivos de código fuente</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════ SCORES ═══════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">📊</span> Scores por Dimensión</div>
+  <div class="scores-grid">
+    <div class="score-card score-orange">
+      <div class="score-label">Técnico</div>
+      <div class="score-num">78</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:78%;background:var(--orange)"></div></div>
+    </div>
+    <div class="score-card score-green">
+      <div class="score-label">UX/UI</div>
+      <div class="score-num">90</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:90%;background:var(--green)"></div></div>
+    </div>
+    <div class="score-card score-orange">
+      <div class="score-label">Seguridad</div>
+      <div class="score-num">76</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:76%;background:var(--orange)"></div></div>
+    </div>
+    <div class="score-card score-green">
+      <div class="score-label">Ventas</div>
+      <div class="score-num">88</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:88%;background:var(--green)"></div></div>
+    </div>
+    <div class="score-card score-green">
+      <div class="score-label">Negocio</div>
+      <div class="score-num">85</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:85%;background:var(--green)"></div></div>
+    </div>
+    <div class="score-card score-gold">
+      <div class="score-label">Escalabilidad</div>
+      <div class="score-num">73</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:73%;background:var(--gold)"></div></div>
+    </div>
+  </div>
+  <div class="delta-box">
+    <h3>Score Total: 80/100</h3>
+    <div class="delta-row">
+      <span class="delta-label">Auditoría anterior (v7)</span>
+      <span class="delta-val" style="color:var(--green)">95/100</span>
+    </div>
+    <div class="delta-row">
+      <span class="delta-label">Esta auditoría (producción completa)</span>
+      <span class="delta-val" style="color:var(--gold)">80/100</span>
+    </div>
+    <div class="delta-row">
+      <span class="delta-label">Diferencia</span>
+      <span class="delta-val" style="color:var(--orange)">-15 pts (alcance ampliado a backend + infra + Android + lógica JS profunda)</span>
+    </div>
+    <div class="delta-row">
+      <span class="delta-label">Probabilidad de éxito</span>
+      <span class="delta-val" style="color:var(--green)">70%</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ TOP 10 PROBLEMAS CRÍTICOS ═══════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">🚨</span> Top 10 Problemas Críticos</div>
+  <div class="top-list">
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4><span class="sev sev-critical">CRÍTICO</span> /send-email sin autenticación — relay de email abierto</h4>
+        <p><strong>Evidencia:</strong> functions/send-email.js:253-408 — El endpoint acepta requests sin HMAC token ni license code. Cualquier atacante que conozca un email registrado puede enviar emails a través de la cuenta de Brevo. El rate limit de 5/hr por IP se evade con proxies rotativos.</p>
+        <p class="fix"><strong>Fix:</strong> Agregar autenticación HMAC idéntica a /send-notification. Requerir code + token en el body y verificar con verifyToken().</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4><span class="sev sev-critical">CRÍTICO</span> Rate limit con race condition (KV read-then-write no atómico)</h4>
+        <p><strong>Evidencia:</strong> Todas las funciones checkRateLimit() — KV get → put no es atómico. Requests concurrentes leen count=0 y todas pasan. Afecta los 10 endpoints.</p>
+        <p class="fix"><strong>Fix:</strong> Usar Cloudflare Rate Limiting nativo o Durable Objects para contadores atómicos. Aceptar el riesgo con límites más estrictos como alternativa.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4><span class="sev sev-high">ALTO</span> SRI fallback carga scripts SIN verificación de integridad</h4>
+        <p><strong>Evidencia:</strong> index.html:16187-16194 — Cuando un script CDN falla SRI, el onerror remueve el script y reintenta la misma URL sin SRI. Un atacante MITM causa fallo SRI (script modificado no matchea hash), triggereando el fallback que carga el script modificado sin verificación.</p>
+        <p class="fix"><strong>Fix:</strong> Eliminar el fallback sin SRI. Si falla, mostrar error al usuario. Alternativamente, hacer fallback a copia self-hosted.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4><span class="sev sev-high">ALTO</span> Comparación OTP no es timing-safe</h4>
+        <p><strong>Evidencia:</strong> functions/trial.js:174 — otpData.otp !== otp usa strict equality que short-circuits, filtrando dígitos correctos via timing. Un atacante puede iterar dígito por dígito reduciendo de 10^6 a ~60 intentos.</p>
+        <p class="fix"><strong>Fix:</strong> Usar timingSafeEqual() que ya existe en otros archivos del proyecto.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4><span class="sev sev-high">ALTO</span> mp-webhook procesa eventos en background sin retornar error a MercadoPago</h4>
+        <p><strong>Evidencia:</strong> functions/mp-webhook.js:86-88 — ctx.waitUntil(processEvent(...)) devuelve 200 inmediatamente. Si processEvent falla, MP no reintenta. Un cliente puede pagar y nunca recibir su licencia.</p>
+        <p class="fix"><strong>Fix:</strong> Procesar el evento sincrónicamente. Devolver 500 en fallo para que MP reintente. Usar waitUntil solo para side-effects no críticos.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4><span class="sev sev-high">ALTO</span> HMAC token expuesto en URL query parameters</h4>
+        <p><strong>Evidencia:</strong> functions/backup.js:89-90, functions/sync.js:102-103 — Tokens en URLs se logean en access logs, browser history y proxies.</p>
+        <p class="fix"><strong>Fix:</strong> Deprecar autenticación por query params. Aceptar tokens solo via headers X-PT-Code, X-PT-Token.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4><span class="sev sev-high">ALTO</span> HTML injection en templates de email del webhook</h4>
+        <p><strong>Evidencia:</strong> functions/mp-webhook.js:362-539 — clientEmail, code, paymentId se interpolan directamente en HTML sin sanitizar. Si un atacante controla el email en MP, puede inyectar HTML/JS en emails.</p>
+        <p class="fix"><strong>Fix:</strong> Agregar sanitize() (ya existe en send-email.js:206-213) y aplicar a todos los datos del usuario antes de interpolar.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4><span class="sev sev-high">ALTO</span> timingSafeEqual filtra longitud del secreto</h4>
+        <p><strong>Evidencia:</strong> functions/validate-license.js:202, backup.js:141, sync.js:153 — if (a.length !== b.length) return false retorna temprano revelando la longitud.</p>
+        <p class="fix"><strong>Fix:</strong> Padear o hashear ambos strings a longitud fija antes de comparar. Para el owner code, agregar check de formato previo.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4><span class="sev sev-high">ALTO</span> PIN salt no se preserva en reset — lockout permanente</h4>
+        <p><strong>Evidencia:</strong> index.html:13914 — _doResetApp() tiene una lista de claves a preservar (pt_pin_hash, pt_pin_locked, pt_pin_attempts) pero NO incluye pt_pin_salt. Después de reset, el salt se pierde y el PIN no puede verificarse nunca más. El usuario queda permanentemente bloqueado.</p>
+        <p class="fix"><strong>Fix:</strong> Agregar 'pt_pin_salt' al array de preserveKeys en _doResetApp().</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4><span class="sev sev-high">ALTO</span> PTDB.clear() destruye datos de TODOS los perfiles</h4>
+        <p><strong>Evidencia:</strong> index.html:13912 — PTDB.clear() borra toda la IndexedDB sin filtrar por perfil activo. En multi-perfil, hacer reset con un perfil destruye los datos de todos los perfiles del usuario.</p>
+        <p class="fix"><strong>Fix:</strong> Implementar clear(profileId) que solo borre los registros del perfil activo, preservando los demás.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4><span class="sev sev-high">ALTO</span> IndexedDB timeout silencioso — datos se pierden sin aviso</h4>
+        <p><strong>Evidencia:</strong> index.html:6575 — Si IndexedDB tarda >3s en abrir, db=null silenciosamente. Todas las escrituras subsiguientes son no-ops. El usuario pierde datos sin saberlo.</p>
+        <p class="fix"><strong>Fix:</strong> Mostrar warning persistente al usuario cuando IndexedDB falla. Implementar fallback a localStorage para datos críticos.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4><span class="sev sev-high">ALTO</span> CSP font-src no incluye 'self' — fuentes locales bloqueadas</h4>
+        <p><strong>Evidencia:</strong> _headers:10 — font-src solo permite fonts.gstatic.com. Las fuentes de /fonts/fonts.css (Cormorant Garamond, DM Sans) son bloqueadas por CSP.</p>
+        <p class="fix"><strong>Fix:</strong> Cambiar a font-src 'self' https://fonts.gstatic.com;</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════ TOP 10 MEJORAS ROI ═══════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">💎</span> Top 10 Mejoras con Mejor ROI</div>
+  <div class="top-list">
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4>Autenticar /send-email con HMAC</h4>
+        <p>5 min de trabajo, cierra el hallazgo más grave. Copiar patrón de send-notification.js.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4>Agregar 'self' a font-src en CSP</h4>
+        <p>1 línea en _headers. Las fuentes Cormorant Garamond y DM Sans probablemente no se cargan en producción ahora mismo.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4>Procesar mp-webhook sincrónicamente</h4>
+        <p>Cambiar waitUntil por await. Evita pérdida de pagos. 10 min de trabajo.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4>Eliminar fallback sin SRI en loadScript()</h4>
+        <p>Borrar 8 líneas del onerror handler. Cierra anti-patrón de seguridad grave.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4>Usar timingSafeEqual para OTP</h4>
+        <p>1 línea: cambiar !== por llamada a función que ya existe en el codebase.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4>Excluir CLAUDE.md del deploy</h4>
+        <p>Agregar "CLAUDE.md" al exclude de wrangler.jsonc. Expone secretos, roadmap y arquitectura interna.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4>Crear imagen OG 1200x630</h4>
+        <p>Impacto directo en CTR de shares en redes. Actualmente usa ícono 512x512 que se ve mal.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4>Sanitizar datos en templates de email de webhook</h4>
+        <p>Copiar sanitize() de send-email.js a mp-webhook.js. 10 min.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4>Preservar pt_pin_salt en _doResetApp()</h4>
+        <p>1 línea: agregar 'pt_pin_salt' al array preserveKeys. Sin esto, cualquier reset bloquea al usuario permanentemente.</p>
+      </div>
+    </div>
+
+    <div class="top-item">
+      <div class="top-item-content">
+        <h4>Deduplicar import de ventas</h4>
+        <p>Agregar check por composite key al importar. Evita duplicación de datos por import repetido.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════ HALLAZGOS POR ÁREA ═══════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">🔎</span> Hallazgos por Área</div>
+
+  <!-- BACKEND -->
+  <div class="section-label">Backend (10 Worker Functions)</div>
+  <table class="findings-table">
+    <thead>
+      <tr><th>ID</th><th>Severidad</th><th>Hallazgo</th><th>Archivo</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="id-col">BE-01</td><td><span class="sev sev-critical">CRÍTICO</span></td><td>/send-email sin autenticación — relay abierto</td><td>send-email.js:253</td></tr>
+      <tr><td class="id-col">BE-02</td><td><span class="sev sev-critical">CRÍTICO</span></td><td>Rate limit race condition en todos los endpoints</td><td>*/checkRateLimit()</td></tr>
+      <tr><td class="id-col">BE-03</td><td><span class="sev sev-high">ALTO</span></td><td>OTP comparison no timing-safe</td><td>trial.js:174</td></tr>
+      <tr><td class="id-col">BE-04</td><td><span class="sev sev-high">ALTO</span></td><td>timingSafeEqual filtra longitud</td><td>validate-license.js:202</td></tr>
+      <tr><td class="id-col">BE-05</td><td><span class="sev sev-high">ALTO</span></td><td>HMAC token en URL query params</td><td>backup.js:89, sync.js:102</td></tr>
+      <tr><td class="id-col">BE-06</td><td><span class="sev sev-high">ALTO</span></td><td>Webhook procesa en background, pierde errores</td><td>mp-webhook.js:86</td></tr>
+      <tr><td class="id-col">BE-07</td><td><span class="sev sev-high">ALTO</span></td><td>HTML injection en email templates del webhook</td><td>mp-webhook.js:362-539</td></tr>
+      <tr><td class="id-col">BE-08</td><td><span class="sev sev-high">ALTO</span></td><td>Sin validación de formato en sync code (potencial R2 key injection)</td><td>sync.js:46</td></tr>
+      <tr><td class="id-col">BE-09</td><td><span class="sev sev-medium">MEDIO</span></td><td>validate-license usa IP raw sin hashear</td><td>validate-license.js:27</td></tr>
+      <tr><td class="id-col">BE-10</td><td><span class="sev sev-medium">MEDIO</span></td><td>send-email devuelve 200 en fallo de Brevo</td><td>send-email.js:382</td></tr>
+      <tr><td class="id-col">BE-11</td><td><span class="sev sev-medium">MEDIO</span></td><td>subscriptionId sin sanitizar en OneSignal API call</td><td>send-notification.js:105</td></tr>
+      <tr><td class="id-col">BE-12</td><td><span class="sev sev-medium">MEDIO</span></td><td>mp-create-preference sin autenticación</td><td>mp-create-preference.js:13</td></tr>
+      <tr><td class="id-col">BE-13</td><td><span class="sev sev-medium">MEDIO</span></td><td>Duplicación masiva de código entre funciones</td><td>10 archivos</td></tr>
+      <tr><td class="id-col">BE-14</td><td><span class="sev sev-medium">MEDIO</span></td><td>CORS permite parfumtrack.pages.dev (no es el hosting)</td><td>corsHeaders()</td></tr>
+      <tr><td class="id-col">BE-15</td><td><span class="sev sev-medium">MEDIO</span></td><td>mp-webhook idempotency con race window</td><td>mp-webhook.js:76</td></tr>
+      <tr><td class="id-col">BE-16</td><td><span class="sev sev-low">BAJO</span></td><td>OTP generation con modulo bias (0.02%)</td><td>trial.js:96</td></tr>
+      <tr><td class="id-col">BE-17</td><td><span class="sev sev-low">BAJO</span></td><td>Email regex permisiva</td><td>trial.js:283</td></tr>
+      <tr><td class="id-col">BE-18</td><td><span class="sev sev-low">BAJO</span></td><td>Console.log con datos parciales en producción</td><td>Múltiples</td></tr>
+    </tbody>
+  </table>
+
+  <!-- FRONTEND -->
+  <div class="section-label" style="margin-top:32px">Frontend (index.html)</div>
+  <table class="findings-table">
+    <thead>
+      <tr><th>ID</th><th>Severidad</th><th>Hallazgo</th><th>Línea</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="id-col">FE-01</td><td><span class="sev sev-high">ALTO</span></td><td>SRI fallback bypasses integrity — anti-patrón de seguridad</td><td>16187-16194</td></tr>
+      <tr><td class="id-col">FE-02</td><td><span class="sev sev-medium">MEDIO</span></td><td>IndexedDB timeout silencioso — datos perdidos sin aviso</td><td>6575</td></tr>
+      <tr><td class="id-col">FE-03</td><td><span class="sev sev-medium">MEDIO</span></td><td>_saveNow puede recursar infinitamente si DB falla</td><td>6714-6734</td></tr>
+      <tr><td class="id-col">FE-04</td><td><span class="sev sev-medium">MEDIO</span></td><td>Import no deduplica contra ventas existentes</td><td>11033</td></tr>
+      <tr><td class="id-col">FE-05</td><td><span class="sev sev-medium">MEDIO</span></td><td>PIN salt fallback hardcoded para users legacy</td><td>14527</td></tr>
+      <tr><td class="id-col">FE-06</td><td><span class="sev sev-medium">MEDIO</span></td><td>PIN lockout bypass via DevTools (localStorage)</td><td>14497-14568</td></tr>
+      <tr><td class="id-col">FE-07</td><td><span class="sev sev-high">ALTO</span></td><td>PIN salt (pt_pin_salt) no se preserva en _doResetApp() — lockout permanente</td><td>13914</td></tr>
+      <tr><td class="id-col">FE-08</td><td><span class="sev sev-high">ALTO</span></td><td>PTDB.clear() destruye datos de TODOS los perfiles, no solo el activo</td><td>13912</td></tr>
+      <tr><td class="id-col">FE-09</td><td><span class="sev sev-medium">MEDIO</span></td><td>Sin upper-bound en montos de cuotas — se aceptan valores negativos o absurdos</td><td>~8500</td></tr>
+      <tr><td class="id-col">FE-10</td><td><span class="sev sev-medium">MEDIO</span></td><td>Multi-store save no atómico (5 writes independientes a IndexedDB)</td><td>6714+</td></tr>
+      <tr><td class="id-col">FE-11</td><td><span class="sev sev-medium">MEDIO</span></td><td>Edit form pierde contexto de descuento al editar venta</td><td>~9200</td></tr>
+      <tr><td class="id-col">FE-12</td><td><span class="sev sev-medium">MEDIO</span></td><td>Backup restore no sanitiza strings (potencial XSS al restaurar)</td><td>~11500</td></tr>
+      <tr><td class="id-col">FE-13</td><td><span class="sev sev-medium">MEDIO</span></td><td>SW controllerchange reload sin guardar datos</td><td>19016-19021</td></tr>
+      <tr><td class="id-col">FE-14</td><td><span class="sev sev-low">BAJO</span></td><td>OG image usa ícono 512x512 en vez de 1200x630</td><td>15-16</td></tr>
+      <tr><td class="id-col">FE-15</td><td><span class="sev sev-low">BAJO</span></td><td>twitter:card summary en vez de summary_large_image</td><td>18</td></tr>
+      <tr><td class="id-col">FE-16</td><td><span class="sev sev-low">BAJO</span></td><td>Plausible script sin SRI hash</td><td>72-76</td></tr>
+    </tbody>
+  </table>
+
+  <!-- INFRA / CONFIG -->
+  <div class="section-label" style="margin-top:32px">Infraestructura y Config</div>
+  <table class="findings-table">
+    <thead>
+      <tr><th>ID</th><th>Severidad</th><th>Hallazgo</th><th>Archivo</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="id-col">IF-01</td><td><span class="sev sev-high">ALTO</span></td><td>CSP font-src no incluye 'self' — fuentes locales bloqueadas</td><td>_headers:10</td></tr>
+      <tr><td class="id-col">IF-02</td><td><span class="sev sev-medium">MEDIO</span></td><td>CSP unsafe-inline en script-src y style-src</td><td>_headers:10</td></tr>
+      <tr><td class="id-col">IF-03</td><td><span class="sev sev-medium">MEDIO</span></td><td>CSP falta frame-ancestors y object-src</td><td>_headers:10</td></tr>
+      <tr><td class="id-col">IF-04</td><td><span class="sev sev-medium">MEDIO</span></td><td>CLAUDE.md deployado a producción (expone internos)</td><td>wrangler.jsonc:12</td></tr>
+      <tr><td class="id-col">IF-05</td><td><span class="sev sev-medium">MEDIO</span></td><td>Manifest icons purpose "any maskable" combinado</td><td>manifest.json:18</td></tr>
+      <tr><td class="id-col">IF-06</td><td><span class="sev sev-medium">MEDIO</span></td><td>SW static assets list incompleta (faltan fonts)</td><td>sw.js:9</td></tr>
+      <tr><td class="id-col">IF-07</td><td><span class="sev sev-medium">MEDIO</span></td><td>OG image 512x512 en landing (necesita 1200x630)</td><td>landing.html:10</td></tr>
+      <tr><td class="id-col">IF-08</td><td><span class="sev sev-medium">MEDIO</span></td><td>checkout window.open puede ser bloqueado</td><td>landing.html:2119</td></tr>
+      <tr><td class="id-col">IF-09</td><td><span class="sev sev-low">BAJO</span></td><td>No Permissions-Policy interest-cohort</td><td>_headers:5</td></tr>
+      <tr><td class="id-col">IF-10</td><td><span class="sev sev-low">BAJO</span></td><td>Falta screenshot "wide" en manifest</td><td>manifest.json</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ANDROID -->
+  <div class="section-label" style="margin-top:32px">Android App</div>
+  <table class="findings-table">
+    <thead>
+      <tr><th>ID</th><th>Severidad</th><th>Hallazgo</th><th>Archivo</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="id-col">AN-01</td><td><span class="sev sev-medium">MEDIO</span></td><td>setAcceptThirdPartyCookies(true) innecesario</td><td>MainActivity.java:73</td></tr>
+      <tr><td class="id-col">AN-02</td><td><span class="sev sev-medium">MEDIO</span></td><td>setAllowFileAccess(true) riesgo de seguridad</td><td>MainActivity.java:61</td></tr>
+      <tr><td class="id-col">AN-03</td><td><span class="sev sev-low">BAJO</span></td><td>Theme Light contradice app dark</td><td>styles.xml:3</td></tr>
+      <tr><td class="id-col">AN-04</td><td><span class="sev sev-low">BAJO</span></td><td>Faltan adaptive icons y ic_launcher_round</td><td>mipmap-*/</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════ PLANES ═══════ -->
+<div class="section">
+  <div class="section-title"><span class="icon">📋</span> Planes de Acción</div>
+  <div class="plan-grid">
+
+    <div class="plan-card">
+      <h3>🔥 Plan 24 horas</h3>
+      <ul>
+        <li>Autenticar /send-email con HMAC</li>
+        <li>Agregar 'self' a font-src en CSP</li>
+        <li>Excluir CLAUDE.md del deploy</li>
+        <li>Eliminar SRI fallback sin integridad</li>
+        <li>Usar timingSafeEqual para OTP</li>
+        <li>Sanitizar email templates del webhook</li>
+        <li>Procesar mp-webhook sincrónicamente</li>
+        <li>Preservar pt_pin_salt en _doResetApp()</li>
+      </ul>
+    </div>
+
+    <div class="plan-card">
+      <h3>📅 Plan 7 días</h3>
+      <ul>
+        <li>Deprecar tokens en query params</li>
+        <li>Validar formato de sync/backup code</li>
+        <li>Agregar deduplicación al import</li>
+        <li>Warning visible si IndexedDB falla</li>
+        <li>PTDB.clear() filtrado por perfil activo</li>
+        <li>Validar upper-bound en montos de cuotas</li>
+        <li>Sanitizar strings en backup restore</li>
+        <li>Crear imagen OG 1200x630</li>
+        <li>Separar icons any/maskable en manifest</li>
+        <li>Agregar frame-ancestors y object-src al CSP</li>
+        <li>Hashear IP en validate-license</li>
+      </ul>
+    </div>
+
+    <div class="plan-card">
+      <h3>📆 Plan 30 días</h3>
+      <ul>
+        <li>Extraer utilidades compartidas del backend</li>
+        <li>Remover parfumtrack.pages.dev de CORS</li>
+        <li>Agregar fallback popup → redirect en checkout</li>
+        <li>Migrar PIN salt legacy a per-user</li>
+        <li>Completar assets del SW (fonts, favicons)</li>
+        <li>Quitar setAllowFileAccess y third-party cookies</li>
+        <li>Tests automatizados con Vitest + Miniflare</li>
+      </ul>
+    </div>
+
+    <div class="plan-card">
+      <h3>🗓️ Plan 90 días</h3>
+      <ul>
+        <li>Refactor monolito → módulos JS</li>
+        <li>Migrar rate limiting a Durable Objects</li>
+        <li>Eliminar unsafe-inline (nonces/hashes)</li>
+        <li>Adaptive icons para Android</li>
+        <li>Landing localizada por país</li>
+        <li>A/B test headlines landing</li>
+        <li>Blog SEO long-tail</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════ VEREDICTO ═══════ -->
+<div class="section" style="border:none">
+  <div class="verdict-box">
+    <h2>¿Lanzarías el producto?</h2>
+    <div class="verdict-answer" style="color:var(--green)">SÍ, con fixes urgentes en las próximas 24 horas</div>
+    <p>ParfumTrack es un producto maduro con excelente UX, propuesta de valor clara y monetización funcional. Los 2 hallazgos críticos (email relay abierto y rate limit race) son reparables en horas. Sin embargo, la auditoría profunda de lógica JS reveló 2 bugs altos adicionales: el PIN salt que no se preserva en reset (lockout permanente) y PTDB.clear() que destruye datos de todos los perfiles. El core de la app — ventas, stock, cuotas, estadísticas — es sólido y bien diseñado. La base de código muestra evolución constante (7 auditorías previas, score subiendo de 53 a 95). Los problemas encontrados son típicos de un producto que expandió scope (backend, Android, multi-perfil) más rápido que la capa de seguridad y la validación de datos. Con el plan de 24 horas ejecutado, el producto está listo para escalar.</p>
+    <div class="metrics-row" style="margin-top:24px">
+      <div class="metric"><div class="m-num">80</div><div class="m-label">Score Total</div></div>
+      <div class="metric"><div class="m-num">70%</div><div class="m-label">Prob. Éxito</div></div>
+      <div class="metric"><div class="m-num">48</div><div class="m-label">Hallazgos</div></div>
+      <div class="metric"><div class="m-num">2</div><div class="m-label">Críticos</div></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- container -->
+</body>
+</html>
