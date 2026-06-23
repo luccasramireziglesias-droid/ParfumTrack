@@ -292,7 +292,7 @@ async function handleSinglePayment(paymentId, payment, env) {
   await env.PT_LICENSES.put(`email_license:${emailHash}`, code, { expirationTtl: TTL_3Y });
   await env.PT_LICENSES.put(`mp_pay:${paymentId}`, code, { expirationTtl: TTL_3Y });
 
-  console.log(`[mp-webhook] Licencia creada (pago único): ${code} para ${email.split('@')[0].slice(0,2)}***@${email.split('@')[1]}`);
+  console.log(`[mp-webhook] Licencia creada (pago único): ${code.slice(0,4)}*** para ${email.split('@')[0].slice(0,2)}***@${email.split('@')[1]}`);
   await sendEmail(env, email, 'subscription_activated', { code, expiresAt });
 
   const ownerEmail = env.OWNER_EMAIL || env.FROM_EMAIL;

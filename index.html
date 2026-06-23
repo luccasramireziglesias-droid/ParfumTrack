@@ -7453,10 +7453,19 @@
           async () => {
             backupData();
             await new Promise((r) => setTimeout(r, 600));
-            ventas = data.ventas || [];
-            perfumes = data.perfumes || perfumes;
-            gastos = data.gastos || gastos;
-            caja = data.caja || caja;
+            function _sanitizeArr(arr) {
+              return (arr || []).map(item => {
+                const clean = {};
+                for (const [k, v] of Object.entries(item)) {
+                  clean[k] = typeof v === 'string' ? v.replace(/</g, '&lt;').replace(/>/g, '&gt;') : v;
+                }
+                return clean;
+              });
+            }
+            ventas = _sanitizeArr(data.ventas);
+            perfumes = _sanitizeArr(data.perfumes) || perfumes;
+            gastos = _sanitizeArr(data.gastos) || gastos;
+            caja = _sanitizeArr(data.caja) || caja;
             if (data.meta) metaMensual = data.meta;
             save();
             updateStats();
@@ -7614,11 +7623,20 @@
                 a.click();
                 setTimeout(() => URL.revokeObjectURL(a.href), 1000);
               } catch (_) {}
-              // Restaurar
-              ventas = data.ventas || [];
-              perfumes = data.perfumes || [];
-              gastos = data.gastos || [];
-              caja = data.caja || [];
+              // Sanitizar strings para prevenir XSS almacenado
+              function _sanitizeRestored(arr) {
+                return (arr || []).map(item => {
+                  const clean = {};
+                  for (const [k, v] of Object.entries(item)) {
+                    clean[k] = typeof v === 'string' ? v.replace(/</g, '&lt;').replace(/>/g, '&gt;') : v;
+                  }
+                  return clean;
+                });
+              }
+              ventas = _sanitizeRestored(data.ventas);
+              perfumes = _sanitizeRestored(data.perfumes);
+              gastos = _sanitizeRestored(data.gastos);
+              caja = _sanitizeRestored(data.caja);
               if (data.meta) metaMensual = data.meta;
               save();
               updateStats();
@@ -8816,8 +8834,13 @@
         document.getElementById("modal-cuota-ok").onclick = () => {
           const m =
             parseFloat(document.getElementById("modal-cuota-monto").value) || 0;
-          if (!m) {
-            toast("⚠ Ingresá un monto");
+          if (!m || m <= 0) {
+            toast("⚠ Ingresá un monto válido");
+            return;
+          }
+          const _debe = calcDebe(v);
+          if (m > _debe * 2) {
+            toast("⚠ El monto supera lo que se debe");
             return;
           }
           if (!v.cuotasPagos) v.cuotasPagos = [];
@@ -8843,8 +8866,13 @@
         if (!v) return;
         const m =
           parseFloat(document.getElementById("extra-monto-" + id)?.value) || 0;
-        if (!m) {
-          toast("⚠ Ingresá un monto");
+        if (!m || m <= 0) {
+          toast("⚠ Ingresá un monto válido");
+          return;
+        }
+        const _debe = calcDebe(v);
+        if (m > _debe * 2) {
+          toast("⚠ El monto supera lo que se debe");
           return;
         }
         if (!v.cuotasPagos) v.cuotasPagos = [];
@@ -14661,6 +14689,12 @@
                 var h = await hashPIN(buf);
                 var stored = localStorage.getItem(PIN_HASH_KEY);
                 if (h === stored) {
+                  // Migrar salt legacy a per-user
+                  if (!localStorage.getItem(PIN_SALT_KEY)) {
+                    _ensurePinSalt();
+                    var newHash = await hashPIN(buf);
+                    localStorage.setItem(PIN_HASH_KEY, newHash);
+                  }
                   clearFails();
                   var screen = document.getElementById("pin-screen");
                   if (screen) screen.style.display = "none";
