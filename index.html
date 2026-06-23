@@ -6434,6 +6434,9 @@
     </div>
     <div class="toast" id="toast"></div>
     <script>
+      if (navigator.userAgent.includes('ParfumTrackApp')) {
+        document.body.classList.add('is-native-app');
+      }
       // PIN globals — must be at top so onclick handlers work immediately
       let ventas = [],
         perfumes = [],
@@ -18808,6 +18811,16 @@
       }
       .has-top-banner .header {
         padding-top: 52px;
+      }
+      /* WebView nativo: sin padding extra del status bar */
+      body.is-native-app .header {
+        padding-top: 12px !important;
+      }
+      body.is-native-app.has-top-banner .header {
+        padding-top: 12px !important;
+      }
+      body.is-native-app.has-top-banner .app {
+        margin-top: 32px;
       }
       #activation-code-input:focus {
         outline: none;
