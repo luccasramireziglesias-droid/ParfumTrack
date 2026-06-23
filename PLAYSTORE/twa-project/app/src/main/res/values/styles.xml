@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.LauncherTheme" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.LauncherTheme" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/splashScreenColor</item>
         <item name="android:statusBarColor">@color/statusBarColor</item>
         <item name="android:navigationBarColor">@color/navigationBarColor</item>
+        <item name="android:windowFullscreen">true</item>
     </style>
 </resources>
