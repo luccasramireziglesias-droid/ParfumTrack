@@ -9,7 +9,7 @@
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
-    "exclude": ["standalone/*", "inservible/*", "PLAYSTORE/*", "_temp*", "_p_*", "playbook*", "auditoria*", "COBERTURA*", ".claude/*", "node_modules/*", ".git/*"]
+    "exclude": ["standalone/*", "inservible/*", "PLAYSTORE/*", "_temp*", "_p_*", "playbook*", "auditoria*", "COBERTURA*", ".claude/*", "node_modules/*", ".git/*", "CLAUDE.md"]
   },
   "compatibility_flags": [
     "nodejs_compat"
