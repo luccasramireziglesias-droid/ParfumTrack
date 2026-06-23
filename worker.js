@@ -29,7 +29,7 @@ export default {
     // CORS preflight
     if (method === 'OPTIONS' && isApiRoute) {
       const origin  = request.headers.get('Origin') || '';
-      const allowed = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin) ? origin : 'null';
+      const allowed = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin) ? origin : 'null';
       return new Response(null, {
         status: 204,
         headers: {

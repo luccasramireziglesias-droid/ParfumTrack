@@ -136,14 +136,13 @@ export async function onRequestOptions(context) {
 
 // ── Helpers ──────────────────────────────────────────────────
 
-// Constant-time string comparison to prevent timing attacks
 function timingSafeEqual(a, b) {
-  if (a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  return result === 0;
+  const len = Math.max(a.length, b.length);
+  const paddedA = a.padEnd(len, '\0');
+  const paddedB = b.padEnd(len, '\0');
+  let diff = 0;
+  for (let i = 0; i < len; i++) diff |= paddedA.charCodeAt(i) ^ paddedB.charCodeAt(i);
+  return diff === 0;
 }
 
 async function verifyToken(code, token, env) {
@@ -184,7 +183,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
 
   try {
     await env.PT_LICENSES.put(windowKey, String(count + 1), { expirationTtl: windowSecs * 2 });
-  } catch { /* non-blocking */ }
+  } catch { return 'Rate limit write failed'; }
 
   return null;
 }
@@ -194,7 +193,7 @@ function json(body, status, headers) {
 }
 
 function corsHeaders(origin) {
-  const ok = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin);
+  const ok = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin);
   return {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': ok ? origin : 'null',

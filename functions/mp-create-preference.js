@@ -34,6 +34,20 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Plan inválido' }, 400, headers);
   }
 
+  // Verificar que el email está registrado (trial o licencia)
+  if (env.PT_LICENSES) {
+    const emailLower = email.toLowerCase().trim();
+    const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(emailLower));
+    const emailHash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    const [trialRec, licenseRec] = await Promise.all([
+      env.PT_LICENSES.get(`trial_email:${emailHash}`),
+      env.PT_LICENSES.get(`email_license:${emailHash}`),
+    ]);
+    if (!trialRec && !licenseRec) {
+      return json({ ok: false, error: 'Email no registrado' }, 403, headers);
+    }
+  }
+
   if (!env.MP_ACCESS_TOKEN) {
     console.error('[mp-create-preference] MP_ACCESS_TOKEN no configurado');
     return json({ ok: false, error: 'Servicio temporalmente no disponible' }, 503, headers);
@@ -110,12 +124,12 @@ async function checkRateLimit(env, key, max, windowSecs) {
   let count  = 0;
   try { count = parseInt(await env.PT_LICENSES.get(wKey) || '0', 10); } catch { return 'Rate limit check failed, please try again later'; }
   if (count >= max) return 'Demasiados intentos. Intentá de nuevo en unos minutos.';
-  try { await env.PT_LICENSES.put(wKey, String(count + 1), { expirationTtl: windowSecs * 2 }); } catch { /* */ }
+  try { await env.PT_LICENSES.put(wKey, String(count + 1), { expirationTtl: windowSecs * 2 }); } catch { return 'Rate limit write failed'; }
   return null;
 }
 
 function corsHeaders(origin) {
-  const ok = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin);
+  const ok = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin);
   return {
     'Content-Type':                 'application/json',
     'Access-Control-Allow-Origin':  ok ? origin : 'null',

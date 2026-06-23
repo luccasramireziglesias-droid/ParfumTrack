@@ -16,7 +16,7 @@
     <meta property="og:image" content="https://parfumtrack.luccasramireziglesias.workers.dev/icon-512.png" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://parfumtrack.luccasramireziglesias.workers.dev/" />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Parfum Track — Tu negocio de perfumes, organizado" />
     <meta name="twitter:description" content="App gratis para revendedores de perfumes. Ventas, cuotas, stock y cobros desde el celular." />
     <meta name="twitter:image" content="https://parfumtrack.luccasramireziglesias.workers.dev/icon-512.png" />
@@ -6571,7 +6571,15 @@
         async init() {
           return new Promise((resolve) => {
             var resolved = false;
-            function done(db) { if (resolved) return; resolved = true; PTDB.db = db || null; resolve(); }
+            function done(db) {
+              if (resolved) return; resolved = true; PTDB.db = db || null;
+              if (!db) {
+                setTimeout(function() {
+                  if (typeof toast === 'function') toast('⚠️ Error abriendo base de datos. Tus datos podrían no guardarse. Recargá la página.');
+                }, 1000);
+              }
+              resolve();
+            }
             setTimeout(function() { done(null); }, 3000);
             try {
               var req = indexedDB.open("parfumtrack_db", 1);
@@ -6694,6 +6702,7 @@
       let _saveTimer = null;
       let _saveRunning = false;
       let _savePendingRetry = false;
+      let _saveRetryCount = 0;
       function save(immediate) {
         _clientesMapDirty = true;
         if (immediate) {
@@ -6728,6 +6737,13 @@
             PTDB.set(profileKey("vip_meta_v1"), metaMensual),
           ]);
           _triggerAutoSync();
+          _saveRetryCount = 0;
+        } catch (e) {
+          _saveRetryCount++;
+          if (_saveRetryCount >= 3) {
+            console.error('[save] Guardado falló después de 3 intentos');
+            _savePendingRetry = false;
+          }
         } finally {
           _saveRunning = false;
           if (_savePendingRetry) _saveNow();
@@ -11022,16 +11038,22 @@
           toast("⚠ No hay ventas válidas para importar");
           return;
         }
-        const total = ventasSanas.length;
-        ventasSanas.sort((a, b) =>
+        // Deduplicar contra ventas existentes
+        const existingKeys = new Set(ventas.map(v => `${v.fecha}_${v.cliente}_${v.perfume}_${v.precioVenta}`));
+        const deduped = ventasSanas.filter(v => !existingKeys.has(`${v.fecha}_${v.cliente}_${v.perfume}_${v.precioVenta}`));
+        const skipped = ventasSanas.length - deduped.length;
+        if (skipped > 0) toast(`ℹ️ ${skipped} venta${skipped !== 1 ? 's' : ''} duplicada${skipped !== 1 ? 's' : ''} omitida${skipped !== 1 ? 's' : ''}`, 3000);
+        const total = deduped.length;
+        if (!total) { toast("⚠ Todas las ventas ya existen"); return; }
+        deduped.sort((a, b) =>
           b.fecha
             .split("/")
             .reverse()
             .join("")
             .localeCompare(a.fecha.split("/").reverse().join("")),
         );
-        ventas = [...ventasSanas, ...ventas];
-        ventasSanas.forEach((v) => {
+        ventas = [...deduped, ...ventas];
+        deduped.forEach((v) => {
           let sp = perfumes.find(
             (p) => p.nombre.toLowerCase() === v.perfume.toLowerCase(),
           );
@@ -13909,10 +13931,13 @@
         return; // la lógica sigue en _doResetApp
       }
       async function _doResetApp() {
-        await PTDB.clear();
+        // Borrar solo datos del perfil activo (no destruir otros perfiles)
+        const profileKeys = ["vip_ventas_v2", "vip_stock_v2", "vip_gastos_v1", "vip_caja_v1", "vip_meta_v1"];
+        await Promise.all(profileKeys.map(k => PTDB.delete(profileKey(k))));
         // Preservar: PIN, licencia, activación, trial y perfiles
         const preserve = [
           "pt_pin_hash",
+          "pt_pin_salt",
           "pt_pin_fails",
           "pt_pin_lockout",
           "pt_license_key",
@@ -16171,6 +16196,15 @@
 
       const _isNativeApp = navigator.userAgent.includes('ParfumTrackApp');
 
+      function _showSRIErrorBanner() {
+        if (document.getElementById('sri-error-banner')) return;
+        const banner = document.createElement('div');
+        banner.id = 'sri-error-banner';
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#e07070;color:#fff;padding:14px 18px;font-size:14px;font-weight:600;text-align:center;z-index:99999;font-family:"DM Sans",sans-serif';
+        banner.textContent = 'Error cargando recursos. Recargá la página.';
+        document.body.appendChild(banner);
+      }
+
       function loadScript(url) {
         return new Promise((resolve, reject) => {
           if (document.querySelector(`script[src="${url}"]`)) {
@@ -16186,15 +16220,11 @@
           s.onload = resolve;
           s.onerror = () => {
             if (CDN_SRI[url] && !_isNativeApp) {
+              // SRI falló — NO reintentar sin integridad (riesgo de MITM)
               s.remove();
-              const r = document.createElement("script");
-              r.src = url;
-              r.onload = resolve;
-              r.onerror = reject;
-              document.head.appendChild(r);
-            } else {
-              reject();
+              _showSRIErrorBanner();
             }
+            reject(new Error('Error cargando script: ' + url));
           };
           document.head.appendChild(s);
         });
@@ -19015,8 +19045,9 @@
               // Recargar cuando el nuevo SW tome control
               navigator.serviceWorker.addEventListener(
                 "controllerchange",
-                () => {
+                async () => {
                   document.getElementById("sw-update-banner")?.remove();
+                  if (typeof _saveNow === 'function') try { await _saveNow(); } catch {}
                   location.reload();
                 },
               );

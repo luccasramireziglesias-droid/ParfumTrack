@@ -91,10 +91,14 @@ async function handleRegister(body, ip, env, headers) {
       headers,
     );
 
-  // Generate 6-digit OTP using cryptographically random source
-  const rand = new Uint32Array(1);
-  crypto.getRandomValues(rand);
-  const otp = String(100000 + (rand[0] % 900000));
+  // Generación de OTP sin sesgo de módulo (rejection sampling)
+  let otp;
+  do {
+    const buf = new Uint8Array(4);
+    crypto.getRandomValues(buf);
+    otp = ((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3]) >>> 0;
+  } while (otp >= 4294000000);
+  otp = (otp % 1000000).toString().padStart(6, '0');
 
   // Store OTP
   await env.PT_LICENSES.put(
@@ -108,7 +112,7 @@ async function handleRegister(body, ip, env, headers) {
     console.error("[trial] email error:", e?.message),
   );
 
-  console.log(`[trial] OTP sent to ***@${emailLower.split("@")[1]}`);
+  console.log('[trial] OTP enviado');
   return json({ sent: true }, 200, headers);
 }
 
@@ -170,8 +174,13 @@ async function handleVerify(body, ip, env, headers) {
     );
   }
 
-  // Wrong OTP
-  if (otpData.otp !== otp) {
+  // Comparación timing-safe para evitar side-channel attacks
+  const enc = new TextEncoder();
+  const otpA = enc.encode(otpData.otp.padEnd(6, '\0'));
+  const otpB = enc.encode(otp.padEnd(6, '\0'));
+  let otpDiff = otpA.length ^ otpB.length;
+  for (let i = 0; i < otpA.length; i++) otpDiff |= otpA[i] ^ otpB[i];
+  if (otpDiff !== 0) {
     otpData.attempts = (otpData.attempts || 0) + 1;
     await env.PT_LICENSES.put(
       `trial_otp:${emailHash}`,
@@ -251,9 +260,7 @@ async function handleVerify(body, ip, env, headers) {
       .join("");
   }
 
-  console.log(
-    `[trial] Verified: ***@${emailLower.split("@")[1]} → startAt ${new Date(startAt).toISOString()}`,
-  );
+  console.log('[trial] OTP verificado correctamente');
   return json({ startAt, verified: true, syncCode, syncToken }, 200, headers);
 }
 
@@ -280,7 +287,7 @@ function isValidEmail(email) {
   return (
     typeof email === "string" &&
     email.length <= 254 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(email)
   );
 }
 
@@ -303,9 +310,7 @@ async function sendOtpEmail(email, otp, env) {
     console.error("[trial] BREVO_API_KEY not set — email not sent");
     return;
   }
-  console.log(
-    `[trial] Calling Brevo API, from: ${fromEmail}, to: ${email}, key length: ${apiKey.length}`,
-  );
+  console.log('[trial] Enviando OTP via Brevo');
 
   await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
@@ -348,11 +353,10 @@ async function sendOtpEmail(email, otp, env) {
     }),
     signal: AbortSignal.timeout(8000),
   }).then(async (res) => {
-    const body = await res.text().catch(() => "");
     if (!res.ok) {
-      console.error(`[trial] Brevo error ${res.status}: ${body}`);
+      console.error(`[trial] Brevo error ${res.status}`);
     } else {
-      console.log(`[trial] Brevo OK ${res.status}: ${body.slice(0, 100)}`);
+      console.log(`[trial] Brevo OK ${res.status}`);
     }
   });
 }
@@ -377,7 +381,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
       expirationTtl: windowSecs * 2,
     });
   } catch {
-    /* non-blocking */
+    return 'Rate limit write failed';
   }
   return null;
 }
@@ -392,7 +396,7 @@ function json(body, status, headers) {
 
 function corsHeaders(origin) {
   const ok =
-    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
+    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/parfumtrack\.luccasramireziglesias\.workers\.dev)$/.test(
       origin,
     );
   return {

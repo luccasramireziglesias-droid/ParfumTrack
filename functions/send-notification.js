@@ -42,8 +42,8 @@ export async function onRequestPost(context) {
     );
   }
 
-  // Input length guards
-  if (typeof subscriptionId !== "string" || subscriptionId.length > 256) {
+  // Input guards
+  if (typeof subscriptionId !== "string" || subscriptionId.length > 256 || !/^[a-zA-Z0-9_-]+$/.test(subscriptionId)) {
     return new Response(
       JSON.stringify({ ok: false, error: "Invalid subscriptionId" }),
       { status: 400, headers },
@@ -187,7 +187,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
       expirationTtl: windowSecs * 2,
     });
   } catch {
-    /* non-blocking */
+    return 'Rate limit write failed';
   }
 
   return null;
@@ -195,7 +195,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
 
 function corsHeaders(origin) {
   const allowed =
-    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
+    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
       origin,
     );
   return {

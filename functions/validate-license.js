@@ -23,7 +23,9 @@ export async function onRequestPost(context) {
   const headers = corsHeaders(origin);
 
   // Rate limit by IP: max 10 attempts per 15 minutes
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ipRaw = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ipBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(ipRaw));
+  const ip = Array.from(new Uint8Array(ipBuf)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
   const ipLimitError = await checkRateLimit(env, `rl_lic_ip_${ip}`, 10, 900);
   if (ipLimitError) {
     return new Response(
@@ -198,10 +200,13 @@ function delay(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+// Padding a longitud fija para no filtrar largo por timing
 function timingSafeEqual(a, b) {
-  if (a.length !== b.length) return false;
+  const len = Math.max(a.length, b.length);
+  const paddedA = a.padEnd(len, '\0');
+  const paddedB = b.padEnd(len, '\0');
   let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  for (let i = 0; i < len; i++) diff |= paddedA.charCodeAt(i) ^ paddedB.charCodeAt(i);
   return diff === 0;
 }
 
@@ -230,7 +235,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
       expirationTtl: windowSecs * 2,
     });
   } catch {
-    /* non-blocking */
+    return 'Rate limit write failed';
   }
 
   return null;
@@ -238,7 +243,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
 
 function corsHeaders(origin) {
   const ok =
-    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
+    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
       origin,
     );
   return {

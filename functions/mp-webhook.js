@@ -82,10 +82,15 @@ export async function onRequestPost(context) {
   // Marcar como "en proceso" con TTL corto para evitar ejecuciones simultáneas
   await env.PT_LICENSES.put(idKey, 'processing', { expirationTtl: 300 });
 
-  // 4. Procesar en background; marcar 'done' solo si tiene éxito
-  ctx.waitUntil(processEvent({ type, resourceId, env, idKey }));
-
-  return jsonResp({ ok: true });
+  // 4. Procesar sincrónicamente para que MP reintente si falla
+  try {
+    await processEvent({ type, resourceId, env, idKey });
+    return jsonResp({ ok: true });
+  } catch (e) {
+    console.error('[mp-webhook] processEvent falló:', e.message);
+    await env.PT_LICENSES.delete(idKey).catch(() => {});
+    return jsonResp({ ok: false, error: 'processing_failed' }, 500);
+  }
 }
 
 // ── Verificación de firma MP ──────────────────────────────────────
@@ -320,14 +325,22 @@ async function hashEmail(email) {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Envía email directo via Brevo (sin pasar por /send-email para evitar rate limit)
+function sanitizeHtml(str) {
+  if (typeof str !== 'string') return String(str ?? '');
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 async function sendEmail(env, to, template, data) {
   if (!env.BREVO_API_KEY) { console.warn('[mp-webhook] BREVO_API_KEY no configurado'); return; }
   const tpl = EMAIL_TEMPLATES[template];
   if (!tpl) { console.warn('[mp-webhook] Template desconocido:', template); return; }
 
   const appUrl = env.APP_URL || 'https://parfumtrack.luccasramireziglesias.workers.dev';
-  const { subject, html, text } = tpl({ ...data, appUrl });
+  const safeData = {};
+  for (const [k, v] of Object.entries({ ...data, appUrl })) {
+    safeData[k] = typeof v === 'string' ? sanitizeHtml(v) : v;
+  }
+  const { subject, html, text } = tpl(safeData);
   try {
     const resp = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',

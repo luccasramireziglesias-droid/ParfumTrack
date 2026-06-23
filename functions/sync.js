@@ -44,6 +44,9 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: "Invalid code" }, 400, headers);
   }
   code = code.trim().toUpperCase();
+  if (!/^[A-Z0-9_-]{1,64}$/.test(code)) {
+    return json({ ok: false, error: "Invalid code format" }, 400, headers);
+  }
 
   const authErr = await verifyToken(code, token, env);
   if (authErr) return json({ ok: false, error: authErr }, 401, headers);
@@ -109,6 +112,9 @@ export async function onRequestGet(context) {
     return json({ ok: false, error: "Invalid code" }, 400, headers);
   }
   code = code.trim().toUpperCase();
+  if (!/^[A-Z0-9_-]{1,64}$/.test(code)) {
+    return json({ ok: false, error: "Invalid code format" }, 400, headers);
+  }
 
   const authErr = await verifyToken(code, token, env);
   if (authErr) return json({ ok: false, error: authErr }, 401, headers);
@@ -151,11 +157,12 @@ export async function onRequestOptions(context) {
 // ── Helpers ───────────────────────────────────────────────────
 
 function timingSafeEqual(a, b) {
-  if (a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++)
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return result === 0;
+  const len = Math.max(a.length, b.length);
+  const paddedA = a.padEnd(len, '\0');
+  const paddedB = b.padEnd(len, '\0');
+  let diff = 0;
+  for (let i = 0; i < len; i++) diff |= paddedA.charCodeAt(i) ^ paddedB.charCodeAt(i);
+  return diff === 0;
 }
 
 async function verifyToken(code, token, env) {
@@ -212,7 +219,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
       expirationTtl: windowSecs * 2,
     });
   } catch {
-    /* non-blocking */
+    return 'Rate limit write failed';
   }
   return null;
 }
@@ -223,7 +230,7 @@ function json(body, status, headers) {
 
 function corsHeaders(origin) {
   const ok =
-    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
+    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
       origin,
     );
   return {

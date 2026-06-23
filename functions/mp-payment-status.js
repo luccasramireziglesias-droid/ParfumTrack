@@ -104,12 +104,12 @@ async function checkRateLimit(env, key, max, windowSecs) {
   if (count >= max) return 'Too many requests, please try again later';
   try {
     await env.PT_LICENSES.put(windowKey, String(count + 1), { expirationTtl: windowSecs * 2 });
-  } catch { /* non-blocking */ }
+  } catch { return 'Rate limit write failed'; }
   return null;
 }
 
 function corsHeaders(origin) {
-  const ok = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin);
+  const ok = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin);
   return {
     'Content-Type':                 'application/json',
     'Access-Control-Allow-Origin':  ok ? origin : 'null',

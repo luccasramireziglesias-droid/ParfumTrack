@@ -237,7 +237,7 @@ async function checkRateLimit(env, key, max, windowSecs) {
       expirationTtl: windowSecs * 2,
     });
   } catch {
-    /* non-blocking */
+    return 'Rate limit write failed';
   }
 
   return null;
@@ -246,6 +246,22 @@ async function checkRateLimit(env, key, max, windowSecs) {
 async function sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Verificación HMAC — misma lógica que send-notification.js
+async function verifyToken(code, token, env) {
+  const secret = env.LICENSE_SERVER_SECRET;
+  if (!secret) return 'Server misconfigured';
+  if (typeof code !== 'string' || code.length > 128) return 'Invalid code';
+  if (typeof token !== 'string' || !/^[0-9a-f]{64}$/.test(token)) return 'Invalid token';
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(code));
+  const expected = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+  let diff = 0;
+  if (expected.length !== token.length) return 'Invalid token';
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ token.charCodeAt(i);
+  return diff === 0 ? null : 'Invalid token';
 }
 
 // ── Main handler ─────────────────────────────────────────────
@@ -272,6 +288,16 @@ export async function onRequestPost(context) {
       status: 400,
       headers,
     });
+  }
+
+  // Auth: verificar token HMAC — obligatorio
+  const { code: authCode, token: authToken } = body;
+  if (!authCode || !authToken) {
+    return new Response(JSON.stringify({ ok: false, error: 'Authentication required' }), { status: 401, headers });
+  }
+  const tokenErr = await verifyToken(authCode, authToken, env);
+  if (tokenErr) {
+    return new Response(JSON.stringify({ ok: false, error: 'Unauthorized' }), { status: 401, headers });
   }
 
   const { to, toName, template, data = {} } = body;
@@ -321,7 +347,7 @@ export async function onRequestPost(context) {
       env.PT_LICENSES.get(`email_license:${emailHash}`),
     ]);
     if (!trialRec && !licenseRec) {
-      console.warn(`[send-email] Destinatario no registrado: ${emailHash.slice(0, 8)}...`);
+      console.warn('[send-email] Destinatario no registrado');
       return new Response(
         JSON.stringify({ ok: false, error: "Email not registered" }),
         { status: 403, headers },
@@ -378,22 +404,14 @@ export async function onRequestPost(context) {
 
     if (!resp.ok) {
       const err = await resp.text();
-      console.error("[send-email] Brevo error:", resp.status, err);
+      console.error("[send-email] Brevo error:", resp.status);
       return new Response(
         JSON.stringify({ ok: false, error: `Brevo ${resp.status}` }),
-        { status: 200, headers },
+        { status: 502, headers },
       );
     }
 
     const result = await resp.json();
-    console.log(
-      "[send-email] Sent:",
-      template,
-      "to",
-      `${to.split('@')[0].slice(0,2)}***@${to.split('@')[1]}`,
-      "— messageId:",
-      result.messageId,
-    );
     return new Response(
       JSON.stringify({ ok: true, messageId: result.messageId }),
       { status: 200, headers },
@@ -414,7 +432,7 @@ export async function onRequestOptions(context) {
 
 function corsHeaders(origin) {
   const allowed =
-    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
+    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/parfumtrack\.luccasramireziglesias\.workers\.dev)$/.test(
       origin,
     );
   return {
