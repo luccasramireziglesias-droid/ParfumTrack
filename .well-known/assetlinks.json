@@ -3,6 +3,6 @@
   "target": {
     "namespace": "android_app",
     "package_name": "com.parfumtrack.app",
-    "sha256_cert_fingerprints": ["59:82:C3:8D:B1:EC:22:D2:C5:1C:CD:B9:6B:EC:A4:C6:9A:5D:7D:D8:04:7A:7A:8F:FC:56:5A:36:7F:34:D7:4E"]
+    "sha256_cert_fingerprints": ["3A:32:60:1C:D6:DE:46:31:91:D5:6D:F6:B7:07:33:8A:1D:F3:8C:D0:66:8D:E4:18:FD:8C:C5:F9:F8:22:0E:1A"]
   }
 }]
