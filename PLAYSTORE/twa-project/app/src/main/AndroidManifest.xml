@@ -1,79 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="${launcherName}"
+        android:label="Parfum Track"
         android:supportsRtl="true"
-        android:theme="@style/Theme.LauncherTheme">
-
-        <meta-data
-            android:name="asset_statements"
-            android:value='${assetStatements}' />
-
-        <meta-data
-            android:name="web_manifest_url"
-            android:value="https://parfumtrack.luccasramireziglesias.workers.dev/manifest.json" />
-
-        <meta-data
-            android:name="twa_generator"
-            android:value="custom" />
+        android:theme="@style/Theme.LauncherTheme"
+        android:usesCleartextTraffic="false">
 
         <activity
-            android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:name=".MainActivity"
             android:exported="true"
-            android:label="${launcherName}">
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.DEFAULT_URL"
-                android:value="${defaultUrl}" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
-                android:value="${themeColor}" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
-                android:value="${navigationColor}" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR_DARK"
-                android:value="${navigationColorDark}" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_DIVIDER_COLOR"
-                android:value="${navigationDividerColor}" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_DIVIDER_COLOR_DARK"
-                android:value="${navigationDividerColorDark}" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
-                android:resource="@mipmap/ic_launcher" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
-                android:value="${backgroundColor}" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
-                android:value="300" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.FILE_PROVIDER_AUTHORITY"
-                android:value="${applicationId}.fileprovider" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
-                android:value="${fallbackType}" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
-                android:value="${orientation}" />
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="unspecified"
+            android:launchMode="singleTask">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -85,63 +29,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https"
-                    android:host="${hostName}" />
+                    android:host="parfumtrack.luccasramireziglesias.workers.dev" />
             </intent-filter>
         </activity>
-
-        <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity"
-            android:exported="false" />
-
-        <activity
-            android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
-            android:configChanges="orientation|screenSize"
-            android:exported="false" />
-
-        <activity
-            android:name="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https"
-                    android:host="${hostName}"
-                    android:pathPrefix="/.well-known/assetlinks.json"/>
-            </intent-filter>
-        </activity>
-
-        <service
-            android:name="com.google.androidbrowserhelper.trusted.DelegationService"
-            android:enabled="${enableNotifications}"
-            android:exported="${enableNotifications}">
-            <intent-filter>
-                <action android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </service>
-
-        <activity
-            android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity"
-            android:enabled="${enableNotifications}"
-            android:exported="false" />
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:grantUriPermissions="true"
-            android:exported="false">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/filepaths" />
-        </provider>
-
-        <meta-data
-            android:name="android.support.customtabs.trusted.MANAGE_SPACE_URL"
-            android:value="${defaultUrl}" />
-
-        <meta-data
-            android:name="android.support.customtabs.trusted.SITE_SETTINGS_SHORTCUT_ENABLED"
-            android:value="${enableSiteSettingsShortcut}" />
     </application>
 
 </manifest>

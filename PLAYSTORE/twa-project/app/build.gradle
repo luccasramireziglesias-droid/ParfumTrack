@@ -12,24 +12,6 @@ android {
         targetSdk 35
         versionCode 3
         versionName "1.0.2"
-
-        manifestPlaceholders = [
-            hostName          : "parfumtrack.luccasramireziglesias.workers.dev",
-            defaultUrl        : "https://parfumtrack.luccasramireziglesias.workers.dev/index.html",
-            launcherName      : "Parfum Track",
-            assetStatements   : '[{ "relation": ["delegate_permission/common.handle_all_urls"], ' +
-                                '"target": { "namespace": "web", "site": "https://parfumtrack.luccasramireziglesias.workers.dev" } }]',
-            themeColor        : "#0f0f1a",
-            navigationColor   : "#0f0f1a",
-            navigationColorDark: "#0f0f1a",
-            navigationDividerColor: "#0f0f1a",
-            navigationDividerColorDark: "#0f0f1a",
-            backgroundColor   : "#0f0f1a",
-            enableNotifications: "true",
-            enableSiteSettingsShortcut: "true",
-            fallbackType      : "webview",
-            orientation       : "default"
-        ]
     }
 
     signingConfigs {
@@ -56,6 +38,5 @@ android {
 }
 
 dependencies {
-    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
 }
