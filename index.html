@@ -2484,24 +2484,28 @@
         /* ── FIX HEADER MOBILE ── */
         .brand-row {
           gap: 6px;
-          flex-wrap: wrap;
+          flex-wrap: nowrap;
         }
         .brand-left {
-          flex-shrink: 0;
+          flex-shrink: 1;
           gap: 8px;
+          min-width: 0;
+          overflow: hidden;
         }
         .brand-title {
           font-size: 17px !important;
           white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         .logo-svg {
           width: 34px !important;
           height: 34px !important;
         }
         .header-right {
-          flex-shrink: 1;
+          flex-shrink: 0;
           gap: 3px !important;
-          flex-wrap: wrap;
+          flex-wrap: nowrap;
           justify-content: flex-end;
         }
         /* Profile badge compacto */
