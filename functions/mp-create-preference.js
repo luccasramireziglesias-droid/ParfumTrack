@@ -10,6 +10,8 @@
 // Usa Checkout Pro (preferencias) — no requiere permiso de suscripciones.
 // ══════════════════════════════════════════════════════════════
 
+import { corsHeaders, json, checkRateLimit, sha256 } from './_shared.js';
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   const origin  = request.headers.get('Origin') || '';
@@ -34,11 +36,8 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Plan inválido' }, 400, headers);
   }
 
-  // Verificar que el email está registrado (trial o licencia)
   if (env.PT_LICENSES) {
-    const emailLower = email.toLowerCase().trim();
-    const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(emailLower));
-    const emailHash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    const emailHash = await sha256(email.toLowerCase().trim());
     const [trialRec, licenseRec] = await Promise.all([
       env.PT_LICENSES.get(`trial_email:${emailHash}`),
       env.PT_LICENSES.get(`email_license:${emailHash}`),
@@ -110,34 +109,4 @@ export async function onRequestPost(context) {
 export async function onRequestOptions(context) {
   const origin = context.request.headers.get('Origin') || '';
   return new Response(null, { status: 204, headers: corsHeaders(origin) });
-}
-
-// ── Utilidades ────────────────────────────────────────────────────
-
-async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
-    return 'Service temporarily unavailable';
-  }
-  const now  = Math.floor(Date.now() / 1000);
-  const wKey = `${key}_${Math.floor(now / windowSecs)}`;
-  let count  = 0;
-  try { count = parseInt(await env.PT_LICENSES.get(wKey) || '0', 10); } catch { return 'Rate limit check failed, please try again later'; }
-  if (count >= max) return 'Demasiados intentos. Intentá de nuevo en unos minutos.';
-  try { await env.PT_LICENSES.put(wKey, String(count + 1), { expirationTtl: windowSecs * 2 }); } catch { return 'Rate limit write failed'; }
-  return null;
-}
-
-function corsHeaders(origin) {
-  const ok = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin);
-  return {
-    'Content-Type':                 'application/json',
-    'Access-Control-Allow-Origin':  ok ? origin : 'null',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
-}
-
-function json(body, status, headers) {
-  return new Response(JSON.stringify(body), { status, headers });
 }

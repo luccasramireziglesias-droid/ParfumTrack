@@ -18,10 +18,14 @@
 // Rate limit: 10 requests/hora por IP, 4 backups/día por código
 // ══════════════════════════════════════════════════════════════
 
+import { corsHeaders, json, checkRateLimit, verifyToken } from './_shared.js';
+
+const CORS_OPTS = { methods: 'GET, POST, OPTIONS', allowHeaders: 'Content-Type, X-PT-Code, X-PT-Token' };
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   const origin = request.headers.get('Origin') || '';
-  const headers = corsHeaders(origin);
+  const headers = corsHeaders(origin, CORS_OPTS);
 
   // Rate limit by IP
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
@@ -79,7 +83,7 @@ export async function onRequestPost(context) {
 export async function onRequestGet(context) {
   const { request, env } = context;
   const origin = request.headers.get('Origin') || '';
-  const headers = corsHeaders(origin);
+  const headers = corsHeaders(origin, CORS_OPTS);
 
   // Rate limit by IP
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
@@ -131,73 +135,5 @@ export async function onRequestGet(context) {
 
 export async function onRequestOptions(context) {
   const origin = context.request.headers.get('Origin') || '';
-  return new Response(null, { status: 204, headers: corsHeaders(origin) });
-}
-
-// ── Helpers ──────────────────────────────────────────────────
-
-function timingSafeEqual(a, b) {
-  const len = Math.max(a.length, b.length);
-  const paddedA = a.padEnd(len, '\0');
-  const paddedB = b.padEnd(len, '\0');
-  let diff = 0;
-  for (let i = 0; i < len; i++) diff |= paddedA.charCodeAt(i) ^ paddedB.charCodeAt(i);
-  return diff === 0;
-}
-
-async function verifyToken(code, token, env) {
-  const secret = env.LICENSE_SERVER_SECRET;
-  if (!secret) return 'Server misconfigured';
-  if (typeof token !== 'string' || !/^[0-9a-f]{64}$/.test(token)) return 'Invalid token format';
-
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw', encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(code));
-  const expected = Array.from(new Uint8Array(sig))
-    .map(b => b.toString(16).padStart(2, '0')).join('');
-
-  if (!timingSafeEqual(token, expected)) return 'Invalid token';
-  return null;
-}
-
-// KV-based rate limiter: allows `max` requests per `windowSecs` seconds
-async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
-    return 'Service temporarily unavailable';
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
-
-  let count = 0;
-  try {
-    const stored = await env.PT_LICENSES.get(windowKey);
-    count = stored ? parseInt(stored, 10) : 0;
-  } catch { return 'Rate limit check failed, please try again later'; }
-
-  if (count >= max) return 'Too many requests, please try again later';
-
-  try {
-    await env.PT_LICENSES.put(windowKey, String(count + 1), { expirationTtl: windowSecs * 2 });
-  } catch { return 'Rate limit write failed'; }
-
-  return null;
-}
-
-function json(body, status, headers) {
-  return new Response(JSON.stringify(body), { status, headers });
-}
-
-function corsHeaders(origin) {
-  const ok = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin);
-  return {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': ok ? origin : 'null',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-PT-Code, X-PT-Token',
-  };
+  return new Response(null, { status: 204, headers: corsHeaders(origin, CORS_OPTS) });
 }

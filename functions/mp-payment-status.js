@@ -6,10 +6,12 @@
 // No devuelve el código de licencia — solo el estado (activo/pendiente).
 // ══════════════════════════════════════════════════════════════
 
+import { corsHeaders, json, checkRateLimit } from './_shared.js';
+
 export async function onRequestGet(context) {
   const { request, env } = context;
   const origin  = request.headers.get('Origin') || '';
-  const headers = corsHeaders(origin);
+  const headers = corsHeaders(origin, { methods: 'GET, OPTIONS' });
   const url     = new URL(request.url);
 
   const paymentId = url.searchParams.get('paymentId')?.trim();
@@ -27,12 +29,10 @@ export async function onRequestGet(context) {
     return json({ ok: false, status: 'pending' }, 200, headers);
   }
 
-  // Rate limit: 30 requests per hour per IP
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   const rlErr = await checkRateLimit(env, `rl_mpstatus_ip_${ip}`, 30, 3600);
   if (rlErr) return json({ ok: false, error: rlErr }, 429, headers);
 
-  // Verify email matches the payment's payer email via Mercado Pago API
   if (!env.MP_ACCESS_TOKEN) {
     console.error('[mp-payment-status] MP_ACCESS_TOKEN not configured');
     return json({ ok: false, error: 'Server config error' }, 500, headers);
@@ -85,35 +85,5 @@ export async function onRequestGet(context) {
 
 export async function onRequestOptions(context) {
   const origin = context.request.headers.get('Origin') || '';
-  return new Response(null, { status: 204, headers: corsHeaders(origin) });
-}
-
-function json(body, status, headers) {
-  return new Response(JSON.stringify(body), { status, headers });
-}
-
-async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) return 'Service temporarily unavailable';
-  const now = Math.floor(Date.now() / 1000);
-  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
-  let count = 0;
-  try {
-    const stored = await env.PT_LICENSES.get(windowKey);
-    count = stored ? parseInt(stored, 10) : 0;
-  } catch { return 'Rate limit check failed, please try again later'; }
-  if (count >= max) return 'Too many requests, please try again later';
-  try {
-    await env.PT_LICENSES.put(windowKey, String(count + 1), { expirationTtl: windowSecs * 2 });
-  } catch { return 'Rate limit write failed'; }
-  return null;
-}
-
-function corsHeaders(origin) {
-  const ok = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin);
-  return {
-    'Content-Type':                 'application/json',
-    'Access-Control-Allow-Origin':  ok ? origin : 'null',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
+  return new Response(null, { status: 204, headers: corsHeaders(origin, { methods: 'GET, OPTIONS' }) });
 }

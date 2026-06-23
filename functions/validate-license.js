@@ -13,9 +13,9 @@
 //   value: { clientName, expiresAt, maxUses, usedCount, createdAt, lastActivatedAt }
 // ══════════════════════════════════════════════════════════════
 
-const DELAY_ON_INVALID = 2000; // ms — frena brute-force
+import { corsHeaders, checkRateLimit, timingSafeEqual, delay } from './_shared.js';
 
-// Código del dueño leído desde env var LICENSE_OWNER_CODE (Cloudflare Dashboard → Workers → Settings)
+const DELAY_ON_INVALID = 2000;
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -196,60 +196,3 @@ export async function onRequestOptions(context) {
   return new Response(null, { status: 204, headers: corsHeaders(origin) });
 }
 
-function delay(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
-// Padding a longitud fija para no filtrar largo por timing
-function timingSafeEqual(a, b) {
-  const len = Math.max(a.length, b.length);
-  const paddedA = a.padEnd(len, '\0');
-  const paddedB = b.padEnd(len, '\0');
-  let diff = 0;
-  for (let i = 0; i < len; i++) diff |= paddedA.charCodeAt(i) ^ paddedB.charCodeAt(i);
-  return diff === 0;
-}
-
-// KV-based rate limiter: allows `max` requests per `windowSecs` seconds
-async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
-    return 'Service temporarily unavailable';
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
-
-  let count = 0;
-  try {
-    const stored = await env.PT_LICENSES.get(windowKey);
-    count = stored ? parseInt(stored, 10) : 0;
-  } catch {
-    return 'Rate limit check failed, please try again later';
-  }
-
-  if (count >= max) return "Too many requests, please try again later";
-
-  try {
-    await env.PT_LICENSES.put(windowKey, String(count + 1), {
-      expirationTtl: windowSecs * 2,
-    });
-  } catch {
-    return 'Rate limit write failed';
-  }
-
-  return null;
-}
-
-function corsHeaders(origin) {
-  const ok =
-    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
-      origin,
-    );
-  return {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": ok ? origin : "null",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
-}

@@ -11,6 +11,8 @@
 //   binding: "PT_LICENSES" — reutilizado para rate limiting
 // ══════════════════════════════════════════════════════════════
 
+import { corsHeaders, checkRateLimit, verifyToken } from './_shared.js';
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   const origin = request.headers.get("Origin") || "";
@@ -147,61 +149,3 @@ export async function onRequestOptions(context) {
   return new Response(null, { status: 204, headers: corsHeaders(origin) });
 }
 
-async function verifyToken(code, token, env) {
-  const secret = env.LICENSE_SERVER_SECRET;
-  if (!secret) return 'Server misconfigured';
-  if (typeof code !== 'string' || code.length > 128) return 'Invalid code';
-  if (typeof token !== 'string' || !/^[0-9a-f]{64}$/.test(token)) return 'Invalid token';
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(code));
-  const expected = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
-  let diff = 0;
-  if (expected.length !== token.length) return 'Invalid token';
-  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ token.charCodeAt(i);
-  return diff === 0 ? null : 'Invalid token';
-}
-
-// KV-based rate limiter: allows `max` requests per `windowSecs` seconds
-async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
-    return 'Service temporarily unavailable';
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
-
-  let count = 0;
-  try {
-    const stored = await env.PT_LICENSES.get(windowKey);
-    count = stored ? parseInt(stored, 10) : 0;
-  } catch {
-    return 'Rate limit check failed, please try again later';
-  }
-
-  if (count >= max) return "Too many requests, please try again later";
-
-  try {
-    await env.PT_LICENSES.put(windowKey, String(count + 1), {
-      expirationTtl: windowSecs * 2,
-    });
-  } catch {
-    return 'Rate limit write failed';
-  }
-
-  return null;
-}
-
-function corsHeaders(origin) {
-  const allowed =
-    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
-      origin,
-    );
-  return {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": allowed ? origin : "null",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
-}

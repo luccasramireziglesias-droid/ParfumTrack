@@ -6043,6 +6043,7 @@
             "
           ></textarea>
         </div>
+        <div id="ev-descuento-info" style="font-size:12px;color:var(--gold);margin-bottom:8px;display:none"></div>
         <div
           id="ev-preview"
           style="
@@ -6627,6 +6628,19 @@
             } catch(e) { console.error("[PTDB] delete error:", key, e); reject(e); }
           });
         },
+        async setMulti(entries) {
+          if (!this.db) return;
+          return new Promise((resolve, reject) => {
+            try {
+              const tx = this.db.transaction("data", "readwrite");
+              const store = tx.objectStore("data");
+              for (const [key, value] of entries) store.put(value, key);
+              tx.oncomplete = resolve;
+              tx.onerror = () => { console.error("[PTDB] setMulti failed"); reject(tx.error); };
+              tx.onabort = () => { console.error("[PTDB] setMulti aborted"); reject(tx.error); };
+            } catch(e) { console.error("[PTDB] setMulti error:", e); reject(e); }
+          });
+        },
         async clear() {
           if (!this.db) return;
           return new Promise((resolve, reject) => {
@@ -6729,12 +6743,12 @@
         _savePendingRetry = false;
         _saveDirty = false;
         try {
-          await Promise.all([
-            PTDB.set(profileKey("vip_ventas_v2"), ventas),
-            PTDB.set(profileKey("vip_stock_v2"), perfumes),
-            PTDB.set(profileKey("vip_gastos_v1"), gastos),
-            PTDB.set(profileKey("vip_caja_v1"), caja),
-            PTDB.set(profileKey("vip_meta_v1"), metaMensual),
+          await PTDB.setMulti([
+            [profileKey("vip_ventas_v2"), ventas],
+            [profileKey("vip_stock_v2"), perfumes],
+            [profileKey("vip_gastos_v1"), gastos],
+            [profileKey("vip_caja_v1"), caja],
+            [profileKey("vip_meta_v1"), metaMensual],
           ]);
           _triggerAutoSync();
           _saveRetryCount = 0;
@@ -10637,6 +10651,13 @@
         document.getElementById("ev-pcompra").value = v.precioCompra || "";
         document.getElementById("ev-cliente").value = v.cliente || "";
         document.getElementById("ev-nota").value = v.nota || "";
+        const dtoInfo = document.getElementById("ev-descuento-info");
+        if (v.descuento && v.descuento > 0) {
+          dtoInfo.textContent = `Esta venta tiene ${v.descuento}% de descuento aplicado al precio.`;
+          dtoInfo.style.display = "";
+        } else {
+          dtoInfo.style.display = "none";
+        }
         actualizarPreviewEditar();
         // Wire live preview
         ["ev-pventa", "ev-pcompra"].forEach((id) => {

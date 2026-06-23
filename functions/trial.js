@@ -26,6 +26,8 @@
 //   PT_LICENSES    — KV binding
 // ══════════════════════════════════════════════════════════════
 
+import { corsHeaders, json, checkRateLimit, sha256, delay } from './_shared.js';
+
 const KV_TTL_SECS = 90 * 24 * 60 * 60;
 const OTP_TTL_SECS = 10 * 60;
 const DELAY_MS = 1500; // anti-brute-force on wrong OTP
@@ -291,17 +293,6 @@ function isValidEmail(email) {
   );
 }
 
-async function sha256(str) {
-  const buf = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(str),
-  );
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    ;
-}
-
 async function sendOtpEmail(email, otp, env) {
   const apiKey = env.BREVO_API_KEY;
   const fromEmail = env.FROM_EMAIL || "parfumtrack@gmail.com";
@@ -359,52 +350,6 @@ async function sendOtpEmail(email, otp, env) {
       console.log(`[trial] Brevo OK ${res.status}`);
     }
   });
-}
-
-async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
-    return 'Service temporarily unavailable';
-  }
-  const now = Math.floor(Date.now() / 1000);
-  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
-  let count = 0;
-  try {
-    const stored = await env.PT_LICENSES.get(windowKey);
-    count = stored ? parseInt(stored, 10) : 0;
-  } catch {
-    return 'Rate limit check failed, please try again later';
-  }
-  if (count >= max) return "Too many requests";
-  try {
-    await env.PT_LICENSES.put(windowKey, String(count + 1), {
-      expirationTtl: windowSecs * 2,
-    });
-  } catch {
-    return 'Rate limit write failed';
-  }
-  return null;
-}
-
-function delay(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
-function json(body, status, headers) {
-  return new Response(JSON.stringify(body), { status, headers });
-}
-
-function corsHeaders(origin) {
-  const ok =
-    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/parfumtrack\.luccasramireziglesias\.workers\.dev)$/.test(
-      origin,
-    );
-  return {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": ok ? origin : "null",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
 }
 
 export async function onRequestOptions(context) {
