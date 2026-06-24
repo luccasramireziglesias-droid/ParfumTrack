@@ -9630,7 +9630,7 @@
             cvs.height = h;
             const ctx = cvs.getContext("2d");
             ctx.drawImage(img, 0, 0, w, h);
-            editFotoTemporal = cvs.toDataURL("image/jpeg", 0.72); // JPEG 72% calidad
+            editFotoTemporal = cvs.toDataURL("image/webp", 0.72);
             document.getElementById("edit-foto-preview").innerHTML =
               `<img src="${editFotoTemporal}" alt="Vista previa de la foto del perfume" style="width:100%;height:100%;object-fit:cover">`;
             document.getElementById("edit-foto-quitar").style.display = "block";
@@ -9660,7 +9660,7 @@
           const cvs = document.createElement("canvas");
           cvs.width = w; cvs.height = h;
           cvs.getContext("2d").drawImage(img, 0, 0, w, h);
-          editFotoTemporal = cvs.toDataURL("image/jpeg", 0.72);
+          editFotoTemporal = cvs.toDataURL("image/webp", 0.72);
           document.getElementById("edit-foto-preview").innerHTML =
             `<img src="${editFotoTemporal}" alt="Vista previa de la foto del perfume" style="width:100%;height:100%;object-fit:cover">`;
           document.getElementById("edit-foto-quitar").style.display = "block";
@@ -13954,7 +13954,7 @@
             cvs.height = h;
             const ctx = cvs.getContext("2d");
             ctx.drawImage(img, 0, 0, w, h);
-            resolve(cvs.toDataURL("image/jpeg", calidad));
+            resolve(cvs.toDataURL("image/webp", calidad));
           };
           img.onerror = reject;
           img.src = dataUrl;

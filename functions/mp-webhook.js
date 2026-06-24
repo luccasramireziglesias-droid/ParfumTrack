@@ -17,6 +17,8 @@
 //   license:{code}                   → JSON licenseData
 // ══════════════════════════════════════════════════════════════
 
+import { log } from './_shared.js';
+
 // APP_URL se configura en Cloudflare Dashboard → Workers → Settings → Variables
 // Debe apuntar a la URL real del Worker (ej: https://parfumtrack.workers.dev)
 
@@ -34,16 +36,16 @@ export async function onRequestPost(context) {
 
   // 1. Verificar firma MP — fail closed: si el secreto no está configurado, rechazar siempre.
   if (!env.MP_WEBHOOK_SECRET) {
-    console.error('[mp-webhook] FATAL: MP_WEBHOOK_SECRET no configurado — rechazando webhook');
+    log('error', 'mp-webhook', 'MP_WEBHOOK_SECRET not configured');
     return jsonResp({ ok: false, error: 'server_misconfigured' }, 500);
   }
   if (!xSig) {
-    console.warn('[mp-webhook] Sin x-signature — rechazando');
+    log('warn', 'mp-webhook', 'missing x-signature');
     return jsonResp({ ok: false, error: 'missing_signature' }, 401);
   }
   const sigError = await verifyMPSignatureFromText(bodyText, xSig, url, env, request);
   if (sigError) {
-    console.warn('[mp-webhook] Firma inválida:', sigError);
+    log('warn', 'mp-webhook', 'invalid signature', { error: sigError });
     return jsonResp({ ok: false, error: 'invalid_signature' }, 401);
   }
 
@@ -61,13 +63,13 @@ export async function onRequestPost(context) {
   if (!type)       type       = url.searchParams.get('type') || url.searchParams.get('topic');
   if (!resourceId) resourceId = url.searchParams.get('data.id') || url.searchParams.get('id');
 
-  console.log(`[mp-webhook] type=${type} id=${resourceId}`);
+  log('info', 'mp-webhook', 'event received', { type, resourceId });
 
   // Sin datos útiles (posible ping de MP al configurar webhook)
   if (!type || !resourceId) return jsonResp({ ok: true });
 
   if (!env.PT_LICENSES) {
-    console.error('[mp-webhook] FATAL: PT_LICENSES KV no disponible — retornando 500 para que MP reintente');
+    log('error', 'mp-webhook', 'PT_LICENSES KV unavailable — returning 500 for MP retry');
     return jsonResp({ ok: false, error: 'kv_unavailable' }, 500);
   }
 
@@ -75,7 +77,7 @@ export async function onRequestPost(context) {
   const idKey = `webhook_processed:${type}:${resourceId}`;
   const already = await env.PT_LICENSES.get(idKey);
   if (already === 'done' || already === 'processing') {
-    console.log('[mp-webhook] Ya procesado/en proceso:', idKey, already);
+    log('info', 'mp-webhook', 'already processed', { idKey, status: already });
     return jsonResp({ ok: true });
   }
 
@@ -87,7 +89,7 @@ export async function onRequestPost(context) {
     await processEvent({ type, resourceId, env, idKey });
     return jsonResp({ ok: true });
   } catch (e) {
-    console.error('[mp-webhook] processEvent falló:', e.message);
+    log('error', 'mp-webhook', 'processEvent failed', { error: e.message });
     await env.PT_LICENSES.delete(idKey).catch(() => {});
     return jsonResp({ ok: false, error: 'processing_failed' }, 500);
   }
@@ -138,12 +140,12 @@ async function processEvent({ type, resourceId, env, idKey }) {
     if (type === 'payment') {
       await handlePaymentEvent(resourceId, env);
     } else {
-      console.log(`[mp-webhook] Tipo no manejado: ${type}`);
+      log('info', 'mp-webhook', 'unhandled type', { type });
     }
     // Marcar como procesado con éxito (TTL 30 días)
     await env.PT_LICENSES.put(idKey, 'done', { expirationTtl: 2592000 });
   } catch (e) {
-    console.error(`[mp-webhook] Error procesando ${type}:${resourceId}:`, e.message, e.stack);
+    log('error', 'mp-webhook', 'processing error', { type, resourceId, error: e.message });
     // Eliminar la marca 'processing' para permitir retry en el próximo webhook de MP
     await env.PT_LICENSES.delete(idKey).catch(() => {});
     // Notificar al dueño del error para que pueda intervenir manualmente
@@ -166,18 +168,18 @@ async function processEvent({ type, resourceId, env, idKey }) {
 // ── Evento de pago ────────────────────────────────────────────────
 
 async function handlePaymentEvent(paymentId, env) {
-  if (!env.MP_ACCESS_TOKEN) { console.error('[mp-webhook] MP_ACCESS_TOKEN falta'); return; }
+  if (!env.MP_ACCESS_TOKEN) { log('error', 'mp-webhook', 'MP_ACCESS_TOKEN missing'); return; }
 
   const resp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
     headers: { Authorization: `Bearer ${env.MP_ACCESS_TOKEN}` },
   });
   if (!resp.ok) {
-    console.error(`[mp-webhook] Error obteniendo pago ${paymentId}:`, resp.status, await resp.text());
+    log('error', 'mp-webhook', 'failed to fetch payment', { paymentId, status: resp.status });
     return;
   }
 
   const payment = await resp.json();
-  console.log(`[mp-webhook] Pago ${paymentId}: status=${payment.status}`);
+  log('info', 'mp-webhook', 'payment status', { paymentId, status: payment.status });
   await handleSinglePayment(paymentId, payment, env);
 }
 
@@ -185,7 +187,7 @@ async function handlePaymentEvent(paymentId, env) {
 
 async function handleSinglePayment(paymentId, payment, env) {
   if (payment.status !== 'approved') {
-    console.log(`[mp-webhook] Pago único no aprobado: status=${payment.status}`);
+    log('info', 'mp-webhook', 'payment not approved', { status: payment.status });
     return;
   }
 
@@ -202,7 +204,7 @@ async function handleSinglePayment(paymentId, payment, env) {
   if (!plan)  plan  = 'monthly';
 
   if (!email) {
-    console.error('[mp-webhook] Pago único sin email, paymentId:', paymentId);
+    log('error', 'mp-webhook', 'payment without email', { paymentId });
     return;
   }
 
@@ -212,7 +214,7 @@ async function handleSinglePayment(paymentId, payment, env) {
     : (env.MP_AMOUNT_MONTHLY || '9.99'));
   const paidAmount = parseFloat(payment.transaction_amount || 0);
   if (Math.abs(paidAmount - expectedAmount) > 0.01) {
-    console.error(`[mp-webhook] Monto incorrecto: pagado=${paidAmount} esperado=${expectedAmount} plan=${plan} paymentId=${paymentId}`);
+    log('error', 'mp-webhook', 'amount mismatch', { paid: paidAmount, expected: expectedAmount, plan, paymentId });
     return;
   }
 
@@ -222,7 +224,7 @@ async function handleSinglePayment(paymentId, payment, env) {
   // Secondary idempotency: check if this payment already created a license
   const existingPayLicense = await env.PT_LICENSES.get(`mp_pay:${paymentId}`);
   if (existingPayLicense) {
-    console.log(`[mp-webhook] Payment ${paymentId} already processed — license: ${existingPayLicense}`);
+    log('info', 'mp-webhook', 'payment already processed', { paymentId });
     return;
   }
 
@@ -244,7 +246,7 @@ async function handleSinglePayment(paymentId, payment, env) {
 
       await env.PT_LICENSES.put(`license:${existingCode}`, JSON.stringify(lic));
       await env.PT_LICENSES.put(`mp_pay:${paymentId}`, existingCode, { expirationTtl: TTL_3Y });
-      console.log(`[mp-webhook] Licencia renovada (pago único): ${existingCode} hasta ${expiresAt}`);
+      log('info', 'mp-webhook', 'license renewed', { code: existingCode.slice(0, 7) + '***', expiresAt });
 
       const ownerEmail = env.OWNER_EMAIL || env.FROM_EMAIL;
       if (lic.clientEmail) {
@@ -292,7 +294,7 @@ async function handleSinglePayment(paymentId, payment, env) {
   await env.PT_LICENSES.put(`email_license:${emailHash}`, code, { expirationTtl: TTL_3Y });
   await env.PT_LICENSES.put(`mp_pay:${paymentId}`, code, { expirationTtl: TTL_3Y });
 
-  console.log(`[mp-webhook] Licencia creada (pago único): ${code.slice(0,4)}*** para ${email.split('@')[0].slice(0,2)}***@${email.split('@')[1]}`);
+  log('info', 'mp-webhook', 'license created', { code: code.slice(0, 7) + '***', plan });
   await sendEmail(env, email, 'subscription_activated', { code, expiresAt });
 
   const ownerEmail = env.OWNER_EMAIL || env.FROM_EMAIL;
@@ -331,9 +333,9 @@ function sanitizeHtml(str) {
 }
 
 async function sendEmail(env, to, template, data) {
-  if (!env.BREVO_API_KEY) { console.warn('[mp-webhook] BREVO_API_KEY no configurado'); return; }
+  if (!env.BREVO_API_KEY) { log('warn', 'mp-webhook', 'BREVO_API_KEY not configured'); return; }
   const tpl = EMAIL_TEMPLATES[template];
-  if (!tpl) { console.warn('[mp-webhook] Template desconocido:', template); return; }
+  if (!tpl) { log('warn', 'mp-webhook', 'unknown template', { template }); return; }
 
   const appUrl = env.APP_URL || 'https://parfumtrack.luccasramireziglesias.workers.dev';
   const safeData = {};
@@ -355,10 +357,10 @@ async function sendEmail(env, to, template, data) {
         },
       }),
     });
-    if (resp.ok) console.log(`[mp-webhook] Email "${template}" → ${to.split('@')[0].slice(0,2)}***@${to.split('@')[1]}`);
-    else console.error('[mp-webhook] Error Brevo:', resp.status, await resp.text());
+    if (resp.ok) log('info', 'mp-webhook', 'email sent', { template });
+    else log('error', 'mp-webhook', 'Brevo error', { status: resp.status });
   } catch (e) {
-    console.error('[mp-webhook] Error enviando email:', e.message);
+    log('error', 'mp-webhook', 'email send failed', { error: e.message });
   }
 }
 
