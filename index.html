@@ -12853,7 +12853,7 @@
         } catch {}
 
         banner.style.cssText = `position:fixed;top:calc(env(safe-area-inset-top));left:0;right:0;z-index:9000;background:${bg};border-bottom:1px solid ${bdr};padding:7px 14px 9px;text-align:center;font-size:12px;color:${col};backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;`;
-        banner.innerHTML = `${ico} Prueba gratuita: quedan <strong>${label}</strong> &nbsp;·&nbsp; <span onclick="abrirModalActivacion();trackEvent('trial_banner_cta_click',{days:${daysLeft || 0}})" style="text-decoration:underline;cursor:pointer;font-weight:600;">${cta}</span><div style="position:absolute;left:0;bottom:0;height:2.5px;width:${pctUsado}%;background:${bdr};opacity:0.85;transition:width 0.4s ease;"></div>`;
+        banner.innerHTML = `${ico} Básico Pro gratis: quedan <strong>${label}</strong> &nbsp;·&nbsp; <span onclick="abrirModalActivacion();trackEvent('trial_banner_cta_click',{days:${daysLeft || 0}})" style="text-decoration:underline;cursor:pointer;font-weight:600;">${cta}</span><div style="position:absolute;left:0;bottom:0;height:2.5px;width:${pctUsado}%;background:${bdr};opacity:0.85;transition:width 0.4s ease;"></div>`;
       }
 
       function mostrarCartelDemo() {
@@ -17668,7 +17668,16 @@
 
         <!-- Paso 1 -->
         <div id="ob-step-1">
-          <div style="font-size: 48px; margin-bottom: 4px">🍶</div>
+          <svg viewBox="0 0 100 100" width="56" height="56" style="display:block;margin:0 auto 8px">
+            <defs>
+              <linearGradient id="ob1drop" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#f5dfa0"/>
+                <stop offset="50%" stop-color="#e8c97e"/>
+                <stop offset="100%" stop-color="#c9a84c"/>
+              </linearGradient>
+            </defs>
+            <path d="M50 8 L74 52 a26 26 0 1 1 -48 0 Z" fill="url(#ob1drop)"/>
+          </svg>
           <h2
             style="
               font-family: &quot;Cormorant Garamond&quot;, serif;
@@ -17677,7 +17686,7 @@
               margin-bottom: 6px;
             "
           >
-            ¡Bienvenida!
+            ¡Bienvenido!
           </h2>
           <p
             style="
@@ -17961,7 +17970,10 @@
         <!-- Step 1: email -->
         <div id="trial-email-step1">
           <div style="text-align: center; margin-bottom: 20px">
-            <div style="font-size: 36px; margin-bottom: 6px">🍶</div>
+            <svg viewBox="0 0 100 100" width="44" height="44" style="display:block;margin:0 auto 6px">
+              <defs><linearGradient id="te-drop" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f5dfa0"/><stop offset="50%" stop-color="#e8c97e"/><stop offset="100%" stop-color="#c9a84c"/></linearGradient></defs>
+              <path d="M50 8 L74 52 a26 26 0 1 1 -48 0 Z" fill="url(#te-drop)"/>
+            </svg>
             <h3
               id="trial-email-title"
               style="
@@ -18173,7 +18185,10 @@
       <div class="modal" style="max-width: 420px; padding: 24px 20px 28px">
         <!-- Header -->
         <div style="text-align: center; margin-bottom: 20px">
-          <div style="font-size: 36px; margin-bottom: 6px">🍶</div>
+          <svg viewBox="0 0 100 100" width="44" height="44" style="display:block;margin:0 auto 6px">
+            <defs><linearGradient id="ma-drop" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f5dfa0"/><stop offset="50%" stop-color="#e8c97e"/><stop offset="100%" stop-color="#c9a84c"/></linearGradient></defs>
+            <path d="M50 8 L74 52 a26 26 0 1 1 -48 0 Z" fill="url(#ma-drop)"/>
+          </svg>
           <h3
             style="
               font-family: &quot;Cormorant Garamond&quot;, serif;
@@ -18716,7 +18731,10 @@
         class="modal"
         style="text-align: center; max-width: 360px; padding: 24px 20px 28px"
       >
-        <div style="font-size: 44px; margin-bottom: 8px">🍶</div>
+        <svg viewBox="0 0 100 100" width="52" height="52" style="display:block;margin:0 auto 8px">
+          <defs><linearGradient id="tb-drop" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f5dfa0"/><stop offset="50%" stop-color="#e8c97e"/><stop offset="100%" stop-color="#c9a84c"/></linearGradient></defs>
+          <path d="M50 8 L74 52 a26 26 0 1 1 -48 0 Z" fill="url(#tb-drop)"/>
+        </svg>
         <h3
           style="
             font-family: &quot;Cormorant Garamond&quot;, serif;
