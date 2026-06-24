@@ -149,7 +149,7 @@
         width: 100%;
       }
       .header {
-        padding: calc(44px + env(safe-area-inset-top)) 18px 12px;
+        padding: calc(16px + env(safe-area-inset-top)) 18px 12px;
         background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
         flex-shrink: 0;
         position: relative;
@@ -2428,7 +2428,7 @@
         }
         /* Safe area para iPhone con notch */
         .header {
-          padding-top: max(44px, env(safe-area-inset-top, 44px));
+          padding-top: max(16px, env(safe-area-inset-top, 16px));
         }
         .tabs {
           padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -6425,7 +6425,10 @@
     </div>
     <div class="toast" id="toast"></div>
     <script>
-      if (navigator.userAgent.includes('ParfumTrackApp')) {
+      if (navigator.userAgent.includes('ParfumTrackApp') ||
+          document.referrer.includes('android-app://') ||
+          window.matchMedia('(display-mode: standalone)').matches ||
+          navigator.standalone) {
         document.body.classList.add('is-native-app');
       }
       // PIN globals — must be at top so onclick handlers work immediately
