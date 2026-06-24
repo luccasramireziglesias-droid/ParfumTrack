@@ -13,9 +13,9 @@
 //   value: { clientName, expiresAt, maxUses, usedCount, createdAt, lastActivatedAt }
 // ══════════════════════════════════════════════════════════════
 
-const DELAY_ON_INVALID = 2000; // ms — frena brute-force
+import { corsHeaders, json, checkRateLimit, timingSafeEqual, delay, log, requireJson, hashIp } from './_shared.js';
 
-// Código del dueño leído desde env var LICENSE_OWNER_CODE (Cloudflare Dashboard → Workers → Settings)
+const DELAY_ON_INVALID = 2000;
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -23,49 +23,32 @@ export async function onRequestPost(context) {
   const headers = corsHeaders(origin);
 
   // Rate limit by IP: max 10 attempts per 15 minutes
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ip = await hashIp(request);
   const ipLimitError = await checkRateLimit(env, `rl_lic_ip_${ip}`, 10, 900);
   if (ipLimitError) {
-    return new Response(
-      JSON.stringify({
-        valid: false,
-        error: "Too many requests, please try again later",
-      }),
-      {
-        status: 429,
-        headers,
-      },
-    );
+    return json({ ok: false, valid: false, error: "Too many requests, please try again later" }, 429, headers);
   }
+
+  const ctError = requireJson(request, 4096);
+  if (ctError) return json({ ok: false, valid: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
   let code;
   try {
     ({ code } = await request.json());
   } catch {
-    return new Response(
-      JSON.stringify({ valid: false, error: "Bad request" }),
-      { status: 400, headers },
-    );
+    return json({ ok: false, valid: false, error: "Bad request" }, 400, headers);
   }
 
   if (!code || typeof code !== "string" || code.length > 64) {
-    return new Response(JSON.stringify({ valid: false }), {
-      status: 400,
-      headers,
-    });
+    return json({ ok: false, valid: false, error: "Invalid code" }, 400, headers);
   }
 
   const normalizedCode = code.trim().toUpperCase();
   const secret = env.LICENSE_SERVER_SECRET;
 
   if (!secret) {
-    console.error(
-      "[validate-license] FATAL: LICENSE_SERVER_SECRET no configurada",
-    );
-    return new Response(
-      JSON.stringify({ valid: false, error: "Server misconfigured" }),
-      { status: 500, headers },
-    );
+    log('error', 'validate-license', 'LICENSE_SERVER_SECRET not configured');
+    return json({ ok: false, valid: false, error: "Server misconfigured" }, 500, headers);
   }
 
   const ownerCode = (env.LICENSE_OWNER_CODE || "").trim().toUpperCase();
@@ -74,44 +57,34 @@ export async function onRequestPost(context) {
   if (!isOwner) {
     // Validación normal vía KV
     if (!env.PT_LICENSES) {
-      console.error(
-        "[validate-license] FATAL: KV binding PT_LICENSES no encontrado",
-      );
-      return new Response(
-        JSON.stringify({ valid: false, error: "Server misconfigured" }),
-        { status: 500, headers },
-      );
+      log('error', 'validate-license', 'KV binding PT_LICENSES not found');
+      return json({ ok: false, valid: false, error: "Server misconfigured" }, 500, headers);
     }
 
     const licenseRaw = await env.PT_LICENSES.get(`license:${normalizedCode}`);
     if (!licenseRaw) {
       await delay(DELAY_ON_INVALID);
-      return new Response(JSON.stringify({ valid: false }), { headers });
+      return json({ ok: true, valid: false }, 200, headers);
     }
 
     let license;
     try {
       license = JSON.parse(licenseRaw);
     } catch {
-      console.error(`[validate-license] JSON inválido para ${normalizedCode}`);
-      return new Response(JSON.stringify({ valid: false }), {
-        status: 500,
-        headers,
-      });
+      log('error', 'validate-license', 'invalid JSON for license', { code: normalizedCode.slice(0, 7) + '***' });
+      return json({ ok: false, valid: false, error: "Invalid license data" }, 500, headers);
     }
 
     // Verificar estado de suscripción MP (suspendida o cancelada y vencida)
     if (license.status === 'payment_failed') {
       // Acceso suspendido por fallo de pago reiterado
       await delay(200);
-      return new Response(JSON.stringify({ valid: false, reason: "payment_failed" }), { headers });
+      return json({ ok: true, valid: false, error: "payment_failed" }, 200, headers);
     }
 
     if (license.expiresAt && new Date(license.expiresAt) < new Date()) {
       await delay(DELAY_ON_INVALID);
-      return new Response(JSON.stringify({ valid: false, reason: "expired" }), {
-        headers,
-      });
+      return json({ ok: true, valid: false, error: "expired" }, 200, headers);
     }
 
     if (
@@ -119,10 +92,7 @@ export async function onRequestPost(context) {
       (license.usedCount || 0) >= license.maxUses
     ) {
       await delay(DELAY_ON_INVALID);
-      return new Response(
-        JSON.stringify({ valid: false, reason: "limit_reached" }),
-        { headers },
-      );
+      return json({ ok: true, valid: false, error: "limit_reached" }, 200, headers);
     }
 
     license.usedCount = (license.usedCount || 0) + 1;
@@ -132,11 +102,9 @@ export async function onRequestPost(context) {
       JSON.stringify(license),
     );
 
-    console.log(
-      `[validate-license] Activada: ${normalizedCode.slice(0, 7)}*** (uso ${license.usedCount}/${license.maxUses ?? "∞"}, cliente: ${license.clientName.slice(0,2)}***)`,
-    );
+    log('info', 'validate-license', 'license activated', { code: normalizedCode.slice(0, 7) + '***', use: `${license.usedCount}/${license.maxUses ?? '∞'}` });
   } else {
-    console.log("[validate-license] Activada: código del dueño");
+    log('info', 'validate-license', 'owner code activated');
   }
 
   const encoder = new TextEncoder();
@@ -161,13 +129,8 @@ export async function onRequestPost(context) {
   // ECDSA P-256 signature (for client-side verification via embedded public key)
   const signingKeyRaw = env.LICENSE_SIGNING_PRIVATE_KEY;
   if (!signingKeyRaw) {
-    console.error(
-      "[validate-license] FATAL: LICENSE_SIGNING_PRIVATE_KEY no configurada",
-    );
-    return new Response(
-      JSON.stringify({ valid: false, error: "Server misconfigured" }),
-      { status: 500, headers },
-    );
+    log('error', 'validate-license', 'LICENSE_SIGNING_PRIVATE_KEY not configured');
+    return json({ ok: false, valid: false, error: "Server misconfigured" }, 500, headers);
   }
   const signingKeyDer = Uint8Array.from(atob(signingKeyRaw), (c) =>
     c.charCodeAt(0),
@@ -186,7 +149,7 @@ export async function onRequestPost(context) {
   );
   const sig = btoa(String.fromCharCode(...new Uint8Array(ecdsaBytes)));
 
-  return new Response(JSON.stringify({ valid: true, token, sig }), { headers });
+  return json({ ok: true, valid: true, token, sig }, 200, headers);
 }
 
 export async function onRequestOptions(context) {
@@ -194,57 +157,3 @@ export async function onRequestOptions(context) {
   return new Response(null, { status: 204, headers: corsHeaders(origin) });
 }
 
-function delay(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
-function timingSafeEqual(a, b) {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-// KV-based rate limiter: allows `max` requests per `windowSecs` seconds
-async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
-    return 'Service temporarily unavailable';
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
-
-  let count = 0;
-  try {
-    const stored = await env.PT_LICENSES.get(windowKey);
-    count = stored ? parseInt(stored, 10) : 0;
-  } catch {
-    return 'Rate limit check failed, please try again later';
-  }
-
-  if (count >= max) return "Too many requests, please try again later";
-
-  try {
-    await env.PT_LICENSES.put(windowKey, String(count + 1), {
-      expirationTtl: windowSecs * 2,
-    });
-  } catch {
-    /* non-blocking */
-  }
-
-  return null;
-}
-
-function corsHeaders(origin) {
-  const ok =
-    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
-      origin,
-    );
-  return {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": ok ? origin : "null",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
-}

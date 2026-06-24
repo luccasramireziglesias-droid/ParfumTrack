@@ -3,6 +3,7 @@
 // Maneja rutas API y sirve assets estáticos
 // ══════════════════════════════════════════════════════════════
 
+import { ORIGIN_RE }                              from './functions/_shared.js';
 import { onRequestPost as sendNotification }     from './functions/send-notification.js';
 import { onRequestPost as validateLicense }       from './functions/validate-license.js';
 import { onRequestPost as sendEmail }             from './functions/send-email.js';
@@ -19,6 +20,19 @@ const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status
 
 export default {
   async fetch(request, env, ctx) {
+    try {
+      return await handleRequest(request, env, ctx);
+    } catch (e) {
+      console.error(JSON.stringify({ ts: Date.now(), level: 'error', src: 'worker', msg: 'Unhandled error', data: { error: e.message, path: new URL(request.url).pathname } }));
+      return new Response(JSON.stringify({ ok: false, error: 'Internal server error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  },
+};
+
+async function handleRequest(request, env, ctx) {
     const url    = new URL(request.url);
     const path   = url.pathname;
     const method = request.method;
@@ -29,7 +43,7 @@ export default {
     // CORS preflight
     if (method === 'OPTIONS' && isApiRoute) {
       const origin  = request.headers.get('Origin') || '';
-      const allowed = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin) ? origin : 'null';
+      const allowed = ORIGIN_RE.test(origin) ? origin : 'null';
       return new Response(null, {
         status: 204,
         headers: {
@@ -60,7 +74,16 @@ export default {
       if (path === '/mp-payment-status')      return mpPaymentStatus(context);
     }
 
+    if (isApiRoute) {
+      const hasPost = POST_ROUTES.includes(path);
+      const hasGet  = GET_ROUTES.includes(path);
+      const allow = [hasGet && 'GET', hasPost && 'POST', 'OPTIONS'].filter(Boolean).join(', ');
+      return new Response(JSON.stringify({ ok: false, error: 'Method not allowed' }), {
+        status: 405,
+        headers: { 'Content-Type': 'application/json', Allow: allow },
+      });
+    }
+
     // Todo lo demás → assets estáticos (index.html, sw.js, etc.)
     return env.ASSETS.fetch(request);
-  },
-};
+}

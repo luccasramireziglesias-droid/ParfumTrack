@@ -2135,8 +2135,12 @@ async function iniciarCheckoutMP() {
       return;
     }
 
-    // Redirigir la ventana ya abierta a MP Checkout
-    if (win) win.location.href = data.initPoint;
+    // Redirigir la ventana ya abierta a MP Checkout (fallback si el popup fue bloqueado)
+    if (win && !win.closed) {
+      win.location.href = data.initPoint;
+    } else {
+      window.location.href = data.initPoint;
+    }
     cerrarCheckoutMP();
     if (window.plausible) plausible('mp_checkout_redirect', { props: { plan } });
   } catch (e) {

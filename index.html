@@ -16,7 +16,7 @@
     <meta property="og:image" content="https://parfumtrack.luccasramireziglesias.workers.dev/icon-512.png" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://parfumtrack.luccasramireziglesias.workers.dev/" />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Parfum Track — Tu negocio de perfumes, organizado" />
     <meta name="twitter:description" content="App gratis para revendedores de perfumes. Ventas, cuotas, stock y cobros desde el celular." />
     <meta name="twitter:image" content="https://parfumtrack.luccasramireziglesias.workers.dev/icon-512.png" />
@@ -6043,6 +6043,7 @@
             "
           ></textarea>
         </div>
+        <div id="ev-descuento-info" style="font-size:12px;color:var(--gold);margin-bottom:8px;display:none"></div>
         <div
           id="ev-preview"
           style="
@@ -6571,7 +6572,15 @@
         async init() {
           return new Promise((resolve) => {
             var resolved = false;
-            function done(db) { if (resolved) return; resolved = true; PTDB.db = db || null; resolve(); }
+            function done(db) {
+              if (resolved) return; resolved = true; PTDB.db = db || null;
+              if (!db) {
+                setTimeout(function() {
+                  if (typeof toast === 'function') toast('⚠️ Error abriendo base de datos. Tus datos podrían no guardarse. Recargá la página.');
+                }, 1000);
+              }
+              resolve();
+            }
             setTimeout(function() { done(null); }, 3000);
             try {
               var req = indexedDB.open("parfumtrack_db", 1);
@@ -6617,6 +6626,19 @@
               tx.oncomplete = resolve;
               tx.onerror = () => { console.error("[PTDB] delete failed:", key); reject(tx.error); };
             } catch(e) { console.error("[PTDB] delete error:", key, e); reject(e); }
+          });
+        },
+        async setMulti(entries) {
+          if (!this.db) return;
+          return new Promise((resolve, reject) => {
+            try {
+              const tx = this.db.transaction("data", "readwrite");
+              const store = tx.objectStore("data");
+              for (const [key, value] of entries) store.put(value, key);
+              tx.oncomplete = resolve;
+              tx.onerror = () => { console.error("[PTDB] setMulti failed"); reject(tx.error); };
+              tx.onabort = () => { console.error("[PTDB] setMulti aborted"); reject(tx.error); };
+            } catch(e) { console.error("[PTDB] setMulti error:", e); reject(e); }
           });
         },
         async clear() {
@@ -6694,6 +6716,7 @@
       let _saveTimer = null;
       let _saveRunning = false;
       let _savePendingRetry = false;
+      let _saveRetryCount = 0;
       function save(immediate) {
         _clientesMapDirty = true;
         if (immediate) {
@@ -6720,14 +6743,21 @@
         _savePendingRetry = false;
         _saveDirty = false;
         try {
-          await Promise.all([
-            PTDB.set(profileKey("vip_ventas_v2"), ventas),
-            PTDB.set(profileKey("vip_stock_v2"), perfumes),
-            PTDB.set(profileKey("vip_gastos_v1"), gastos),
-            PTDB.set(profileKey("vip_caja_v1"), caja),
-            PTDB.set(profileKey("vip_meta_v1"), metaMensual),
+          await PTDB.setMulti([
+            [profileKey("vip_ventas_v2"), ventas],
+            [profileKey("vip_stock_v2"), perfumes],
+            [profileKey("vip_gastos_v1"), gastos],
+            [profileKey("vip_caja_v1"), caja],
+            [profileKey("vip_meta_v1"), metaMensual],
           ]);
           _triggerAutoSync();
+          _saveRetryCount = 0;
+        } catch (e) {
+          _saveRetryCount++;
+          if (_saveRetryCount >= 3) {
+            console.error('[save] Guardado falló después de 3 intentos');
+            _savePendingRetry = false;
+          }
         } finally {
           _saveRunning = false;
           if (_savePendingRetry) _saveNow();
@@ -7437,10 +7467,19 @@
           async () => {
             backupData();
             await new Promise((r) => setTimeout(r, 600));
-            ventas = data.ventas || [];
-            perfumes = data.perfumes || perfumes;
-            gastos = data.gastos || gastos;
-            caja = data.caja || caja;
+            function _sanitizeArr(arr) {
+              return (arr || []).map(item => {
+                const clean = {};
+                for (const [k, v] of Object.entries(item)) {
+                  clean[k] = typeof v === 'string' ? v.replace(/</g, '&lt;').replace(/>/g, '&gt;') : v;
+                }
+                return clean;
+              });
+            }
+            ventas = _sanitizeArr(data.ventas);
+            perfumes = _sanitizeArr(data.perfumes) || perfumes;
+            gastos = _sanitizeArr(data.gastos) || gastos;
+            caja = _sanitizeArr(data.caja) || caja;
             if (data.meta) metaMensual = data.meta;
             save();
             updateStats();
@@ -7598,11 +7637,20 @@
                 a.click();
                 setTimeout(() => URL.revokeObjectURL(a.href), 1000);
               } catch (_) {}
-              // Restaurar
-              ventas = data.ventas || [];
-              perfumes = data.perfumes || [];
-              gastos = data.gastos || [];
-              caja = data.caja || [];
+              // Sanitizar strings para prevenir XSS almacenado
+              function _sanitizeRestored(arr) {
+                return (arr || []).map(item => {
+                  const clean = {};
+                  for (const [k, v] of Object.entries(item)) {
+                    clean[k] = typeof v === 'string' ? v.replace(/</g, '&lt;').replace(/>/g, '&gt;') : v;
+                  }
+                  return clean;
+                });
+              }
+              ventas = _sanitizeRestored(data.ventas);
+              perfumes = _sanitizeRestored(data.perfumes);
+              gastos = _sanitizeRestored(data.gastos);
+              caja = _sanitizeRestored(data.caja);
               if (data.meta) metaMensual = data.meta;
               save();
               updateStats();
@@ -8800,8 +8848,13 @@
         document.getElementById("modal-cuota-ok").onclick = () => {
           const m =
             parseFloat(document.getElementById("modal-cuota-monto").value) || 0;
-          if (!m) {
-            toast("⚠ Ingresá un monto");
+          if (!m || m <= 0) {
+            toast("⚠ Ingresá un monto válido");
+            return;
+          }
+          const _debe = calcDebe(v);
+          if (m > _debe * 2) {
+            toast("⚠ El monto supera lo que se debe");
             return;
           }
           if (!v.cuotasPagos) v.cuotasPagos = [];
@@ -8827,8 +8880,13 @@
         if (!v) return;
         const m =
           parseFloat(document.getElementById("extra-monto-" + id)?.value) || 0;
-        if (!m) {
-          toast("⚠ Ingresá un monto");
+        if (!m || m <= 0) {
+          toast("⚠ Ingresá un monto válido");
+          return;
+        }
+        const _debe = calcDebe(v);
+        if (m > _debe * 2) {
+          toast("⚠ El monto supera lo que se debe");
           return;
         }
         if (!v.cuotasPagos) v.cuotasPagos = [];
@@ -9572,7 +9630,7 @@
             cvs.height = h;
             const ctx = cvs.getContext("2d");
             ctx.drawImage(img, 0, 0, w, h);
-            editFotoTemporal = cvs.toDataURL("image/jpeg", 0.72); // JPEG 72% calidad
+            editFotoTemporal = cvs.toDataURL("image/webp", 0.72);
             document.getElementById("edit-foto-preview").innerHTML =
               `<img src="${editFotoTemporal}" alt="Vista previa de la foto del perfume" style="width:100%;height:100%;object-fit:cover">`;
             document.getElementById("edit-foto-quitar").style.display = "block";
@@ -9602,7 +9660,7 @@
           const cvs = document.createElement("canvas");
           cvs.width = w; cvs.height = h;
           cvs.getContext("2d").drawImage(img, 0, 0, w, h);
-          editFotoTemporal = cvs.toDataURL("image/jpeg", 0.72);
+          editFotoTemporal = cvs.toDataURL("image/webp", 0.72);
           document.getElementById("edit-foto-preview").innerHTML =
             `<img src="${editFotoTemporal}" alt="Vista previa de la foto del perfume" style="width:100%;height:100%;object-fit:cover">`;
           document.getElementById("edit-foto-quitar").style.display = "block";
@@ -10155,16 +10213,7 @@
           if (msg) toast(msg, ms || 2800);
         };
 
-        // Trial limit check
-        if (_sec.isTrialExp() && !isActivated()) {
-          if (getTrialVentasRestantes() <= 0) {
-            abrirModalActivacion();
-            _abort(
-              "🔒 Límite alcanzado. Activá tu plan Básico Pro para continuar.",
-            );
-            return;
-          }
-        }
+        // Trial limit check — solo features Pro se bloquean, ventas siempre libres
 
         const f = _readVentaForm();
         const err = _validateVenta(f);
@@ -10316,22 +10365,7 @@
         }
         _addVentaEnProceso = false;
 
-        if (_sec.isTrialExp() && !isActivated()) {
-          const r = getTrialVentasRestantes();
-          if (r === 1)
-            setTimeout(
-              () =>
-                toast(
-                  "⚠ Esta fue tu penúltima venta en modo limitado. Activá la licencia para seguir.",
-                  4000,
-                ),
-              3400,
-            );
-          else if (r === 0)
-            setTimeout(() => {
-              mostrarBannerTrialVencido(0);
-            }, 3400);
-        }
+        // Ventas siempre libres en plan Free — solo features Pro requieren activación
         trackEvent("venta_guardada", {
           perfume: f.perfume,
           esCuotas: esCuotas ? 1 : 0,
@@ -10593,6 +10627,13 @@
         document.getElementById("ev-pcompra").value = v.precioCompra || "";
         document.getElementById("ev-cliente").value = v.cliente || "";
         document.getElementById("ev-nota").value = v.nota || "";
+        const dtoInfo = document.getElementById("ev-descuento-info");
+        if (v.descuento && v.descuento > 0) {
+          dtoInfo.textContent = `Esta venta tiene ${v.descuento}% de descuento aplicado al precio.`;
+          dtoInfo.style.display = "";
+        } else {
+          dtoInfo.style.display = "none";
+        }
         actualizarPreviewEditar();
         // Wire live preview
         ["ev-pventa", "ev-pcompra"].forEach((id) => {
@@ -11022,16 +11063,22 @@
           toast("⚠ No hay ventas válidas para importar");
           return;
         }
-        const total = ventasSanas.length;
-        ventasSanas.sort((a, b) =>
+        // Deduplicar contra ventas existentes
+        const existingKeys = new Set(ventas.map(v => `${v.fecha}_${v.cliente}_${v.perfume}_${v.precioVenta}`));
+        const deduped = ventasSanas.filter(v => !existingKeys.has(`${v.fecha}_${v.cliente}_${v.perfume}_${v.precioVenta}`));
+        const skipped = ventasSanas.length - deduped.length;
+        if (skipped > 0) toast(`ℹ️ ${skipped} venta${skipped !== 1 ? 's' : ''} duplicada${skipped !== 1 ? 's' : ''} omitida${skipped !== 1 ? 's' : ''}`, 3000);
+        const total = deduped.length;
+        if (!total) { toast("⚠ Todas las ventas ya existen"); return; }
+        deduped.sort((a, b) =>
           b.fecha
             .split("/")
             .reverse()
             .join("")
             .localeCompare(a.fecha.split("/").reverse().join("")),
         );
-        ventas = [...ventasSanas, ...ventas];
-        ventasSanas.forEach((v) => {
+        ventas = [...deduped, ...ventas];
+        deduped.forEach((v) => {
           let sp = perfumes.find(
             (p) => p.nombre.toLowerCase() === v.perfume.toLowerCase(),
           );
@@ -11880,7 +11927,6 @@
         maxUses: null,
         trialDays: 14,
         trialMinutes: null,
-        trialLimitedVentas: 15,
         isDemo: false,
       });
 
@@ -12288,18 +12334,6 @@
         const days = Math.floor(ms / 86400000);
         return `${days} día${days !== 1 ? "s" : ""}`;
       }
-      function getTrialVentasRestantes() {
-        const trialStart = parseInt(
-          localStorage.getItem("pt_trial_start") || "0",
-        );
-        if (!trialStart) return LICENSE.trialLimitedVentas; // trial no iniciado aún
-        const vencimiento = trialStart + getTrialDuration();
-        const ventasTrasVencer = ventas.filter(
-          (v) => (v.createdAt || v.id) > vencimiento,
-        ).length;
-        return Math.max(0, LICENSE.trialLimitedVentas - ventasTrasVencer);
-      }
-
       // ── Server-side trial anchor ──────────────────────────────────
       // Registers (or retrieves) the trial start in Cloudflare KV.
       // If the server knows an earlier start (user cleared localStorage),
@@ -12669,8 +12703,7 @@
         if (msLeft <= 0) {
           _secSetTrialExp(true);
           trackEvent("trial_vencido");
-          const restantes = getTrialVentasRestantes();
-          mostrarBannerTrialVencido(restantes);
+          mostrarBannerFreeUpsell();
           // Email de trial vencido (una sola vez)
           setTimeout(() => sendTrialEmail("trial_expired"), 2000);
         } else {
@@ -12701,12 +12734,9 @@
                 clearInterval(_trialTickerRef[0]);
                 _secSetTrialExp(true);
                 trackEvent("trial_vencido");
-                const r = getTrialVentasRestantes();
-                mostrarBannerTrialVencido(r);
+                mostrarBannerFreeUpsell();
                 toast(
-                  "⏳ Período de prueba finalizado. Podés registrar " +
-                    r +
-                    " ventas más.",
+                  "Tu prueba Pro terminó. Seguís con el plan Free — ventas ilimitadas, gratis para siempre.",
                   5000,
                 );
               } else {
@@ -12723,7 +12753,7 @@
         if (el) el.classList.add("open");
       }
 
-      function mostrarBannerTrialVencido(restantes) {
+      function mostrarBannerFreeUpsell() {
         let banner = document.getElementById("trial-banner");
         if (!banner) {
           banner = document.createElement("div");
@@ -12734,18 +12764,12 @@
         banner.style.cssText =
           "position:fixed;top:0;left:0;right:0;z-index:9000;padding:8px 14px;text-align:center;font-size:12px;cursor:pointer;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;";
         banner.style.background =
-          "linear-gradient(90deg,rgba(224,112,112,0.18),rgba(224,112,112,0.06))";
-        banner.style.borderBottom = "1px solid var(--danger)";
-        banner.style.color = "#e07070";
-
-        if (restantes > 0) {
-          banner.innerHTML = `⚠️ Prueba vencida · Podés cargar <strong>${restantes} venta${restantes !== 1 ? "s" : ""} más</strong> · <span onclick="abrirModalActivacion()" style="text-decoration:underline;cursor:pointer;color:#f0a0a0;">Activar ahora →</span>`;
-        } else {
-          banner.innerHTML = `🔒 Límite alcanzado · <span onclick="abrirModalActivacion()" style="text-decoration:underline;cursor:pointer;color:#f0a0a0;">Activá tu licencia para seguir registrando ventas →</span>`;
-        }
+          "linear-gradient(90deg,var(--gold-dim),rgba(201,168,76,0.04))";
+        banner.style.borderBottom = "1px solid var(--gold)";
+        banner.style.color = "var(--gold2)";
+        banner.innerHTML = `Plan Free activo · <span onclick="openPricingModal()" style="text-decoration:underline;cursor:pointer;color:#f5dfa0;">Descubrí Básico Pro →</span>`;
         banner.onclick = function (e) {
-          if (e.target === banner || e.target.tagName === "STRONG")
-            abrirModalActivacion();
+          if (e.target === banner) openPricingModal();
         };
       }
 
@@ -13012,11 +13036,13 @@
           }, 2000);
           return;
         }
+        const lastTs = parseInt(lastBackup, 10);
+        if (isNaN(lastTs)) return;
         const daysSince = Math.floor(
-          (Date.now() - parseInt(lastBackup)) / 86400000,
+          (Date.now() - lastTs) / 86400000,
         );
         if (daysSince >= 7) {
-          const d = new Date(parseInt(lastBackup));
+          const d = new Date(lastTs);
           document.getElementById("ultimo-backup-fecha").textContent =
             d.toLocaleDateString("es-AR");
           setTimeout(() => {
@@ -13583,9 +13609,11 @@
             el.innerHTML =
               '<span style="color:var(--danger);">Nunca — ¡hacé un backup!</span>';
           } else {
-            const d = new Date(parseInt(lastBackup));
+            const ts = parseInt(lastBackup, 10);
+            if (isNaN(ts)) return;
+            const d = new Date(ts);
             const days = Math.floor(
-              (Date.now() - parseInt(lastBackup)) / 86400000,
+              (Date.now() - ts) / 86400000,
             );
             const color =
               days >= 7
@@ -13883,7 +13911,7 @@
             cvs.height = h;
             const ctx = cvs.getContext("2d");
             ctx.drawImage(img, 0, 0, w, h);
-            resolve(cvs.toDataURL("image/jpeg", calidad));
+            resolve(cvs.toDataURL("image/webp", calidad));
           };
           img.onerror = reject;
           img.src = dataUrl;
@@ -13909,10 +13937,13 @@
         return; // la lógica sigue en _doResetApp
       }
       async function _doResetApp() {
-        await PTDB.clear();
+        // Borrar solo datos del perfil activo (no destruir otros perfiles)
+        const profileKeys = ["vip_ventas_v2", "vip_stock_v2", "vip_gastos_v1", "vip_caja_v1", "vip_meta_v1"];
+        await Promise.all(profileKeys.map(k => PTDB.delete(profileKey(k))));
         // Preservar: PIN, licencia, activación, trial y perfiles
         const preserve = [
           "pt_pin_hash",
+          "pt_pin_salt",
           "pt_pin_fails",
           "pt_pin_lockout",
           "pt_license_key",
@@ -14636,6 +14667,12 @@
                 var h = await hashPIN(buf);
                 var stored = localStorage.getItem(PIN_HASH_KEY);
                 if (h === stored) {
+                  // Migrar salt legacy a per-user
+                  if (!localStorage.getItem(PIN_SALT_KEY)) {
+                    _ensurePinSalt();
+                    var newHash = await hashPIN(buf);
+                    localStorage.setItem(PIN_HASH_KEY, newHash);
+                  }
                   clearFails();
                   var screen = document.getElementById("pin-screen");
                   if (screen) screen.style.display = "none";
@@ -15464,7 +15501,9 @@
           return;
         }
 
-        const days = Math.floor((Date.now() - parseInt(lastBackup)) / 86400000);
+        const bkTs = parseInt(lastBackup, 10);
+        if (isNaN(bkTs)) return;
+        const days = Math.floor((Date.now() - bkTs) / 86400000);
 
         if (days === 0) {
           pill.className = "sync-status-pill ok";
@@ -15510,8 +15549,10 @@
             ventas.length +
             " ventas sin respaldar. Si algo pasa con tu dispositivo, perdés todo.";
         } else {
+          const bts = parseInt(lastBackup, 10);
+          if (isNaN(bts)) return;
           const days = Math.floor(
-            (Date.now() - parseInt(lastBackup)) / 86400000,
+            (Date.now() - bts) / 86400000,
           );
           if (days >= BACKUP_DANGER_DAYS) {
             showBanner = true;
@@ -16171,6 +16212,15 @@
 
       const _isNativeApp = navigator.userAgent.includes('ParfumTrackApp');
 
+      function _showSRIErrorBanner() {
+        if (document.getElementById('sri-error-banner')) return;
+        const banner = document.createElement('div');
+        banner.id = 'sri-error-banner';
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#e07070;color:#fff;padding:14px 18px;font-size:14px;font-weight:600;text-align:center;z-index:99999;font-family:"DM Sans",sans-serif';
+        banner.textContent = 'Error cargando recursos. Recargá la página.';
+        document.body.appendChild(banner);
+      }
+
       function loadScript(url) {
         return new Promise((resolve, reject) => {
           if (document.querySelector(`script[src="${url}"]`)) {
@@ -16186,15 +16236,11 @@
           s.onload = resolve;
           s.onerror = () => {
             if (CDN_SRI[url] && !_isNativeApp) {
+              // SRI falló — NO reintentar sin integridad (riesgo de MITM)
               s.remove();
-              const r = document.createElement("script");
-              r.src = url;
-              r.onload = resolve;
-              r.onerror = reject;
-              document.head.appendChild(r);
-            } else {
-              reject();
+              _showSRIErrorBanner();
             }
+            reject(new Error('Error cargando script: ' + url));
           };
           document.head.appendChild(s);
         });
@@ -19015,8 +19061,9 @@
               // Recargar cuando el nuevo SW tome control
               navigator.serviceWorker.addEventListener(
                 "controllerchange",
-                () => {
+                async () => {
                   document.getElementById("sw-update-banner")?.remove();
+                  if (typeof _saveNow === 'function') try { await _saveNow(); } catch {}
                   location.reload();
                 },
               );
@@ -19155,7 +19202,7 @@
         }
       }
 
-      // ── Enviar notificación de cobros pendientes (via OneSignal REST API desde Netlify Function) ──
+      // ── Enviar notificación de cobros pendientes (via OneSignal REST API) ──
       // Se llama automáticamente al abrir la app si hay deudas y pasaron +12h desde la última notif
       async function checkYNotificarCobros() {
         try {
@@ -19234,6 +19281,8 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               subscriptionId,
+              title: "⏰ Cuotas vencidas — Parfum Track",
+              message: `Tenés ${vencidas.length} venta${vencidas.length !== 1 ? "s" : ""} con cuotas vencidas por ${fmtMonto}`,
               url: "/",
             }),
           });

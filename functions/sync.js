@@ -14,20 +14,27 @@
 //   LICENSE_SERVER_SECRET — secreto HMAC (compartido con /backup)
 // ══════════════════════════════════════════════════════════════
 
+import { corsHeaders, json, checkRateLimit, verifyToken, sha256, log, requireJson, hashIp } from './_shared.js';
+
+const CORS_OPTS = { methods: 'GET, POST, OPTIONS', allowHeaders: 'Content-Type, X-PT-Code, X-PT-Token' };
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   const origin = request.headers.get("Origin") || "";
-  const headers = corsHeaders(origin);
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const headers = corsHeaders(origin, CORS_OPTS);
+  const ip = await hashIp(request);
 
   // Rate limit: 120 saves per hour per IP
   const ipErr = await checkRateLimit(
     env,
-    `rl_sync_ip_${await sha256(ip)}`,
+    `rl_sync_ip_${ip}`,
     120,
     3600,
   );
   if (ipErr) return json({ ok: false, error: ipErr }, 429, headers);
+
+  const ctError = requireJson(request, 5_242_880);
+  if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
   let body;
   try {
@@ -44,6 +51,9 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: "Invalid code" }, 400, headers);
   }
   code = code.trim().toUpperCase();
+  if (!/^[A-Z0-9_-]{1,64}$/.test(code)) {
+    return json({ ok: false, error: "Invalid code format" }, 400, headers);
+  }
 
   const authErr = await verifyToken(code, token, env);
   if (authErr) return json({ ok: false, error: authErr }, 401, headers);
@@ -77,7 +87,7 @@ export async function onRequestPost(context) {
       httpMetadata: { contentType: "application/json" },
     });
   } catch (e) {
-    console.error("[sync] R2 write failed:", e.message);
+    log('error', 'sync', 'R2 write failed', { error: e.message });
     return json({ ok: false, error: "Storage write failed" }, 500, headers);
   }
 
@@ -87,13 +97,13 @@ export async function onRequestPost(context) {
 export async function onRequestGet(context) {
   const { request, env } = context;
   const origin = request.headers.get("Origin") || "";
-  const headers = corsHeaders(origin);
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const headers = corsHeaders(origin, CORS_OPTS);
+  const ip = await hashIp(request);
 
   // Rate limit: 60 loads per hour per IP
   const ipErr = await checkRateLimit(
     env,
-    `rl_sync_load_ip_${await sha256(ip)}`,
+    `rl_sync_load_ip_${ip}`,
     60,
     3600,
   );
@@ -109,6 +119,9 @@ export async function onRequestGet(context) {
     return json({ ok: false, error: "Invalid code" }, 400, headers);
   }
   code = code.trim().toUpperCase();
+  if (!/^[A-Z0-9_-]{1,64}$/.test(code)) {
+    return json({ ok: false, error: "Invalid code format" }, 400, headers);
+  }
 
   const authErr = await verifyToken(code, token, env);
   if (authErr) return json({ ok: false, error: authErr }, 401, headers);
@@ -121,7 +134,7 @@ export async function onRequestGet(context) {
   try {
     obj = await env.PT_BACKUP.get(`sync/${code}`);
   } catch (e) {
-    console.error("[sync] R2 read failed:", e.message);
+    log('error', 'sync', 'R2 read failed', { error: e.message });
     return json({ ok: false, error: "Storage read failed" }, 500, headers);
   }
 
@@ -145,91 +158,5 @@ export async function onRequestGet(context) {
 
 export async function onRequestOptions(context) {
   const origin = context.request.headers.get("Origin") || "";
-  return new Response(null, { status: 204, headers: corsHeaders(origin) });
-}
-
-// ── Helpers ───────────────────────────────────────────────────
-
-function timingSafeEqual(a, b) {
-  if (a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++)
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return result === 0;
-}
-
-async function verifyToken(code, token, env) {
-  const secret = env.LICENSE_SERVER_SECRET;
-  if (!secret) return "Server misconfigured";
-  if (typeof token !== "string" || !/^[0-9a-f]{64}$/.test(token))
-    return "Invalid token format";
-
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(code));
-  const expected = Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-
-  if (!timingSafeEqual(token, expected)) return "Invalid token";
-  return null;
-}
-
-async function sha256(str) {
-  const buf = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(str),
-  );
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 32);
-}
-
-async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
-    return 'Service temporarily unavailable';
-  }
-  const now = Math.floor(Date.now() / 1000);
-  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
-  let count = 0;
-  try {
-    const stored = await env.PT_LICENSES.get(windowKey);
-    count = stored ? parseInt(stored, 10) : 0;
-  } catch {
-    return 'Rate limit check failed, please try again later';
-  }
-  if (count >= max) return "Too many requests, please try again later";
-  try {
-    await env.PT_LICENSES.put(windowKey, String(count + 1), {
-      expirationTtl: windowSecs * 2,
-    });
-  } catch {
-    /* non-blocking */
-  }
-  return null;
-}
-
-function json(body, status, headers) {
-  return new Response(JSON.stringify(body), { status, headers });
-}
-
-function corsHeaders(origin) {
-  const ok =
-    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
-      origin,
-    );
-  return {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": ok ? origin : "null",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-PT-Code, X-PT-Token",
-  };
+  return new Response(null, { status: 204, headers: corsHeaders(origin, CORS_OPTS) });
 }

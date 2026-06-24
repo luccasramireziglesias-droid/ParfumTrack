@@ -14,6 +14,8 @@
 //   "trial_expired"   — Trial vencido, invitación a activar
 // ══════════════════════════════════════════════════════════════
 
+import { corsHeaders, json, checkRateLimit, sha256, verifyToken, isValidEmail, log, requireJson, hashIp } from './_shared.js';
+
 const TEMPLATES = {
   trial_welcome: (data) => ({
     subject: `¡Hola, ${data.name}! Tu prueba gratuita ya está activa 🌸`,
@@ -212,42 +214,6 @@ function sanitize(str) {
     .replace(/'/g, "&#x27;");
 }
 
-// KV-based rate limiter: allows `max` requests per `windowSecs` seconds
-async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
-    return 'Service temporarily unavailable';
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
-
-  let count = 0;
-  try {
-    const stored = await env.PT_LICENSES.get(windowKey);
-    count = stored ? parseInt(stored, 10) : 0;
-  } catch {
-    return 'Rate limit check failed, please try again later';
-  }
-
-  if (count >= max) return "Too many requests, please try again later";
-
-  try {
-    await env.PT_LICENSES.put(windowKey, String(count + 1), {
-      expirationTtl: windowSecs * 2,
-    });
-  } catch {
-    /* non-blocking */
-  }
-
-  return null;
-}
-
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 // ── Main handler ─────────────────────────────────────────────
 
 export async function onRequestPost(context) {
@@ -256,42 +222,39 @@ export async function onRequestPost(context) {
   const headers = corsHeaders(origin);
 
   // Rate limit by IP: max 5 email requests/hour
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ip = await hashIp(request);
   const ipLimitError = await checkRateLimit(env, `rl_email_ip_${ip}`, 5, 3600);
   if (ipLimitError)
-    return new Response(JSON.stringify({ ok: false, error: ipLimitError }), {
-      status: 429,
-      headers,
-    });
+    return json({ ok: false, error: ipLimitError }, 429, headers);
+
+  const ctError = requireJson(request, 65536);
+  if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
   let body;
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ ok: false, error: "Bad request" }), {
-      status: 400,
-      headers,
-    });
+    return json({ ok: false, error: "Bad request" }, 400, headers);
+  }
+
+  // Auth: verificar token HMAC — obligatorio
+  const { code: authCode, token: authToken } = body;
+  if (!authCode || !authToken) {
+    return json({ ok: false, error: 'Authentication required' }, 401, headers);
+  }
+  const tokenErr = await verifyToken(authCode, authToken, env);
+  if (tokenErr) {
+    return json({ ok: false, error: 'Unauthorized' }, 401, headers);
   }
 
   const { to, toName, template, data = {} } = body;
 
   if (!to || !template || !TEMPLATES[template]) {
-    return new Response(
-      JSON.stringify({ ok: false, error: "Missing or invalid fields" }),
-      { status: 400, headers },
-    );
+    return json({ ok: false, error: "Missing or invalid fields" }, 400, headers);
   }
 
-  if (
-    typeof to !== "string" ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(to) ||
-    to.length > 320
-  ) {
-    return new Response(
-      JSON.stringify({ ok: false, error: "Invalid email address" }),
-      { status: 400, headers },
-    );
+  if (!isValidEmail(to)) {
+    return json({ ok: false, error: "Invalid email address" }, 400, headers);
   }
 
   // Rate limit by destination email: max 3 emails/24h per address
@@ -306,14 +269,14 @@ export async function onRequestPost(context) {
     86400,
   );
   if (emailLimitError)
-    return new Response(JSON.stringify({ ok: false, error: emailLimitError }), {
-      status: 429,
-      headers,
-    });
+    return json({ ok: false, error: emailLimitError }, 429, headers);
 
   // Verificar que el destinatario tiene registro en KV (trial o licencia)
   // Esto evita que el endpoint sea usado como relay de phishing a direcciones arbitrarias
-  if (env.PT_LICENSES) {
+  if (!env.PT_LICENSES) {
+    return json({ ok: false, error: 'Service unavailable' }, 500, headers);
+  }
+  {
     const emailLower = to.toLowerCase().trim();
     const emailHash = await sha256(emailLower);
     const [trialRec, licenseRec] = await Promise.all([
@@ -321,11 +284,8 @@ export async function onRequestPost(context) {
       env.PT_LICENSES.get(`email_license:${emailHash}`),
     ]);
     if (!trialRec && !licenseRec) {
-      console.warn(`[send-email] Destinatario no registrado: ${emailHash.slice(0, 8)}...`);
-      return new Response(
-        JSON.stringify({ ok: false, error: "Email not registered" }),
-        { status: 403, headers },
-      );
+      log('warn', 'send-email', 'recipient not registered');
+      return json({ ok: false, error: "Email not registered" }, 403, headers);
     }
   }
 
@@ -334,11 +294,8 @@ export async function onRequestPost(context) {
   const fromName = env.FROM_NAME || "Parfum Track";
 
   if (!apiKey) {
-    console.error("[send-email] BREVO_API_KEY not configured");
-    return new Response(
-      JSON.stringify({ ok: false, error: "Email service not configured" }),
-      { status: 500, headers },
-    );
+    log('error', 'send-email', 'BREVO_API_KEY not configured');
+    return json({ ok: false, error: "Email service not configured" }, 500, headers);
   }
 
   // Sanitize all user-supplied fields before interpolation into HTML templates
@@ -378,32 +335,15 @@ export async function onRequestPost(context) {
 
     if (!resp.ok) {
       const err = await resp.text();
-      console.error("[send-email] Brevo error:", resp.status, err);
-      return new Response(
-        JSON.stringify({ ok: false, error: `Brevo ${resp.status}` }),
-        { status: 200, headers },
-      );
+      log('error', 'send-email', 'Brevo error', { status: resp.status });
+      return json({ ok: false, error: `Brevo ${resp.status}` }, 502, headers);
     }
 
     const result = await resp.json();
-    console.log(
-      "[send-email] Sent:",
-      template,
-      "to",
-      `${to.split('@')[0].slice(0,2)}***@${to.split('@')[1]}`,
-      "— messageId:",
-      result.messageId,
-    );
-    return new Response(
-      JSON.stringify({ ok: true, messageId: result.messageId }),
-      { status: 200, headers },
-    );
+    return json({ ok: true, messageId: result.messageId }, 200, headers);
   } catch (e) {
-    console.error("[send-email] Fetch error:", e.message);
-    return new Response(JSON.stringify({ ok: false, error: "Email service unavailable" }), {
-      status: 500,
-      headers,
-    });
+    log('error', 'send-email', 'fetch error', { error: e.message });
+    return json({ ok: false, error: "Email service unavailable" }, 500, headers);
   }
 }
 
@@ -412,15 +352,3 @@ export async function onRequestOptions(context) {
   return new Response(null, { status: 204, headers: corsHeaders(origin) });
 }
 
-function corsHeaders(origin) {
-  const allowed =
-    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
-      origin,
-    );
-  return {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": allowed ? origin : "null",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
-}

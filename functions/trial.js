@@ -26,6 +26,8 @@
 //   PT_LICENSES    — KV binding
 // ══════════════════════════════════════════════════════════════
 
+import { corsHeaders, json, checkRateLimit, sha256, delay, isValidEmail, log, requireJson } from './_shared.js';
+
 const KV_TTL_SECS = 90 * 24 * 60 * 60;
 const OTP_TTL_SECS = 10 * 60;
 const DELAY_MS = 1500; // anti-brute-force on wrong OTP
@@ -37,14 +39,17 @@ export async function onRequestPost(context) {
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
 
   if (!env.PT_LICENSES) {
-    return json({ error: "KV not configured" }, 500, headers);
+    return json({ ok: false, error: "KV not configured" }, 500, headers);
   }
+
+  const ctError = requireJson(request, 4096);
+  if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
   let body;
   try {
     body = await request.json();
   } catch {
-    return json({ error: "Bad request" }, 400, headers);
+    return json({ ok: false, error: "Bad request" }, 400, headers);
   }
 
   const step = body.step;
@@ -54,10 +59,10 @@ export async function onRequestPost(context) {
 
   // Legacy path: { deviceId } sin step → deprecado, requiere OTP
   if (body.deviceId && !step) {
-    return json({ error: 'Verificación por email requerida. Actualizá la app.' }, 410, headers);
+    return json({ ok: false, error: 'Verificación por email requerida. Actualizá la app.' }, 410, headers);
   }
 
-  return json({ error: "Invalid request" }, 400, headers);
+  return json({ ok: false, error: "Invalid request" }, 400, headers);
 }
 
 // ── Step 1: Request OTP ───────────────────────────────────────
@@ -66,7 +71,7 @@ async function handleRegister(body, ip, env, headers) {
   const { email, deviceId } = body;
 
   if (!email || typeof email !== "string" || !isValidEmail(email)) {
-    return json({ error: "Email inválido" }, 400, headers);
+    return json({ ok: false, error: "Email inválido" }, 400, headers);
   }
 
   const emailLower = email.toLowerCase().trim();
@@ -80,21 +85,25 @@ async function handleRegister(body, ip, env, headers) {
     3600,
   );
   if (rlIp)
-    return json({ error: "Demasiados intentos. Esperá 1 hora." }, 429, headers);
+    return json({ ok: false, error: "Demasiados intentos. Esperá 1 hora." }, 429, headers);
 
   // Rate limit: 10 OTP requests per email per hour
   const rlEmail = await checkRateLimit(env, `rl_otp_em_${emailHash}`, 10, 3600);
   if (rlEmail)
     return json(
-      { error: "Demasiados intentos para este email. Esperá 1 hora." },
+      { ok: false, error: "Demasiados intentos para este email. Esperá 1 hora." },
       429,
       headers,
     );
 
-  // Generate 6-digit OTP using cryptographically random source
-  const rand = new Uint32Array(1);
-  crypto.getRandomValues(rand);
-  const otp = String(100000 + (rand[0] % 900000));
+  // Generación de OTP sin sesgo de módulo (rejection sampling)
+  let otp;
+  do {
+    const buf = new Uint8Array(4);
+    crypto.getRandomValues(buf);
+    otp = ((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3]) >>> 0;
+  } while (otp >= 4294000000);
+  otp = (otp % 1000000).toString().padStart(6, '0');
 
   // Store OTP
   await env.PT_LICENSES.put(
@@ -105,11 +114,11 @@ async function handleRegister(body, ip, env, headers) {
 
   // Await email send — non-blocking caused Worker to terminate before Brevo got the request
   await sendOtpEmail(emailLower, otp, env).catch((e) =>
-    console.error("[trial] email error:", e?.message),
+    log('error', 'trial', 'email send failed', { error: e?.message }),
   );
 
-  console.log(`[trial] OTP sent to ***@${emailLower.split("@")[1]}`);
-  return json({ sent: true }, 200, headers);
+  log('info', 'trial', 'OTP sent');
+  return json({ ok: true, sent: true }, 200, headers);
 }
 
 // ── Step 2: Verify OTP + anchor trial ────────────────────────
@@ -125,7 +134,7 @@ async function handleVerify(body, ip, env, headers) {
     typeof otp !== "string" ||
     !/^\d{6}$/.test(otp)
   ) {
-    return json({ error: "Datos inválidos" }, 400, headers);
+    return json({ ok: false, error: "Datos inválidos" }, 400, headers);
   }
 
   const emailLower = email.toLowerCase().trim();
@@ -136,7 +145,7 @@ async function handleVerify(body, ip, env, headers) {
   if (rlVerify) {
     await delay(DELAY_MS);
     return json(
-      { error: "Demasiados intentos. Esperá 15 minutos." },
+      { ok: false, error: "Demasiados intentos. Esperá 15 minutos." },
       429,
       headers,
     );
@@ -147,7 +156,7 @@ async function handleVerify(body, ip, env, headers) {
   if (!otpRaw) {
     await delay(DELAY_MS);
     return json(
-      { error: "El código expiró. Solicitá uno nuevo." },
+      { ok: false, error: "El código expiró. Solicitá uno nuevo." },
       400,
       headers,
     );
@@ -157,21 +166,26 @@ async function handleVerify(body, ip, env, headers) {
   try {
     otpData = JSON.parse(otpRaw);
   } catch {
-    return json({ error: "Error interno" }, 500, headers);
+    return json({ ok: false, error: "Error interno" }, 500, headers);
   }
 
   // Too many failed attempts
   if ((otpData.attempts || 0) >= 5) {
     await delay(DELAY_MS);
     return json(
-      { error: "Código bloqueado. Solicitá uno nuevo." },
+      { ok: false, error: "Código bloqueado. Solicitá uno nuevo." },
       400,
       headers,
     );
   }
 
-  // Wrong OTP
-  if (otpData.otp !== otp) {
+  // Comparación timing-safe para evitar side-channel attacks
+  const enc = new TextEncoder();
+  const otpA = enc.encode(otpData.otp.padEnd(6, '\0'));
+  const otpB = enc.encode(otp.padEnd(6, '\0'));
+  let otpDiff = otpA.length ^ otpB.length;
+  for (let i = 0; i < otpA.length; i++) otpDiff |= otpA[i] ^ otpB[i];
+  if (otpDiff !== 0) {
     otpData.attempts = (otpData.attempts || 0) + 1;
     await env.PT_LICENSES.put(
       `trial_otp:${emailHash}`,
@@ -182,7 +196,7 @@ async function handleVerify(body, ip, env, headers) {
     );
     await delay(DELAY_MS);
     return json(
-      { error: "Código incorrecto", attemptsLeft: 5 - otpData.attempts },
+      { ok: false, error: "Código incorrecto", attemptsLeft: 5 - otpData.attempts },
       400,
       headers,
     );
@@ -251,10 +265,8 @@ async function handleVerify(body, ip, env, headers) {
       .join("");
   }
 
-  console.log(
-    `[trial] Verified: ***@${emailLower.split("@")[1]} → startAt ${new Date(startAt).toISOString()}`,
-  );
-  return json({ startAt, verified: true, syncCode, syncToken }, 200, headers);
+  log('info', 'trial', 'OTP verified');
+  return json({ ok: true, startAt, verified: true, syncCode, syncToken }, 200, headers);
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -276,36 +288,15 @@ async function getTs(env, key) {
   }
 }
 
-function isValidEmail(email) {
-  return (
-    typeof email === "string" &&
-    email.length <= 254 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)
-  );
-}
-
-async function sha256(str) {
-  const buf = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(str),
-  );
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    ;
-}
-
 async function sendOtpEmail(email, otp, env) {
   const apiKey = env.BREVO_API_KEY;
   const fromEmail = env.FROM_EMAIL || "parfumtrack@gmail.com";
   const fromName = env.FROM_NAME || "Parfum Track";
   if (!apiKey) {
-    console.error("[trial] BREVO_API_KEY not set — email not sent");
+    log('error', 'trial', 'BREVO_API_KEY not set');
     return;
   }
-  console.log(
-    `[trial] Calling Brevo API, from: ${fromEmail}, to: ${email}, key length: ${apiKey.length}`,
-  );
+  log('info', 'trial', 'sending OTP via Brevo');
 
   await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
@@ -348,59 +339,12 @@ async function sendOtpEmail(email, otp, env) {
     }),
     signal: AbortSignal.timeout(8000),
   }).then(async (res) => {
-    const body = await res.text().catch(() => "");
     if (!res.ok) {
-      console.error(`[trial] Brevo error ${res.status}: ${body}`);
+      log('error', 'trial', 'Brevo error', { status: res.status });
     } else {
-      console.log(`[trial] Brevo OK ${res.status}: ${body.slice(0, 100)}`);
+      log('info', 'trial', 'Brevo OK', { status: res.status });
     }
   });
-}
-
-async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
-    return 'Service temporarily unavailable';
-  }
-  const now = Math.floor(Date.now() / 1000);
-  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
-  let count = 0;
-  try {
-    const stored = await env.PT_LICENSES.get(windowKey);
-    count = stored ? parseInt(stored, 10) : 0;
-  } catch {
-    return 'Rate limit check failed, please try again later';
-  }
-  if (count >= max) return "Too many requests";
-  try {
-    await env.PT_LICENSES.put(windowKey, String(count + 1), {
-      expirationTtl: windowSecs * 2,
-    });
-  } catch {
-    /* non-blocking */
-  }
-  return null;
-}
-
-function delay(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
-function json(body, status, headers) {
-  return new Response(JSON.stringify(body), { status, headers });
-}
-
-function corsHeaders(origin) {
-  const ok =
-    /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(
-      origin,
-    );
-  return {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": ok ? origin : "null",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
 }
 
 export async function onRequestOptions(context) {

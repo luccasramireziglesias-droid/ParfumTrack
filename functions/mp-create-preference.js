@@ -10,14 +10,19 @@
 // Usa Checkout Pro (preferencias) — no requiere permiso de suscripciones.
 // ══════════════════════════════════════════════════════════════
 
+import { corsHeaders, json, checkRateLimit, sha256, isValidEmail, log, requireJson, hashIp } from './_shared.js';
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   const origin  = request.headers.get('Origin') || '';
   const headers = corsHeaders(origin);
 
-  const ip      = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ip      = await hashIp(request);
   const rlError = await checkRateLimit(env, `rl_mppref_${ip}`, 5, 3600);
   if (rlError) return json({ ok: false, error: rlError }, 429, headers);
+
+  const ctError = requireJson(request, 4096);
+  if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
   let body;
   try { body = await request.json(); }
@@ -25,8 +30,7 @@ export async function onRequestPost(context) {
 
   const { email, plan = 'monthly' } = body;
 
-  if (!email || typeof email !== 'string' || email.length > 320 ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+  if (!isValidEmail(email)) {
     return json({ ok: false, error: 'Email inválido' }, 400, headers);
   }
 
@@ -34,8 +38,19 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Plan inválido' }, 400, headers);
   }
 
+  if (env.PT_LICENSES) {
+    const emailHash = await sha256(email.toLowerCase().trim());
+    const [trialRec, licenseRec] = await Promise.all([
+      env.PT_LICENSES.get(`trial_email:${emailHash}`),
+      env.PT_LICENSES.get(`email_license:${emailHash}`),
+    ]);
+    if (!trialRec && !licenseRec) {
+      return json({ ok: false, error: 'Email no registrado' }, 403, headers);
+    }
+  }
+
   if (!env.MP_ACCESS_TOKEN) {
-    console.error('[mp-create-preference] MP_ACCESS_TOKEN no configurado');
+    log('error', 'mp-create-preference', 'MP_ACCESS_TOKEN not configured');
     return json({ ok: false, error: 'Servicio temporalmente no disponible' }, 503, headers);
   }
 
@@ -68,13 +83,13 @@ export async function onRequestPost(context) {
       }),
     });
   } catch (e) {
-    console.error('[mp-create-preference] Error llamando a MP:', e.message);
+    log('error', 'mp-create-preference', 'MP API call failed', { error: e.message });
     return json({ ok: false, error: 'Error de conexión con Mercado Pago' }, 500, headers);
   }
 
   if (!mpResp.ok) {
     const errText = await mpResp.text();
-    console.error('[mp-create-preference] MP respondió', mpResp.status, errText);
+    log('error', 'mp-create-preference', 'MP error response', { status: mpResp.status });
     let msg = `Error MP ${mpResp.status}`;
     try { const e = JSON.parse(errText); msg = e.message || e.error || msg; } catch { /* */ }
     return json({ ok: false, error: msg }, 500, headers);
@@ -85,45 +100,15 @@ export async function onRequestPost(context) {
   const checkoutUrl = init_point || sandbox_init_point;
 
   if (!checkoutUrl) {
-    console.error('[mp-create-preference] Sin init_point:', JSON.stringify(mpData));
+    log('error', 'mp-create-preference', 'missing init_point in MP response');
     return json({ ok: false, error: 'Respuesta inesperada de Mercado Pago' }, 500, headers);
   }
 
-  console.log(`[mp-create-preference] Preferencia ${preferenceId} para ${email.split('@')[0].slice(0,2)}***@${email.split('@')[1]} (${plan}) → ${checkoutUrl}`);
+  log('info', 'mp-create-preference', 'preference created', { preferenceId, plan });
   return json({ ok: true, initPoint: checkoutUrl }, 200, headers);
 }
 
 export async function onRequestOptions(context) {
   const origin = context.request.headers.get('Origin') || '';
   return new Response(null, { status: 204, headers: corsHeaders(origin) });
-}
-
-// ── Utilidades ────────────────────────────────────────────────────
-
-async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
-    return 'Service temporarily unavailable';
-  }
-  const now  = Math.floor(Date.now() / 1000);
-  const wKey = `${key}_${Math.floor(now / windowSecs)}`;
-  let count  = 0;
-  try { count = parseInt(await env.PT_LICENSES.get(wKey) || '0', 10); } catch { return 'Rate limit check failed, please try again later'; }
-  if (count >= max) return 'Demasiados intentos. Intentá de nuevo en unos minutos.';
-  try { await env.PT_LICENSES.put(wKey, String(count + 1), { expirationTtl: windowSecs * 2 }); } catch { /* */ }
-  return null;
-}
-
-function corsHeaders(origin) {
-  const ok = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin);
-  return {
-    'Content-Type':                 'application/json',
-    'Access-Control-Allow-Origin':  ok ? origin : 'null',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
-}
-
-function json(body, status, headers) {
-  return new Response(JSON.stringify(body), { status, headers });
 }

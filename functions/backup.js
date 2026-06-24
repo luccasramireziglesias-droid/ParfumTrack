@@ -18,15 +18,22 @@
 // Rate limit: 10 requests/hora por IP, 4 backups/día por código
 // ══════════════════════════════════════════════════════════════
 
+import { corsHeaders, json, checkRateLimit, verifyToken, log, requireJson, hashIp } from './_shared.js';
+
+const CORS_OPTS = { methods: 'GET, POST, OPTIONS', allowHeaders: 'Content-Type, X-PT-Code, X-PT-Token' };
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   const origin = request.headers.get('Origin') || '';
-  const headers = corsHeaders(origin);
+  const headers = corsHeaders(origin, CORS_OPTS);
 
   // Rate limit by IP
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ip = await hashIp(request);
   const ipLimitError = await checkRateLimit(env, `rl_ip_${ip}`, 10, 3600);
   if (ipLimitError) return json({ ok: false, error: ipLimitError }, 429, headers);
+
+  const ctError = requireJson(request, 5_242_880);
+  if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
   let body;
   try { body = await request.json(); }
@@ -37,12 +44,14 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Missing fields' }, 400, headers);
   }
 
-  // Validate code length to prevent abuse
   if (typeof code !== 'string' || code.length > 64) {
     return json({ ok: false, error: 'Invalid code' }, 400, headers);
   }
 
   const normalized = code.trim().toUpperCase();
+  if (!/^[A-Z0-9_-]{1,64}$/.test(normalized)) {
+    return json({ ok: false, error: 'Invalid code format' }, 400, headers);
+  }
   const authError = await verifyToken(normalized, token, env);
   if (authError) return json({ ok: false, error: authError }, 401, headers);
 
@@ -51,7 +60,7 @@ export async function onRequestPost(context) {
   if (codeLimitError) return json({ ok: false, error: 'Too many backups today, try again tomorrow' }, 429, headers);
 
   if (!env.PT_BACKUP) {
-    console.error('[backup] PT_BACKUP R2 binding not configured');
+    log('error', 'backup', 'PT_BACKUP R2 binding not configured');
     return json({ ok: false, error: 'Storage not configured' }, 500, headers);
   }
 
@@ -68,21 +77,21 @@ export async function onRequestPost(context) {
       httpMetadata: { contentType: 'application/json' }
     });
   } catch (e) {
-    console.error('[backup] R2 write failed:', e.message);
+    log('error', 'backup', 'R2 write failed', { error: e.message });
     return json({ ok: false, error: 'Storage write failed' }, 500, headers);
   }
 
-  console.log(`[backup] Saved: ${normalized.slice(0, 7)}*** (${(payload.length / 1024).toFixed(1)} KB)`);
+  log('info', 'backup', 'saved', { code: normalized.slice(0, 7) + '***', sizeKB: (payload.length / 1024).toFixed(1) });
   return json({ ok: true, savedAt }, 200, headers);
 }
 
 export async function onRequestGet(context) {
   const { request, env } = context;
   const origin = request.headers.get('Origin') || '';
-  const headers = corsHeaders(origin);
+  const headers = corsHeaders(origin, CORS_OPTS);
 
   // Rate limit by IP
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ip = await hashIp(request);
   const ipLimitError = await checkRateLimit(env, `rl_ip_${ip}`, 10, 3600);
   if (ipLimitError) return json({ ok: false, error: ipLimitError }, 429, headers);
 
@@ -98,6 +107,9 @@ export async function onRequestGet(context) {
   }
 
   const normalized = code.trim().toUpperCase();
+  if (!/^[A-Z0-9_-]{1,64}$/.test(normalized)) {
+    return json({ ok: false, error: 'Invalid code format' }, 400, headers);
+  }
   const authError = await verifyToken(normalized, token, env);
   if (authError) return json({ ok: false, error: authError }, 401, headers);
 
@@ -109,7 +121,7 @@ export async function onRequestGet(context) {
   try {
     obj = await env.PT_BACKUP.get(`backup/${normalized}`);
   } catch (e) {
-    console.error('[backup] R2 read failed:', e.message);
+    log('error', 'backup', 'R2 read failed', { error: e.message });
     return json({ ok: false, error: 'Storage read failed' }, 500, headers);
   }
 
@@ -125,80 +137,11 @@ export async function onRequestGet(context) {
   }
 
   const { data, savedAt } = parsed;
-  console.log(`[backup] Restored: ${normalized.slice(0, 7)}*** saved ${savedAt}`);
+  log('info', 'backup', 'restored', { code: normalized.slice(0, 7) + '***', savedAt });
   return json({ ok: true, data, savedAt }, 200, headers);
 }
 
 export async function onRequestOptions(context) {
   const origin = context.request.headers.get('Origin') || '';
-  return new Response(null, { status: 204, headers: corsHeaders(origin) });
-}
-
-// ── Helpers ──────────────────────────────────────────────────
-
-// Constant-time string comparison to prevent timing attacks
-function timingSafeEqual(a, b) {
-  if (a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  return result === 0;
-}
-
-async function verifyToken(code, token, env) {
-  const secret = env.LICENSE_SERVER_SECRET;
-  if (!secret) return 'Server misconfigured';
-  if (typeof token !== 'string' || !/^[0-9a-f]{64}$/.test(token)) return 'Invalid token format';
-
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw', encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(code));
-  const expected = Array.from(new Uint8Array(sig))
-    .map(b => b.toString(16).padStart(2, '0')).join('');
-
-  if (!timingSafeEqual(token, expected)) return 'Invalid token';
-  return null;
-}
-
-// KV-based rate limiter: allows `max` requests per `windowSecs` seconds
-async function checkRateLimit(env, key, max, windowSecs) {
-  if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
-    return 'Service temporarily unavailable';
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  const windowKey = `${key}_${Math.floor(now / windowSecs)}`;
-
-  let count = 0;
-  try {
-    const stored = await env.PT_LICENSES.get(windowKey);
-    count = stored ? parseInt(stored, 10) : 0;
-  } catch { return 'Rate limit check failed, please try again later'; }
-
-  if (count >= max) return 'Too many requests, please try again later';
-
-  try {
-    await env.PT_LICENSES.put(windowKey, String(count + 1), { expirationTtl: windowSecs * 2 });
-  } catch { /* non-blocking */ }
-
-  return null;
-}
-
-function json(body, status, headers) {
-  return new Response(JSON.stringify(body), { status, headers });
-}
-
-function corsHeaders(origin) {
-  const ok = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.pages\.dev|parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin);
-  return {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': ok ? origin : 'null',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-PT-Code, X-PT-Token',
-  };
+  return new Response(null, { status: 204, headers: corsHeaders(origin, CORS_OPTS) });
 }

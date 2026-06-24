@@ -6,7 +6,18 @@ try {
 }
 
 const CACHE_NAME = "parfumtrack-v5";
-const STATIC_ASSETS = ["/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png"];
+const STATIC_ASSETS = [
+  "/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",
+  "/favicon.ico", "/favicon.svg", "/favicon-32.png",
+  "/fonts/fonts.css",
+  "/fonts/cormorant-garamond-latin.woff2",
+  "/fonts/cormorant-garamond-latin-ext.woff2",
+  "/fonts/cormorant-garamond-cyrillic.woff2",
+  "/fonts/cormorant-garamond-cyrillic-ext.woff2",
+  "/fonts/cormorant-garamond-vietnamese.woff2",
+  "/fonts/dm-sans-latin.woff2",
+  "/fonts/dm-sans-latin-ext.woff2"
+];
 
 // Instalar: cachear solo assets estáticos (NO el HTML)
 self.addEventListener("install", (event) => {
