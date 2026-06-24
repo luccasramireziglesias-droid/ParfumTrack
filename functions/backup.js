@@ -44,12 +44,14 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Missing fields' }, 400, headers);
   }
 
-  // Validate code length to prevent abuse
   if (typeof code !== 'string' || code.length > 64) {
     return json({ ok: false, error: 'Invalid code' }, 400, headers);
   }
 
   const normalized = code.trim().toUpperCase();
+  if (!/^[A-Z0-9_-]{1,64}$/.test(normalized)) {
+    return json({ ok: false, error: 'Invalid code format' }, 400, headers);
+  }
   const authError = await verifyToken(normalized, token, env);
   if (authError) return json({ ok: false, error: authError }, 401, headers);
 
@@ -105,6 +107,9 @@ export async function onRequestGet(context) {
   }
 
   const normalized = code.trim().toUpperCase();
+  if (!/^[A-Z0-9_-]{1,64}$/.test(normalized)) {
+    return json({ ok: false, error: 'Invalid code format' }, 400, headers);
+  }
   const authError = await verifyToken(normalized, token, env);
   if (authError) return json({ ok: false, error: authError }, 401, headers);
 

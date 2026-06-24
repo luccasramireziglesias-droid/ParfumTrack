@@ -21,6 +21,10 @@ export async function onRequestGet(context) {
     return json({ ok: false, error: 'Parámetros faltantes' }, 400, headers);
   }
 
+  if (code.length > 64 || !/^[A-Z0-9_-]{1,64}$/.test(code)) {
+    return json({ ok: false, error: 'Código inválido' }, 400, headers);
+  }
+
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   const rlErr = await checkRateLimit(env, `rl_substatus_ip_${ip}`, 30, 3600);
   if (rlErr) return json({ ok: false, error: rlErr }, 429, headers);
