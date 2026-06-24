@@ -12754,6 +12754,13 @@
       }
 
       function mostrarBannerFreeUpsell() {
+        // No mostrar si el usuario lo cerró en los últimos 7 días
+        const dismissed = localStorage.getItem("pt_upsell_dismissed");
+        if (dismissed) {
+          const ts = parseInt(dismissed, 10);
+          if (!isNaN(ts) && Date.now() - ts < 7 * 86400000) return;
+        }
+
         let banner = document.getElementById("trial-banner");
         if (!banner) {
           banner = document.createElement("div");
@@ -12762,15 +12769,20 @@
           document.body.classList.add("has-top-banner");
         }
         banner.style.cssText =
-          "position:fixed;top:0;left:0;right:0;z-index:9000;padding:8px 14px;text-align:center;font-size:12px;cursor:pointer;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;";
+          "position:fixed;top:0;left:0;right:0;z-index:9000;padding:6px 14px;text-align:center;font-size:12px;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;gap:8px;";
         banner.style.background =
           "linear-gradient(90deg,var(--gold-dim),rgba(201,168,76,0.04))";
         banner.style.borderBottom = "1px solid var(--gold)";
         banner.style.color = "var(--gold2)";
-        banner.innerHTML = `Plan Free activo · <span onclick="openPricingModal()" style="text-decoration:underline;cursor:pointer;color:#f5dfa0;">Descubrí Básico Pro →</span>`;
-        banner.onclick = function (e) {
-          if (e.target === banner) openPricingModal();
-        };
+        banner.innerHTML = `<span onclick="openPricingModal()" style="cursor:pointer;flex:1;"><span style="opacity:0.7">Plan Free</span> · <span style="text-decoration:underline;color:#f5dfa0;">Descubrí Básico Pro →</span></span><span onclick="dismissUpsellBanner(event)" style="cursor:pointer;padding:4px 8px;opacity:0.5;font-size:16px;line-height:1;">✕</span>`;
+      }
+
+      function dismissUpsellBanner(e) {
+        e.stopPropagation();
+        localStorage.setItem("pt_upsell_dismissed", Date.now().toString());
+        const banner = document.getElementById("trial-banner");
+        if (banner) banner.remove();
+        document.body.classList.remove("has-top-banner");
       }
 
       function mostrarBannerTrial(label) {
