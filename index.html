@@ -13036,11 +13036,13 @@
           }, 2000);
           return;
         }
+        const lastTs = parseInt(lastBackup, 10);
+        if (isNaN(lastTs)) return;
         const daysSince = Math.floor(
-          (Date.now() - parseInt(lastBackup)) / 86400000,
+          (Date.now() - lastTs) / 86400000,
         );
         if (daysSince >= 7) {
-          const d = new Date(parseInt(lastBackup));
+          const d = new Date(lastTs);
           document.getElementById("ultimo-backup-fecha").textContent =
             d.toLocaleDateString("es-AR");
           setTimeout(() => {
@@ -13607,9 +13609,11 @@
             el.innerHTML =
               '<span style="color:var(--danger);">Nunca — ¡hacé un backup!</span>';
           } else {
-            const d = new Date(parseInt(lastBackup));
+            const ts = parseInt(lastBackup, 10);
+            if (isNaN(ts)) return;
+            const d = new Date(ts);
             const days = Math.floor(
-              (Date.now() - parseInt(lastBackup)) / 86400000,
+              (Date.now() - ts) / 86400000,
             );
             const color =
               days >= 7
@@ -15497,7 +15501,9 @@
           return;
         }
 
-        const days = Math.floor((Date.now() - parseInt(lastBackup)) / 86400000);
+        const bkTs = parseInt(lastBackup, 10);
+        if (isNaN(bkTs)) return;
+        const days = Math.floor((Date.now() - bkTs) / 86400000);
 
         if (days === 0) {
           pill.className = "sync-status-pill ok";
@@ -15543,8 +15549,10 @@
             ventas.length +
             " ventas sin respaldar. Si algo pasa con tu dispositivo, perdés todo.";
         } else {
+          const bts = parseInt(lastBackup, 10);
+          if (isNaN(bts)) return;
           const days = Math.floor(
-            (Date.now() - parseInt(lastBackup)) / 86400000,
+            (Date.now() - bts) / 86400000,
           );
           if (days >= BACKUP_DANGER_DAYS) {
             showBanner = true;
@@ -19194,7 +19202,7 @@
         }
       }
 
-      // ── Enviar notificación de cobros pendientes (via OneSignal REST API desde Netlify Function) ──
+      // ── Enviar notificación de cobros pendientes (via OneSignal REST API) ──
       // Se llama automáticamente al abrir la app si hay deudas y pasaron +12h desde la última notif
       async function checkYNotificarCobros() {
         try {
@@ -19273,6 +19281,8 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               subscriptionId,
+              title: "⏰ Cuotas vencidas — Parfum Track",
+              message: `Tenés ${vencidas.length} venta${vencidas.length !== 1 ? "s" : ""} con cuotas vencidas por ${fmtMonto}`,
               url: "/",
             }),
           });

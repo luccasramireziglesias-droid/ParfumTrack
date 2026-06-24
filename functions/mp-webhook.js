@@ -17,7 +17,7 @@
 //   license:{code}                   → JSON licenseData
 // ══════════════════════════════════════════════════════════════
 
-import { log } from './_shared.js';
+import { log, isValidEmail } from './_shared.js';
 import { sendEmail } from './_email-templates.js';
 
 // APP_URL se configura en Cloudflare Dashboard → Workers → Settings → Variables
@@ -210,8 +210,8 @@ async function handleSinglePayment(paymentId, payment, env) {
   if (!email) email = payment.payer?.email;
   if (!plan)  plan  = 'monthly';
 
-  if (!email) {
-    log('error', 'mp-webhook', 'payment without email', { paymentId });
+  if (!email || !isValidEmail(email)) {
+    log('error', 'mp-webhook', 'payment without valid email', { paymentId });
     return;
   }
 
@@ -247,35 +247,35 @@ async function handleSinglePayment(paymentId, payment, env) {
       }
       if (!lic) { /* corrupted — skip renewal, create fresh below */ }
       else {
-      const isAnnual = plan === 'annual' || lic.plan === 'basic_annual';
-      const base     = new Date(Math.max(Date.now(), new Date(lic.expiresAt || Date.now()).getTime()));
-      base.setDate(base.getDate() + (isAnnual ? 365 : 31));
-      const expiresAt = base.toISOString().split('T')[0];
+        const isAnnual = plan === 'annual' || lic.plan === 'basic_annual';
+        const base     = new Date(Math.max(Date.now(), new Date(lic.expiresAt || Date.now()).getTime()));
+        base.setDate(base.getDate() + (isAnnual ? 365 : 31));
+        const expiresAt = base.toISOString().split('T')[0];
 
-      lic.expiresAt   = expiresAt;
-      lic.renewsAt    = expiresAt;
-      lic.status      = 'active';
-      lic.suspendedAt = null;
+        lic.expiresAt   = expiresAt;
+        lic.renewsAt    = expiresAt;
+        lic.status      = 'active';
+        lic.suspendedAt = null;
 
-      await env.PT_LICENSES.put(`license:${existingCode}`, JSON.stringify(lic));
-      await env.PT_LICENSES.put(`mp_pay:${paymentId}`, existingCode, { expirationTtl: TTL_3Y });
-      log('info', 'mp-webhook', 'license renewed', { code: existingCode.slice(0, 7) + '***', expiresAt });
+        await env.PT_LICENSES.put(`license:${existingCode}`, JSON.stringify(lic));
+        await env.PT_LICENSES.put(`mp_pay:${paymentId}`, existingCode, { expirationTtl: TTL_3Y });
+        log('info', 'mp-webhook', 'license renewed', { code: existingCode.slice(0, 7) + '***', expiresAt });
 
-      const ownerEmail = env.OWNER_EMAIL || env.FROM_EMAIL;
-      if (lic.clientEmail) {
-        await sendEmail(env, lic.clientEmail, 'subscription_renewed', { expiresAt });
-      }
-      if (ownerEmail) {
-        await sendEmail(env, ownerEmail, 'owner_payment_notification', {
-          clientEmail: lic.clientEmail,
-          code:        existingCode,
-          plan:        lic.plan,
-          expiresAt,
-          paymentId,
-          type:        'renewal',
-        });
-      }
-      return;
+        const ownerEmail = env.OWNER_EMAIL || env.FROM_EMAIL;
+        if (lic.clientEmail) {
+          await sendEmail(env, lic.clientEmail, 'subscription_renewed', { expiresAt });
+        }
+        if (ownerEmail) {
+          await sendEmail(env, ownerEmail, 'owner_payment_notification', {
+            clientEmail: lic.clientEmail,
+            code:        existingCode,
+            plan:        lic.plan,
+            expiresAt,
+            paymentId,
+            type:        'renewal',
+          });
+        }
+        return;
       }
     }
   }

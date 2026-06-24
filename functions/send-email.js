@@ -273,7 +273,10 @@ export async function onRequestPost(context) {
 
   // Verificar que el destinatario tiene registro en KV (trial o licencia)
   // Esto evita que el endpoint sea usado como relay de phishing a direcciones arbitrarias
-  if (env.PT_LICENSES) {
+  if (!env.PT_LICENSES) {
+    return json({ ok: false, error: 'Service unavailable' }, 500, headers);
+  }
+  {
     const emailLower = to.toLowerCase().trim();
     const emailHash = await sha256(emailLower);
     const [trialRec, licenseRec] = await Promise.all([

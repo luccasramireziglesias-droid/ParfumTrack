@@ -32,7 +32,11 @@ export async function onRequestGet(context) {
   const authError = await verifyToken(code, token, env);
   if (authError) return json({ ok: false, error: authError }, 401, headers);
 
-  const licRaw = await env.PT_LICENSES?.get(`license:${code}`);
+  if (!env.PT_LICENSES) {
+    return json({ ok: false, error: 'Service unavailable' }, 500, headers);
+  }
+
+  const licRaw = await env.PT_LICENSES.get(`license:${code}`);
   if (!licRaw) return json({ ok: false, error: 'Licencia no encontrada' }, 404, headers);
 
   let lic;
