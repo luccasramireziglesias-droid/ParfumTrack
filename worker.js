@@ -19,6 +19,19 @@ const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status
 
 export default {
   async fetch(request, env, ctx) {
+    try {
+      return await handleRequest(request, env, ctx);
+    } catch (e) {
+      console.error(JSON.stringify({ ts: Date.now(), level: 'error', src: 'worker', msg: 'Unhandled error', data: { error: e.message, path: new URL(request.url).pathname } }));
+      return new Response(JSON.stringify({ ok: false, error: 'Internal server error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  },
+};
+
+async function handleRequest(request, env, ctx) {
     const url    = new URL(request.url);
     const path   = url.pathname;
     const method = request.method;
@@ -60,7 +73,16 @@ export default {
       if (path === '/mp-payment-status')      return mpPaymentStatus(context);
     }
 
+    if (isApiRoute) {
+      const hasPost = POST_ROUTES.includes(path);
+      const hasGet  = GET_ROUTES.includes(path);
+      const allow = [hasGet && 'GET', hasPost && 'POST', 'OPTIONS'].filter(Boolean).join(', ');
+      return new Response(JSON.stringify({ ok: false, error: 'Method not allowed' }), {
+        status: 405,
+        headers: { 'Content-Type': 'application/json', Allow: allow },
+      });
+    }
+
     // Todo lo demás → assets estáticos (index.html, sw.js, etc.)
     return env.ASSETS.fetch(request);
-  },
-};
+}
