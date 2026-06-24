@@ -32,8 +32,8 @@ export async function onRequestPost(context) {
   const ipLimitError = await checkRateLimit(env, `rl_ip_${ip}`, 10, 3600);
   if (ipLimitError) return json({ ok: false, error: ipLimitError }, 429, headers);
 
-  const ctError = requireJson(request);
-  if (ctError) return json({ ok: false, error: ctError }, 415, headers);
+  const ctError = requireJson(request, 5_242_880);
+  if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
   let body;
   try { body = await request.json(); }

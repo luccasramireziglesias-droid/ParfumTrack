@@ -24,8 +24,8 @@ export async function onRequestPost(context) {
   if (ipLimitError)
     return json({ ok: false, error: ipLimitError }, 429, headers);
 
-  const ctError = requireJson(request);
-  if (ctError) return json({ ok: false, error: ctError }, 415, headers);
+  const ctError = requireJson(request, 4096);
+  if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
   let subscriptionId, title, message, url, authCode, authToken;
   try {

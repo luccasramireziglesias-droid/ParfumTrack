@@ -331,4 +331,14 @@ describe('requireJson', () => {
     const req = { headers: { get: () => null } };
     expect(requireJson(req)).toBe('Content-Type must be application/json');
   });
+
+  it('returns error when content-length exceeds maxBytes', () => {
+    const req = { headers: { get: (k) => k === 'content-type' ? 'application/json' : k === 'content-length' ? '10000' : null } };
+    expect(requireJson(req, 4096)).toBe('Payload too large');
+  });
+
+  it('allows content-length within maxBytes', () => {
+    const req = { headers: { get: (k) => k === 'content-type' ? 'application/json' : k === 'content-length' ? '2000' : null } };
+    expect(requireJson(req, 4096)).toBeNull();
+  });
 });

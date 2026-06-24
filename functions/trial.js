@@ -42,8 +42,8 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: "KV not configured" }, 500, headers);
   }
 
-  const ctError = requireJson(request);
-  if (ctError) return json({ ok: false, error: ctError }, 415, headers);
+  const ctError = requireJson(request, 4096);
+  if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
   let body;
   try {

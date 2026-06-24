@@ -33,8 +33,8 @@ export async function onRequestPost(context) {
   );
   if (ipErr) return json({ ok: false, error: ipErr }, 429, headers);
 
-  const ctError = requireJson(request);
-  if (ctError) return json({ ok: false, error: ctError }, 415, headers);
+  const ctError = requireJson(request, 5_242_880);
+  if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
   let body;
   try {
