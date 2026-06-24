@@ -10213,16 +10213,7 @@
           if (msg) toast(msg, ms || 2800);
         };
 
-        // Trial limit check
-        if (_sec.isTrialExp() && !isActivated()) {
-          if (getTrialVentasRestantes() <= 0) {
-            abrirModalActivacion();
-            _abort(
-              "🔒 Límite alcanzado. Activá tu plan Básico Pro para continuar.",
-            );
-            return;
-          }
-        }
+        // Trial limit check — solo features Pro se bloquean, ventas siempre libres
 
         const f = _readVentaForm();
         const err = _validateVenta(f);
@@ -10374,22 +10365,7 @@
         }
         _addVentaEnProceso = false;
 
-        if (_sec.isTrialExp() && !isActivated()) {
-          const r = getTrialVentasRestantes();
-          if (r === 1)
-            setTimeout(
-              () =>
-                toast(
-                  "⚠ Esta fue tu penúltima venta en modo limitado. Activá la licencia para seguir.",
-                  4000,
-                ),
-              3400,
-            );
-          else if (r === 0)
-            setTimeout(() => {
-              mostrarBannerTrialVencido(0);
-            }, 3400);
-        }
+        // Ventas siempre libres en plan Free — solo features Pro requieren activación
         trackEvent("venta_guardada", {
           perfume: f.perfume,
           esCuotas: esCuotas ? 1 : 0,
@@ -11951,7 +11927,6 @@
         maxUses: null,
         trialDays: 14,
         trialMinutes: null,
-        trialLimitedVentas: 15,
         isDemo: false,
       });
 
@@ -12359,18 +12334,6 @@
         const days = Math.floor(ms / 86400000);
         return `${days} día${days !== 1 ? "s" : ""}`;
       }
-      function getTrialVentasRestantes() {
-        const trialStart = parseInt(
-          localStorage.getItem("pt_trial_start") || "0",
-        );
-        if (!trialStart) return LICENSE.trialLimitedVentas; // trial no iniciado aún
-        const vencimiento = trialStart + getTrialDuration();
-        const ventasTrasVencer = ventas.filter(
-          (v) => (v.createdAt || v.id) > vencimiento,
-        ).length;
-        return Math.max(0, LICENSE.trialLimitedVentas - ventasTrasVencer);
-      }
-
       // ── Server-side trial anchor ──────────────────────────────────
       // Registers (or retrieves) the trial start in Cloudflare KV.
       // If the server knows an earlier start (user cleared localStorage),
@@ -12740,8 +12703,7 @@
         if (msLeft <= 0) {
           _secSetTrialExp(true);
           trackEvent("trial_vencido");
-          const restantes = getTrialVentasRestantes();
-          mostrarBannerTrialVencido(restantes);
+          mostrarBannerFreeUpsell();
           // Email de trial vencido (una sola vez)
           setTimeout(() => sendTrialEmail("trial_expired"), 2000);
         } else {
@@ -12772,12 +12734,9 @@
                 clearInterval(_trialTickerRef[0]);
                 _secSetTrialExp(true);
                 trackEvent("trial_vencido");
-                const r = getTrialVentasRestantes();
-                mostrarBannerTrialVencido(r);
+                mostrarBannerFreeUpsell();
                 toast(
-                  "⏳ Período de prueba finalizado. Podés registrar " +
-                    r +
-                    " ventas más.",
+                  "Tu prueba Pro terminó. Seguís con el plan Free — ventas ilimitadas, gratis para siempre.",
                   5000,
                 );
               } else {
@@ -12794,7 +12753,7 @@
         if (el) el.classList.add("open");
       }
 
-      function mostrarBannerTrialVencido(restantes) {
+      function mostrarBannerFreeUpsell() {
         let banner = document.getElementById("trial-banner");
         if (!banner) {
           banner = document.createElement("div");
@@ -12805,18 +12764,12 @@
         banner.style.cssText =
           "position:fixed;top:0;left:0;right:0;z-index:9000;padding:8px 14px;text-align:center;font-size:12px;cursor:pointer;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;";
         banner.style.background =
-          "linear-gradient(90deg,rgba(224,112,112,0.18),rgba(224,112,112,0.06))";
-        banner.style.borderBottom = "1px solid var(--danger)";
-        banner.style.color = "#e07070";
-
-        if (restantes > 0) {
-          banner.innerHTML = `⚠️ Prueba vencida · Podés cargar <strong>${restantes} venta${restantes !== 1 ? "s" : ""} más</strong> · <span onclick="abrirModalActivacion()" style="text-decoration:underline;cursor:pointer;color:#f0a0a0;">Activar ahora →</span>`;
-        } else {
-          banner.innerHTML = `🔒 Límite alcanzado · <span onclick="abrirModalActivacion()" style="text-decoration:underline;cursor:pointer;color:#f0a0a0;">Activá tu licencia para seguir registrando ventas →</span>`;
-        }
+          "linear-gradient(90deg,var(--gold-dim),rgba(201,168,76,0.04))";
+        banner.style.borderBottom = "1px solid var(--gold)";
+        banner.style.color = "var(--gold2)";
+        banner.innerHTML = `Plan Free activo · <span onclick="openPricingModal()" style="text-decoration:underline;cursor:pointer;color:var(--gold3);">Descubrí Básico Pro →</span>`;
         banner.onclick = function (e) {
-          if (e.target === banner || e.target.tagName === "STRONG")
-            abrirModalActivacion();
+          if (e.target === banner) openPricingModal();
         };
       }
 
