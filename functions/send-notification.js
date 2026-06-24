@@ -11,7 +11,7 @@
 //   binding: "PT_LICENSES" — reutilizado para rate limiting
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, checkRateLimit, verifyToken } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, log } from './_shared.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -22,46 +22,28 @@ export async function onRequestPost(context) {
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
   const ipLimitError = await checkRateLimit(env, `rl_notif_ip_${ip}`, 10, 3600);
   if (ipLimitError)
-    return new Response(JSON.stringify({ ok: false, error: ipLimitError }), {
-      status: 429,
-      headers,
-    });
+    return json({ ok: false, error: ipLimitError }, 429, headers);
 
   let subscriptionId, title, message, url, authCode, authToken;
   try {
     ({ subscriptionId, title, message, url, code: authCode, token: authToken } = await request.json());
   } catch {
-    return new Response(JSON.stringify({ ok: false }), {
-      status: 400,
-      headers,
-    });
+    return json({ ok: false, error: "Bad request" }, 400, headers);
   }
 
   if (!subscriptionId || !title || !message) {
-    return new Response(
-      JSON.stringify({ ok: false, error: "Missing fields" }),
-      { status: 400, headers },
-    );
+    return json({ ok: false, error: "Missing fields" }, 400, headers);
   }
 
   // Input guards
   if (typeof subscriptionId !== "string" || subscriptionId.length > 256 || !/^[a-zA-Z0-9_-]+$/.test(subscriptionId)) {
-    return new Response(
-      JSON.stringify({ ok: false, error: "Invalid subscriptionId" }),
-      { status: 400, headers },
-    );
+    return json({ ok: false, error: "Invalid subscriptionId" }, 400, headers);
   }
   if (typeof title !== "string" || title.length > 128) {
-    return new Response(
-      JSON.stringify({ ok: false, error: "title too long" }),
-      { status: 400, headers },
-    );
+    return json({ ok: false, error: "title too long" }, 400, headers);
   }
   if (typeof message !== "string" || message.length > 512) {
-    return new Response(
-      JSON.stringify({ ok: false, error: "message too long" }),
-      { status: 400, headers },
-    );
+    return json({ ok: false, error: "message too long" }, 400, headers);
   }
 
   // Rate limit by subscriptionId: max 20 notifications/day
@@ -73,31 +55,23 @@ export async function onRequestPost(context) {
     86400,
   );
   if (subLimitError)
-    return new Response(JSON.stringify({ ok: false, error: subLimitError }), {
-      status: 429,
-      headers,
-    });
+    return json({ ok: false, error: subLimitError }, 429, headers);
 
   // Auth: verificar token HMAC — obligatorio
   if (!authCode || !authToken) {
-    return new Response(JSON.stringify({ ok: false, error: 'Authentication required' }), { status: 401, headers });
+    return json({ ok: false, error: 'Authentication required' }, 401, headers);
   }
   const tokenErr = await verifyToken(authCode, authToken, env);
   if (tokenErr) {
-    return new Response(JSON.stringify({ ok: false, error: 'Unauthorized' }), { status: 401, headers });
+    return json({ ok: false, error: 'Unauthorized' }, 401, headers);
   }
 
   const appId = env.ONESIGNAL_APP_ID;
   const apiKey = env.ONESIGNAL_REST_KEY;
 
   if (!appId || !apiKey) {
-    console.error(
-      "[send-notification] Faltan variables ONESIGNAL_APP_ID o ONESIGNAL_REST_KEY",
-    );
-    return new Response(
-      JSON.stringify({ ok: false, error: "Server config error" }),
-      { status: 500, headers },
-    );
+    log('error', 'send-notification', 'missing ONESIGNAL_APP_ID or ONESIGNAL_REST_KEY');
+    return json({ ok: false, error: "Server config error" }, 500, headers);
   }
 
   const safeUrl = (typeof url === 'string' && /^\//.test(url)) ? url : '/';
@@ -124,23 +98,14 @@ export async function onRequestPost(context) {
     const data = await resp.json();
 
     if (data.errors) {
-      console.error("[send-notification] OneSignal error:", data.errors);
-      return new Response(JSON.stringify({ ok: false, errors: data.errors }), {
-        status: 200,
-        headers,
-      });
+      log('error', 'send-notification', 'OneSignal error', { errors: data.errors });
+      return json({ ok: false, error: Array.isArray(data.errors) ? data.errors.join('; ') : String(data.errors) }, 200, headers);
     }
 
-    return new Response(JSON.stringify({ ok: true, id: data.id }), {
-      status: 200,
-      headers,
-    });
+    return json({ ok: true, id: data.id }, 200, headers);
   } catch (e) {
-    console.error("[send-notification] Fetch error:", e.message);
-    return new Response(JSON.stringify({ ok: false }), {
-      status: 500,
-      headers,
-    });
+    log('error', 'send-notification', 'fetch error', { error: e.message });
+    return json({ ok: false, error: "Notification service unavailable" }, 500, headers);
   }
 }
 

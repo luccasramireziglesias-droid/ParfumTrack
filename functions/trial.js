@@ -26,7 +26,7 @@
 //   PT_LICENSES    — KV binding
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, sha256, delay } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, sha256, delay, isValidEmail, log } from './_shared.js';
 
 const KV_TTL_SECS = 90 * 24 * 60 * 60;
 const OTP_TTL_SECS = 10 * 60;
@@ -39,14 +39,14 @@ export async function onRequestPost(context) {
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
 
   if (!env.PT_LICENSES) {
-    return json({ error: "KV not configured" }, 500, headers);
+    return json({ ok: false, error: "KV not configured" }, 500, headers);
   }
 
   let body;
   try {
     body = await request.json();
   } catch {
-    return json({ error: "Bad request" }, 400, headers);
+    return json({ ok: false, error: "Bad request" }, 400, headers);
   }
 
   const step = body.step;
@@ -56,10 +56,10 @@ export async function onRequestPost(context) {
 
   // Legacy path: { deviceId } sin step → deprecado, requiere OTP
   if (body.deviceId && !step) {
-    return json({ error: 'Verificación por email requerida. Actualizá la app.' }, 410, headers);
+    return json({ ok: false, error: 'Verificación por email requerida. Actualizá la app.' }, 410, headers);
   }
 
-  return json({ error: "Invalid request" }, 400, headers);
+  return json({ ok: false, error: "Invalid request" }, 400, headers);
 }
 
 // ── Step 1: Request OTP ───────────────────────────────────────
@@ -68,7 +68,7 @@ async function handleRegister(body, ip, env, headers) {
   const { email, deviceId } = body;
 
   if (!email || typeof email !== "string" || !isValidEmail(email)) {
-    return json({ error: "Email inválido" }, 400, headers);
+    return json({ ok: false, error: "Email inválido" }, 400, headers);
   }
 
   const emailLower = email.toLowerCase().trim();
@@ -82,13 +82,13 @@ async function handleRegister(body, ip, env, headers) {
     3600,
   );
   if (rlIp)
-    return json({ error: "Demasiados intentos. Esperá 1 hora." }, 429, headers);
+    return json({ ok: false, error: "Demasiados intentos. Esperá 1 hora." }, 429, headers);
 
   // Rate limit: 10 OTP requests per email per hour
   const rlEmail = await checkRateLimit(env, `rl_otp_em_${emailHash}`, 10, 3600);
   if (rlEmail)
     return json(
-      { error: "Demasiados intentos para este email. Esperá 1 hora." },
+      { ok: false, error: "Demasiados intentos para este email. Esperá 1 hora." },
       429,
       headers,
     );
@@ -111,11 +111,11 @@ async function handleRegister(body, ip, env, headers) {
 
   // Await email send — non-blocking caused Worker to terminate before Brevo got the request
   await sendOtpEmail(emailLower, otp, env).catch((e) =>
-    console.error("[trial] email error:", e?.message),
+    log('error', 'trial', 'email send failed', { error: e?.message }),
   );
 
-  console.log('[trial] OTP enviado');
-  return json({ sent: true }, 200, headers);
+  log('info', 'trial', 'OTP sent');
+  return json({ ok: true, sent: true }, 200, headers);
 }
 
 // ── Step 2: Verify OTP + anchor trial ────────────────────────
@@ -131,7 +131,7 @@ async function handleVerify(body, ip, env, headers) {
     typeof otp !== "string" ||
     !/^\d{6}$/.test(otp)
   ) {
-    return json({ error: "Datos inválidos" }, 400, headers);
+    return json({ ok: false, error: "Datos inválidos" }, 400, headers);
   }
 
   const emailLower = email.toLowerCase().trim();
@@ -142,7 +142,7 @@ async function handleVerify(body, ip, env, headers) {
   if (rlVerify) {
     await delay(DELAY_MS);
     return json(
-      { error: "Demasiados intentos. Esperá 15 minutos." },
+      { ok: false, error: "Demasiados intentos. Esperá 15 minutos." },
       429,
       headers,
     );
@@ -153,7 +153,7 @@ async function handleVerify(body, ip, env, headers) {
   if (!otpRaw) {
     await delay(DELAY_MS);
     return json(
-      { error: "El código expiró. Solicitá uno nuevo." },
+      { ok: false, error: "El código expiró. Solicitá uno nuevo." },
       400,
       headers,
     );
@@ -163,14 +163,14 @@ async function handleVerify(body, ip, env, headers) {
   try {
     otpData = JSON.parse(otpRaw);
   } catch {
-    return json({ error: "Error interno" }, 500, headers);
+    return json({ ok: false, error: "Error interno" }, 500, headers);
   }
 
   // Too many failed attempts
   if ((otpData.attempts || 0) >= 5) {
     await delay(DELAY_MS);
     return json(
-      { error: "Código bloqueado. Solicitá uno nuevo." },
+      { ok: false, error: "Código bloqueado. Solicitá uno nuevo." },
       400,
       headers,
     );
@@ -193,7 +193,7 @@ async function handleVerify(body, ip, env, headers) {
     );
     await delay(DELAY_MS);
     return json(
-      { error: "Código incorrecto", attemptsLeft: 5 - otpData.attempts },
+      { ok: false, error: "Código incorrecto", attemptsLeft: 5 - otpData.attempts },
       400,
       headers,
     );
@@ -262,8 +262,8 @@ async function handleVerify(body, ip, env, headers) {
       .join("");
   }
 
-  console.log('[trial] OTP verificado correctamente');
-  return json({ startAt, verified: true, syncCode, syncToken }, 200, headers);
+  log('info', 'trial', 'OTP verified');
+  return json({ ok: true, startAt, verified: true, syncCode, syncToken }, 200, headers);
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -285,23 +285,15 @@ async function getTs(env, key) {
   }
 }
 
-function isValidEmail(email) {
-  return (
-    typeof email === "string" &&
-    email.length <= 254 &&
-    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(email)
-  );
-}
-
 async function sendOtpEmail(email, otp, env) {
   const apiKey = env.BREVO_API_KEY;
   const fromEmail = env.FROM_EMAIL || "parfumtrack@gmail.com";
   const fromName = env.FROM_NAME || "Parfum Track";
   if (!apiKey) {
-    console.error("[trial] BREVO_API_KEY not set — email not sent");
+    log('error', 'trial', 'BREVO_API_KEY not set');
     return;
   }
-  console.log('[trial] Enviando OTP via Brevo');
+  log('info', 'trial', 'sending OTP via Brevo');
 
   await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
@@ -345,9 +337,9 @@ async function sendOtpEmail(email, otp, env) {
     signal: AbortSignal.timeout(8000),
   }).then(async (res) => {
     if (!res.ok) {
-      console.error(`[trial] Brevo error ${res.status}`);
+      log('error', 'trial', 'Brevo error', { status: res.status });
     } else {
-      console.log(`[trial] Brevo OK ${res.status}`);
+      log('info', 'trial', 'Brevo OK', { status: res.status });
     }
   });
 }

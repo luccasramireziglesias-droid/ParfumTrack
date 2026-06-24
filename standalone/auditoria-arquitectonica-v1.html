@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ParfumTrack — Auditoría Arquitectónica Completa v1</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a14;color:#e8e4dc;font-family:'Segoe UI',system-ui,sans-serif;line-height:1.7;padding:0}
+.container{max-width:1100px;margin:0 auto;padding:24px 20px}
+h1{color:#c9a84c;font-size:28px;font-weight:800;text-align:center;margin-bottom:6px;letter-spacing:-0.5px}
+.subtitle{color:#8a8578;text-align:center;font-size:13px;margin-bottom:32px}
+h2{color:#c9a84c;font-size:20px;font-weight:700;margin:36px 0 16px;padding-bottom:8px;border-bottom:1px solid rgba(201,168,76,0.2)}
+h3{color:#e8c97e;font-size:16px;font-weight:600;margin:20px 0 10px}
+h4{color:#b8a870;font-size:14px;font-weight:600;margin:14px 0 8px}
+p{color:#b8b4a8;font-size:14px;margin-bottom:10px}
+.card{background:#12121f;border:1px solid rgba(201,168,76,0.12);border-radius:12px;padding:20px;margin-bottom:16px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-critical{background:rgba(224,112,112,0.15);color:#e07070;border:1px solid rgba(224,112,112,0.3)}
+.badge-high{background:rgba(232,168,60,0.12);color:#e8a83c;border:1px solid rgba(232,168,60,0.25)}
+.badge-medium{background:rgba(201,168,76,0.12);color:#c9a84c;border:1px solid rgba(201,168,76,0.2)}
+.badge-low{background:rgba(112,201,160,0.12);color:#70c9a0;border:1px solid rgba(112,201,160,0.2)}
+.badge-info{background:rgba(100,149,237,0.12);color:#6495ed;border:1px solid rgba(100,149,237,0.2)}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th{background:rgba(201,168,76,0.08);color:#c9a84c;text-align:left;padding:10px 12px;font-weight:600;border-bottom:1px solid rgba(201,168,76,0.15)}
+td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);color:#b8b4a8}
+tr:hover td{background:rgba(201,168,76,0.03)}
+.score-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:16px 0}
+.score-item{background:#12121f;border:1px solid rgba(201,168,76,0.1);border-radius:10px;padding:16px;text-align:center}
+.score-value{font-size:32px;font-weight:800;color:#c9a84c;line-height:1}
+.score-label{font-size:12px;color:#8a8578;margin-top:6px}
+.score-bar{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;margin-top:8px;overflow:hidden}
+.score-fill{height:100%;border-radius:3px;transition:width 0.5s}
+.verdict-box{background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.02));border:1px solid rgba(201,168,76,0.25);border-radius:14px;padding:24px;margin:24px 0;text-align:center}
+.verdict-title{color:#c9a84c;font-size:18px;font-weight:700;margin-bottom:8px}
+.verdict-score{font-size:48px;font-weight:900;background:linear-gradient(135deg,#c9a84c,#e8c97e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1}
+.verdict-text{color:#b8b4a8;font-size:14px;margin-top:8px}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-right:4px}
+.tag-red{background:rgba(224,112,112,0.15);color:#e07070}
+.tag-orange{background:rgba(232,168,60,0.12);color:#e8a83c}
+.tag-gold{background:rgba(201,168,76,0.12);color:#c9a84c}
+.tag-green{background:rgba(112,201,160,0.12);color:#70c9a0}
+.tag-blue{background:rgba(100,149,237,0.12);color:#6495ed}
+ul{padding-left:20px;margin:8px 0}
+li{color:#b8b4a8;font-size:13px;margin-bottom:4px}
+li strong{color:#e8e4dc}
+code{background:rgba(201,168,76,0.08);color:#e8c97e;padding:2px 6px;border-radius:4px;font-size:12px;font-family:'Fira Code',monospace}
+.metrics-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:14px 0}
+.metric{background:#12121f;border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:12px;text-align:center}
+.metric-value{font-size:24px;font-weight:800;color:#e8c97e}
+.metric-label{font-size:11px;color:#8a8578;margin-top:2px}
+.phase-header{background:linear-gradient(90deg,rgba(201,168,76,0.12),transparent);border-left:3px solid #c9a84c;padding:12px 16px;margin:28px 0 16px;border-radius:0 8px 8px 0}
+.phase-header h2{margin:0;border:0;padding:0;font-size:18px}
+.phase-header .phase-num{color:#8a8578;font-size:12px;font-weight:400}
+.roadmap-item{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start}
+.roadmap-dot{width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0}
+.roadmap-dot.red{background:#e07070}
+.roadmap-dot.orange{background:#e8a83c}
+.roadmap-dot.gold{background:#c9a84c}
+.roadmap-dot.green{background:#70c9a0}
+.comparison-cell{font-size:18px;text-align:center}
+.footer{text-align:center;color:#4a4848;font-size:11px;margin-top:40px;padding:20px 0;border-top:1px solid rgba(255,255,255,0.04)}
+@media(max-width:600px){.container{padding:16px 12px}.score-grid{grid-template-columns:1fr 1fr}.metrics-row{grid-template-columns:1fr 1fr}h1{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Auditoría Arquitectónica Completa</h1>
+<p class="subtitle">ParfumTrack — Evaluación CTO/Principal Architect · 23 junio 2026 · v1.0</p>
+
+<!-- ═══ RESUMEN EJECUTIVO ═══ -->
+<div class="verdict-box">
+<div class="verdict-title">Score Arquitectónico Global</div>
+<div class="verdict-score">4.2 / 10</div>
+<div class="verdict-text">MVP funcional con deuda técnica estructural significativa.<br>Necesita rediseño para escalar más allá de 1-2 desarrolladores y 1,000 usuarios.</div>
+</div>
+
+<div class="metrics-row">
+<div class="metric"><div class="metric-value">19,593</div><div class="metric-label">Líneas index.html</div></div>
+<div class="metric"><div class="metric-value">2,333</div><div class="metric-label">Líneas backend</div></div>
+<div class="metric"><div class="metric-value">377</div><div class="metric-label">Funciones JS</div></div>
+<div class="metric"><div class="metric-value">60+</div><div class="metric-label">Variables globales</div></div>
+<div class="metric"><div class="metric-value">0</div><div class="metric-label">Tests automatizados</div></div>
+<div class="metric"><div class="metric-value">204</div><div class="metric-label">onclick inline</div></div>
+<div class="metric"><div class="metric-value">34</div><div class="metric-label">Modales</div></div>
+<div class="metric"><div class="metric-value">11</div><div class="metric-label">Tabs/Vistas</div></div>
+</div>
+
+<!-- ═══ FASE 1: VISIÓN GENERAL ═══ -->
+<div class="phase-header"><h2><span class="phase-num">FASE 1 —</span> Visión General</h2></div>
+
+<div class="card">
+<h3>Arquitectura Actual</h3>
+<table>
+<tr><th>Capa</th><th>Tecnología</th><th>Patrón</th><th>Evaluación</th></tr>
+<tr><td>Frontend</td><td>HTML+CSS+JS vanilla (1 archivo)</td><td>Monolito SPA</td><td><span class="tag tag-red">Crítico</span></td></tr>
+<tr><td>Backend</td><td>Cloudflare Workers (10 funciones)</td><td>Serverless flat</td><td><span class="tag tag-orange">Alto</span></td></tr>
+<tr><td>Router</td><td>worker.js (if-chains)</td><td>Manual dispatch</td><td><span class="tag tag-orange">Alto</span></td></tr>
+<tr><td>Base de datos</td><td>KV + R2 + IndexedDB/localStorage</td><td>Key-value distribuido</td><td><span class="tag tag-gold">Medio</span></td></tr>
+<tr><td>Auth</td><td>HMAC-SHA256 + ECDSA + OTP</td><td>Token-based</td><td><span class="tag tag-green">Bueno</span></td></tr>
+<tr><td>CI/CD</td><td>GitHub Actions → Cloudflare</td><td>Push-to-deploy</td><td><span class="tag tag-red">Crítico</span></td></tr>
+</table>
+
+<h4>¿La arquitectura es profesional?</h4>
+<p><strong>No.</strong> Es una arquitectura de MVP/prototipo que funcionó para validar el producto, pero tiene limitaciones fundamentales que impiden el crecimiento. El monolito de 19,593 líneas en un solo archivo HTML es el problema más evidente — ninguna empresa SaaS seria opera así.</p>
+
+<h4>¿Es sostenible a largo plazo?</h4>
+<p><strong>No sin refactorización mayor.</strong> Cada nuevo feature aumenta exponencialmente la complejidad. Un desarrollador nuevo necesitaría semanas para entender el archivo index.html. El riesgo de regresiones es altísimo sin tests.</p>
+
+<h4>¿Puede crecer sin convertirse en caos?</h4>
+<p><strong>Ya está en el umbral.</strong> Con 377 funciones, 60+ variables globales y 0 tests, cualquier cambio puede romper funcionalidades no relacionadas. El acoplamiento es máximo.</p>
+</div>
+
+<div class="card">
+<h3>Separación de Responsabilidades</h3>
+<table>
+<tr><th>Principio</th><th>Estado</th><th>Detalle</th></tr>
+<tr><td>SRP (Single Responsibility)</td><td><span class="badge badge-critical">Violado</span></td><td>index.html mezcla UI, lógica de negocio, estado, persistencia, networking</td></tr>
+<tr><td>DRY (Don't Repeat Yourself)</td><td><span class="badge badge-high">Parcial</span></td><td>Backend mejoró con _shared.js; frontend tiene ~1,500 líneas duplicadas</td></tr>
+<tr><td>Separation of Concerns</td><td><span class="badge badge-critical">Violado</span></td><td>CSS, HTML y JS en un archivo; 8 bloques &lt;style&gt; dispersos</td></tr>
+<tr><td>Open/Closed</td><td><span class="badge badge-critical">Violado</span></td><td>Agregar un tab requiere modificar showTab(), navbar, y secciones HTML</td></tr>
+<tr><td>Dependency Inversion</td><td><span class="badge badge-critical">Violado</span></td><td>Funciones backend acopladas a KV/R2/fetch directamente; no inyección</td></tr>
+</table>
+</div>
+
+<!-- ═══ FASE 2: FRONTEND ═══ -->
+<div class="phase-header"><h2><span class="phase-num">FASE 2 —</span> Arquitectura Frontend</h2></div>
+
+<div class="card">
+<h3>Estructura</h3>
+<table>
+<tr><th>Componente</th><th>Líneas</th><th>%</th><th>Evaluación</th></tr>
+<tr><td>CSS (8 bloques &lt;style&gt;)</td><td>3,224</td><td>16%</td><td>Disperso, sin preprocesador</td></tr>
+<tr><td>HTML (markup de vistas)</td><td>3,375</td><td>17%</td><td>11 tabs + 34 modales inline</td></tr>
+<tr><td>JavaScript (lógica)</td><td>12,994</td><td>67%</td><td>377 funciones, 0 módulos</td></tr>
+</table>
+
+<h4>Problemas Arquitectónicos Críticos</h4>
+<ul>
+<li><strong>Monolito absoluto:</strong> 19,593 líneas en 1 archivo. No hay code splitting, lazy loading de módulos, ni separación por feature.</li>
+<li><strong>Estado global mutable:</strong> 60+ variables <code>let</code>/<code>var</code> en scope global. Sin getters/setters, sin validación, sin inmutabilidad.</li>
+<li><strong>Sin componentes:</strong> 23 funciones <code>render*()</code> generan HTML via template literals e <code>innerHTML</code>. Sin lifecycle, sin cleanup, sin reusabilidad.</li>
+<li><strong>204 onclick inline:</strong> vs 28 addEventListener. Sin delegación de eventos. Problemas de accesibilidad keyboard.</li>
+<li><strong>Sin type safety:</strong> 0 TypeScript, 0 JSDoc. Variables sin tipado; errores runtime imposibles de prevenir.</li>
+<li><strong>Sin build step:</strong> No hay Webpack, Vite, Rollup. No hay minificación, tree-shaking, ni bundle optimization.</li>
+</ul>
+
+<h4>Patrones de UI</h4>
+<table>
+<tr><th>Patrón</th><th>Uso</th><th>Problema</th></tr>
+<tr><td>Navegación</td><td><code>showTab(t)</code> — toggle CSS class</td><td>Todo el DOM siempre montado; 71 líneas de lógica if/else por tab</td></tr>
+<tr><td>Modales</td><td>34 modales con <code>.open</code> class</td><td>Sin focus trap, sin dialog element, sin keyboard close</td></tr>
+<tr><td>Renderizado</td><td>23 funciones render*() con innerHTML</td><td>Sin virtual DOM, sin diffing; re-renderiza todo en cada cambio</td></tr>
+<tr><td>Virtualización</td><td>IntersectionObserver para ventas (lotes de 30)</td><td>Solo ventas; stock, gastos, clientes renderizan todo</td></tr>
+<tr><td>Persistencia</td><td>PTDB (IndexedDB wrapper) + localStorage</td><td>Dual storage sin clara separación; 174 llamadas a localStorage</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Funciones Más Complejas</h3>
+<table>
+<tr><th>Función</th><th>Líneas</th><th>Complejidad</th><th>Riesgo</th></tr>
+<tr><td>renderAjustes()</td><td>191</td><td>3 if/else anidados + 12 bindings</td><td><span class="badge badge-critical">Crítico</span></td></tr>
+<tr><td>addVenta()</td><td>191</td><td>Validación + caja + stock + cuotas</td><td><span class="badge badge-critical">Crítico</span></td></tr>
+<tr><td>enterApp()</td><td>120</td><td>Carga completa de estado + listeners</td><td><span class="badge badge-high">Alto</span></td></tr>
+<tr><td>checkTrial()</td><td>120</td><td>Verificación licencia + trial + UI</td><td><span class="badge badge-high">Alto</span></td></tr>
+<tr><td>renderStock()</td><td>119</td><td>Catálogo completo + fotos</td><td><span class="badge badge-high">Alto</span></td></tr>
+<tr><td>generarPDF()</td><td>112</td><td>Generación PDF + formato</td><td><span class="badge badge-medium">Medio</span></td></tr>
+</table>
+</div>
+
+<!-- ═══ FASE 3: BACKEND ═══ -->
+<div class="phase-header"><h2><span class="phase-num">FASE 3 —</span> Arquitectura Backend</h2></div>
+
+<div class="card">
+<h3>Inventario de Funciones</h3>
+<table>
+<tr><th>Archivo</th><th>Líneas</th><th>Responsabilidad</th><th>Complejidad</th></tr>
+<tr><td>mp-webhook.js</td><td>552</td><td>Webhooks MP + emails + licencias</td><td><span class="badge badge-critical">Crítico</span></td></tr>
+<tr><td>send-email.js</td><td>382</td><td>3 templates HTML + envío Brevo</td><td><span class="badge badge-high">Alto</span></td></tr>
+<tr><td>trial.js</td><td>358</td><td>OTP + verificación + anclaje trial</td><td><span class="badge badge-high">Alto</span></td></tr>
+<tr><td>validate-license.js</td><td>198</td><td>ECDSA + HMAC + KV lookup</td><td><span class="badge badge-medium">Medio</span></td></tr>
+<tr><td>sync.js</td><td>159</td><td>R2 cloud sync bidireccional</td><td><span class="badge badge-low">Bajo</span></td></tr>
+<tr><td>send-notification.js</td><td>151</td><td>Push via OneSignal</td><td><span class="badge badge-low">Bajo</span></td></tr>
+<tr><td>backup.js</td><td>139</td><td>R2 backup/restore</td><td><span class="badge badge-low">Bajo</span></td></tr>
+<tr><td>mp-create-preference.js</td><td>112</td><td>Crear preferencia MP</td><td><span class="badge badge-low">Bajo</span></td></tr>
+<tr><td>mp-payment-status.js</td><td>89</td><td>Status de pago</td><td><span class="badge badge-low">Bajo</span></td></tr>
+<tr><td>_shared.js</td><td>75</td><td>Utilidades compartidas</td><td><span class="badge badge-low">Bajo</span></td></tr>
+<tr><td>mp-subscription-status.js</td><td>52</td><td>Status de suscripción</td><td><span class="badge badge-low">Bajo</span></td></tr>
+</table>
+
+<h4>Capas de Arquitectura</h4>
+<p><strong>Estado actual:</strong> Todas las responsabilidades en una sola capa. Cada función mezcla HTTP handling, validación, lógica de negocio, acceso a datos y llamadas externas.</p>
+<table>
+<tr><th>Capa</th><th>Implementada</th><th>Estado</th></tr>
+<tr><td>Router/Middleware</td><td>worker.js (if-chains manuales)</td><td><span class="tag tag-orange">Sin middleware</span></td></tr>
+<tr><td>Controladores</td><td>Funciones onRequest*</td><td><span class="tag tag-orange">Mezclados con lógica</span></td></tr>
+<tr><td>Servicios</td><td>No existen</td><td><span class="tag tag-red">Ausente</span></td></tr>
+<tr><td>Repositorios</td><td>Acceso directo a KV/R2</td><td><span class="tag tag-red">Ausente</span></td></tr>
+<tr><td>Modelos de dominio</td><td>Objetos planos sin schema</td><td><span class="tag tag-red">Ausente</span></td></tr>
+<tr><td>Validación</td><td>Manual en cada endpoint</td><td><span class="tag tag-orange">Inconsistente</span></td></tr>
+</table>
+
+<h4>Lo Bueno del Backend</h4>
+<ul>
+<li><strong>_shared.js:</strong> Consolidación reciente de utilidades (corsHeaders, checkRateLimit, verifyToken, sha256, delay) — elimina 524 líneas duplicadas.</li>
+<li><strong>Rate limiting fail-closed:</strong> Si KV no está disponible, bloquea requests (no los deja pasar).</li>
+<li><strong>Timing-safe comparisons:</strong> Todas las comparaciones criptográficas usan XOR byte-a-byte con padding.</li>
+<li><strong>HMAC + ECDSA dual signing:</strong> Server genera HMAC token + firma ECDSA. Cliente puede verificar offline con public key.</li>
+</ul>
+</div>
+
+<!-- ═══ FASE 4: BASE DE DATOS ═══ -->
+<div class="phase-header"><h2><span class="phase-num">FASE 4 —</span> Base de Datos</h2></div>
+
+<div class="card">
+<h3>Modelo de Datos</h3>
+
+<h4>Servidor: Cloudflare KV (PT_LICENSES)</h4>
+<table>
+<tr><th>Key Pattern</th><th>Valor</th><th>TTL</th><th>Uso</th></tr>
+<tr><td><code>license:{code}</code></td><td>JSON (nombre, email, plan, status, expires...)</td><td>3 años</td><td>Licencias activas</td></tr>
+<tr><td><code>email_license:{hash}</code></td><td>Código de licencia</td><td>3 años</td><td>Lookup email→licencia</td></tr>
+<tr><td><code>mp_pay:{paymentId}</code></td><td>Código de licencia</td><td>3 años</td><td>Lookup pago→licencia</td></tr>
+<tr><td><code>trial_email:{hash}</code></td><td>Timestamp</td><td>90 días</td><td>Anclaje trial por email</td></tr>
+<tr><td><code>trial_dev:{hash}</code></td><td>Timestamp</td><td>90 días</td><td>Anclaje trial por dispositivo</td></tr>
+<tr><td><code>trial_otp:{hash}</code></td><td>JSON (otp, attempts, createdAt)</td><td>10 min</td><td>OTP temporal</td></tr>
+<tr><td><code>webhook_processed:{id}</code></td><td>"processing" | "done"</td><td>5 min / 30 días</td><td>Idempotencia webhook</td></tr>
+<tr><td><code>rl_*</code></td><td>Contador</td><td>2× ventana</td><td>Rate limiting (14+ keys)</td></tr>
+</table>
+
+<h4>Servidor: Cloudflare R2 (parfumtrack-backups)</h4>
+<table>
+<tr><th>Key</th><th>Contenido</th><th>Límite</th></tr>
+<tr><td><code>backup/{code}</code></td><td>JSON {data, savedAt}</td><td>5 MB</td></tr>
+<tr><td><code>sync/{code}</code></td><td>JSON {data, savedAt}</td><td>5 MB</td></tr>
+</table>
+
+<h4>Cliente: IndexedDB (parfumtrack_db → store "data")</h4>
+<table>
+<tr><th>Key</th><th>Contenido</th><th>Volumen esperado</th></tr>
+<tr><td><code>vip_ventas_v2[_profile]</code></td><td>Array de ventas</td><td>0-10,000 objetos</td></tr>
+<tr><td><code>vip_stock_v2[_profile]</code></td><td>Array de perfumes</td><td>0-500 objetos (con fotos base64)</td></tr>
+<tr><td><code>vip_gastos_v1[_profile]</code></td><td>Array de gastos</td><td>0-5,000 objetos</td></tr>
+<tr><td><code>vip_caja_v1[_profile]</code></td><td>Array de movimientos</td><td>0-5,000 objetos</td></tr>
+<tr><td><code>vip_meta_v1[_profile]</code></td><td>Número (meta mensual)</td><td>1 valor</td></tr>
+</table>
+
+<h4>Cliente: localStorage (~174 accesos)</h4>
+<p>Preferencias, trial state, PIN hash, backup reminders, perfil activo, configuración UI, WhatsApp settings, draft forms, tour state.</p>
+
+<h4>¿La base soportaría crecimiento masivo?</h4>
+<p><strong>KV tiene limitaciones inherentes:</strong> No soporta queries complejas, no tiene índices, no tiene transacciones. Es adecuado para lookup key-value simple (licencias, rate limits) pero no para analytics o reportería.</p>
+<p><strong>R2 es adecuado</strong> para backups/sync como blob storage, pero sin versionado ni soft deletes.</p>
+<p><strong>IndexedDB es el cuello de botella:</strong> Fotos de productos como base64 en IndexedDB inflán la base. Sin límite de tamaño, un usuario con 500 productos con foto puede tener 50+ MB en IndexedDB.</p>
+</div>
+
+<!-- ═══ FASE 5: SEGURIDAD ═══ -->
+<div class="phase-header"><h2><span class="phase-num">FASE 5 —</span> Seguridad Arquitectónica</h2></div>
+
+<div class="card">
+<h3>Mecanismos de Autenticación</h3>
+<table>
+<tr><th>Mecanismo</th><th>Endpoints</th><th>Fortaleza</th><th>Debilidad</th></tr>
+<tr><td>HMAC-SHA256 token</td><td>/backup, /sync, /send-email, /send-notification, /mp-subscription-status</td><td>Timing-safe, fail-closed</td><td>Sin rotación de secrets</td></tr>
+<tr><td>ECDSA P-256 firma</td><td>/validate-license (respuesta)</td><td>Verificación offline client-side</td><td>Client puede ser manipulado (JS)</td></tr>
+<tr><td>Email OTP</td><td>/trial</td><td>Rejection sampling, timing-safe comparison</td><td>6 dígitos = 10⁶ combinaciones</td></tr>
+<tr><td>MP webhook signature</td><td>/mp-webhook</td><td>HMAC + timestamp (±5 min)</td><td>Ventana de replay de 5 min</td></tr>
+<tr><td>Email verification</td><td>/mp-payment-status</td><td>Verifica email contra MP API</td><td>Requiere MP API disponible</td></tr>
+</table>
+
+<h4>Vulnerabilidades Estructurales</h4>
+<table>
+<tr><th>Hallazgo</th><th>Severidad</th><th>Impacto</th></tr>
+<tr><td>Sin CSRF protection en endpoints POST</td><td><span class="badge badge-high">Alto</span></td><td>Cross-site request forgery posible para usuarios autenticados</td></tr>
+<tr><td>Email almacenado en plaintext en KV</td><td><span class="badge badge-high">Alto</span></td><td>Exposición de datos si KV es comprometido</td></tr>
+<tr><td>Trial state en localStorage (spoofable)</td><td><span class="badge badge-medium">Medio</span></td><td>Usuario puede resetear trial manualmente</td></tr>
+<tr><td>CSP con 'unsafe-inline' para scripts</td><td><span class="badge badge-medium">Medio</span></td><td>Inyección de scripts inline posible si hay XSS</td></tr>
+<tr><td>Sin API versioning</td><td><span class="badge badge-medium">Medio</span></td><td>Breaking changes requieren update simultáneo de todos los clientes</td></tr>
+<tr><td>Sin request signing desde el cliente</td><td><span class="badge badge-medium">Medio</span></td><td>No se puede verificar que requests vengan de la app genuina</td></tr>
+</table>
+
+<h4>Lo Bien Implementado</h4>
+<ul>
+<li>Rate limiting KV-based fail-closed en TODOS los endpoints (14+ límites distintos)</li>
+<li>Timing-safe comparisons con padding para prevenir timing attacks</li>
+<li>HMAC + ECDSA dual signing para licencias</li>
+<li>Idempotencia en webhook processing (prevents duplicate payments)</li>
+<li>Input validation con regex en emails, códigos, OTP</li>
+<li>HSTS preload con 2 años de max-age</li>
+<li>HTML sanitization en templates de email (escapeHTML)</li>
+</ul>
+</div>
+
+<!-- ═══ FASE 6: EXPERIENCIA DEV ═══ -->
+<div class="phase-header"><h2><span class="phase-num">FASE 6 —</span> Experiencia de Desarrollo</h2></div>
+
+<div class="card">
+<h3>Evaluación de Mantenibilidad</h3>
+<table>
+<tr><th>Tarea</th><th>Dificultad</th><th>Riesgo</th><th>Por qué</th></tr>
+<tr><td>Agregar nuevo tab/vista</td><td><span class="badge badge-critical">Muy alta</span></td><td>Regresión</td><td>Requiere modificar showTab(), navbar HTML, agregar sección, CSS. Todo en 1 archivo.</td></tr>
+<tr><td>Agregar endpoint API</td><td><span class="badge badge-low">Baja</span></td><td>Bajo</td><td>Crear archivo en functions/, agregar import en worker.js. Patrón claro.</td></tr>
+<tr><td>Corregir bug en renderVentas()</td><td><span class="badge badge-high">Alta</span></td><td>Regresión</td><td>Función depende de 8+ variables globales; sin tests para verificar fix.</td></tr>
+<tr><td>Cambiar diseño de un componente</td><td><span class="badge badge-high">Alta</span></td><td>Cascade</td><td>CSS disperso en 8 bloques + 500+ inline styles. Cambiar uno puede romper otro.</td></tr>
+<tr><td>Onboarding nuevo developer</td><td><span class="badge badge-critical">Muy alta</span></td><td>Productividad</td><td>~3 semanas para entender index.html. Sin documentación de arquitectura.</td></tr>
+<tr><td>Refactorizar a módulos</td><td><span class="badge badge-critical">Muy alta</span></td><td>Rewrite</td><td>60+ globals, 204 onclick, 174 localStorage calls que necesitan migración.</td></tr>
+</table>
+
+<h4>¿Cuánto costaría mantener esta aplicación en 2 años?</h4>
+<p><strong>Sin refactorización:</strong> Costo exponencialmente creciente. Cada feature nuevo tarda más. Bugs se acumulan. Un solo desarrollador puede manejar <em>mantenimiento mínimo</em> pero no crecimiento. Estimación: $80,000-120,000/año en deuda técnica acumulada (tiempo perdido, bugs, ineficiencia).</p>
+<p><strong>Con refactorización:</strong> Inversión inicial de $20,000-40,000 (2-3 meses de un senior) para migrar a módulos + framework ligero. Después el costo de mantenimiento baja a $30,000-50,000/año con capacidad de crecimiento real.</p>
+</div>
+
+<!-- ═══ FASE 7: DEUDA TÉCNICA ═══ -->
+<div class="phase-header"><h2><span class="phase-num">FASE 7 —</span> Deuda Técnica</h2></div>
+
+<div class="card">
+<table>
+<tr><th>Severidad</th><th>Hallazgo</th><th>Impacto</th><th>Esfuerzo Fix</th></tr>
+<tr><td><span class="badge badge-critical">Crítico</span></td><td>Monolito index.html de 19,593 líneas sin módulos</td><td>Imposible escalar equipo; regresiones constantes</td><td>160-240 hrs</td></tr>
+<tr><td><span class="badge badge-critical">Crítico</span></td><td>0 tests automatizados en CI/CD</td><td>Deploy sin validación; bugs llegan a producción</td><td>40-80 hrs</td></tr>
+<tr><td><span class="badge badge-critical">Crítico</span></td><td>Sin staging environment</td><td>Code va directo dev → prod</td><td>8 hrs</td></tr>
+<tr><td><span class="badge badge-critical">Crítico</span></td><td>60+ variables globales mutables</td><td>Race conditions, bugs difíciles de reproducir</td><td>80-120 hrs</td></tr>
+<tr><td><span class="badge badge-critical">Crítico</span></td><td>Sin error tracking (Sentry)</td><td>Ciego a errores runtime en producción</td><td>4 hrs</td></tr>
+<tr><td><span class="badge badge-high">Alto</span></td><td>mp-webhook.js monolítico (552 líneas)</td><td>Single point of failure para revenue</td><td>24 hrs</td></tr>
+<tr><td><span class="badge badge-high">Alto</span></td><td>204 onclick inline sin delegación</td><td>Accesibilidad, mantenibilidad</td><td>40 hrs</td></tr>
+<tr><td><span class="badge badge-high">Alto</span></td><td>Sin TypeScript ni type checking</td><td>Errores runtime no prevenibles</td><td>80-160 hrs</td></tr>
+<tr><td><span class="badge badge-high">Alto</span></td><td>CSS disperso en 8 bloques + 500 inline</td><td>Inconsistencia visual, mantenimiento difícil</td><td>40 hrs</td></tr>
+<tr><td><span class="badge badge-high">Alto</span></td><td>Fotos base64 en IndexedDB sin compresión</td><td>Bloat de storage; backups enormes</td><td>16 hrs</td></tr>
+<tr><td><span class="badge badge-medium">Medio</span></td><td>Backend sin separation of concerns</td><td>HTTP + business logic acoplados</td><td>40 hrs</td></tr>
+<tr><td><span class="badge badge-medium">Medio</span></td><td>3 regex de email distintas en el codebase</td><td>Validación inconsistente</td><td>2 hrs</td></tr>
+<tr><td><span class="badge badge-medium">Medio</span></td><td>Error handling inconsistente (ok/valid/error/errors)</td><td>Client parsing complejo</td><td>8 hrs</td></tr>
+<tr><td><span class="badge badge-medium">Medio</span></td><td>No API versioning</td><td>Breaking changes afectan a todos</td><td>8 hrs</td></tr>
+<tr><td><span class="badge badge-medium">Medio</span></td><td>Sin CORS diferenciado para webhook</td><td>MP necesita CORS diferente que el frontend</td><td>2 hrs</td></tr>
+<tr><td><span class="badge badge-low">Bajo</span></td><td>Service Worker cache name manual (v5)</td><td>Requiere bump manual en cada release</td><td>4 hrs</td></tr>
+<tr><td><span class="badge badge-low">Bajo</span></td><td>Sin structured logging (JSON)</td><td>Logs difíciles de parsear</td><td>4 hrs</td></tr>
+<tr><td><span class="badge badge-low">Bajo</span></td><td>Sin custom domain</td><td>Branding limitado (workers.dev)</td><td>1 hr</td></tr>
+</table>
+</div>
+
+<!-- ═══ FASE 8: ESCALABILIDAD ═══ -->
+<div class="phase-header"><h2><span class="phase-num">FASE 8 —</span> Escalabilidad Real</h2></div>
+
+<div class="card">
+<table>
+<tr><th>Escala</th><th>Frontend</th><th>Backend</th><th>Base de Datos</th><th>¿Funciona?</th></tr>
+<tr>
+<td><strong>100 usuarios</strong></td>
+<td><span class="tag tag-green">OK</span> App local funciona</td>
+<td><span class="tag tag-green">OK</span> Workers escalan auto</td>
+<td><span class="tag tag-green">OK</span> KV + R2 suficientes</td>
+<td>✅ Sí</td>
+</tr>
+<tr>
+<td><strong>1,000 usuarios</strong></td>
+<td><span class="tag tag-green">OK</span> Cada uno tiene su IndexedDB</td>
+<td><span class="tag tag-gold">Atención</span> Rate limit counters crecen</td>
+<td><span class="tag tag-gold">Atención</span> 1,000 backups en R2 (~5GB)</td>
+<td>✅ Sí, con monitoreo</td>
+</tr>
+<tr>
+<td><strong>10,000 usuarios</strong></td>
+<td><span class="tag tag-gold">Atención</span> Sin analytics cross-user</td>
+<td><span class="tag tag-orange">Problema</span> webhook concurrency; KV race conditions</td>
+<td><span class="tag tag-orange">Problema</span> 10K keys KV para licencias; rate limit key pollution</td>
+<td>⚠️ Con riesgos</td>
+</tr>
+<tr>
+<td><strong>100,000 usuarios</strong></td>
+<td><span class="tag tag-green">OK</span> App local no cambia</td>
+<td><span class="tag tag-red">Falla</span> Sin queue para webhooks; email service saturado</td>
+<td><span class="tag tag-red">Falla</span> KV no soporta queries; necesita DB real</td>
+<td>❌ No sin rediseño</td>
+</tr>
+<tr>
+<td><strong>1,000,000 usuarios</strong></td>
+<td><span class="tag tag-green">OK</span> App local no cambia</td>
+<td><span class="tag tag-red">Falla</span> Arquitectura completa inadecuada</td>
+<td><span class="tag tag-red">Falla</span> Necesita PostgreSQL/Planetscale + Redis</td>
+<td>❌ Rediseño total</td>
+</tr>
+</table>
+
+<h4>Cuellos de Botella Identificados</h4>
+<ul>
+<li><strong>KV rate limit pollution:</strong> 14+ rate limit keys por request. A 10K usuarios activos, KV tiene 140K+ keys efímeras compitiendo con datos reales.</li>
+<li><strong>Webhook processing síncrono:</strong> mp-webhook.js hace fetch a MP API + KV reads/writes + Brevo email en secuencia. Timeout posible a escala.</li>
+<li><strong>Sin queue/DLQ:</strong> Si un webhook falla, depende del retry de MP. No hay dead letter queue propia.</li>
+<li><strong>R2 backup sin cleanup:</strong> Cada usuario tiene 1 backup que crece indefinidamente. Sin retention policy.</li>
+<li><strong>Single Worker deployment:</strong> Todo el backend es 1 Worker. Si un endpoint tiene issues, afecta a todos.</li>
+</ul>
+</div>
+
+<!-- ═══ FASE 9: ESTÁNDARES ═══ -->
+<div class="phase-header"><h2><span class="phase-num">FASE 9 —</span> Comparación con Estándares SaaS</h2></div>
+
+<div class="card">
+<table>
+<tr><th>Criterio</th><th>Stripe</th><th>Shopify</th><th>Notion</th><th>ParfumTrack</th></tr>
+<tr><td>Frontend Framework</td><td>React</td><td>React</td><td>React</td><td class="comparison-cell">❌ Vanilla</td></tr>
+<tr><td>Build System</td><td>Webpack</td><td>Vite</td><td>Custom</td><td class="comparison-cell">❌ Ninguno</td></tr>
+<tr><td>Type Safety</td><td>TypeScript</td><td>TypeScript</td><td>TypeScript</td><td class="comparison-cell">❌ Ninguno</td></tr>
+<tr><td>State Management</td><td>Redux</td><td>MobX</td><td>MobX</td><td class="comparison-cell">❌ Globals</td></tr>
+<tr><td>Component System</td><td>React Components</td><td>Polaris</td><td>Custom</td><td class="comparison-cell">❌ innerHTML</td></tr>
+<tr><td>Testing</td><td>Jest + Cypress</td><td>Jest + Playwright</td><td>Jest + E2E</td><td class="comparison-cell">❌ 0 tests</td></tr>
+<tr><td>CI/CD</td><td>Multi-stage</td><td>Multi-stage</td><td>Multi-stage</td><td class="comparison-cell">⚠️ Push-to-deploy</td></tr>
+<tr><td>Staging</td><td>Múltiples envs</td><td>Dev/Staging/Prod</td><td>Dev/Staging/Prod</td><td class="comparison-cell">❌ Solo prod</td></tr>
+<tr><td>Error Tracking</td><td>Sentry</td><td>BugSnag</td><td>Sentry</td><td class="comparison-cell">❌ Ninguno</td></tr>
+<tr><td>API Design</td><td>REST + versioning</td><td>GraphQL</td><td>REST + versioning</td><td class="comparison-cell">⚠️ REST sin versioning</td></tr>
+<tr><td>DB</td><td>PostgreSQL</td><td>MySQL</td><td>PostgreSQL</td><td class="comparison-cell">⚠️ KV (key-value)</td></tr>
+<tr><td>Auth</td><td>OAuth 2.0</td><td>OAuth 2.0</td><td>Sessions + OAuth</td><td class="comparison-cell">⚠️ HMAC tokens</td></tr>
+<tr><td>Multi-tenancy</td><td>Full</td><td>Full</td><td>Full</td><td class="comparison-cell">❌ Client-side only</td></tr>
+<tr><td>Observability</td><td>Datadog</td><td>Custom + Splunk</td><td>Datadog</td><td class="comparison-cell">⚠️ Cloudflare tail</td></tr>
+</table>
+
+<h4>¿Qué le falta para parecer un SaaS profesional?</h4>
+<ul>
+<li><strong>Frontend modular:</strong> Framework (Preact/Svelte/Vue si se quiere liviano) o al menos módulos ES6 con Vite.</li>
+<li><strong>Backend con capas:</strong> Service layer + repository pattern + middleware pipeline.</li>
+<li><strong>Base de datos relacional:</strong> D1 (SQLite de Cloudflare) o Planetscale para queries complejas.</li>
+<li><strong>Auth estándar:</strong> Sesiones con cookies httpOnly o JWT con refresh tokens.</li>
+<li><strong>API versioning:</strong> <code>/api/v1/</code> prefix en todas las rutas.</li>
+<li><strong>Dashboard admin:</strong> Panel para gestionar licencias, ver métricas, soporte.</li>
+<li><strong>Multi-tenancy server-side:</strong> Datos del usuario en servidor, no solo en IndexedDB.</li>
+</ul>
+</div>
+
+<!-- ═══ FASE 10: ROADMAP ═══ -->
+<div class="phase-header"><h2><span class="phase-num">FASE 10 —</span> Roadmap Técnico</h2></div>
+
+<div class="card">
+<h3>Inmediato (Semana 1-2) — Sin Breaking Changes</h3>
+<div class="roadmap-item"><div class="roadmap-dot red"></div><div><strong>Staging environment</strong> — Duplicar wrangler.jsonc con KV/R2 separados. Costo: 0. Impacto: elimina deploys ciegos. (8 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot red"></div><div><strong>Error tracking</strong> — Integrar Sentry en frontend (try-catch global) y backend (catch blocks). Free tier suficiente. (4 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot red"></div><div><strong>Tests básicos en CI</strong> — Vitest para _shared.js + test-webhook-logic.mjs. Agregar paso en deploy.yml. (8 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot orange"></div><div><strong>Estandarizar error responses</strong> — Schema único: <code>{ok, error?, code?, requestId?}</code> en todos los endpoints. (4 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot orange"></div><div><strong>ESLint + Prettier en CI</strong> — Agregar linting con reglas strictas. Pre-commit hook con husky. (4 hrs)</div></div>
+
+<h3>Corto Plazo (Mes 1-2) — Refactorización Incremental</h3>
+<div class="roadmap-item"><div class="roadmap-dot red"></div><div><strong>Extraer JS de index.html a módulos</strong> — Separar en archivos por feature: ventas.js, stock.js, gastos.js, etc. Usar ES modules con <code>&lt;script type="module"&gt;</code>. (80 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot orange"></div><div><strong>Extraer CSS a archivos separados</strong> — Consolidar 8 bloques de style + eliminar inline styles. Un archivo CSS por componente lógico. (24 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot orange"></div><div><strong>Introducir Vite como build tool</strong> — Bundling, minificación, hot reload, code splitting por ruta/tab. (16 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot orange"></div><div><strong>Refactorizar mp-webhook.js</strong> — Extraer PaymentService, LicenseService, EmailService. <552 líneas → 3-4 archivos de ~100 líneas. (24 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot gold"></div><div><strong>State manager</strong> — Implementar store simple (Zustand-like) para reemplazar 60+ globals. Pub/sub para UI reactivity. (40 hrs)</div></div>
+
+<h3>Mediano Plazo (Mes 3-4) — Arquitectura Target</h3>
+<div class="roadmap-item"><div class="roadmap-dot orange"></div><div><strong>Migrar a framework ligero</strong> — Preact (3KB) o Svelte para componentes reactivos. Conserva el feeling ligero de la app. (80 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot orange"></div><div><strong>Migrar KV → D1 (Cloudflare SQLite)</strong> — Modelo relacional para licencias, pagos, trials. Queries, índices, migraciones. (40 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot gold"></div><div><strong>TypeScript migration</strong> — Agregar gradualmente. Empezar por backend (_shared.ts) y expandir. (40 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot gold"></div><div><strong>E2E testing</strong> — Playwright para flows críticos: registro → trial → pago → licencia → backup. (40 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot gold"></div><div><strong>API versioning</strong> — <code>/api/v1/</code> prefix. Middleware pipeline en worker.js. (16 hrs)</div></div>
+
+<h3>Largo Plazo (Mes 5-8) — Escala</h3>
+<div class="roadmap-item"><div class="roadmap-dot gold"></div><div><strong>Admin dashboard</strong> — Panel web para gestionar licencias, ver métricas, soporte al cliente. (80 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot gold"></div><div><strong>Multi-tenancy server-side</strong> — Datos del usuario en D1/R2 (no solo IndexedDB). Sync bidireccional. (120 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot green"></div><div><strong>Custom domain</strong> — parfumtrack.com con Cloudflare DNS. (2 hrs)</div></div>
+<div class="roadmap-item"><div class="roadmap-dot green"></div><div><strong>Internacionalización</strong> — i18n para AR/UY/CO/MX con traducciones. (40 hrs)</div></div>
+</div>
+
+<!-- ═══ FASE 11: REDISEÑO ═══ -->
+<div class="phase-header"><h2><span class="phase-num">FASE 11 —</span> Rediseño Arquitectónico</h2></div>
+
+<div class="card">
+<h3>Arquitectura Ideal (Target)</h3>
+
+<h4>Estructura de Carpetas</h4>
+<pre style="background:#0d0d18;padding:16px;border-radius:8px;color:#e8c97e;font-size:12px;overflow-x:auto;border:1px solid rgba(201,168,76,0.1)">
+parfumtrack/
+├── src/
+│   ├── app.ts                    ← Entry point
+│   ├── components/               ← UI componentes reutilizables
+│   │   ├── Button.ts
+│   │   ├── Modal.ts
+│   │   ├── Card.ts
+│   │   ├── Toast.ts
+│   │   └── MesFilter.ts
+│   ├── views/                    ← Vistas por tab (lazy-loaded)
+│   │   ├── Ventas.ts
+│   │   ├── Stock.ts
+│   │   ├── Gastos.ts
+│   │   ├── Ganancias.ts
+│   │   ├── Cuotas.ts
+│   │   ├── Caja.ts
+│   │   ├── Catalogo.ts
+│   │   ├── Clientes.ts
+│   │   ├── Ajustes.ts
+│   │   └── NuevaVenta.ts
+│   ├── store/                    ← State management
+│   │   ├── index.ts              ← Store central
+│   │   ├── ventas.ts
+│   │   ├── stock.ts
+│   │   ├── gastos.ts
+│   │   └── auth.ts
+│   ├── services/                 ← API + persistencia
+│   │   ├── api.ts                ← HTTP client
+│   │   ├── db.ts                 ← IndexedDB wrapper (PTDB)
+│   │   ├── storage.ts            ← localStorage abstraído
+│   │   ├── backup.ts
+│   │   └── sync.ts
+│   ├── utils/                    ← Helpers puros
+│   │   ├── format.ts
+│   │   ├── validate.ts
+│   │   ├── escapeHtml.ts
+│   │   └── dates.ts
+│   └── styles/                   ← CSS organizado
+│       ├── variables.css
+│       ├── base.css
+│       ├── components.css
+│       └── views.css
+├── functions/                    ← Backend (Cloudflare Workers)
+│   ├── _shared/
+│   │   ├── cors.ts
+│   │   ├── rateLimit.ts
+│   │   ├── auth.ts
+│   │   ├── errors.ts
+│   │   └── validation.ts
+│   ├── services/
+│   │   ├── licenseService.ts
+│   │   ├── paymentService.ts
+│   │   ├── emailService.ts
+│   │   └── notificationService.ts
+│   ├── repositories/
+│   │   ├── licenseRepo.ts
+│   │   └── backupRepo.ts
+│   ├── handlers/                 ← HTTP handlers (thin)
+│   │   ├── trial.ts
+│   │   ├── license.ts
+│   │   ├── backup.ts
+│   │   ├── sync.ts
+│   │   ├── payment.ts
+│   │   └── notification.ts
+│   └── middleware.ts             ← Auth, rate limit, error handling
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+├── vite.config.ts
+├── tsconfig.json
+├── vitest.config.ts
+└── wrangler.jsonc
+</pre>
+
+<h4>Migración Paso a Paso</h4>
+<ol style="padding-left:20px">
+<li style="margin-bottom:8px"><strong>Paso 1 (Semana 1):</strong> Agregar Vite. index.html como entry point, importar main.js. No romper nada — Vite sirve el HTML existente.</li>
+<li style="margin-bottom:8px"><strong>Paso 2 (Semana 2-3):</strong> Extraer funciones JS a archivos separados por feature. import/export. Cada archivo es un módulo ES6.</li>
+<li style="margin-bottom:8px"><strong>Paso 3 (Semana 3-4):</strong> Extraer CSS a archivos. Variables CSS ya existen — mover a variables.css. Eliminar inline styles progresivamente.</li>
+<li style="margin-bottom:8px"><strong>Paso 4 (Mes 2):</strong> Implementar store simple. Reemplazar globals por store.ventas, store.perfumes, etc. Pub/sub para re-renders.</li>
+<li style="margin-bottom:8px"><strong>Paso 5 (Mes 2-3):</strong> Convertir render*() a componentes (Preact/Svelte o custom). Reemplazar innerHTML por DOM api o template literals compilados.</li>
+<li style="margin-bottom:8px"><strong>Paso 6 (Mes 3):</strong> TypeScript gradual. Empezar por store/ y services/. Agregar types para Venta, Perfume, Gasto.</li>
+<li style="margin-bottom:8px"><strong>Paso 7 (Mes 4):</strong> Backend service layer. Extraer lógica de mp-webhook.js a services/. Repository pattern para KV/R2.</li>
+</ol>
+</div>
+
+<!-- ═══ FASE 12: AUDITORÍA EJECUTIVA ═══ -->
+<div class="phase-header"><h2><span class="phase-num">FASE 12 —</span> Auditoría Ejecutiva</h2></div>
+
+<div class="card">
+<h3>🔴 Top 20 Problemas Arquitectónicos</h3>
+<table>
+<tr><th>#</th><th>Problema</th><th>Severidad</th><th>Área</th></tr>
+<tr><td>1</td><td>Monolito de 19,593 líneas en un solo archivo HTML</td><td><span class="badge badge-critical">Crítico</span></td><td>Frontend</td></tr>
+<tr><td>2</td><td>0 tests automatizados en producción</td><td><span class="badge badge-critical">Crítico</span></td><td>QA</td></tr>
+<tr><td>3</td><td>Sin staging environment (dev → prod directo)</td><td><span class="badge badge-critical">Crítico</span></td><td>DevOps</td></tr>
+<tr><td>4</td><td>60+ variables globales mutables sin encapsulación</td><td><span class="badge badge-critical">Crítico</span></td><td>Frontend</td></tr>
+<tr><td>5</td><td>Sin error tracking (Sentry o similar)</td><td><span class="badge badge-critical">Crítico</span></td><td>Ops</td></tr>
+<tr><td>6</td><td>mp-webhook.js monolítico (552 líneas, single point of failure)</td><td><span class="badge badge-critical">Crítico</span></td><td>Backend</td></tr>
+<tr><td>7</td><td>Sin TypeScript ni type safety</td><td><span class="badge badge-high">Alto</span></td><td>Calidad</td></tr>
+<tr><td>8</td><td>Sin build step (no bundling, no minificación)</td><td><span class="badge badge-high">Alto</span></td><td>Performance</td></tr>
+<tr><td>9</td><td>204 onclick inline sin event delegation</td><td><span class="badge badge-high">Alto</span></td><td>Frontend</td></tr>
+<tr><td>10</td><td>CSS disperso (8 bloques + 500 inline styles)</td><td><span class="badge badge-high">Alto</span></td><td>Frontend</td></tr>
+<tr><td>11</td><td>Backend sin separation of concerns (HTTP + business acoplado)</td><td><span class="badge badge-high">Alto</span></td><td>Backend</td></tr>
+<tr><td>12</td><td>Fotos base64 en IndexedDB (bloat de storage)</td><td><span class="badge badge-high">Alto</span></td><td>Data</td></tr>
+<tr><td>13</td><td>Datos de usuario 100% client-side (IndexedDB)</td><td><span class="badge badge-high">Alto</span></td><td>Arquitectura</td></tr>
+<tr><td>14</td><td>Sin API versioning</td><td><span class="badge badge-medium">Medio</span></td><td>API</td></tr>
+<tr><td>15</td><td>Sin CSRF protection</td><td><span class="badge badge-medium">Medio</span></td><td>Seguridad</td></tr>
+<tr><td>16</td><td>Error responses inconsistentes entre endpoints</td><td><span class="badge badge-medium">Medio</span></td><td>API</td></tr>
+<tr><td>17</td><td>Sin dashboard admin para gestionar licencias</td><td><span class="badge badge-medium">Medio</span></td><td>Producto</td></tr>
+<tr><td>18</td><td>Rate limit keys contaminan KV namespace de datos</td><td><span class="badge badge-medium">Medio</span></td><td>Data</td></tr>
+<tr><td>19</td><td>Sin pre-commit hooks ni linting</td><td><span class="badge badge-medium">Medio</span></td><td>DX</td></tr>
+<tr><td>20</td><td>Sin structured logging</td><td><span class="badge badge-low">Bajo</span></td><td>Ops</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>🟠 Top 20 Mejoras Prioritarias</h3>
+<table>
+<tr><th>#</th><th>Mejora</th><th>Impacto</th><th>Esfuerzo</th></tr>
+<tr><td>1</td><td>Staging environment (wrangler.staging.jsonc)</td><td>🔴 Máximo</td><td>8 hrs</td></tr>
+<tr><td>2</td><td>Sentry error tracking (frontend + backend)</td><td>🔴 Máximo</td><td>4 hrs</td></tr>
+<tr><td>3</td><td>Vitest + tests para _shared.js en CI</td><td>🔴 Máximo</td><td>8 hrs</td></tr>
+<tr><td>4</td><td>Extraer JS de index.html a módulos ES6</td><td>🔴 Máximo</td><td>80 hrs</td></tr>
+<tr><td>5</td><td>Vite como build tool</td><td>🟠 Alto</td><td>16 hrs</td></tr>
+<tr><td>6</td><td>ESLint + Prettier en CI con pre-commit hooks</td><td>🟠 Alto</td><td>4 hrs</td></tr>
+<tr><td>7</td><td>Consolidar CSS en archivos separados</td><td>🟠 Alto</td><td>24 hrs</td></tr>
+<tr><td>8</td><td>Store centralizado para estado</td><td>🟠 Alto</td><td>40 hrs</td></tr>
+<tr><td>9</td><td>Refactorizar mp-webhook.js (extraer services)</td><td>🟠 Alto</td><td>24 hrs</td></tr>
+<tr><td>10</td><td>Estandarizar error responses API</td><td>🟡 Medio</td><td>4 hrs</td></tr>
+<tr><td>11</td><td>Migrar KV → D1 para licencias</td><td>🟡 Medio</td><td>40 hrs</td></tr>
+<tr><td>12</td><td>TypeScript gradual (backend primero)</td><td>🟡 Medio</td><td>40 hrs</td></tr>
+<tr><td>13</td><td>Comprimir fotos antes de guardar (WebP + resize)</td><td>🟡 Medio</td><td>8 hrs</td></tr>
+<tr><td>14</td><td>API versioning (/api/v1/)</td><td>🟡 Medio</td><td>8 hrs</td></tr>
+<tr><td>15</td><td>E2E tests con Playwright</td><td>🟡 Medio</td><td>40 hrs</td></tr>
+<tr><td>16</td><td>Component library (Modal, Card, Toast)</td><td>🟡 Medio</td><td>24 hrs</td></tr>
+<tr><td>17</td><td>Custom domain (parfumtrack.com)</td><td>🟡 Medio</td><td>2 hrs</td></tr>
+<tr><td>18</td><td>Admin dashboard</td><td>🟡 Medio</td><td>80 hrs</td></tr>
+<tr><td>19</td><td>Webhook queue/retry (Durable Objects)</td><td>🟢 Bajo</td><td>24 hrs</td></tr>
+<tr><td>20</td><td>Structured JSON logging</td><td>🟢 Bajo</td><td>4 hrs</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>⚡ Top 10 Cambios con Mayor ROI</h3>
+<table>
+<tr><th>#</th><th>Cambio</th><th>Costo</th><th>ROI</th></tr>
+<tr><td>1</td><td>Staging env + basic CI tests</td><td>16 hrs</td><td>Elimina 80% de bugs en producción</td></tr>
+<tr><td>2</td><td>Sentry integration</td><td>4 hrs</td><td>Visibilidad total de errores runtime</td></tr>
+<tr><td>3</td><td>ESLint + Prettier + husky</td><td>4 hrs</td><td>Previene errores antes del deploy</td></tr>
+<tr><td>4</td><td>Estandarizar error responses</td><td>4 hrs</td><td>Client code 3× más simple</td></tr>
+<tr><td>5</td><td>Vite build tool</td><td>16 hrs</td><td>Minificación -40% tamaño, HMR para dev</td></tr>
+<tr><td>6</td><td>Custom domain</td><td>2 hrs</td><td>Percepción profesional inmediata</td></tr>
+<tr><td>7</td><td>Comprimir fotos (WebP)</td><td>8 hrs</td><td>Backups 10× más chicos, sync más rápido</td></tr>
+<tr><td>8</td><td>Separar mp-webhook.js</td><td>24 hrs</td><td>Mantenibilidad del flujo de revenue</td></tr>
+<tr><td>9</td><td>Extraer JS a módulos (incremental)</td><td>80 hrs</td><td>Desbloquea toda la mejora futura</td></tr>
+<tr><td>10</td><td>Store centralizado</td><td>40 hrs</td><td>Elimina race conditions, simplifica UI</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>🚀 Top 10 Mejoras para Escalar</h3>
+<table>
+<tr><th>#</th><th>Mejora</th><th>Escala que Desbloquea</th></tr>
+<tr><td>1</td><td>Multi-tenancy server-side (datos en D1, no solo IndexedDB)</td><td>10K+ usuarios</td></tr>
+<tr><td>2</td><td>Webhook queue con Durable Objects</td><td>1K+ pagos/día</td></tr>
+<tr><td>3</td><td>Admin dashboard para gestión de licencias</td><td>500+ clientes pagos</td></tr>
+<tr><td>4</td><td>API versioning para backward compat</td><td>Múltiples versiones de app coexistiendo</td></tr>
+<tr><td>5</td><td>Rate limiting con Workers KV o Durable Objects (atomic)</td><td>10K+ requests/min</td></tr>
+<tr><td>6</td><td>Frontend modular para equipo de 3+ devs</td><td>Velocidad de desarrollo 3×</td></tr>
+<tr><td>7</td><td>Auth estándar (sessions + refresh tokens)</td><td>Features como "olvidé mi contraseña"</td></tr>
+<tr><td>8</td><td>Separar KV de rate limits en namespace dedicado</td><td>100K+ keys sin colisión</td></tr>
+<tr><td>9</td><td>CDN images (R2 public bucket para fotos de productos)</td><td>Catálogo con fotos HD compartibles</td></tr>
+<tr><td>10</td><td>i18n / localización por país</td><td>Mercados AR/UY/CO/MX simultáneamente</td></tr>
+</table>
+</div>
+
+<!-- ═══ PUNTUACIÓN ═══ -->
+<div class="phase-header"><h2><span class="phase-num">PUNTUACIÓN FINAL</span></h2></div>
+
+<div class="score-grid">
+<div class="score-item">
+<div class="score-value">3</div>
+<div class="score-label">Arquitectura General</div>
+<div class="score-bar"><div class="score-fill" style="width:30%;background:linear-gradient(90deg,#e07070,#e8a83c)"></div></div>
+</div>
+<div class="score-item">
+<div class="score-value">3</div>
+<div class="score-label">Frontend</div>
+<div class="score-bar"><div class="score-fill" style="width:30%;background:linear-gradient(90deg,#e07070,#e8a83c)"></div></div>
+</div>
+<div class="score-item">
+<div class="score-value">5</div>
+<div class="score-label">Backend</div>
+<div class="score-bar"><div class="score-fill" style="width:50%;background:linear-gradient(90deg,#e8a83c,#c9a84c)"></div></div>
+</div>
+<div class="score-item">
+<div class="score-value">5</div>
+<div class="score-label">Base de Datos</div>
+<div class="score-bar"><div class="score-fill" style="width:50%;background:linear-gradient(90deg,#e8a83c,#c9a84c)"></div></div>
+</div>
+<div class="score-item">
+<div class="score-value">6</div>
+<div class="score-label">Seguridad</div>
+<div class="score-bar"><div class="score-fill" style="width:60%;background:linear-gradient(90deg,#c9a84c,#e8c97e)"></div></div>
+</div>
+<div class="score-item">
+<div class="score-value">4</div>
+<div class="score-label">Escalabilidad</div>
+<div class="score-bar"><div class="score-fill" style="width:40%;background:linear-gradient(90deg,#e8a83c,#c9a84c)"></div></div>
+</div>
+<div class="score-item">
+<div class="score-value">3</div>
+<div class="score-label">Mantenibilidad</div>
+<div class="score-bar"><div class="score-fill" style="width:30%;background:linear-gradient(90deg,#e07070,#e8a83c)"></div></div>
+</div>
+<div class="score-item">
+<div class="score-value">4</div>
+<div class="score-label">Calidad Técnica</div>
+<div class="score-bar"><div class="score-fill" style="width:40%;background:linear-gradient(90deg,#e8a83c,#c9a84c)"></div></div>
+</div>
+<div class="score-item">
+<div class="score-value">5</div>
+<div class="score-label">Preparación Producción</div>
+<div class="score-bar"><div class="score-fill" style="width:50%;background:linear-gradient(90deg,#e8a83c,#c9a84c)"></div></div>
+</div>
+<div class="score-item">
+<div class="score-value">3</div>
+<div class="score-label">Preparación Crecimiento</div>
+<div class="score-bar"><div class="score-fill" style="width:30%;background:linear-gradient(90deg,#e07070,#e8a83c)"></div></div>
+</div>
+</div>
+
+<div class="verdict-box" style="margin-top:24px">
+<div class="verdict-title">Score Promedio Ponderado</div>
+<div class="verdict-score">4.1 / 10</div>
+<div class="verdict-text">MVP funcional | Deuda técnica estructural | No apto para escalar sin refactorización mayor</div>
+</div>
+
+<!-- ═══ VEREDICTO FINAL ═══ -->
+<div class="phase-header"><h2><span class="phase-num">VEREDICTO FINAL</span></h2></div>
+
+<div class="card">
+<h3>1. ¿Contratarías esta arquitectura para una startup SaaS seria?</h3>
+<p><strong>No.</strong> La arquitectura actual es de prototipo/MVP, no de empresa. Un CTO contratado para evaluar esto diría: "El producto funciona y los usuarios lo valoran — pero la base técnica necesita reconstruirse antes de invertir en crecimiento." El monolito de 19K líneas, la ausencia total de tests y la falta de staging son red flags que cualquier inversor técnico identificaría inmediatamente.</p>
+
+<h3>2. ¿La lanzarías hoy?</h3>
+<p><strong>Sí, como beta/MVP.</strong> El producto ya está en producción y funciona. Los usuarios la usan. Pero no la escalaría más allá de los primeros 500-1,000 usuarios sin las mejoras de la Fase 1 (staging, Sentry, tests básicos). Esas 3 cosas cuestan 20 horas y eliminan el 80% del riesgo operativo.</p>
+
+<h3>3. ¿Qué partes necesitan rediseño urgente?</h3>
+<ul>
+<li><strong>El monolito index.html</strong> — Es el bloqueante #1. Sin modularización, no se puede hacer nada más de forma segura.</li>
+<li><strong>El pipeline CI/CD</strong> — Deploy sin tests ni staging es un accidente esperando a pasar.</li>
+<li><strong>mp-webhook.js</strong> — 552 líneas que procesan pagos, crean licencias y envían emails. Es el corazón del revenue y es un single point of failure.</li>
+</ul>
+
+<h3>4. ¿Qué partes están bien construidas?</h3>
+<ul>
+<li><strong>Seguridad criptográfica:</strong> HMAC + ECDSA dual signing, timing-safe comparisons, rejection sampling OTP, rate limiting fail-closed. Esto está al nivel de una empresa seria.</li>
+<li><strong>Backend utilities (_shared.js):</strong> La consolidación reciente es un paso correcto. Patrón de compartir utilidades bien implementado.</li>
+<li><strong>PWA infrastructure:</strong> Service Worker bien configurado (network-first HTML, cache-first assets), manifest completo, offline support real.</li>
+<li><strong>UX/Producto:</strong> La app resuelve un problema real y lo hace bien. 11 tabs con funcionalidad completa. Responsive, offline, rápida.</li>
+<li><strong>Legal/Compliance:</strong> Términos, privacidad, List-Unsubscribe, HSTS, GDPR-friendly analytics (Plausible).</li>
+</ul>
+
+<h3>5. ¿Qué limitará el crecimiento futuro?</h3>
+<ol>
+<li><strong>El monolito frontend</strong> impide agregar developers al equipo.</li>
+<li><strong>Datos 100% client-side</strong> impide features como sync multi-dispositivo real, admin dashboard, analytics de usuarios.</li>
+<li><strong>Sin tests</strong> hace que cada release sea un riesgo.</li>
+<li><strong>KV como base de datos</strong> no soporta queries complejas que un SaaS necesita (reportes, búsquedas, agregaciones).</li>
+</ol>
+
+<h3>6. ¿Qué haría un CTO de una startup valuada en +$100M?</h3>
+<p>Un CTO a ese nivel haría exactamente 3 cosas en los primeros 30 días:</p>
+<ol>
+<li><strong>Día 1-3:</strong> Staging env + Sentry + basic CI tests. Costo: 20 horas. Resultado: dejar de ser ciegos a errores.</li>
+<li><strong>Día 4-14:</strong> Contratar 1 senior frontend engineer. Mandato: modularizar index.html con Vite + ES modules sin romper nada.</li>
+<li><strong>Día 15-30:</strong> Definir la arquitectura target (Preact + D1 + TypeScript) y crear un roadmap de migración incremental de 90 días.</li>
+</ol>
+<p>No haría un rewrite. Haría migración incremental — el producto ya funciona y tiene usuarios. El rewrite es el error clásico que mata startups.</p>
+
+<h3>7. ¿Cuál es el plan exacto para nivel profesional world-class?</h3>
+<p>Ver <strong>Fase 10 (Roadmap)</strong> y <strong>Fase 11 (Rediseño)</strong>. Resumen ejecutivo:</p>
+<ul>
+<li><strong>Semana 1-2:</strong> Infra básica (staging, Sentry, CI tests, linting) — 28 hrs</li>
+<li><strong>Mes 1-2:</strong> Modularización frontend (JS → módulos ES6, CSS consolidado, Vite) — 120 hrs</li>
+<li><strong>Mes 3-4:</strong> Framework ligero + TypeScript + E2E tests — 160 hrs</li>
+<li><strong>Mes 5-8:</strong> Server-side data + admin dashboard + i18n — 240 hrs</li>
+</ul>
+<p><strong>Inversión total estimada:</strong> ~548 horas = ~3-4 meses de un senior full-time, o 6-8 meses part-time.</p>
+<p><strong>Resultado:</strong> Una plataforma SaaS modular, testeada, tipada, con datos server-side, admin dashboard, y capacidad de escalar a 100K+ usuarios con un equipo de 3-5 developers.</p>
+</div>
+
+<div class="footer">
+ParfumTrack — Auditoría Arquitectónica Completa v1.0 · 23 junio 2026<br>
+Generada por equipo multidisciplinario: CTO + Principal Architect + Frontend Lead + Backend Lead + Security Architect + DevOps Architect + DB Architect + SaaS Specialist
+</div>
+
+</div>
+</body>
+</html>

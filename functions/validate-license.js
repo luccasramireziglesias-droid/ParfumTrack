@@ -13,7 +13,7 @@
 //   value: { clientName, expiresAt, maxUses, usedCount, createdAt, lastActivatedAt }
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, checkRateLimit, timingSafeEqual, delay } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, timingSafeEqual, delay, log } from './_shared.js';
 
 const DELAY_ON_INVALID = 2000;
 
@@ -28,46 +28,26 @@ export async function onRequestPost(context) {
   const ip = Array.from(new Uint8Array(ipBuf)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
   const ipLimitError = await checkRateLimit(env, `rl_lic_ip_${ip}`, 10, 900);
   if (ipLimitError) {
-    return new Response(
-      JSON.stringify({
-        valid: false,
-        error: "Too many requests, please try again later",
-      }),
-      {
-        status: 429,
-        headers,
-      },
-    );
+    return json({ ok: false, valid: false, error: "Too many requests, please try again later" }, 429, headers);
   }
 
   let code;
   try {
     ({ code } = await request.json());
   } catch {
-    return new Response(
-      JSON.stringify({ valid: false, error: "Bad request" }),
-      { status: 400, headers },
-    );
+    return json({ ok: false, valid: false, error: "Bad request" }, 400, headers);
   }
 
   if (!code || typeof code !== "string" || code.length > 64) {
-    return new Response(JSON.stringify({ valid: false }), {
-      status: 400,
-      headers,
-    });
+    return json({ ok: false, valid: false, error: "Invalid code" }, 400, headers);
   }
 
   const normalizedCode = code.trim().toUpperCase();
   const secret = env.LICENSE_SERVER_SECRET;
 
   if (!secret) {
-    console.error(
-      "[validate-license] FATAL: LICENSE_SERVER_SECRET no configurada",
-    );
-    return new Response(
-      JSON.stringify({ valid: false, error: "Server misconfigured" }),
-      { status: 500, headers },
-    );
+    log('error', 'validate-license', 'LICENSE_SERVER_SECRET not configured');
+    return json({ ok: false, valid: false, error: "Server misconfigured" }, 500, headers);
   }
 
   const ownerCode = (env.LICENSE_OWNER_CODE || "").trim().toUpperCase();
@@ -76,44 +56,34 @@ export async function onRequestPost(context) {
   if (!isOwner) {
     // Validación normal vía KV
     if (!env.PT_LICENSES) {
-      console.error(
-        "[validate-license] FATAL: KV binding PT_LICENSES no encontrado",
-      );
-      return new Response(
-        JSON.stringify({ valid: false, error: "Server misconfigured" }),
-        { status: 500, headers },
-      );
+      log('error', 'validate-license', 'KV binding PT_LICENSES not found');
+      return json({ ok: false, valid: false, error: "Server misconfigured" }, 500, headers);
     }
 
     const licenseRaw = await env.PT_LICENSES.get(`license:${normalizedCode}`);
     if (!licenseRaw) {
       await delay(DELAY_ON_INVALID);
-      return new Response(JSON.stringify({ valid: false }), { headers });
+      return json({ ok: true, valid: false }, 200, headers);
     }
 
     let license;
     try {
       license = JSON.parse(licenseRaw);
     } catch {
-      console.error(`[validate-license] JSON inválido para ${normalizedCode}`);
-      return new Response(JSON.stringify({ valid: false }), {
-        status: 500,
-        headers,
-      });
+      log('error', 'validate-license', 'invalid JSON for license', { code: normalizedCode.slice(0, 7) + '***' });
+      return json({ ok: false, valid: false, error: "Invalid license data" }, 500, headers);
     }
 
     // Verificar estado de suscripción MP (suspendida o cancelada y vencida)
     if (license.status === 'payment_failed') {
       // Acceso suspendido por fallo de pago reiterado
       await delay(200);
-      return new Response(JSON.stringify({ valid: false, reason: "payment_failed" }), { headers });
+      return json({ ok: true, valid: false, error: "payment_failed" }, 200, headers);
     }
 
     if (license.expiresAt && new Date(license.expiresAt) < new Date()) {
       await delay(DELAY_ON_INVALID);
-      return new Response(JSON.stringify({ valid: false, reason: "expired" }), {
-        headers,
-      });
+      return json({ ok: true, valid: false, error: "expired" }, 200, headers);
     }
 
     if (
@@ -121,10 +91,7 @@ export async function onRequestPost(context) {
       (license.usedCount || 0) >= license.maxUses
     ) {
       await delay(DELAY_ON_INVALID);
-      return new Response(
-        JSON.stringify({ valid: false, reason: "limit_reached" }),
-        { headers },
-      );
+      return json({ ok: true, valid: false, error: "limit_reached" }, 200, headers);
     }
 
     license.usedCount = (license.usedCount || 0) + 1;
@@ -134,11 +101,9 @@ export async function onRequestPost(context) {
       JSON.stringify(license),
     );
 
-    console.log(
-      `[validate-license] Activada: ${normalizedCode.slice(0, 7)}*** (uso ${license.usedCount}/${license.maxUses ?? "∞"}, cliente: ${license.clientName.slice(0,2)}***)`,
-    );
+    log('info', 'validate-license', 'license activated', { code: normalizedCode.slice(0, 7) + '***', use: `${license.usedCount}/${license.maxUses ?? '∞'}` });
   } else {
-    console.log("[validate-license] Activada: código del dueño");
+    log('info', 'validate-license', 'owner code activated');
   }
 
   const encoder = new TextEncoder();
@@ -163,13 +128,8 @@ export async function onRequestPost(context) {
   // ECDSA P-256 signature (for client-side verification via embedded public key)
   const signingKeyRaw = env.LICENSE_SIGNING_PRIVATE_KEY;
   if (!signingKeyRaw) {
-    console.error(
-      "[validate-license] FATAL: LICENSE_SIGNING_PRIVATE_KEY no configurada",
-    );
-    return new Response(
-      JSON.stringify({ valid: false, error: "Server misconfigured" }),
-      { status: 500, headers },
-    );
+    log('error', 'validate-license', 'LICENSE_SIGNING_PRIVATE_KEY not configured');
+    return json({ ok: false, valid: false, error: "Server misconfigured" }, 500, headers);
   }
   const signingKeyDer = Uint8Array.from(atob(signingKeyRaw), (c) =>
     c.charCodeAt(0),
@@ -188,7 +148,7 @@ export async function onRequestPost(context) {
   );
   const sig = btoa(String.fromCharCode(...new Uint8Array(ecdsaBytes)));
 
-  return new Response(JSON.stringify({ valid: true, token, sig }), { headers });
+  return json({ ok: true, valid: true, token, sig }, 200, headers);
 }
 
 export async function onRequestOptions(context) {

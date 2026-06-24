@@ -18,7 +18,7 @@ export function json(body, status, headers) {
 
 export async function checkRateLimit(env, key, max, windowSecs) {
   if (!env.PT_LICENSES) {
-    console.error('[rate-limit] CRITICAL: PT_LICENSES KV no configurado — requests blocked');
+    log('error', 'rate-limit', 'PT_LICENSES KV not configured — requests blocked');
     return 'Service temporarily unavailable';
   }
   const now = Math.floor(Date.now() / 1000);
@@ -72,4 +72,18 @@ export async function sha256(str) {
 
 export function delay(ms) {
   return new Promise(r => setTimeout(r, ms));
+}
+
+export function log(level, source, message, data) {
+  const entry = { ts: Date.now(), level, src: source, msg: message };
+  if (data) entry.data = data;
+  console[level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log'](JSON.stringify(entry));
+}
+
+export function isValidEmail(email) {
+  return (
+    typeof email === 'string' &&
+    email.length <= 254 &&
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(email)
+  );
 }

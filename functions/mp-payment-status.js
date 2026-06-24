@@ -6,7 +6,7 @@
 // No devuelve el código de licencia — solo el estado (activo/pendiente).
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, isValidEmail, log } from './_shared.js';
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -21,7 +21,7 @@ export async function onRequestGet(context) {
     return json({ ok: false, error: 'paymentId inválido' }, 400, headers);
   }
 
-  if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+  if (!isValidEmail(email)) {
     return json({ ok: false, error: 'email requerido' }, 400, headers);
   }
 
@@ -34,7 +34,7 @@ export async function onRequestGet(context) {
   if (rlErr) return json({ ok: false, error: rlErr }, 429, headers);
 
   if (!env.MP_ACCESS_TOKEN) {
-    console.error('[mp-payment-status] MP_ACCESS_TOKEN not configured');
+    log('error', 'mp-payment-status', 'MP_ACCESS_TOKEN not configured');
     return json({ ok: false, error: 'Server config error' }, 500, headers);
   }
 
@@ -49,7 +49,7 @@ export async function onRequestGet(context) {
     const mpData = await mpResp.json();
     payerEmail = (mpData.payer?.email || '').toLowerCase().trim();
   } catch (e) {
-    console.error('[mp-payment-status] MP API error:', e.message);
+    log('error', 'mp-payment-status', 'MP API error', { error: e.message });
     return json({ ok: false, error: 'Payment verification failed' }, 500, headers);
   }
 

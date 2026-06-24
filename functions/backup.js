@@ -18,7 +18,7 @@
 // Rate limit: 10 requests/hora por IP, 4 backups/día por código
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, verifyToken } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, log } from './_shared.js';
 
 const CORS_OPTS = { methods: 'GET, POST, OPTIONS', allowHeaders: 'Content-Type, X-PT-Code, X-PT-Token' };
 
@@ -55,7 +55,7 @@ export async function onRequestPost(context) {
   if (codeLimitError) return json({ ok: false, error: 'Too many backups today, try again tomorrow' }, 429, headers);
 
   if (!env.PT_BACKUP) {
-    console.error('[backup] PT_BACKUP R2 binding not configured');
+    log('error', 'backup', 'PT_BACKUP R2 binding not configured');
     return json({ ok: false, error: 'Storage not configured' }, 500, headers);
   }
 
@@ -72,11 +72,11 @@ export async function onRequestPost(context) {
       httpMetadata: { contentType: 'application/json' }
     });
   } catch (e) {
-    console.error('[backup] R2 write failed:', e.message);
+    log('error', 'backup', 'R2 write failed', { error: e.message });
     return json({ ok: false, error: 'Storage write failed' }, 500, headers);
   }
 
-  console.log(`[backup] Saved: ${normalized.slice(0, 7)}*** (${(payload.length / 1024).toFixed(1)} KB)`);
+  log('info', 'backup', 'saved', { code: normalized.slice(0, 7) + '***', sizeKB: (payload.length / 1024).toFixed(1) });
   return json({ ok: true, savedAt }, 200, headers);
 }
 
@@ -113,7 +113,7 @@ export async function onRequestGet(context) {
   try {
     obj = await env.PT_BACKUP.get(`backup/${normalized}`);
   } catch (e) {
-    console.error('[backup] R2 read failed:', e.message);
+    log('error', 'backup', 'R2 read failed', { error: e.message });
     return json({ ok: false, error: 'Storage read failed' }, 500, headers);
   }
 
@@ -129,7 +129,7 @@ export async function onRequestGet(context) {
   }
 
   const { data, savedAt } = parsed;
-  console.log(`[backup] Restored: ${normalized.slice(0, 7)}*** saved ${savedAt}`);
+  log('info', 'backup', 'restored', { code: normalized.slice(0, 7) + '***', savedAt });
   return json({ ok: true, data, savedAt }, 200, headers);
 }
 

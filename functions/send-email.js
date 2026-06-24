@@ -14,7 +14,7 @@
 //   "trial_expired"   — Trial vencido, invitación a activar
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, checkRateLimit, sha256, verifyToken } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, sha256, verifyToken, isValidEmail, log } from './_shared.js';
 
 const TEMPLATES = {
   trial_welcome: (data) => ({
@@ -225,49 +225,33 @@ export async function onRequestPost(context) {
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
   const ipLimitError = await checkRateLimit(env, `rl_email_ip_${ip}`, 5, 3600);
   if (ipLimitError)
-    return new Response(JSON.stringify({ ok: false, error: ipLimitError }), {
-      status: 429,
-      headers,
-    });
+    return json({ ok: false, error: ipLimitError }, 429, headers);
 
   let body;
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ ok: false, error: "Bad request" }), {
-      status: 400,
-      headers,
-    });
+    return json({ ok: false, error: "Bad request" }, 400, headers);
   }
 
   // Auth: verificar token HMAC — obligatorio
   const { code: authCode, token: authToken } = body;
   if (!authCode || !authToken) {
-    return new Response(JSON.stringify({ ok: false, error: 'Authentication required' }), { status: 401, headers });
+    return json({ ok: false, error: 'Authentication required' }, 401, headers);
   }
   const tokenErr = await verifyToken(authCode, authToken, env);
   if (tokenErr) {
-    return new Response(JSON.stringify({ ok: false, error: 'Unauthorized' }), { status: 401, headers });
+    return json({ ok: false, error: 'Unauthorized' }, 401, headers);
   }
 
   const { to, toName, template, data = {} } = body;
 
   if (!to || !template || !TEMPLATES[template]) {
-    return new Response(
-      JSON.stringify({ ok: false, error: "Missing or invalid fields" }),
-      { status: 400, headers },
-    );
+    return json({ ok: false, error: "Missing or invalid fields" }, 400, headers);
   }
 
-  if (
-    typeof to !== "string" ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(to) ||
-    to.length > 320
-  ) {
-    return new Response(
-      JSON.stringify({ ok: false, error: "Invalid email address" }),
-      { status: 400, headers },
-    );
+  if (!isValidEmail(to)) {
+    return json({ ok: false, error: "Invalid email address" }, 400, headers);
   }
 
   // Rate limit by destination email: max 3 emails/24h per address
@@ -282,10 +266,7 @@ export async function onRequestPost(context) {
     86400,
   );
   if (emailLimitError)
-    return new Response(JSON.stringify({ ok: false, error: emailLimitError }), {
-      status: 429,
-      headers,
-    });
+    return json({ ok: false, error: emailLimitError }, 429, headers);
 
   // Verificar que el destinatario tiene registro en KV (trial o licencia)
   // Esto evita que el endpoint sea usado como relay de phishing a direcciones arbitrarias
@@ -297,11 +278,8 @@ export async function onRequestPost(context) {
       env.PT_LICENSES.get(`email_license:${emailHash}`),
     ]);
     if (!trialRec && !licenseRec) {
-      console.warn('[send-email] Destinatario no registrado');
-      return new Response(
-        JSON.stringify({ ok: false, error: "Email not registered" }),
-        { status: 403, headers },
-      );
+      log('warn', 'send-email', 'recipient not registered');
+      return json({ ok: false, error: "Email not registered" }, 403, headers);
     }
   }
 
@@ -310,11 +288,8 @@ export async function onRequestPost(context) {
   const fromName = env.FROM_NAME || "Parfum Track";
 
   if (!apiKey) {
-    console.error("[send-email] BREVO_API_KEY not configured");
-    return new Response(
-      JSON.stringify({ ok: false, error: "Email service not configured" }),
-      { status: 500, headers },
-    );
+    log('error', 'send-email', 'BREVO_API_KEY not configured');
+    return json({ ok: false, error: "Email service not configured" }, 500, headers);
   }
 
   // Sanitize all user-supplied fields before interpolation into HTML templates
@@ -354,24 +329,15 @@ export async function onRequestPost(context) {
 
     if (!resp.ok) {
       const err = await resp.text();
-      console.error("[send-email] Brevo error:", resp.status);
-      return new Response(
-        JSON.stringify({ ok: false, error: `Brevo ${resp.status}` }),
-        { status: 502, headers },
-      );
+      log('error', 'send-email', 'Brevo error', { status: resp.status });
+      return json({ ok: false, error: `Brevo ${resp.status}` }, 502, headers);
     }
 
     const result = await resp.json();
-    return new Response(
-      JSON.stringify({ ok: true, messageId: result.messageId }),
-      { status: 200, headers },
-    );
+    return json({ ok: true, messageId: result.messageId }, 200, headers);
   } catch (e) {
-    console.error("[send-email] Fetch error:", e.message);
-    return new Response(JSON.stringify({ ok: false, error: "Email service unavailable" }), {
-      status: 500,
-      headers,
-    });
+    log('error', 'send-email', 'fetch error', { error: e.message });
+    return json({ ok: false, error: "Email service unavailable" }, 500, headers);
   }
 }
 

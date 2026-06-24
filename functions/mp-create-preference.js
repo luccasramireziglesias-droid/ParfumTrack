@@ -10,7 +10,7 @@
 // Usa Checkout Pro (preferencias) — no requiere permiso de suscripciones.
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, sha256 } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, sha256, isValidEmail, log } from './_shared.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -27,8 +27,7 @@ export async function onRequestPost(context) {
 
   const { email, plan = 'monthly' } = body;
 
-  if (!email || typeof email !== 'string' || email.length > 320 ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+  if (!isValidEmail(email)) {
     return json({ ok: false, error: 'Email inválido' }, 400, headers);
   }
 
@@ -48,7 +47,7 @@ export async function onRequestPost(context) {
   }
 
   if (!env.MP_ACCESS_TOKEN) {
-    console.error('[mp-create-preference] MP_ACCESS_TOKEN no configurado');
+    log('error', 'mp-create-preference', 'MP_ACCESS_TOKEN not configured');
     return json({ ok: false, error: 'Servicio temporalmente no disponible' }, 503, headers);
   }
 
@@ -81,13 +80,13 @@ export async function onRequestPost(context) {
       }),
     });
   } catch (e) {
-    console.error('[mp-create-preference] Error llamando a MP:', e.message);
+    log('error', 'mp-create-preference', 'MP API call failed', { error: e.message });
     return json({ ok: false, error: 'Error de conexión con Mercado Pago' }, 500, headers);
   }
 
   if (!mpResp.ok) {
     const errText = await mpResp.text();
-    console.error('[mp-create-preference] MP respondió', mpResp.status, errText);
+    log('error', 'mp-create-preference', 'MP error response', { status: mpResp.status });
     let msg = `Error MP ${mpResp.status}`;
     try { const e = JSON.parse(errText); msg = e.message || e.error || msg; } catch { /* */ }
     return json({ ok: false, error: msg }, 500, headers);
@@ -98,11 +97,11 @@ export async function onRequestPost(context) {
   const checkoutUrl = init_point || sandbox_init_point;
 
   if (!checkoutUrl) {
-    console.error('[mp-create-preference] Sin init_point:', JSON.stringify(mpData));
+    log('error', 'mp-create-preference', 'missing init_point in MP response');
     return json({ ok: false, error: 'Respuesta inesperada de Mercado Pago' }, 500, headers);
   }
 
-  console.log(`[mp-create-preference] Preferencia ${preferenceId} para ${email.split('@')[0].slice(0,2)}***@${email.split('@')[1]} (${plan}) → ${checkoutUrl}`);
+  log('info', 'mp-create-preference', 'preference created', { preferenceId, plan });
   return json({ ok: true, initPoint: checkoutUrl }, 200, headers);
 }
 

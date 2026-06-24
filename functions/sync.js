@@ -14,7 +14,7 @@
 //   LICENSE_SERVER_SECRET — secreto HMAC (compartido con /backup)
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, verifyToken, sha256 } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, sha256, log } from './_shared.js';
 
 const CORS_OPTS = { methods: 'GET, POST, OPTIONS', allowHeaders: 'Content-Type, X-PT-Code, X-PT-Token' };
 
@@ -84,7 +84,7 @@ export async function onRequestPost(context) {
       httpMetadata: { contentType: "application/json" },
     });
   } catch (e) {
-    console.error("[sync] R2 write failed:", e.message);
+    log('error', 'sync', 'R2 write failed', { error: e.message });
     return json({ ok: false, error: "Storage write failed" }, 500, headers);
   }
 
@@ -131,7 +131,7 @@ export async function onRequestGet(context) {
   try {
     obj = await env.PT_BACKUP.get(`sync/${code}`);
   } catch (e) {
-    console.error("[sync] R2 read failed:", e.message);
+    log('error', 'sync', 'R2 read failed', { error: e.message });
     return json({ ok: false, error: "Storage read failed" }, 500, headers);
   }
 

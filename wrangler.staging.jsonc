@@ -1,0 +1,43 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "parfumtrack-staging",
+  "main": "worker.js",
+  "compatibility_date": "2026-06-07",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "exclude": ["standalone/*", "inservible/*", "PLAYSTORE/*", "_temp*", "_p_*", "playbook*", "auditoria*", "COBERTURA*", ".claude/*", "node_modules/*", ".git/*", "tests/*", "package*.json", "CLAUDE.md"]
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "vars": {
+    "FROM_EMAIL": "parfumtrack@gmail.com",
+    "FROM_NAME": "Parfum Track [STAGING]",
+    "APP_URL": "https://parfumtrack-staging.luccasramireziglesias.workers.dev",
+    "MP_CURRENCY_ID": "USD",
+    "MP_AMOUNT_MONTHLY": "9.99",
+    "MP_AMOUNT_ANNUAL": "95.88",
+    "OWNER_EMAIL": "parfumtrack@gmail.com"
+  },
+  // KV namespace separado para staging.
+  // Crear con: npx wrangler kv namespace create PT_LICENSES_STAGING
+  // Luego reemplazar el ID abajo con el que devuelve el comando.
+  "kv_namespaces": [
+    {
+      "binding": "PT_LICENSES",
+      "id": "REPLACE_WITH_STAGING_KV_ID"
+    }
+  ],
+  // R2 bucket separado para staging.
+  // Crear con: npx wrangler r2 bucket create parfumtrack-backups-staging
+  "r2_buckets": [
+    {
+      "binding": "PT_BACKUP",
+      "bucket_name": "parfumtrack-backups-staging"
+    }
+  ]
+}
