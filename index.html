@@ -12311,18 +12311,6 @@
         return duration - elapsed;
       }
 
-      function formatTrialTimeLeft(ms) {
-        if (ms <= 0) return null;
-        if (LICENSE.trialMinutes) {
-          // Mostrar minutos y segundos
-          const totalSec = Math.ceil(ms / 1000);
-          const min = Math.floor(totalSec / 60);
-          const sec = totalSec % 60;
-          return min > 0 ? `${min}m ${sec}s` : `${sec}s`;
-        }
-        const days = Math.floor(ms / 86400000);
-        return `${days} día${days !== 1 ? "s" : ""}`;
-      }
       // ── Server-side trial anchor ──────────────────────────────────
       // Registers (or retrieves) the trial start in Cloudflare KV.
       // If the server knows an earlier start (user cleared localStorage),
@@ -12369,7 +12357,6 @@
         }
       }
 
-      const _trialTickerRef = [null]; // avoids window._trialTickerInterval global exposure
 
       // ── Email OTP trial registration ──────────────────────────
       async function _trialSolicitarOtp() {
@@ -12692,11 +12679,8 @@
         if (msLeft <= 0) {
           _secSetTrialExp(true);
           trackEvent("trial_vencido");
-          mostrarBannerFreeUpsell();
-          // Email de trial vencido (una sola vez)
           setTimeout(() => sendTrialEmail("trial_expired"), 2000);
         } else {
-          // Email de recordatorio cuando quedan ≤ 2 días (una sola vez)
           if (daysLeft <= 2) {
             setTimeout(
               () =>
@@ -12707,32 +12691,6 @@
               2000,
             );
           }
-          // No mostrar banner si el plan Free tiene tiempo ilimitado (>30 días)
-          if (daysLeft > 30) return;
-          mostrarBannerTrial(formatTrialTimeLeft(msLeft));
-          // Si estamos en modo minutos, actualizar el banner cada segundo
-          if (LICENSE.trialMinutes) {
-            if (_trialTickerRef[0]) clearInterval(_trialTickerRef[0]);
-            _trialTickerRef[0] = setInterval(() => {
-              if (isActivated()) {
-                clearInterval(_trialTickerRef[0]);
-                return;
-              }
-              const ms = getTrialTimeLeft(trialStart);
-              if (ms <= 0) {
-                clearInterval(_trialTickerRef[0]);
-                _secSetTrialExp(true);
-                trackEvent("trial_vencido");
-                mostrarBannerFreeUpsell();
-                toast(
-                  "Tu prueba Pro terminó. Seguís con el plan Free — ventas ilimitadas, gratis para siempre.",
-                  5000,
-                );
-              } else {
-                mostrarBannerTrial(formatTrialTimeLeft(ms));
-              }
-            }, 1000);
-          }
         }
       }
 
@@ -12742,119 +12700,6 @@
         if (el) el.classList.add("open");
       }
 
-      function mostrarBannerFreeUpsell() {
-        // No mostrar si el usuario lo cerró en los últimos 7 días
-        const dismissed = localStorage.getItem("pt_upsell_dismissed");
-        if (dismissed) {
-          const ts = parseInt(dismissed, 10);
-          if (!isNaN(ts) && Date.now() - ts < 7 * 86400000) return;
-        }
-
-        let banner = document.getElementById("trial-banner");
-        if (!banner) {
-          banner = document.createElement("div");
-          banner.id = "trial-banner";
-          document.body.appendChild(banner);
-          document.body.classList.add("has-top-banner");
-        }
-        banner.style.cssText =
-          "position:fixed;top:0;left:0;right:0;z-index:9000;padding:6px 14px;text-align:center;font-size:12px;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;gap:8px;";
-        banner.style.background =
-          "linear-gradient(90deg,var(--gold-dim),rgba(201,168,76,0.04))";
-        banner.style.borderBottom = "1px solid var(--gold)";
-        banner.style.color = "var(--gold2)";
-        banner.innerHTML = `<span onclick="openPricingModal()" style="cursor:pointer;flex:1;"><span style="opacity:0.7">Plan Free</span> · <span style="text-decoration:underline;color:#f5dfa0;">Descubrí Básico Pro →</span></span><span onclick="dismissUpsellBanner(event)" style="cursor:pointer;padding:4px 8px;opacity:0.5;font-size:16px;line-height:1;">✕</span>`;
-      }
-
-      function dismissUpsellBanner(e) {
-        e.stopPropagation();
-        localStorage.setItem("pt_upsell_dismissed", Date.now().toString());
-        const banner = document.getElementById("trial-banner");
-        if (banner) banner.remove();
-        document.body.classList.remove("has-top-banner");
-      }
-
-      function mostrarBannerTrial(label) {
-        let banner = document.getElementById("trial-banner");
-        if (!banner) {
-          banner = document.createElement("div");
-          banner.id = "trial-banner";
-          document.body.appendChild(banner);
-          document.body.classList.add("has-top-banner");
-        }
-
-        // Calcular días restantes para urgencia (solo en modo días, no minutos)
-        const daysLeft = LICENSE.trialMinutes
-          ? null
-          : (() => {
-              const ts = localStorage.getItem("pt_trial_start");
-              if (!ts) return 99;
-              return Math.max(0, Math.floor(getTrialTimeLeft(ts) / 86400000));
-            })();
-
-        // Niveles de urgencia según días
-        let ico, col, bg, bdr, cta;
-        if (daysLeft === null) {
-          // Modo minutos (demo/testing)
-          const urgente =
-            label.includes("s") &&
-            !label.includes("m") &&
-            !label.includes("día");
-          ico = urgente ? "⚠️" : "⏳";
-          col = urgente ? "#e07070" : "var(--gold2)";
-          bg = urgente
-            ? "linear-gradient(90deg,rgba(224,112,112,0.15),rgba(224,112,112,0.04))"
-            : "linear-gradient(90deg,var(--gold-dim),rgba(201,168,76,0.04))";
-          bdr = urgente ? "var(--danger)" : "var(--gold)";
-          cta = "Activar →";
-        } else if (daysLeft <= 1) {
-          // Último día — rojo urgente
-          ico = "🔴";
-          col = "#f09090";
-          bg =
-            "linear-gradient(90deg,rgba(224,80,80,0.22),rgba(224,80,80,0.06))";
-          bdr = "#c04040";
-          cta = "¡Activar ahora — oferta especial →";
-          trackEvent("trial_urgencia_1dia");
-        } else if (daysLeft <= 2) {
-          // 2 días — naranja
-          ico = "🟠";
-          col = "#f0b060";
-          bg =
-            "linear-gradient(90deg,rgba(224,144,60,0.2),rgba(224,144,60,0.04))";
-          bdr = "rgba(224,144,60,0.6)";
-          cta = "Activar licencia →";
-        } else if (daysLeft <= 5) {
-          // 3–5 días — amarillo
-          ico = "⏳";
-          col = "var(--warn)";
-          bg =
-            "linear-gradient(90deg,rgba(224,176,60,0.15),rgba(201,168,76,0.03))";
-          bdr = "rgba(224,176,60,0.5)";
-          cta = "Activar licencia →";
-        } else {
-          // 6–7 días — neutro dorado
-          ico = "✨";
-          col = "var(--gold2)";
-          bg = "linear-gradient(90deg,var(--gold-dim),rgba(201,168,76,0.04))";
-          bdr = "var(--gold)";
-          cta = "Activar licencia →";
-        }
-
-        // Fracción de prueba consumida para la barra de progreso
-        let pctUsado = 0;
-        try {
-          const ts = localStorage.getItem("pt_trial_start");
-          if (ts) {
-            const dur = getTrialDuration();
-            const left = getTrialTimeLeft(ts);
-            pctUsado = Math.min(100, Math.max(0, ((dur - left) / dur) * 100));
-          }
-        } catch {}
-
-        banner.style.cssText = `position:fixed;top:calc(env(safe-area-inset-top));left:0;right:0;z-index:9000;background:${bg};border-bottom:1px solid ${bdr};padding:7px 14px 9px;text-align:center;font-size:12px;color:${col};backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;`;
-        banner.innerHTML = `${ico} Básico Pro gratis: quedan <strong>${label}</strong> &nbsp;·&nbsp; <span onclick="abrirModalActivacion();trackEvent('trial_banner_cta_click',{days:${daysLeft || 0}})" style="text-decoration:underline;cursor:pointer;font-weight:600;">${cta}</span><div style="position:absolute;left:0;bottom:0;height:2.5px;width:${pctUsado}%;background:${bdr};opacity:0.85;transition:width 0.4s ease;"></div>`;
-      }
 
       function mostrarCartelDemo() {
         let banner = document.getElementById("demo-banner");
