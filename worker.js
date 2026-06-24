@@ -3,6 +3,7 @@
 // Maneja rutas API y sirve assets estáticos
 // ══════════════════════════════════════════════════════════════
 
+import { ORIGIN_RE }                              from './functions/_shared.js';
 import { onRequestPost as sendNotification }     from './functions/send-notification.js';
 import { onRequestPost as validateLicense }       from './functions/validate-license.js';
 import { onRequestPost as sendEmail }             from './functions/send-email.js';
@@ -42,7 +43,7 @@ async function handleRequest(request, env, ctx) {
     // CORS preflight
     if (method === 'OPTIONS' && isApiRoute) {
       const origin  = request.headers.get('Origin') || '';
-      const allowed = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(parfumtrack\.luccasramireziglesias\.workers\.dev))$/.test(origin) ? origin : 'null';
+      const allowed = ORIGIN_RE.test(origin) ? origin : 'null';
       return new Response(null, {
         status: 204,
         headers: {
