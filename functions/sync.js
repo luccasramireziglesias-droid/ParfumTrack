@@ -14,7 +14,7 @@
 //   LICENSE_SERVER_SECRET — secreto HMAC (compartido con /backup)
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, verifyToken, sha256, log, requireJson } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, sha256, log, requireJson, hashIp } from './_shared.js';
 
 const CORS_OPTS = { methods: 'GET, POST, OPTIONS', allowHeaders: 'Content-Type, X-PT-Code, X-PT-Token' };
 
@@ -22,12 +22,12 @@ export async function onRequestPost(context) {
   const { request, env } = context;
   const origin = request.headers.get("Origin") || "";
   const headers = corsHeaders(origin, CORS_OPTS);
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ip = await hashIp(request);
 
   // Rate limit: 120 saves per hour per IP
   const ipErr = await checkRateLimit(
     env,
-    `rl_sync_ip_${await sha256(ip)}`,
+    `rl_sync_ip_${ip}`,
     120,
     3600,
   );
@@ -98,12 +98,12 @@ export async function onRequestGet(context) {
   const { request, env } = context;
   const origin = request.headers.get("Origin") || "";
   const headers = corsHeaders(origin, CORS_OPTS);
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ip = await hashIp(request);
 
   // Rate limit: 60 loads per hour per IP
   const ipErr = await checkRateLimit(
     env,
-    `rl_sync_load_ip_${await sha256(ip)}`,
+    `rl_sync_load_ip_${ip}`,
     60,
     3600,
   );
