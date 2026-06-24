@@ -11,7 +11,7 @@
 //   binding: "PT_LICENSES" — reutilizado para rate limiting
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, verifyToken, log, requireJson } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, log, requireJson, hashIp } from './_shared.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -19,7 +19,7 @@ export async function onRequestPost(context) {
   const headers = corsHeaders(origin);
 
   // Rate limit by IP: max 10 requests/hour
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ip = await hashIp(request);
   const ipLimitError = await checkRateLimit(env, `rl_notif_ip_${ip}`, 10, 3600);
   if (ipLimitError)
     return json({ ok: false, error: ipLimitError }, 429, headers);

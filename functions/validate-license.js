@@ -13,7 +13,7 @@
 //   value: { clientName, expiresAt, maxUses, usedCount, createdAt, lastActivatedAt }
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, timingSafeEqual, delay, log, requireJson } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, timingSafeEqual, delay, log, requireJson, hashIp } from './_shared.js';
 
 const DELAY_ON_INVALID = 2000;
 
@@ -23,9 +23,7 @@ export async function onRequestPost(context) {
   const headers = corsHeaders(origin);
 
   // Rate limit by IP: max 10 attempts per 15 minutes
-  const ipRaw = request.headers.get("CF-Connecting-IP") || "unknown";
-  const ipBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(ipRaw));
-  const ip = Array.from(new Uint8Array(ipBuf)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
+  const ip = await hashIp(request);
   const ipLimitError = await checkRateLimit(env, `rl_lic_ip_${ip}`, 10, 900);
   if (ipLimitError) {
     return json({ ok: false, valid: false, error: "Too many requests, please try again later" }, 429, headers);

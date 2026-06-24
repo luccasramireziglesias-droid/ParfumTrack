@@ -6,7 +6,7 @@
 // No devuelve el código de licencia — solo el estado (activo/pendiente).
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, isValidEmail, log } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, isValidEmail, log, hashIp } from './_shared.js';
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -29,7 +29,7 @@ export async function onRequestGet(context) {
     return json({ ok: false, status: 'pending' }, 200, headers);
   }
 
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ip = await hashIp(request);
   const rlErr = await checkRateLimit(env, `rl_mpstatus_ip_${ip}`, 30, 3600);
   if (rlErr) return json({ ok: false, error: rlErr }, 429, headers);
 

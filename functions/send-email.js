@@ -14,7 +14,7 @@
 //   "trial_expired"   — Trial vencido, invitación a activar
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, sha256, verifyToken, isValidEmail, log, requireJson } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, sha256, verifyToken, isValidEmail, log, requireJson, hashIp } from './_shared.js';
 
 const TEMPLATES = {
   trial_welcome: (data) => ({
@@ -222,7 +222,7 @@ export async function onRequestPost(context) {
   const headers = corsHeaders(origin);
 
   // Rate limit by IP: max 5 email requests/hour
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ip = await hashIp(request);
   const ipLimitError = await checkRateLimit(env, `rl_email_ip_${ip}`, 5, 3600);
   if (ipLimitError)
     return json({ ok: false, error: ipLimitError }, 429, headers);

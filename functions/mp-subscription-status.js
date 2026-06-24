@@ -6,7 +6,7 @@
 // Auth: mismo HMAC-SHA256(code, LICENSE_SERVER_SECRET) que usa backup.js
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, verifyToken } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, hashIp } from './_shared.js';
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -25,7 +25,7 @@ export async function onRequestGet(context) {
     return json({ ok: false, error: 'Código inválido' }, 400, headers);
   }
 
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ip = await hashIp(request);
   const rlErr = await checkRateLimit(env, `rl_substatus_ip_${ip}`, 30, 3600);
   if (rlErr) return json({ ok: false, error: rlErr }, 429, headers);
 

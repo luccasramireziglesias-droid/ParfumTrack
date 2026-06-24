@@ -80,6 +80,12 @@ export function log(level, source, message, data) {
   console[level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log'](JSON.stringify(entry));
 }
 
+export async function hashIp(request) {
+  const raw = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+  return Array.from(new Uint8Array(buf)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export function requireJson(request, maxBytes = 1_048_576) {
   const ct = request.headers.get('content-type') || '';
   if (!ct.includes('application/json')) return 'Content-Type must be application/json';

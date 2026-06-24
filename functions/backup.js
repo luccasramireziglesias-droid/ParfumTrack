@@ -18,7 +18,7 @@
 // Rate limit: 10 requests/hora por IP, 4 backups/día por código
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, verifyToken, log, requireJson } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, log, requireJson, hashIp } from './_shared.js';
 
 const CORS_OPTS = { methods: 'GET, POST, OPTIONS', allowHeaders: 'Content-Type, X-PT-Code, X-PT-Token' };
 
@@ -28,7 +28,7 @@ export async function onRequestPost(context) {
   const headers = corsHeaders(origin, CORS_OPTS);
 
   // Rate limit by IP
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ip = await hashIp(request);
   const ipLimitError = await checkRateLimit(env, `rl_ip_${ip}`, 10, 3600);
   if (ipLimitError) return json({ ok: false, error: ipLimitError }, 429, headers);
 
@@ -91,7 +91,7 @@ export async function onRequestGet(context) {
   const headers = corsHeaders(origin, CORS_OPTS);
 
   // Rate limit by IP
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ip = await hashIp(request);
   const ipLimitError = await checkRateLimit(env, `rl_ip_${ip}`, 10, 3600);
   if (ipLimitError) return json({ ok: false, error: ipLimitError }, 429, headers);
 

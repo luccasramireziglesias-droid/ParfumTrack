@@ -10,6 +10,7 @@ import {
   isValidEmail,
   verifyToken,
   requireJson,
+  hashIp,
 } from '../functions/_shared.js';
 
 // ── corsHeaders ──────────────────────────────────────────────
@@ -340,5 +341,36 @@ describe('requireJson', () => {
   it('allows content-length within maxBytes', () => {
     const req = { headers: { get: (k) => k === 'content-type' ? 'application/json' : k === 'content-length' ? '2000' : null } };
     expect(requireJson(req, 4096)).toBeNull();
+  });
+});
+
+// ── hashIp ──────────────────────────────────────────────────
+
+describe('hashIp', () => {
+  it('returns a 16-char hex string for a known IP', async () => {
+    const req = { headers: { get: (k) => k === 'CF-Connecting-IP' ? '192.168.1.1' : null } };
+    const hash = await hashIp(req);
+    expect(hash).toMatch(/^[0-9a-f]{16}$/);
+  });
+
+  it('returns consistent hash for same IP', async () => {
+    const req = { headers: { get: (k) => k === 'CF-Connecting-IP' ? '10.0.0.1' : null } };
+    const h1 = await hashIp(req);
+    const h2 = await hashIp(req);
+    expect(h1).toBe(h2);
+  });
+
+  it('returns different hashes for different IPs', async () => {
+    const req1 = { headers: { get: (k) => k === 'CF-Connecting-IP' ? '1.2.3.4' : null } };
+    const req2 = { headers: { get: (k) => k === 'CF-Connecting-IP' ? '5.6.7.8' : null } };
+    const h1 = await hashIp(req1);
+    const h2 = await hashIp(req2);
+    expect(h1).not.toBe(h2);
+  });
+
+  it('handles missing header gracefully', async () => {
+    const req = { headers: { get: () => null } };
+    const hash = await hashIp(req);
+    expect(hash).toMatch(/^[0-9a-f]{16}$/);
   });
 });

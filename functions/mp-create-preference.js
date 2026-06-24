@@ -10,14 +10,14 @@
 // Usa Checkout Pro (preferencias) — no requiere permiso de suscripciones.
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, sha256, isValidEmail, log, requireJson } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, sha256, isValidEmail, log, requireJson, hashIp } from './_shared.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
   const origin  = request.headers.get('Origin') || '';
   const headers = corsHeaders(origin);
 
-  const ip      = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ip      = await hashIp(request);
   const rlError = await checkRateLimit(env, `rl_mppref_${ip}`, 5, 3600);
   if (rlError) return json({ ok: false, error: rlError }, 429, headers);
 
