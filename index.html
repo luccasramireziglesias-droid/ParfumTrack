@@ -2873,15 +2873,14 @@
       style="
         position: fixed;
         inset: 0;
-        background: rgba(7, 7, 15, 0.82);
-        backdrop-filter: blur(4px);
+        background: #07070f;
         z-index: 99999;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         gap: 12px;
-        transition: opacity 0.3s;
+        transition: opacity 0.35s ease;
       "
     >
       <div
@@ -5798,20 +5797,11 @@
               "
             />
           </div>
-          <div
-            style="
-              position: sticky;
-              bottom: 0;
-              padding: 14px 16px 8px;
-              background: linear-gradient(to top, var(--bg2) 60%, transparent);
-              margin: 4px -16px 0;
-            "
-          >
+          <div style="padding-top: 12px;">
             <button
               class="btn-primary"
               id="btn-guardar-venta"
               onclick="addVenta()"
-              style="margin-top: 0"
             >
               💾 Guardar venta
             </button>
@@ -14467,19 +14457,23 @@
           _loaderHidden = true;
           var loader = document.getElementById("app-loading");
           if (loader) {
-            loader.style.opacity = "0";
-            setTimeout(function () {
-              loader.style.display = "none";
-            }, 320);
+            requestAnimationFrame(function () {
+              requestAnimationFrame(function () {
+                loader.style.opacity = "0";
+                setTimeout(function () {
+                  loader.style.display = "none";
+                }, 400);
+              });
+            });
           }
         }
-        setTimeout(_hideLoader, 5000); // hard cap: hide after 5s no matter what
+        setTimeout(_hideLoader, 5000);
 
         // Esperar IndexedDB antes de arrancar la app
         _appDataReady
           .then(function () {
-            // Fade out loading screen → reveal app with skeleton → real content
-            _hideLoader();
+            // Dar tiempo al DOM para renderizar antes de quitar el loader
+            setTimeout(_hideLoader, 80);
             _pruneLocalStorage();
             // Mostrar modal de aceptación de términos si es primera vez
             if (!localStorage.getItem('pt-terminos-aceptados')) {
