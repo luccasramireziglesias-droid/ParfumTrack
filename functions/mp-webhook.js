@@ -240,10 +240,16 @@ async function handleSinglePayment(paymentId, payment, env) {
   if (existingCode) {
     const licRaw = await env.PT_LICENSES.get(`license:${existingCode}`);
     if (licRaw) {
-      const lic      = JSON.parse(licRaw);
+      let lic;
+      try { lic = JSON.parse(licRaw); } catch {
+        log('error', 'mp-webhook', 'corrupted license data', { code: existingCode.slice(0, 7) + '***' });
+        // Fall through to create a new license instead of crashing
+      }
+      if (!lic) { /* corrupted — skip renewal, create fresh below */ }
+      else {
       const isAnnual = plan === 'annual' || lic.plan === 'basic_annual';
       const base     = new Date(Math.max(Date.now(), new Date(lic.expiresAt || Date.now()).getTime()));
-      base.setDate(base.getDate() + (isAnnual ? 366 : 31));
+      base.setDate(base.getDate() + (isAnnual ? 365 : 31));
       const expiresAt = base.toISOString().split('T')[0];
 
       lic.expiresAt   = expiresAt;
@@ -270,6 +276,7 @@ async function handleSinglePayment(paymentId, payment, env) {
         });
       }
       return;
+      }
     }
   }
 
@@ -278,7 +285,7 @@ async function handleSinglePayment(paymentId, payment, env) {
   const isAnnual = plan === 'annual';
   const now      = new Date();
   const expiry   = new Date(now);
-  expiry.setDate(expiry.getDate() + (isAnnual ? 366 : 31));
+  expiry.setDate(expiry.getDate() + (isAnnual ? 365 : 31));
   const expiresAt = expiry.toISOString().split('T')[0];
 
   const licenseData = {
