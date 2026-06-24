@@ -1114,16 +1114,16 @@ footer {
   align-items: center;
   gap: 7px;
   padding: 8px 16px;
-  background: rgba(37,211,102,0.1);
-  border: 1px solid rgba(37,211,102,0.25);
+  background: rgba(201,168,76,0.08);
+  border: 1px solid rgba(201,168,76,0.25);
   border-radius: 50px;
   font-size: 13px;
   font-weight: 600;
-  color: #4ade80;
+  color: var(--gold2);
   text-decoration: none;
   transition: all 0.2s;
 }
-.footer-wa-btn:hover { background: rgba(37,211,102,0.15); }
+.footer-wa-btn:hover { background: rgba(201,168,76,0.15); }
 .footer-col h4 {
   font-size: 11px;
   font-weight: 700;
@@ -1821,10 +1821,9 @@ body.annual-mode [data-annual] { display: block; }
           <span data-monthly>Activar plan — $9.99/mes →</span>
           <span data-annual style="display:none;">Activar plan — $7.99/mes →</span>
         </button>
-        <a href="https://wa.me/59894466577?text=Hola!%20Quiero%20activar%20el%20plan%20Básico%20Pro%20de%20Parfum%20Track"
-           target="_blank" rel="noopener"
+        <a href="mailto:parfumtrack@gmail.com?subject=Quiero%20activar%20el%20plan%20Básico%20Pro"
            style="display:block;text-align:center;font-size:12px;color:var(--text3);margin-top:10px;text-decoration:none;">
-          ¿Preferís pagar por WhatsApp? →
+          ¿Dudas? Escribinos por email →
         </a>
       </div>
 
@@ -1848,15 +1847,15 @@ body.annual-mode [data-annual] { display: block; }
           <li><span class="pfl-check">✓</span> Actualizaciones anticipadas</li>
           <li>&nbsp;</li>
         </ul>
-        <a href="https://wa.me/59894466577?text=Hola!%20Quiero%20saber%20más%20sobre%20el%20plan%20Pro%20de%20Parfum%20Track" target="_blank" rel="noopener" class="btn-price secondary" style="opacity:0.55;pointer-events:none;">
+        <span class="btn-price secondary" style="opacity:0.55;pointer-events:none;">
           Próximamente
-        </a>
+        </span>
       </div>
     </div>
 
     <p class="pricing-note">
       🆓 Plan Free gratis para siempre · Sin tarjeta ni compromiso<br>
-      🔒 Pago seguro · ✅ Cancelás cuando querés · 💬 Atención directa por WhatsApp<br>
+      🔒 Pago seguro · ✅ Cancelás cuando querés · 📧 Soporte por email<br>
       <a href="/index.html" onclick="if(window.plausible)plausible('cta_pricing_free')">→ Empezar ahora sin tarjeta</a>
     </p>
   </div>
@@ -1869,7 +1868,7 @@ body.annual-mode [data-annual] { display: block; }
   <div class="container text-center">
     <span class="eyebrow">Preguntas frecuentes</span>
     <h2 class="section-h2">Dudas que siempre aparecen</h2>
-    <p class="section-sub" style="max-width:420px;margin:0 auto;">Si tu pregunta no está acá, escribinos por WhatsApp y te respondemos al instante.</p>
+    <p class="section-sub" style="max-width:420px;margin:0 auto;">Si tu pregunta no está acá, escribinos por email y te respondemos rápido.</p>
   </div>
 
   <div class="faq-grid">
@@ -1910,7 +1909,7 @@ body.annual-mode [data-annual] { display: block; }
         ¿Cómo funciona el pago?
         <div class="faq-icon">+</div>
       </div>
-      <div class="faq-answer" id="faq-a5">El proceso es simple: tocás "Suscribirse" en el plan Básico Pro, ingresás tu email y te redirige a MercadoPago donde podés pagar con tarjeta, transferencia o dinero en cuenta. En minutos recibís tu código de activación por email y lo ingresás en la app. También podés consultar por WhatsApp si preferís otro medio de pago.</div>
+      <div class="faq-answer" id="faq-a5">El proceso es simple: tocás "Suscribirse" en el plan Básico Pro, ingresás tu email y te redirige a MercadoPago donde podés pagar con tarjeta, transferencia o dinero en cuenta. En minutos recibís tu código de activación por email y lo ingresás en la app. Si tenés dudas, escribinos a parfumtrack@gmail.com.</div>
     </div>
 
     <div class="faq-item">
@@ -1926,7 +1925,7 @@ body.annual-mode [data-annual] { display: block; }
         ¿Puedo cancelar cuando quiero?
         <div class="faq-icon">+</div>
       </div>
-      <div class="faq-answer" id="faq-a7">Sí, los planes son sin contrato. Cancelás cuando querés escribiéndonos por email a parfumtrack@gmail.com o por WhatsApp. Tus datos se mantienen guardados en tu dispositivo aunque no renueves — nunca perdés tu historial.</div>
+      <div class="faq-answer" id="faq-a7">Sí, los planes son sin contrato. Cancelás cuando querés escribiéndonos a parfumtrack@gmail.com. Tus datos se mantienen guardados en tu dispositivo aunque no renueves — nunca perdés tu historial.</div>
     </div>
 
     <div class="faq-item">
@@ -1970,12 +1969,8 @@ body.annual-mode [data-annual] { display: block; }
   <div class="container-narrow text-center">
     <span class="eyebrow">Contacto</span>
     <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(24px,4vw,36px);background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;">¿Tenés dudas? Hablamos</h2>
-    <p style="color:#a8a49c;font-size:15px;max-width:480px;margin:0 auto 32px;">Respondemos rápido por WhatsApp o email. Estamos para ayudarte.</p>
+    <p style="color:#a8a49c;font-size:15px;max-width:480px;margin:0 auto 32px;">Respondemos rápido por email. Estamos para ayudarte.</p>
     <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:32px;">
-      <a href="https://wa.me/59894466577" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.3);border-radius:12px;color:#25d366;text-decoration:none;font-size:15px;font-weight:500;transition:background 0.2s;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a8 8 0 01-4.29-1.24l-.28-.17-3.06.8.82-2.99-.18-.29A8 8 0 1112 20z"/></svg>
-        WhatsApp
-      </a>
       <a href="mailto:parfumtrack@gmail.com" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:12px;color:var(--gold2);text-decoration:none;font-size:15px;font-weight:500;transition:background 0.2s;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8c97e" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/></svg>
         parfumtrack@gmail.com
@@ -2001,8 +1996,8 @@ body.annual-mode [data-annual] { display: block; }
         Parfum Track
       </a>
       <p class="footer-tagline">La app para revendedores de perfumes. Ventas, cuotas, stock y estadísticas desde tu celular.</p>
-      <a href="https://wa.me/59894466577" target="_blank" rel="noopener" class="footer-wa-btn">
-        💬 Soporte por WhatsApp
+      <a href="mailto:parfumtrack@gmail.com" class="footer-wa-btn">
+        📧 parfumtrack@gmail.com
       </a>
     </div>
     <div class="footer-col">
@@ -2015,8 +2010,8 @@ body.annual-mode [data-annual] { display: block; }
     <div class="footer-col">
       <h4>Ayuda</h4>
       <a href="#faq">Preguntas frecuentes</a>
-      <a href="https://wa.me/59894466577" target="_blank" rel="noopener">Contacto</a>
-      <a href="https://wa.me/59894466577?text=Quiero%20conocer%20más%20sobre%20Parfum%20Track" target="_blank" rel="noopener">Consultar plan</a>
+      <a href="mailto:parfumtrack@gmail.com">Contacto</a>
+      <a href="mailto:parfumtrack@gmail.com?subject=Consulta%20sobre%20planes">Consultar plan</a>
     </div>
     <div class="footer-col">
       <h4>Legal</h4>
