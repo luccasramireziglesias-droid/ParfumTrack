@@ -14,7 +14,7 @@
 //   LICENSE_SERVER_SECRET — secreto HMAC (compartido con /backup)
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, verifyToken, sha256, log } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, sha256, log, requireJson } from './_shared.js';
 
 const CORS_OPTS = { methods: 'GET, POST, OPTIONS', allowHeaders: 'Content-Type, X-PT-Code, X-PT-Token' };
 
@@ -32,6 +32,9 @@ export async function onRequestPost(context) {
     3600,
   );
   if (ipErr) return json({ ok: false, error: ipErr }, 429, headers);
+
+  const ctError = requireJson(request);
+  if (ctError) return json({ ok: false, error: ctError }, 415, headers);
 
   let body;
   try {

@@ -69,6 +69,12 @@ export async function onRequestPost(context) {
   // Sin datos útiles (posible ping de MP al configurar webhook)
   if (!type || !resourceId) return jsonResp({ ok: true });
 
+  // Validar formato: type es alfanumérico, resourceId es numérico (IDs de MP)
+  if (!/^[a-z_]{1,50}$/.test(type) || !/^\d{1,20}$/.test(resourceId)) {
+    log('warn', 'mp-webhook', 'invalid type or resourceId format', { type, resourceId });
+    return jsonResp({ ok: false, error: 'invalid_event_format' }, 400);
+  }
+
   if (!env.PT_LICENSES) {
     log('error', 'mp-webhook', 'PT_LICENSES KV unavailable — returning 500 for MP retry');
     return jsonResp({ ok: false, error: 'kv_unavailable' }, 500);

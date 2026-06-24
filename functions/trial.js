@@ -26,7 +26,7 @@
 //   PT_LICENSES    — KV binding
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, sha256, delay, isValidEmail, log } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, sha256, delay, isValidEmail, log, requireJson } from './_shared.js';
 
 const KV_TTL_SECS = 90 * 24 * 60 * 60;
 const OTP_TTL_SECS = 10 * 60;
@@ -41,6 +41,9 @@ export async function onRequestPost(context) {
   if (!env.PT_LICENSES) {
     return json({ ok: false, error: "KV not configured" }, 500, headers);
   }
+
+  const ctError = requireJson(request);
+  if (ctError) return json({ ok: false, error: ctError }, 415, headers);
 
   let body;
   try {

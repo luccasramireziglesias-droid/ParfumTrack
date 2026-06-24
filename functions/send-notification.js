@@ -11,7 +11,7 @@
 //   binding: "PT_LICENSES" — reutilizado para rate limiting
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, verifyToken, log } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, log, requireJson } from './_shared.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -23,6 +23,9 @@ export async function onRequestPost(context) {
   const ipLimitError = await checkRateLimit(env, `rl_notif_ip_${ip}`, 10, 3600);
   if (ipLimitError)
     return json({ ok: false, error: ipLimitError }, 429, headers);
+
+  const ctError = requireJson(request);
+  if (ctError) return json({ ok: false, error: ctError }, 415, headers);
 
   let subscriptionId, title, message, url, authCode, authToken;
   try {

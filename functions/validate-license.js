@@ -13,7 +13,7 @@
 //   value: { clientName, expiresAt, maxUses, usedCount, createdAt, lastActivatedAt }
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, timingSafeEqual, delay, log } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, timingSafeEqual, delay, log, requireJson } from './_shared.js';
 
 const DELAY_ON_INVALID = 2000;
 
@@ -30,6 +30,9 @@ export async function onRequestPost(context) {
   if (ipLimitError) {
     return json({ ok: false, valid: false, error: "Too many requests, please try again later" }, 429, headers);
   }
+
+  const ctError = requireJson(request);
+  if (ctError) return json({ ok: false, valid: false, error: ctError }, 415, headers);
 
   let code;
   try {

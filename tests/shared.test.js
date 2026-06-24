@@ -9,6 +9,7 @@ import {
   log,
   isValidEmail,
   verifyToken,
+  requireJson,
 } from '../functions/_shared.js';
 
 // ── corsHeaders ──────────────────────────────────────────────
@@ -305,5 +306,29 @@ describe('verifyToken', () => {
   it('returns error for code too long', async () => {
     const result = await verifyToken('x'.repeat(200), 'a'.repeat(64), { LICENSE_SERVER_SECRET: SECRET });
     expect(result).toBe('Invalid code');
+  });
+});
+
+// ── requireJson ─────────────────────────────────────────────
+
+describe('requireJson', () => {
+  it('returns null for application/json', () => {
+    const req = { headers: { get: (k) => k === 'content-type' ? 'application/json' : null } };
+    expect(requireJson(req)).toBeNull();
+  });
+
+  it('returns null for application/json with charset', () => {
+    const req = { headers: { get: (k) => k === 'content-type' ? 'application/json; charset=utf-8' : null } };
+    expect(requireJson(req)).toBeNull();
+  });
+
+  it('returns error for text/plain', () => {
+    const req = { headers: { get: (k) => k === 'content-type' ? 'text/plain' : null } };
+    expect(requireJson(req)).toBe('Content-Type must be application/json');
+  });
+
+  it('returns error for missing content-type', () => {
+    const req = { headers: { get: () => null } };
+    expect(requireJson(req)).toBe('Content-Type must be application/json');
   });
 });

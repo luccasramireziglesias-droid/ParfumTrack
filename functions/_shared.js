@@ -80,6 +80,11 @@ export function log(level, source, message, data) {
   console[level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log'](JSON.stringify(entry));
 }
 
+export function requireJson(request) {
+  const ct = request.headers.get('content-type') || '';
+  return ct.includes('application/json') ? null : 'Content-Type must be application/json';
+}
+
 export function isValidEmail(email) {
   return (
     typeof email === 'string' &&
