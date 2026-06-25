@@ -10,11 +10,20 @@ node_modules/
 PLAYSTORE/package.json
 PLAYSTORE/package-lock.json
 
-# Android/Gradle build
+# Android/Gradle build (legacy TWA)
 PLAYSTORE/twa-project/.gradle/
 PLAYSTORE/twa-project/build/
 PLAYSTORE/twa-project/app/build/
 PLAYSTORE/twa-project/local.properties
+
+# Android/Gradle build (Capacitor)
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+
+# Build artifacts
 *.apk
 *.aab
 *.jks
