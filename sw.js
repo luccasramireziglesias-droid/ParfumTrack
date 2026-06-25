@@ -1,7 +1,7 @@
-// Parfum Track — Service Worker v6
-// OneSignal se carga solo cuando llega un push, no al inicio del SW
+// Parfum Track — Service Worker v7
+// v7: limpia TODOS los caches al instalar para forzar actualización
 
-const CACHE_NAME = "parfumtrack-v6";
+const CACHE_NAME = "parfumtrack-v7";
 const STATIC_ASSETS = [
   "/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",
   "/favicon.ico", "/favicon.svg", "/favicon-32.png",
@@ -16,25 +16,14 @@ const STATIC_ASSETS = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) =>
-        cache.addAll(STATIC_ASSETS).catch(() => Promise.resolve()),
-      )
-      .then(() => self.skipWaiting()),
-  );
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) =>
-        Promise.all(
-          keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)),
-        ),
-      )
+      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
@@ -95,7 +84,6 @@ self.addEventListener("push", (event) => {
   try {
     importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
   } catch (e) {
-    // Si OneSignal no carga, mostrar la notificación manualmente
     const data = event.data ? event.data.json() : {};
     event.waitUntil(
       self.registration.showNotification(data.title || "Parfum Track", {

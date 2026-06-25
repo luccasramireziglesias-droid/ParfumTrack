@@ -29,7 +29,7 @@ PWA de gestión de ventas para revendedores de perfumes en LATAM (Argentina, Uru
 - **Storage:** KV namespace `PT_LICENSES` (trial, rate limit, licencias), R2 bucket `parfumtrack-backups`
 - **Datos usuario:** IndexedDB/localStorage (local, NO en servidores)
 - **CDN lazy-load:** Chart.js 4.4.0, jsPDF 2.5.1, XLSX 0.18.5 (con SRI hashes)
-- **Service Worker:** v5 (`sw.js`)
+- **Service Worker:** v7 (`sw.js`)
 - **CI/CD:** GitHub Actions → auto-deploy on push to main
 
 ### Servicios externos
@@ -56,7 +56,7 @@ ParfumTrack/
 ├── index.html              ← App principal monolítica (19,479 líneas)
 ├── landing.html            ← Landing page de marketing (2,218 líneas)
 ├── worker.js               ← Router entry point Workers (66 líneas)
-├── sw.js                   ← Service Worker v5 (96 líneas)
+├── sw.js                   ← Service Worker v7 (110 líneas)
 ├── manifest.json           ← PWA manifest con shortcuts + screenshots
 ├── wrangler.jsonc          ← Config Cloudflare Workers
 ├── _headers                ← Security headers (CSP, HSTS, etc.)
