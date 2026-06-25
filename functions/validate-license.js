@@ -97,9 +97,15 @@ export async function onRequestPost(context) {
 
     license.usedCount = (license.usedCount || 0) + 1;
     license.lastActivatedAt = new Date().toISOString();
+    const putOpts = {};
+    if (license.expiresAt) {
+      const ttl = Math.floor((new Date(license.expiresAt).getTime() - Date.now()) / 1000) + 86400 * 30;
+      if (ttl > 60) putOpts.expirationTtl = ttl;
+    }
     await env.PT_LICENSES.put(
       `license:${normalizedCode}`,
       JSON.stringify(license),
+      putOpts,
     );
 
     log('info', 'validate-license', 'license activated', { code: normalizedCode.slice(0, 7) + '***', use: `${license.usedCount}/${license.maxUses ?? '∞'}` });
