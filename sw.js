@@ -45,6 +45,7 @@ self.addEventListener("fetch", (event) => {
       "/mp-webhook",
       "/mp-subscription-status",
       "/mp-payment-status",
+      "/force-update",
     ].includes(url.pathname)
   )
     return;

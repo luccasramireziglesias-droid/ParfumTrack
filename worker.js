@@ -72,6 +72,26 @@ async function handleRequest(request, env, ctx) {
       if (path === '/mp-webhook')             return mpWebhookGet(context);
       if (path === '/mp-subscription-status') return mpSubscriptionStatus(context);
       if (path === '/mp-payment-status')      return mpPaymentStatus(context);
+
+      if (path === '/force-update') {
+        return new Response(
+          '<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Actualizando...</title></head>' +
+          '<body style="background:#0f0f1a;color:#f0ece4;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;">' +
+          '<div><div style="font-size:48px;margin-bottom:16px;">✨</div>' +
+          '<h2 style="color:#e8c97e;">Parfum Track actualizado</h2>' +
+          '<p style="color:#999;font-size:14px;">Los caches fueron limpiados.<br>Cerrá esta pestaña y abrí la app de nuevo.</p>' +
+          '<a href="/" style="display:inline-block;margin-top:20px;padding:12px 32px;background:linear-gradient(135deg,#c9a84c,#e8c97e);color:#1a1a2e;border-radius:10px;text-decoration:none;font-weight:600;">Abrir Parfum Track</a>' +
+          '</div></body></html>',
+          {
+            status: 200,
+            headers: {
+              'Content-Type': 'text/html; charset=utf-8',
+              'Clear-Site-Data': '"cache", "storage"',
+              'Cache-Control': 'no-store',
+            },
+          },
+        );
+      }
     }
 
     if (isApiRoute) {
