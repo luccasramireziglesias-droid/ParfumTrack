@@ -54,7 +54,7 @@ Verificar después del deploy: `https://parfumtrack.luccasramireziglesias.worker
 - **Store password:** (guardada localmente, NO en el repo)
 - **Key alias:** `parfumtrack`
 - **Key password:** (guardada localmente, NO en el repo)
-- **SHA-256:** `59:82:C3:8D:B1:EC:22:D2:C5:1C:CD:B9:6B:EC:A4:C6:9A:5D:7D:D8:04:7A:7A:8F:FC:56:5A:36:7F:34:D7:4E`
+- **SHA-256:** `89:A3:C1:23:9A:F5:09:6B:D0:2D:B8:34:09:84:A5:4F:84:BC:86:E0:99:71:4C:8A:81:CB:B6:91:D4:47:9A:70`
 
 Para buildear, exportar las variables de entorno:
 ```bash
