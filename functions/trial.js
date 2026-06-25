@@ -113,9 +113,15 @@ async function handleRegister(body, ip, env, headers) {
   );
 
   // Await email send — non-blocking caused Worker to terminate before Brevo got the request
-  await sendOtpEmail(emailLower, otp, env).catch((e) =>
-    log('error', 'trial', 'email send failed', { error: e?.message }),
-  );
+  let emailSent = true;
+  await sendOtpEmail(emailLower, otp, env).catch((e) => {
+    log('error', 'trial', 'email send failed', { error: e?.message });
+    emailSent = false;
+  });
+
+  if (!emailSent) {
+    return json({ ok: false, error: 'Failed to send email. Try again.' }, 500, headers);
+  }
 
   log('info', 'trial', 'OTP sent');
   return json({ ok: true, sent: true }, 200, headers);

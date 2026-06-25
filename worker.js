@@ -24,9 +24,14 @@ export default {
       return await handleRequest(request, env, ctx);
     } catch (e) {
       console.error(JSON.stringify({ ts: Date.now(), level: 'error', src: 'worker', msg: 'Unhandled error', data: { error: e.message, path: new URL(request.url).pathname } }));
+      const origin = request.headers.get('Origin') || '';
+      const allowed = ORIGIN_RE.test(origin) ? origin : 'null';
       return new Response(JSON.stringify({ ok: false, error: 'Internal server error' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': allowed,
+        },
       });
     }
   },
@@ -50,6 +55,7 @@ async function handleRequest(request, env, ctx) {
           'Access-Control-Allow-Origin':  allowed,
           'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, X-PT-Code, X-PT-Token',
+          'Access-Control-Max-Age': '86400',
         },
       });
     }

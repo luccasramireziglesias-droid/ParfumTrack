@@ -6487,7 +6487,7 @@
         }
       }
       function saveCatCustom(arr) {
-        localStorage.setItem("pt_cat_custom", JSON.stringify(arr));
+        safeSetItem("pt_cat_custom", JSON.stringify(arr));
       }
       function getAllCatLabels() {
         const merged = { ...CAT_LABELS };
@@ -6657,8 +6657,9 @@
 
       async function loadProfile(pid) {
         activeProfile = pid;
-        localStorage.setItem("pt_active_profile", pid);
+        safeSetItem("pt_active_profile", pid);
         // Lee de IndexedDB; si no existe migra desde localStorage automáticamente
+        var _migrationFailed = false;
         async function loadKey(key, defaultVal) {
           let val = await PTDB.get(key);
           if (val === null) {
@@ -6674,6 +6675,7 @@
               }
             } catch (e) {
               console.error(`[loadKey] Error migrando "${key}":`, e);
+              _migrationFailed = true;
               setTimeout(() => toast("⚠ Hubo un error al migrar tus datos. Contactá soporte si ves datos faltantes.", 5000, "warning"), 1000);
             }
           }
@@ -6700,7 +6702,7 @@
               changed = true;
             }
           });
-          if (changed) save(true);
+          if (changed) await _saveNow();
         }
         await PTDB.set("pt_schema_version", SCHEMA_VERSION);
       }
@@ -6732,6 +6734,7 @@
           _savePendingRetry = true;
           return;
         }
+        if (_migrationFailed) return;
         _saveRunning = true;
         _savePendingRetry = false;
         _saveDirty = false;
@@ -6750,6 +6753,7 @@
           if (_saveRetryCount >= 3) {
             console.error('[save] Guardado falló después de 3 intentos');
             _savePendingRetry = false;
+            toast("⚠ Error guardando datos. Hacé un backup manual desde Ajustes.", 6000, "warning");
           }
         } finally {
           _saveRunning = false;
@@ -6766,7 +6770,7 @@
       }
 
       function saveProfiles(profiles) {
-        localStorage.setItem("pt_profiles", JSON.stringify(profiles));
+        safeSetItem("pt_profiles", JSON.stringify(profiles));
       }
 
       function getProfileName(pid) {
@@ -6782,6 +6786,12 @@
       caja = [];
       metaMensual = 0;
       const _appDataReady = PTDB.init().then(() => loadProfile(activeProfile));
+
+      function uid() { return Date.now() * 1000 + Math.floor(Math.random() * 1000); }
+
+      function safeSetItem(key, value) {
+        try { safeSetItem(key, value); return true; } catch (e) { console.error("[storage] QuotaExceeded:", key); return false; }
+      }
 
       function fmt(n) {
         return (
@@ -6841,17 +6851,18 @@
         // Fire-and-forget — no bloqueamos la UI
         fetch("/send-email", {
           method: "POST",
+          signal: AbortSignal.timeout(10000),
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ to: email, toName: name, template, data }),
         })
-          .then((r) => r.json())
+          .then((r) => r.ok ? r.json() : null)
           .then((d) => {
-            if (d.ok) {
-              localStorage.setItem(dedupKey, Date.now().toString());
+            if (d?.ok) {
+              safeSetItem(dedupKey, Date.now().toString());
               console.log("[email] Sent:", template);
             }
           })
-          .catch(() => {}); // silencioso
+          .catch(() => {});
       }
 
       const _toastQueue = [];
@@ -7031,7 +7042,7 @@
       };
 
       function aceptarTerminos() {
-        localStorage.setItem('pt-terminos-aceptados', Date.now().toString());
+        safeSetItem('pt-terminos-aceptados', Date.now().toString());
         closeModal('modal-terminos-acepto');
         trackEvent('terminos_aceptados');
       }
@@ -7175,7 +7186,7 @@
         const tc = document.getElementById("f-tipo-cuota");
         if (tc) d["f-tipo-cuota"] = tc.value;
         if (Object.values(d).some((v) => v && String(v).trim()))
-          localStorage.setItem("pt_draft_venta", JSON.stringify(d));
+          safeSetItem("pt_draft_venta", JSON.stringify(d));
         else localStorage.removeItem("pt_draft_venta");
       }
       function _restoreDraft() {
@@ -7307,7 +7318,7 @@
         const isDark = html.getAttribute("data-theme") === "dark";
         html.setAttribute("data-theme", isDark ? "light" : "dark");
         document.getElementById("theme-btn").textContent = isDark ? "🌙" : "☀️";
-        localStorage.setItem("vip_theme", isDark ? "light" : "dark");
+        safeSetItem("vip_theme", isDark ? "light" : "dark");
         if (chartMeses) renderChartMeses();
       }
       (function () {
@@ -7373,7 +7384,7 @@
           });
           const result = await resp.json();
           if (result.ok) {
-            localStorage.setItem("pt_cloud_backup_at", result.savedAt);
+            safeSetItem("pt_cloud_backup_at", result.savedAt);
             renderCloudBackupStatus();
             trackEvent("backup_guardado");
             toast("☁️ Backup guardado en la nube.", 3000);
@@ -7422,11 +7433,6 @@
           result = await resp.json();
         } catch (e) {
           toast("📶 Sin conexión. Verificá tu internet.", 3000, "warning");
-          _backupInFlight = false;
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = "📥 Restaurar desde la nube";
-          }
           return;
         } finally {
           _backupInFlight = false;
@@ -7529,7 +7535,7 @@
         a.download = `VIP_Parfums_backup_${hoy().replace(/\//g, "-")}.json`;
         a.click();
         setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-        localStorage.setItem("pt_last_backup", Date.now().toString());
+        safeSetItem("pt_last_backup", Date.now().toString());
         localStorage.removeItem("pt_backup_snooze");
         localStorage.removeItem("pt_backup_banner_snooze");
         if (typeof updateSyncStatus === "function") updateSyncStatus();
@@ -7630,20 +7636,10 @@
                 a.click();
                 setTimeout(() => URL.revokeObjectURL(a.href), 1000);
               } catch (_) {}
-              // Sanitizar strings para prevenir XSS almacenado
-              function _sanitizeRestored(arr) {
-                return (arr || []).map(item => {
-                  const clean = {};
-                  for (const [k, v] of Object.entries(item)) {
-                    clean[k] = typeof v === 'string' ? v.replace(/</g, '&lt;').replace(/>/g, '&gt;') : v;
-                  }
-                  return clean;
-                });
-              }
-              ventas = _sanitizeRestored(data.ventas);
-              perfumes = _sanitizeRestored(data.perfumes);
-              gastos = _sanitizeRestored(data.gastos);
-              caja = _sanitizeRestored(data.caja);
+              ventas = data.ventas || [];
+              perfumes = data.perfumes || [];
+              gastos = data.gastos || [];
+              caja = data.caja || [];
               if (data.meta) metaMensual = data.meta;
               save();
               updateStats();
@@ -8687,7 +8683,7 @@
           : "\n\n_Gestionado con Parfum Track_ 🍶\nOrganizá tus ventas gratis → parfumtrack.luccasramireziglesias.workers.dev/landing.html?utm_source=whatsapp&utm_medium=firma&utm_campaign=viral";
       }
       function toggleWaFirma(checked) {
-        localStorage.setItem("pt_wa_firma", checked ? "1" : "0");
+        safeSetItem("pt_wa_firma", checked ? "1" : "0");
         toast(checked ? "✅ Firma activada en WhatsApp" : "Firma desactivada");
       }
       function guardarWANumber() {
@@ -8698,7 +8694,7 @@
           toast("⚠ Ingresá un número válido (con código de país)", 3500);
           return;
         }
-        localStorage.setItem("pt_wa_number", val);
+        safeSetItem("pt_wa_number", val);
         const banner = document.getElementById("wa-config-banner");
         if (banner) banner.style.display = "none";
         toast("✅ Número de WhatsApp guardado");
@@ -8838,15 +8834,18 @@
         inp.value = sug;
         inp.max = debe;
         inp.min = 1;
-        document.getElementById("modal-cuota-ok").onclick = () => {
+        document.getElementById("modal-cuota-ok").onclick = function() {
+          this.disabled = true;
           const m =
             parseFloat(document.getElementById("modal-cuota-monto").value) || 0;
           if (!m || m <= 0) {
+            this.disabled = false;
             toast("⚠ Ingresá un monto válido");
             return;
           }
           const _debe = calcDebe(v);
           if (m > _debe * 2) {
+            this.disabled = false;
             toast("⚠ El monto supera lo que se debe");
             return;
           }
@@ -8871,8 +8870,9 @@
       function registrarPagoExtra(id) {
         const v = ventas.find((x) => x.id === id);
         if (!v) return;
-        const m =
-          parseFloat(document.getElementById("extra-monto-" + id)?.value) || 0;
+        const inp = document.getElementById("extra-monto-" + id);
+        const m = parseFloat(inp?.value) || 0;
+        if (inp) inp.value = "";
         if (!m || m <= 0) {
           toast("⚠ Ingresá un monto válido");
           return;
@@ -8904,10 +8904,11 @@
       function cobrarDesdePendientes(id) {
         const v = ventas.find((x) => x.id === id);
         if (!v) return;
-        const m =
-          parseFloat(document.getElementById("cpend-monto-" + id)?.value) || 0;
-        if (!m) {
-          toast("⚠ Ingresá un monto");
+        const inp2 = document.getElementById("cpend-monto-" + id);
+        const m = parseFloat(inp2?.value) || 0;
+        if (inp2) inp2.value = "";
+        if (!m || m <= 0) {
+          toast("⚠ Ingresá un monto válido");
           return;
         }
         if (!v.cuotasPagos) v.cuotasPagos = [];
@@ -9075,7 +9076,11 @@
             },
           },
         });
-        } catch (e) { console.error("[PT] Chart error:", e); }
+        } catch (e) {
+          console.error("[PT] Chart error:", e);
+          const cel = document.getElementById("chart-meses");
+          if (cel) cel.closest(".card")?.insertAdjacentHTML("beforeend", '<p style="color:var(--warn);font-size:12px;text-align:center;padding:8px">No se pudo cargar el gráfico</p>');
+        }
       }
       function renderStatsAvanzadas(filtered) {
         const el = document.getElementById("stats-avanzadas");
@@ -9310,7 +9315,7 @@
         }
         _addingCaja = true;
         caja.unshift({
-          id: Date.now(),
+          id: uid(),
           tipo,
           desc,
           monto,
@@ -9331,6 +9336,7 @@
       }
       function delMovCaja(id) {
         const mov = caja.find((m) => m.id === id);
+        if (!mov) return;
         caja = caja.filter((m) => m.id !== id);
         haptic("warning");
         save();
@@ -9548,14 +9554,13 @@
           `¿Eliminar "${p.nombre}" del stock? Esto no afecta las ventas registradas.`;
         document.getElementById("del-stock-btn").onclick = () => {
           const backup = JSON.parse(JSON.stringify(p));
-          const idx = perfumes.findIndex((x) => x.nombre === nombre);
           perfumes = perfumes.filter((x) => x.nombre !== nombre);
           haptic("warning");
           save();
           closeModal("del-stock-modal");
           renderStock();
           toastUndo(`🍶 "${escapeHTML(p.nombre)}" eliminado del stock`, () => {
-            perfumes.splice(idx, 0, backup);
+            perfumes.push(backup);
             save();
             renderStock();
           });
@@ -9685,8 +9690,11 @@
         document.getElementById("edit-foto-quitar").style.display = "none";
         document.getElementById("edit-foto-url").value = "";
       }
+      var _editPerfumeSaving = false;
       function guardarEdicionPerfume() {
+        if (_editPerfumeSaving) return;
         if (!editandoPerfumeNombre) return;
+        _editPerfumeSaving = true;
         const p = perfumes.find((x) => x.nombre === editandoPerfumeNombre);
         if (!p) return;
         const nuevoNombre = document.getElementById("edit-nombre").value.trim();
@@ -9743,6 +9751,7 @@
         renderStock();
         renderCatalogo();
         toast(`✓ "${p.nombre}" actualizado`);
+        _editPerfumeSaving = false;
       }
       // ── GASTOS ────────────────────────────────────────────────────
       function toggleGastoCat() {
@@ -9828,7 +9837,7 @@
         }
         const [aa, mm, dd] = fechaRaw.split("-");
         gastos.unshift({
-          id: Date.now(),
+          id: uid(),
           categoria: cat,
           nombreOtro: otroNombre,
           monto,
@@ -10278,8 +10287,9 @@
         }
 
         const esPrimeraVenta = ventas.length === 0;
+        try {
         ventas.unshift({
-          id: Date.now() * 1000 + Math.floor(Math.random() * 1000),
+          id: uid(),
           createdAt: Date.now(),
           nVenta,
           perfume: f.perfume,
@@ -10352,17 +10362,17 @@
 
         if (esMesNuevo) activeMesVentas = mesFecha;
 
-        if (btnGuardar) {
-          btnGuardar.disabled = false;
-          btnGuardar.textContent = "💾 Guardar venta";
-        }
-        _addVentaEnProceso = false;
-
-        // Ventas siempre libres en plan Free — solo features Pro requieren activación
         trackEvent("venta_guardada", {
           perfume: f.perfume,
           esCuotas: esCuotas ? 1 : 0,
         });
+        } finally {
+          if (btnGuardar) {
+            btnGuardar.disabled = false;
+            btnGuardar.textContent = "💾 Guardar venta";
+          }
+          _addVentaEnProceso = false;
+        }
       }
       function renderMetaBar() {
         const el = document.getElementById("meta-bar-fill");
@@ -10580,7 +10590,7 @@
         }
         // Registrar salida en Caja con referencia al stock
         caja.unshift({
-          id: Date.now(),
+          id: uid(),
           tipo: "salida",
           desc: `📦 Compra stock: ${cantidad}x ${nombre} (${fmt(precio)} c/u)`,
           monto: total,
@@ -10650,9 +10660,12 @@
         }
       }
 
+      var _editVentaSaving = false;
       function guardarEditarVenta() {
+        if (_editVentaSaving) return;
+        _editVentaSaving = true;
         const v = ventas.find((x) => x.id === _editVentaId);
-        if (!v) return;
+        if (!v) { _editVentaSaving = false; return; }
         const perfume = document.getElementById("ev-perfume").value.trim();
         const pv = parseFloat(document.getElementById("ev-pventa").value);
         const pc = parseFloat(document.getElementById("ev-pcompra").value) || 0;
@@ -10718,6 +10731,7 @@
         renderVentas();
         closeModal("modal-editar-venta");
         toast("✅ Venta actualizada");
+        _editVentaSaving = false;
       }
 
       function openDeleteGastoModal(id) {
@@ -12013,11 +12027,11 @@
         }
 
         if (valid && serverToken && serverSig) {
-          localStorage.setItem("pt_activated_code", serverToken); // HMAC token (backup auth)
-          localStorage.setItem("pt_activated_sig", serverSig); // ECDSA sig (client verification)
-          localStorage.setItem("pt_activation_mode", "server");
-          localStorage.setItem("pt_activated_at", Date.now().toString());
-          localStorage.setItem("pt_license_raw_code", code);
+          safeSetItem("pt_activated_code", serverToken); // HMAC token (backup auth)
+          safeSetItem("pt_activated_sig", serverSig); // ECDSA sig (client verification)
+          safeSetItem("pt_activation_mode", "server");
+          safeSetItem("pt_activated_at", Date.now().toString());
+          safeSetItem("pt_license_raw_code", code);
           const _sigBytes = Uint8Array.from(atob(serverSig), (c) =>
             c.charCodeAt(0),
           );
@@ -12293,7 +12307,7 @@
         // Recover trial start from IndexedDB if localStorage was cleared
         if (!localStorage.getItem("pt_trial_start")) {
           const idbTs = await PTDB.get("pt_trial_start");
-          if (idbTs) localStorage.setItem("pt_trial_start", idbTs);
+          if (idbTs) safeSetItem("pt_trial_start", idbTs);
         }
         checkTrial();
       }
@@ -12331,7 +12345,7 @@
                     (15 >> (c / 4)))
                 ).toString(16),
               );
-          localStorage.setItem("pt_device_id", id);
+          safeSetItem("pt_device_id", id);
         }
         return id;
       }
@@ -12351,7 +12365,7 @@
           // Server knows an earlier start — impose it (prevents reset bypass)
           if (startAt < localStartAt) {
             const serverTs = String(startAt);
-            localStorage.setItem("pt_trial_start", serverTs);
+            safeSetItem("pt_trial_start", serverTs);
             PTDB.set("pt_trial_start", serverTs);
             // Reload checkTrial with the corrected (earlier) timestamp
             checkTrial();
@@ -12442,15 +12456,15 @@
           });
           const data = await resp.json();
           if (resp.ok && data.verified) {
-            localStorage.setItem("pt_trial_email", email);
+            safeSetItem("pt_trial_email", email);
             if (data.startAt && typeof data.startAt === "number") {
               const ts = String(data.startAt);
-              localStorage.setItem("pt_trial_start", ts);
+              safeSetItem("pt_trial_start", ts);
               PTDB.set("pt_trial_start", ts);
             }
             if (data.syncCode && data.syncToken) {
-              localStorage.setItem("pt_sync_code", data.syncCode);
-              localStorage.setItem("pt_sync_token", data.syncToken);
+              safeSetItem("pt_sync_code", data.syncCode);
+              safeSetItem("pt_sync_token", data.syncToken);
               const cloudData = await _syncCargarNube(
                 data.syncCode,
                 data.syncToken,
@@ -12530,7 +12544,7 @@
             signal: AbortSignal.timeout(15000),
           });
           if (resp.ok)
-            localStorage.setItem("pt_last_cloud_sync", Date.now().toString());
+            safeSetItem("pt_last_cloud_sync", Date.now().toString());
         } catch {
           /* silent — will retry on next save */
         } finally {
@@ -12601,7 +12615,7 @@
             PTDB.set(profileKey("vip_caja_v1"), data.caja ?? []),
             PTDB.set(profileKey("vip_meta_v1"), data.meta ?? 0),
           ]);
-          localStorage.setItem("pt_last_cloud_sync", Date.now().toString());
+          safeSetItem("pt_last_cloud_sync", Date.now().toString());
           toast("☁️ Datos restaurados. Recargando...", 2000);
           setTimeout(() => location.reload(), 1500);
         } catch {
@@ -12642,11 +12656,11 @@
               ? Math.min(oldestVenta, _realDateNow())
               : _realDateNow()
           ).toString();
-          localStorage.setItem("pt_trial_start", trialStart);
+          safeSetItem("pt_trial_start", trialStart);
           PTDB.set("pt_trial_start", trialStart);
           if (ventas.length === 0 && perfumes.length === 0) {
             cargarDatosDemo();
-            localStorage.setItem("pt_trial_demo_loaded", "1");
+            safeSetItem("pt_trial_demo_loaded", "1");
           }
           trackEvent("trial_iniciado");
           if (parseInt(trialStart) >= _realDateNow() - 5000) {
@@ -12673,7 +12687,7 @@
           parseInt(trialStart) > oldestVentaTs
         ) {
           trialStart = oldestVentaTs.toString();
-          localStorage.setItem("pt_trial_start", trialStart);
+          safeSetItem("pt_trial_start", trialStart);
           PTDB.set("pt_trial_start", trialStart);
         }
 
@@ -12811,10 +12825,10 @@
         const stored = localStorage.getItem("pt_license_key");
         if (stored && stored !== LICENSE.key) {
           // Clave cambió — nueva instalación
-          localStorage.setItem("pt_license_key", LICENSE.key);
+          safeSetItem("pt_license_key", LICENSE.key);
         } else if (!stored) {
-          localStorage.setItem("pt_license_key", LICENSE.key);
-          localStorage.setItem(
+          safeSetItem("pt_license_key", LICENSE.key);
+          safeSetItem(
             "pt_license_first_use",
             new Date().toISOString(),
           );
@@ -12906,12 +12920,12 @@
 
       function backupDataYClose() {
         backupData();
-        localStorage.setItem("pt_last_backup", Date.now().toString());
+        safeSetItem("pt_last_backup", Date.now().toString());
         closeModal("backup-modal");
       }
 
       function snoozeBackup() {
-        localStorage.setItem("pt_backup_snooze", Date.now().toString());
+        safeSetItem("pt_backup_snooze", Date.now().toString());
         closeModal("backup-modal");
         toast("⏰ Te recordamos mañana");
       }
@@ -12951,7 +12965,7 @@
           toast("⚠ Email inválido");
           return;
         }
-        localStorage.setItem("pt_backup_email", email);
+        safeSetItem("pt_backup_email", email);
         toast("✅ Email de backup guardado");
       }
       // ── BACKUP POR EMAIL (abre cliente de correo) ──
@@ -13003,7 +13017,7 @@
           if (ventas.length > 0 || perfumes.length > 0) {
             setTimeout(() => {
               backupData();
-              localStorage.setItem("pt_last_autobackup", now.toString());
+              safeSetItem("pt_last_autobackup", now.toString());
               toast("💾 Backup automático descargado");
             }, 3000);
           }
@@ -13012,7 +13026,7 @@
 
       function guardarAutoBackup() {
         const dias = document.getElementById("cfg-autobackup").value;
-        localStorage.setItem("pt_autobackup_dias", dias);
+        safeSetItem("pt_autobackup_dias", dias);
         toast(
           dias === "0"
             ? "Backup automático desactivado"
@@ -13213,7 +13227,7 @@
         PAYMENT_CONFIG.transferencia.alias = document
           .getElementById("cfg-alias-banco")
           .value.trim();
-        localStorage.setItem(
+        safeSetItem(
           "pt_payment_config",
           JSON.stringify(PAYMENT_CONFIG),
         );
@@ -13229,7 +13243,7 @@
             Object.assign(PAYMENT_CONFIG.mercadopago, saved.mercadopago);
           if (saved.transferencia)
             Object.assign(PAYMENT_CONFIG.transferencia, saved.transferencia);
-        } catch (e) {}
+        } catch (e) { console.warn("[PT] Payment config corrupt, using defaults"); }
       }
 
       // ══════════════════════════════════════════════
@@ -13597,6 +13611,7 @@
           const pctLabel = document.getElementById("storage-pct-label");
           if (navigator.storage && navigator.storage.estimate) {
             navigator.storage.estimate().then(({ usage, quota }) => {
+              if (!quota) return;
               const pct = Math.min(100, (usage / quota) * 100).toFixed(1);
               const usedMB = (usage / 1048576).toFixed(1);
               const quotaMB = (quota / 1048576).toFixed(0);
@@ -13814,7 +13829,7 @@
           if (v !== null) saved[k] = v;
         });
         localStorage.clear();
-        Object.entries(saved).forEach(([k, v]) => localStorage.setItem(k, v));
+        Object.entries(saved).forEach(([k, v]) => safeSetItem(k, v));
         ventas = [];
         perfumes = [];
         gastos = [];
@@ -13829,6 +13844,7 @@
       // ══════════════════════════════════════════════
       let editingProfileId = null;
       let pagoVentaId = null;
+      var _cobroProcesando = false;
 
       // Payment config — set per client deployment
       const PAYMENT_CONFIG = {
@@ -13916,7 +13932,7 @@
           const defaultShown = localStorage.getItem("pt_pin_hint_shown");
           if (!storedPin && !defaultShown) {
             // PIN no configurado todavía (usa el default)
-            localStorage.setItem("pt_pin_hint_shown", "1");
+            safeSetItem("pt_pin_hint_shown", "1");
             setTimeout(
               () =>
                 toast(
@@ -13926,7 +13942,7 @@
               2000,
             );
           }
-        } catch (e) {}
+        } catch (e) { console.error("[init] PIN hint:", e); }
 
         // Notificación proactiva de stock agotado al iniciar
         try {
@@ -13938,7 +13954,7 @@
             sinStock.length > 0 &&
             localStorage.getItem("pt_stock_warn_" + hoyKey) !== "1"
           ) {
-            localStorage.setItem("pt_stock_warn_" + hoyKey, "1");
+            safeSetItem("pt_stock_warn_" + hoyKey, "1");
             const nombres = sinStock
               .slice(0, 3)
               .map((p) => p.nombre)
@@ -13954,7 +13970,7 @@
               2800,
             );
           }
-        } catch (e) {}
+        } catch (e) { console.error("[init] Stock warning:", e); }
 
         // Auto-optimizar fotos viejas en segundo plano
         setTimeout(async () => {
@@ -13997,7 +14013,7 @@
             "caja",
           ];
           if (_urlTab && _validTabs.includes(_urlTab)) _startTab = _urlTab;
-        } catch (e) {}
+        } catch (e) { console.error("[init] URL tab:", e); }
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             showTab(_startTab);
@@ -14023,7 +14039,7 @@
               _pollPaymentStatus(_mpPayId);
             }, 800);
           }
-        } catch (e) {}
+        } catch (e) { console.error("[init] MP return:", e); }
 
         // ── Focus trap para modales (accesibilidad) ──
         _initFocusTrap();
@@ -14036,7 +14052,7 @@
           await new Promise(r => setTimeout(r, interval));
           try {
             const _mpEmail = localStorage.getItem("pt_user_email") || "";
-            const resp = await fetch(`/mp-payment-status?paymentId=${encodeURIComponent(paymentId)}&email=${encodeURIComponent(_mpEmail)}`);
+            const resp = await fetch(`/mp-payment-status?paymentId=${encodeURIComponent(paymentId)}&email=${encodeURIComponent(_mpEmail)}`, { signal: AbortSignal.timeout(8000) });
             if (!resp.ok) continue;
             const result = await resp.json();
             if (result.ok && result.status === "active") {
@@ -14126,13 +14142,17 @@
         document.getElementById("modal-perfil").classList.add("open");
       }
 
+      var _savingPerfil = false;
       function guardarPerfil() {
+        if (_savingPerfil) return;
+        _savingPerfil = true;
         const name = document
           .getElementById("perfil-nombre-input")
           .value.trim();
         const emoji =
           document.getElementById("perfil-emoji-input").value.trim() || "👤";
         if (!name) {
+          _savingPerfil = false;
           toast("⚠ Poné un nombre para el perfil");
           return;
         }
@@ -14144,11 +14164,12 @@
             p.emoji = emoji;
           }
         } else {
-          const pid = "profile_" + Date.now();
+          const pid = "profile_" + uid();
           profiles.push({ id: pid, name, emoji, createdAt: Date.now() });
         }
         saveProfiles(profiles);
         closeModal("modal-perfil");
+        _savingPerfil = false;
         showProfileScreen();
         toast(editingProfileId ? "✅ Perfil actualizado" : "✅ Perfil creado");
       }
@@ -14215,12 +14236,15 @@
       }
 
       function cobrarMP() {
+        if (_cobroProcesando) return;
+        _cobroProcesando = true;
+        try {
         const v = ventas.find((x) => x.id === pagoVentaId);
         if (!v) return;
         const monto = getMontoVenta();
         if (!v.cuotasPagos) v.cuotasPagos = [];
         v.cuotasPagos.push({ monto, fecha: hoy(), numCuota: v.cuotasPagos.length + 1, medio: "mercadopago" });
-        caja.push({ id: Date.now(), tipo: "entrada", monto, desc: `Cobro MercadoPago: ${v.perfume}${v.cliente ? " — " + v.cliente : ""}`, fecha: hoy() });
+        caja.push({ id: uid(), tipo: "entrada", monto, desc: `Cobro MercadoPago: ${v.perfume}${v.cliente ? " — " + v.cliente : ""}`, fecha: hoy() });
         save();
         updateStats();
         renderVentas();
@@ -14236,16 +14260,20 @@
         }
         closeModal("modal-pago");
         toast(resta <= 0 ? `✅ Cobro completo: ${fmt(monto)}` : `💚 Cobrado ${fmt(monto)} vía MP · Resta: ${fmt(resta)}`);
+        } finally { _cobroProcesando = false; }
       }
 
       function cobrarTransferencia() {
+        if (_cobroProcesando) return;
+        _cobroProcesando = true;
+        try {
         const v = ventas.find((x) => x.id === pagoVentaId);
         if (!v) return;
         const monto = getMontoVenta();
         const cfg = PAYMENT_CONFIG.transferencia;
         if (!v.cuotasPagos) v.cuotasPagos = [];
         v.cuotasPagos.push({ monto, fecha: hoy(), numCuota: v.cuotasPagos.length + 1, medio: "transferencia" });
-        caja.push({ id: Date.now(), tipo: "entrada", monto, desc: `Cobro transferencia: ${v.perfume}${v.cliente ? " — " + v.cliente : ""}`, fecha: hoy() });
+        caja.push({ id: uid(), tipo: "entrada", monto, desc: `Cobro transferencia: ${v.perfume}${v.cliente ? " — " + v.cliente : ""}`, fecha: hoy() });
         save();
         updateStats();
         renderVentas();
@@ -14279,21 +14307,26 @@
           });
         closeModal("modal-pago");
         toast(resta <= 0 ? `✅ Cobro completo: ${fmt(monto)}` : `🏦 Cobrado ${fmt(monto)} vía transferencia · Resta: ${fmt(resta)}`);
+        } finally { _cobroProcesando = false; }
       }
 
       function cobrarEfectivo() {
+        if (_cobroProcesando) return;
+        _cobroProcesando = true;
+        try {
         const v = ventas.find((x) => x.id === pagoVentaId);
         if (!v) return;
         const monto = getMontoVenta();
         if (!v.cuotasPagos) v.cuotasPagos = [];
         v.cuotasPagos.push({ monto, fecha: hoy(), numCuota: v.cuotasPagos.length + 1, medio: "efectivo" });
-        caja.push({ id: Date.now(), tipo: "entrada", monto, desc: `Cobro efectivo: ${v.perfume}${v.cliente ? " — " + v.cliente : ""}`, fecha: hoy() });
+        caja.push({ id: uid(), tipo: "entrada", monto, desc: `Cobro efectivo: ${v.perfume}${v.cliente ? " — " + v.cliente : ""}`, fecha: hoy() });
         save();
         updateStats();
         renderVentas();
         const resta = calcDebe(v);
         closeModal("modal-pago");
         toast(resta <= 0 ? `✅ Cobro completo: ${fmt(monto)}` : `💵 Cobrado ${fmt(monto)} · Resta: ${fmt(resta)}`);
+        } finally { _cobroProcesando = false; }
       }
 
       // ══════════════════════════════════════════════
@@ -14399,7 +14432,7 @@
                 if (!localStorage.getItem(PIN_SALT_KEY)) {
                   var arr = new Uint8Array(16);
                   crypto.getRandomValues(arr);
-                  localStorage.setItem(
+                  safeSetItem(
                     PIN_SALT_KEY,
                     Array.from(arr)
                       .map((b) => b.toString(16).padStart(2, "0"))
@@ -14441,13 +14474,13 @@
                   _failsMem,
                   parseInt(localStorage.getItem(PIN_FAILS_KEY) || "0") + 1,
                 );
-                localStorage.setItem(PIN_FAILS_KEY, fails);
+                safeSetItem(PIN_FAILS_KEY, fails);
                 if (fails >= MAX_FAILS) {
-                  localStorage.setItem(
+                  safeSetItem(
                     PIN_LOCK_KEY,
                     (Date.now() + LOCKOUT_MS).toString(),
                   );
-                  localStorage.setItem(PIN_FAILS_KEY, "0");
+                  safeSetItem(PIN_FAILS_KEY, "0");
                 }
                 return fails;
               }
@@ -14525,7 +14558,7 @@
                   if (!localStorage.getItem(PIN_SALT_KEY)) {
                     _ensurePinSalt();
                     var newHash = await hashPIN(buf);
-                    localStorage.setItem(PIN_HASH_KEY, newHash);
+                    safeSetItem(PIN_HASH_KEY, newHash);
                   }
                   clearFails();
                   var screen = document.getElementById("pin-screen");
@@ -14722,7 +14755,7 @@
                   // Generar salt aleatorio antes de hashear (si no existe aún)
                   _ensurePinSalt();
                   var finalHash = await hashPIN(buf);
-                  localStorage.setItem(PIN_HASH_KEY, finalHash);
+                  safeSetItem(PIN_HASH_KEY, finalHash);
                   clearFails();
                   closeModal("modal-pin-setup");
                   buf = "";
@@ -14932,10 +14965,10 @@
           .trim()
           .toLowerCase();
         if (email && email.includes("@")) {
-          localStorage.setItem("pt_user_email", email);
+          safeSetItem("pt_user_email", email);
           // Pre-cargar en campo de backup email
           if (!localStorage.getItem("pt_backup_email"))
-            localStorage.setItem("pt_backup_email", email);
+            safeSetItem("pt_backup_email", email);
         }
         // Guardar nombre en el perfil activo
         var profiles = getProfiles();
@@ -14952,7 +14985,7 @@
           badge.textContent =
             "🍶 " + (nombre.length > 8 ? nombre.slice(0, 8) + "…" : nombre);
         // Mostrar paso 1b (WhatsApp)
-        localStorage.setItem("pt_ob_step", "1b");
+        safeSetItem("pt_ob_step", "1b");
         document.getElementById("ob-step-1").style.display = "none";
         document.getElementById("ob-step-1b").style.display = "block";
         _obUpdateDots("1b");
@@ -14970,14 +15003,14 @@
           /\D/g,
           "",
         );
-        if (wa && wa.length >= 8) localStorage.setItem("pt_wa_number", wa);
+        if (wa && wa.length >= 8) safeSetItem("pt_wa_number", wa);
         _obMostrarPaso2();
       }
       function obPaso1bSkip() {
         _obMostrarPaso2();
       }
       function _obMostrarPaso2() {
-        localStorage.setItem("pt_ob_step", "2");
+        safeSetItem("pt_ob_step", "2");
         document.getElementById("ob-step-1b").style.display = "none";
         document.getElementById("ob-step-2").style.display = "block";
         _obUpdateDots("2");
@@ -14993,7 +15026,7 @@
         if (warn) warn.style.display = warn.style.display === "none" ? "block" : "none";
       }
       function obSaltarFinal() {
-        localStorage.setItem("pt_onboarding_done", "1");
+        safeSetItem("pt_onboarding_done", "1");
         localStorage.removeItem("pt_ob_step");
         var el = document.getElementById("modal-onboarding");
         if (el) el.classList.remove("open");
@@ -15001,7 +15034,7 @@
       }
 
       function obTerminar() {
-        localStorage.setItem("pt_onboarding_done", "1");
+        safeSetItem("pt_onboarding_done", "1");
         localStorage.removeItem("pt_ob_step");
         var el = document.getElementById("modal-onboarding");
         if (el) el.classList.remove("open");
@@ -15047,7 +15080,7 @@
       function cerrarOnboarding() {
         var el = document.getElementById("ob-welcome-screen");
         if (el) el.classList.remove("show");
-        localStorage.setItem("pt_onboarding_done", "1");
+        safeSetItem("pt_onboarding_done", "1");
         localStorage.removeItem("pt_ob_step");
       }
 
@@ -15127,7 +15160,7 @@
         document.getElementById("tour-backdrop").classList.remove("show");
         document.getElementById("tour-highlight").classList.remove("show");
         document.getElementById("tour-tip").classList.remove("show");
-        localStorage.setItem("pt_onboarding_done", "1");
+        safeSetItem("pt_onboarding_done", "1");
         localStorage.removeItem("pt_ob_step");
         if (typeof showTab === "function") showTab("ventas");
         if (typeof toast === "function")
@@ -15445,7 +15478,7 @@
         document
           .getElementById("backup-proactive-banner")
           .classList.remove("show");
-        localStorage.setItem("pt_backup_banner_snooze", Date.now().toString());
+        safeSetItem("pt_backup_banner_snooze", Date.now().toString());
       }
 
       function backupDesdeBanner() {
@@ -16351,7 +16384,7 @@
         const pie = document.getElementById("cat-pie-input").value || "";
 
         // Guardar pie para próxima vez
-        if (pie) localStorage.setItem("pt_cat_pie", pie);
+        if (pie) safeSetItem("pt_cat_pie", pie);
 
         // Página actual — máximo 12 perfumes
         const inicio = catPaginaActual * CAT_POR_PAGINA;
@@ -17900,7 +17933,7 @@
             Continuar →
           </button>
           <button
-            onclick="localStorage.setItem('pt_trial_skip_email','1');document.getElementById('modal-trial-email').classList.remove('open');checkTrial();"
+            onclick="safeSetItem('pt_trial_skip_email','1');document.getElementById('modal-trial-email').classList.remove('open');checkTrial();"
             style="
               width: 100%;
               padding: 10px;
@@ -18994,13 +19027,13 @@
 
         // Guardar estado de suscripción para mostrarlo en Ajustes
         const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
-        localStorage.setItem("pt_notif_subscribed", isSubscribed ? "1" : "0");
+        safeSetItem("pt_notif_subscribed", isSubscribed ? "1" : "0");
 
         // Chequear cobros pendientes y notificar si corresponde
         OneSignal.User.PushSubscription.addEventListener(
           "change",
           async (event) => {
-            localStorage.setItem(
+            safeSetItem(
               "pt_notif_subscribed",
               event.current.optedIn ? "1" : "0",
             );
@@ -19034,7 +19067,7 @@
         }
 
         // Guardar estado y mostrar éxito — el resto es opcional (OneSignal puede fallar sin problema)
-        localStorage.setItem("pt_notif_subscribed", "1");
+        safeSetItem("pt_notif_subscribed", "1");
         toast("🔔 ¡Notificaciones activadas!");
         if (typeof renderAjustes === "function") renderAjustes();
 
@@ -19063,7 +19096,7 @@
         }
         try {
           await OneSignal.User.PushSubscription.optOut();
-          localStorage.setItem("pt_notif_subscribed", "0");
+          safeSetItem("pt_notif_subscribed", "0");
           toast("🔕 Notificaciones desactivadas");
           if (typeof renderAjustes === "function") renderAjustes();
         } catch (e) {
@@ -19105,6 +19138,7 @@
 
           await fetch("/send-notification", {
             method: "POST",
+            signal: AbortSignal.timeout(10000),
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               subscriptionId,
@@ -19114,7 +19148,7 @@
             }),
           });
 
-          localStorage.setItem("pt_last_cobros_notif", ahora.toString());
+          safeSetItem("pt_last_cobros_notif", ahora.toString());
         } catch (e) {
           // Silencioso — las notificaciones son opcionales
         }
@@ -19147,6 +19181,7 @@
 
           await fetch("/send-notification", {
             method: "POST",
+            signal: AbortSignal.timeout(10000),
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               subscriptionId,
@@ -19156,7 +19191,7 @@
             }),
           });
 
-          localStorage.setItem("pt_last_cuotas_notif", ahora.toString());
+          safeSetItem("pt_last_cuotas_notif", ahora.toString());
         } catch (e) {
           /* silencioso */
         }
@@ -19200,6 +19235,7 @@
               : "$" + gananciaEsteMes;
           await fetch("/send-notification", {
             method: "POST",
+            signal: AbortSignal.timeout(10000),
             headers: { "Content-Type": "application/json" },
               title: "🎯 ¡Meta mensual alcanzada! — Parfum Track",
               message: `¡Superaste tu meta! Ganancia del mes: ${fmtMonto}`,
@@ -19207,7 +19243,7 @@
             }),
           });
 
-          localStorage.setItem("pt_last_meta_notif_mes", mesActual);
+          safeSetItem("pt_last_meta_notif_mes", mesActual);
         } catch (e) {
           /* silencioso */
         }
@@ -19258,7 +19294,7 @@
             }),
           });
 
-          localStorage.setItem("pt_last_resumen_semana", semanaActual);
+          safeSetItem("pt_last_resumen_semana", semanaActual);
         } catch (e) {
           /* silencioso */
         }

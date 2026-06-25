@@ -95,8 +95,8 @@ export async function onRequestGet(context) {
   const ipLimitError = await checkRateLimit(env, `rl_ip_${ip}`, 10, 3600);
   if (ipLimitError) return json({ ok: false, error: ipLimitError }, 429, headers);
 
-  const code = request.headers.get('X-PT-Code') || new URL(request.url).searchParams.get('code');
-  const token = request.headers.get('X-PT-Token') || new URL(request.url).searchParams.get('token');
+  const code = request.headers.get('X-PT-Code');
+  const token = request.headers.get('X-PT-Token');
 
   if (!code || !token) {
     return json({ ok: false, error: 'Missing params' }, 400, headers);

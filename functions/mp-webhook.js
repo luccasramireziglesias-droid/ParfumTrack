@@ -215,6 +215,13 @@ async function handleSinglePayment(paymentId, payment, env) {
     return;
   }
 
+  // Validar currency
+  const expectedCurrency = env.MP_CURRENCY_ID || 'USD';
+  if (payment.currency_id && payment.currency_id !== expectedCurrency) {
+    log('error', 'mp-webhook', 'currency mismatch', { got: payment.currency_id, expected: expectedCurrency, paymentId });
+    return;
+  }
+
   // Validar monto contra el esperado según el plan
   const expectedAmount = parseFloat(plan === 'annual'
     ? (env.MP_AMOUNT_ANNUAL  || '95.88')

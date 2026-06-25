@@ -1,6 +1,6 @@
 // Utilidades compartidas entre Worker functions
 
-export const ORIGIN_RE = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/parfumtrack\.luccasramireziglesias\.workers\.dev)$/;
+export const ORIGIN_RE = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/parfumtrack\.(luccasramireziglesias\.workers\.dev|pages\.dev))$/;
 
 export function corsHeaders(origin, { methods = 'POST, OPTIONS', allowHeaders = 'Content-Type' } = {}) {
   const ok = ORIGIN_RE.test(origin);
