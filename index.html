@@ -6655,11 +6655,11 @@
         return `${key}_${activeProfile}`;
       }
 
+      var _migrationFailed = false;
       async function loadProfile(pid) {
         activeProfile = pid;
         safeSetItem("pt_active_profile", pid);
         // Lee de IndexedDB; si no existe migra desde localStorage automáticamente
-        var _migrationFailed = false;
         async function loadKey(key, defaultVal) {
           let val = await PTDB.get(key);
           if (val === null) {
@@ -6790,7 +6790,7 @@
       function uid() { return Date.now() * 1000 + Math.floor(Math.random() * 1000); }
 
       function safeSetItem(key, value) {
-        try { safeSetItem(key, value); return true; } catch (e) { console.error("[storage] QuotaExceeded:", key); return false; }
+        try { localStorage.setItem(key, value); return true; } catch (e) { console.error("[storage] QuotaExceeded:", key); return false; }
       }
 
       function fmt(n) {
@@ -8834,7 +8834,9 @@
         inp.value = sug;
         inp.max = debe;
         inp.min = 1;
-        document.getElementById("modal-cuota-ok").onclick = function() {
+        const _cuotaBtn = document.getElementById("modal-cuota-ok");
+        _cuotaBtn.disabled = false;
+        _cuotaBtn.onclick = function() {
           this.disabled = true;
           const m =
             parseFloat(document.getElementById("modal-cuota-monto").value) || 0;
