@@ -84,6 +84,18 @@ async function handleRequest(request, env, ctx) {
       });
     }
 
-    // Todo lo demás → assets estáticos (index.html, sw.js, etc.)
-    return env.ASSETS.fetch(request);
+    // Assets estáticos — forzar no-cache en sw.js e index.html
+    const assetResp = await env.ASSETS.fetch(request);
+    if (path === '/sw.js') {
+      const resp = new Response(assetResp.body, assetResp);
+      resp.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      resp.headers.set('Service-Worker-Allowed', '/');
+      return resp;
+    }
+    if (path === '/' || path === '/index.html') {
+      const resp = new Response(assetResp.body, assetResp);
+      resp.headers.set('Cache-Control', 'no-cache, must-revalidate');
+      return resp;
+    }
+    return assetResp;
 }
