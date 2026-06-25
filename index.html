@@ -5442,6 +5442,7 @@
             >
               Parfum Track — Montevideo, Uruguay
             </div>
+            <div style="text-align:center;font-size:10px;color:var(--text3);opacity:0.5;padding:8px 0 0;">v2.7</div>
           </div>
         </div>
 
@@ -18743,7 +18744,13 @@
       .has-top-banner .header {
         padding-top: 52px;
       }
-      /* WebView nativo Android: sin padding extra del status bar */
+      /* TWA / PWA standalone: sin padding extra — CSS puro, no depende de JS */
+      @media (display-mode: standalone) {
+        .header { padding-top: 4px !important; }
+        .bottom-nav { padding-bottom: 0 !important; }
+        .content { padding-bottom: 80px; }
+      }
+      /* Fallback JS-based para navegadores que no soporten display-mode */
       body.is-native-app .header {
         padding-top: 4px !important;
       }
