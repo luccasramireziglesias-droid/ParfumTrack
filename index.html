@@ -1800,6 +1800,35 @@ input[type="date"].form-input {
 .ranking-count { color:var(--text3); font-size:12px; }
 .ranking-amount { color:var(--green); font-weight:600; }
 
+/* Cuenta */
+.cuenta-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 32px 20px;
+}
+.plan-cards { display: flex; flex-direction: column; gap: 10px; }
+.plan-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 16px;
+}
+.plan-card.pro { border-color: var(--gold); }
+.plan-name { font: 700 16px 'Cormorant Garamond'; color: var(--gold2); }
+.plan-price { font: 700 28px 'DM Sans'; color: var(--text); margin: 4px 0; }
+.plan-desc { font-size: 12px; color: var(--text3); line-height: 1.4; }
+.plan-badge {
+  display: inline-block; font-size: 11px; padding: 4px 12px;
+  border-radius: var(--radius-pill); margin-top: 8px;
+  background: var(--gold-dim); color: var(--gold2);
+}
+.plan-badge.active { background: var(--green); color: #1a1a2e; }
+
 /* PIN Lock */
 .pin-dot {
   width: 14px; height: 14px;
@@ -1893,7 +1922,7 @@ input[type="date"].form-input {
           <span class="logo-text">Parfum Track</span>
         </div>
         <div class="header-actions">
-          <div class="profile-chip"><span class="ms">diamond</span>VipParfums</div>
+          <div class="profile-chip" id="plan-chip" onclick="App.showScreen('cuenta')"><span class="ms" id="plan-chip-icon">person</span><span id="plan-chip-label">Free</span></div>
         </div>
       </div>
 
@@ -2156,6 +2185,15 @@ input[type="date"].form-input {
   <div id="screen-mas" class="screen">
     <div class="screen-scroll">
       <span class="page-title">Más</span>
+
+      <div class="mas-section" style="margin-bottom:10px;">
+        <div class="mas-item" onclick="App.showScreen('cuenta')">
+          <span class="ms gold">account_circle</span>
+          <span>Mi cuenta</span>
+          <span class="ms muted" id="mas-cuenta-status" style="font-size:12px;margin-left:auto;"></span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+      </div>
 
       <div class="mas-section">
         <div class="mas-item" onclick="App.showScreen('pedidos')">
@@ -2518,6 +2556,88 @@ input[type="date"].form-input {
     </div>
   </div>
 
+  <!-- ====== SCREEN: CUENTA ====== -->
+  <div id="screen-cuenta" class="screen">
+    <div class="screen-scroll">
+      <div class="sub-header">
+        <div class="back-btn" onclick="App.showScreen('mas')"><span class="ms">arrow_back</span></div>
+        <span class="sub-title">Mi cuenta</span>
+        <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
+      </div>
+
+      <div id="cuenta-no-login" class="cuenta-card">
+        <span class="ms" style="font-size:48px;color:var(--gold2);">account_circle</span>
+        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:8px 0 4px;">Creá tu cuenta</h3>
+        <p style="color:var(--text3);font-size:13px;line-height:1.5;margin-bottom:16px;">Sincronizá tus datos en la nube, accedé desde cualquier dispositivo y desbloqueá funciones Pro.</p>
+        <div class="form-group" style="width:100%;">
+          <input type="email" class="form-input" id="cuenta-email" placeholder="Tu email…">
+        </div>
+        <button class="btn-primary btn-full" onclick="App.registrarCuenta()">
+          <span class="ms">mail</span>Enviar código de verificación
+        </button>
+      </div>
+
+      <div id="cuenta-otp" class="cuenta-card hidden">
+        <span class="ms" style="font-size:48px;color:var(--gold2);">verified</span>
+        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:8px 0 4px;">Verificar email</h3>
+        <p style="color:var(--text3);font-size:13px;margin-bottom:16px;">Ingresá el código de 6 dígitos que te enviamos.</p>
+        <div class="form-group" style="width:100%;">
+          <input type="text" class="form-input" id="cuenta-otp-input" placeholder="000000" maxlength="6" style="text-align:center;font-size:24px;letter-spacing:8px;">
+        </div>
+        <button class="btn-primary btn-full" onclick="App.verificarOTP()">
+          <span class="ms">check_circle</span>Verificar
+        </button>
+      </div>
+
+      <div id="cuenta-logged" class="cuenta-card hidden">
+        <span class="ms" style="font-size:48px;color:var(--green);">check_circle</span>
+        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:8px 0 4px;">Cuenta activa</h3>
+        <p style="color:var(--text2);font-size:14px;" id="cuenta-email-display"></p>
+        <p style="color:var(--text3);font-size:12px;margin-bottom:16px;" id="cuenta-plan-display"></p>
+
+        <div class="mas-section" style="width:100%;margin-bottom:16px;">
+          <div class="mas-item" onclick="App.syncToCloud()">
+            <span class="ms gold">cloud_upload</span>
+            <span>Sincronizar datos</span>
+            <span class="ms muted chevron">chevron_right</span>
+          </div>
+          <div class="mas-item" onclick="App.syncFromCloud()">
+            <span class="ms gold">cloud_download</span>
+            <span>Cargar desde la nube</span>
+            <span class="ms muted chevron">chevron_right</span>
+          </div>
+        </div>
+
+        <div id="cuenta-upgrade" class="hidden" style="width:100%;">
+          <div class="metrics-label">PLANES</div>
+          <div class="plan-cards">
+            <div class="plan-card">
+              <div class="plan-name">Free</div>
+              <div class="plan-price">$0</div>
+              <div class="plan-desc">Ventas, stock, cuotas, cobros WA, offline</div>
+              <div class="plan-badge active">Plan actual</div>
+            </div>
+            <div class="plan-card pro">
+              <div class="plan-name">Básico Pro</div>
+              <div class="plan-price">$9.99<span style="font-size:12px;color:var(--text3);">/mes</span></div>
+              <div class="plan-desc">Estadísticas, catálogo WA, ranking, PDF/Excel, push</div>
+              <button class="btn-primary btn-full" onclick="App.suscribirPro('monthly')" style="margin-top:8px;">
+                <span class="ms">star</span>Suscribirse
+              </button>
+              <div style="text-align:center;margin-top:6px;">
+                <span style="color:var(--text4);font-size:11px;cursor:pointer;" onclick="App.suscribirPro('annual')">o $7.99/mes anual ($95.88/año)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-outline-gold" onclick="App.cerrarSesion()" style="width:100%;margin-top:16px;">
+          <span class="ms">logout</span>Cerrar sesión
+        </button>
+      </div>
+    </div>
+  </div>
+
   </div><!-- /screens-container -->
 
   <!-- ====== BOTTOM NAV ====== -->
@@ -2837,6 +2957,7 @@ const App = {
     await DB.seedDemo();
     await this.loadData();
     this.loadMoneda();
+    this.loadAccount();
     this.checkPinOnStart();
     this.checkOnboarding();
     this.renderAll();
@@ -2891,6 +3012,7 @@ const App = {
     if (name === 'nuevo-pedido') this.resetPedidoForm();
     if (name === 'caja') this.renderCaja();
     if (name === 'gastos') this.renderGastos();
+    if (name === 'cuenta') this.updateCuentaScreen();
   },
 
   // ====== RENDER ======
@@ -4597,6 +4719,314 @@ const App = {
       else if (type === 'warning') navigator.vibrate(50);
       else navigator.vibrate(10);
     }
+  },
+
+  // ====== CUENTA / TRIAL / LICENCIA ======
+
+  _account: null,
+
+  _getDeviceId() {
+    let id = localStorage.getItem('pt_device_id');
+    if (!id) {
+      id = 'dev_' + crypto.randomUUID();
+      localStorage.setItem('pt_device_id', id);
+    }
+    return id;
+  },
+
+  loadAccount() {
+    const saved = localStorage.getItem('pt_account');
+    if (saved) {
+      try { this._account = JSON.parse(saved); } catch { this._account = null; }
+    }
+    this.updatePlanUI();
+  },
+
+  saveAccount() {
+    if (this._account) {
+      localStorage.setItem('pt_account', JSON.stringify(this._account));
+    } else {
+      localStorage.removeItem('pt_account');
+    }
+    this.updatePlanUI();
+  },
+
+  isPro() {
+    if (!this._account) return false;
+    if (this._account.license) return true;
+    if (this._account.trialStart) {
+      const days = (Date.now() - this._account.trialStart) / (1000 * 60 * 60 * 24);
+      return days <= 7;
+    }
+    return false;
+  },
+
+  updatePlanUI() {
+    const chip = document.getElementById('plan-chip');
+    const icon = document.getElementById('plan-chip-icon');
+    const label = document.getElementById('plan-chip-label');
+    const masStatus = document.getElementById('mas-cuenta-status');
+
+    if (this._account?.email) {
+      if (this._account.license) {
+        icon.textContent = 'diamond';
+        label.textContent = 'Pro';
+        chip.style.background = 'linear-gradient(135deg, var(--gold), var(--gold2))';
+        chip.style.color = '#1a1a2e';
+        if (masStatus) masStatus.textContent = 'Pro activo';
+      } else if (this._account.trialStart) {
+        const daysLeft = Math.max(0, 7 - Math.floor((Date.now() - this._account.trialStart) / 86400000));
+        if (daysLeft > 0) {
+          icon.textContent = 'hourglass_top';
+          label.textContent = `Trial · ${daysLeft}d`;
+          chip.style.background = 'var(--gold-dim)';
+          chip.style.color = 'var(--gold2)';
+          if (masStatus) masStatus.textContent = `Trial ${daysLeft} días`;
+        } else {
+          icon.textContent = 'person';
+          label.textContent = 'Free';
+          chip.style.background = '';
+          chip.style.color = '';
+          if (masStatus) masStatus.textContent = 'Trial expirado';
+        }
+      } else {
+        icon.textContent = 'person';
+        label.textContent = 'Free';
+        chip.style.background = '';
+        chip.style.color = '';
+        if (masStatus) masStatus.textContent = this._account.email;
+      }
+    } else {
+      icon.textContent = 'person';
+      label.textContent = 'Free';
+      chip.style.background = '';
+      chip.style.color = '';
+      if (masStatus) masStatus.textContent = '';
+    }
+
+    this.updateCuentaScreen();
+  },
+
+  updateCuentaScreen() {
+    const noLogin = document.getElementById('cuenta-no-login');
+    const otpDiv = document.getElementById('cuenta-otp');
+    const logged = document.getElementById('cuenta-logged');
+    if (!noLogin) return;
+
+    if (this._account?.email) {
+      noLogin.classList.add('hidden');
+      otpDiv.classList.add('hidden');
+      logged.classList.remove('hidden');
+      document.getElementById('cuenta-email-display').textContent = this._account.email;
+
+      let planText = 'Plan Free';
+      if (this._account.license) {
+        planText = 'Plan Pro activo';
+      } else if (this._account.trialStart) {
+        const daysLeft = Math.max(0, 7 - Math.floor((Date.now() - this._account.trialStart) / 86400000));
+        planText = daysLeft > 0 ? `Trial Pro · ${daysLeft} días restantes` : 'Trial expirado · Plan Free';
+      }
+      document.getElementById('cuenta-plan-display').textContent = planText;
+
+      const upgradeDiv = document.getElementById('cuenta-upgrade');
+      if (this._account.license) {
+        upgradeDiv.classList.add('hidden');
+      } else {
+        upgradeDiv.classList.remove('hidden');
+      }
+    } else {
+      noLogin.classList.remove('hidden');
+      otpDiv.classList.add('hidden');
+      logged.classList.add('hidden');
+    }
+  },
+
+  async registrarCuenta() {
+    const email = document.getElementById('cuenta-email').value.trim();
+    if (!email || !email.includes('@')) {
+      this.toast('Ingresá un email válido', 'warning');
+      return;
+    }
+    this.toast('Enviando código…', 'hourglass_top');
+    try {
+      const res = await fetch('/trial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ step: 'register', email, deviceId: this._getDeviceId() })
+      });
+      const data = await res.json();
+      if (data.sent) {
+        this._pendingEmail = email;
+        document.getElementById('cuenta-no-login').classList.add('hidden');
+        document.getElementById('cuenta-otp').classList.remove('hidden');
+        this.toast('Código enviado a tu email', 'mail');
+      } else {
+        this.toast(data.error || 'Error al enviar', 'error');
+      }
+    } catch {
+      this.toast('Error de conexión', 'cloud_off');
+    }
+  },
+
+  async verificarOTP() {
+    const otp = document.getElementById('cuenta-otp-input').value.trim();
+    if (otp.length !== 6) {
+      this.toast('El código debe tener 6 dígitos', 'warning');
+      return;
+    }
+    this.toast('Verificando…', 'hourglass_top');
+    try {
+      const res = await fetch('/trial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ step: 'verify', email: this._pendingEmail, otp, deviceId: this._getDeviceId() })
+      });
+      const data = await res.json();
+      if (data.verified) {
+        this._account = {
+          email: this._pendingEmail,
+          trialStart: data.startAt || Date.now(),
+          deviceId: this._getDeviceId()
+        };
+        this.saveAccount();
+        this.toast('Cuenta verificada', 'check_circle');
+        this.haptic('success');
+      } else {
+        this.toast(data.error || 'Código incorrecto', 'error');
+      }
+    } catch {
+      this.toast('Error de conexión', 'cloud_off');
+    }
+  },
+
+  async activarLicencia() {
+    const code = prompt('Ingresá tu código de licencia:');
+    if (!code) return;
+    this.toast('Validando…', 'hourglass_top');
+    try {
+      const res = await fetch('/validate-license', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code.trim() })
+      });
+      const data = await res.json();
+      if (data.valid) {
+        this._account = this._account || {};
+        this._account.license = code.trim();
+        this._account.licenseData = data;
+        this.saveAccount();
+        this.toast('Licencia activada', 'check_circle');
+        this.haptic('success');
+      } else {
+        this.toast(data.error || 'Licencia inválida', 'error');
+      }
+    } catch {
+      this.toast('Error de conexión', 'cloud_off');
+    }
+  },
+
+  async suscribirPro(plan) {
+    if (!this._account?.email) {
+      this.toast('Primero registrá tu cuenta', 'warning');
+      return;
+    }
+    this.toast('Creando pago…', 'hourglass_top');
+    try {
+      const res = await fetch('/mp-create-preference', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: this._account.email, plan })
+      });
+      const data = await res.json();
+      if (data.ok && data.initPoint) {
+        window.open(data.initPoint, '_blank');
+        this.toast('Redirigiendo al pago…', 'payments');
+      } else {
+        this.toast(data.error || 'Error al crear pago', 'error');
+      }
+    } catch {
+      this.toast('Error de conexión', 'cloud_off');
+    }
+  },
+
+  async syncToCloud() {
+    if (!this._account?.email) {
+      this.toast('Primero registrá tu cuenta', 'warning');
+      return;
+    }
+    this.toast('Sincronizando…', 'cloud_upload');
+    const code = this._account.email.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const token = await this._generateToken(code);
+    const data = {
+      perfumes: this.perfumes,
+      ventas: this.ventas,
+      cuotas: this.cuotasData,
+      pedidos: this.pedidosData,
+      caja: this.cajaData,
+      gastos: this.gastosData
+    };
+    try {
+      const res = await fetch('/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, token, data })
+      });
+      const result = await res.json();
+      if (result.ok) {
+        this._account.lastSync = Date.now();
+        this.saveAccount();
+        this.toast('Datos sincronizados', 'check_circle');
+        this.haptic('success');
+      } else {
+        this.toast(result.error || 'Error al sincronizar', 'error');
+      }
+    } catch {
+      this.toast('Error de conexión', 'cloud_off');
+    }
+  },
+
+  async syncFromCloud() {
+    if (!this._account?.email) {
+      this.toast('Primero registrá tu cuenta', 'warning');
+      return;
+    }
+    if (!confirm('¿Cargar datos desde la nube? Esto reemplazará tus datos actuales.')) return;
+    this.toast('Descargando…', 'cloud_download');
+    const code = this._account.email.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const token = await this._generateToken(code);
+    try {
+      const res = await fetch(`/sync?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`);
+      const result = await res.json();
+      if (!result.ok) {
+        this.toast(result.error || 'No se encontraron datos', 'error');
+        return;
+      }
+      const data = result.data;
+      const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos'];
+      for (const store of stores) {
+        const existing = await DB.getAll(store);
+        for (const item of existing) await DB.delete(store, item.id || item.key);
+      }
+      if (data.perfumes) for (const p of data.perfumes) await DB.add('perfumes', p);
+      if (data.ventas) for (const v of data.ventas) await DB.add('ventas', v);
+      if (data.cuotas) for (const c of data.cuotas) await DB.add('cuotas', c);
+      if (data.pedidos) for (const p of data.pedidos) await DB.add('pedidos', p);
+      if (data.caja) for (const c of data.caja) await DB.add('caja', c);
+      if (data.gastos) for (const g of data.gastos) await DB.add('gastos', g);
+      await this.loadData();
+      this.renderAll();
+      this.toast('Datos restaurados desde la nube', 'check_circle');
+      this.haptic('success');
+    } catch {
+      this.toast('Error de conexión', 'cloud_off');
+    }
+  },
+
+  cerrarSesion() {
+    if (!confirm('¿Cerrar sesión? Tus datos locales se mantienen.')) return;
+    this._account = null;
+    this.saveAccount();
+    this.toast('Sesión cerrada', 'logout');
   },
 
   // ====== ONBOARDING ======
