@@ -4908,6 +4908,7 @@ const App = {
         this.saveAccount();
         this.toast('Cuenta verificada', 'check_circle');
         this.haptic('success');
+        this.updatePlanUI();
       } else {
         this.toast(data.error || 'Código incorrecto', 'error');
       }
@@ -4952,9 +4953,11 @@ const App = {
         this.saveAccount();
         this.toast('Licencia activada', 'check_circle');
         this.haptic('success');
-        const input = document.getElementById('cuenta-license-code');
-        if (input) input.value = '';
-        this.updateCuentaScreen();
+        ['cuenta-license-code', 'cuenta-logged-license-code'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        this.updatePlanUI();
       } else {
         this.toast(data.error || 'Licencia inválida', 'error');
       }
@@ -5064,6 +5067,7 @@ const App = {
     if (!confirm('¿Cerrar sesión? Tus datos locales se mantienen.')) return;
     this._account = null;
     this.saveAccount();
+    this.updatePlanUI();
     this.toast('Sesión cerrada', 'logout');
   },
 
