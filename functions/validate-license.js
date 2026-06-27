@@ -138,22 +138,28 @@ export async function onRequestPost(context) {
     log('error', 'validate-license', 'LICENSE_SIGNING_PRIVATE_KEY not configured');
     return json({ ok: false, valid: false, error: "Server misconfigured" }, 500, headers);
   }
-  const signingKeyDer = Uint8Array.from(atob(signingKeyRaw), (c) =>
-    c.charCodeAt(0),
-  );
-  const ecdsaKey = await crypto.subtle.importKey(
-    "pkcs8",
-    signingKeyDer,
-    { name: "ECDSA", namedCurve: "P-256" },
-    false,
-    ["sign"],
-  );
-  const ecdsaBytes = await crypto.subtle.sign(
-    { name: "ECDSA", hash: "SHA-256" },
-    ecdsaKey,
-    encoder.encode(normalizedCode),
-  );
-  const sig = btoa(String.fromCharCode(...new Uint8Array(ecdsaBytes)));
+  let sig;
+  try {
+    const signingKeyDer = Uint8Array.from(atob(signingKeyRaw), (c) =>
+      c.charCodeAt(0),
+    );
+    const ecdsaKey = await crypto.subtle.importKey(
+      "pkcs8",
+      signingKeyDer,
+      { name: "ECDSA", namedCurve: "P-256" },
+      false,
+      ["sign"],
+    );
+    const ecdsaBytes = await crypto.subtle.sign(
+      { name: "ECDSA", hash: "SHA-256" },
+      ecdsaKey,
+      encoder.encode(normalizedCode),
+    );
+    sig = btoa(String.fromCharCode(...new Uint8Array(ecdsaBytes)));
+  } catch (e) {
+    log('error', 'validate-license', 'ECDSA signing failed', { error: e.message });
+    return json({ ok: false, valid: false, error: "Server misconfigured" }, 500, headers);
+  }
 
   return json({ ok: true, valid: true, token, sig }, 200, headers);
 }

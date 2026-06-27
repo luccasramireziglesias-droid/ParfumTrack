@@ -2056,7 +2056,7 @@ input[type="date"].form-input {
 
       <div class="form-group">
         <label class="form-label">FORMA DE PAGO</label>
-        <div class="segmented">
+        <div class="segmented" id="seg-forma-pago">
           <div class="seg-option active" onclick="App.setFormaPago('contado')">Contado</div>
           <div class="seg-option" onclick="App.setFormaPago('cuotas')">Cuotas</div>
         </div>
@@ -3218,7 +3218,7 @@ const App = {
           </div>
           <div style="text-align:right;">
             <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">+${this.fmt(gan)}</div>
+            <div class="venta-ganancia-value">${gan >= 0 ? '+' : ''}${this.fmt(gan)}</div>
           </div>
           <div class="venta-actions">
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
@@ -3269,7 +3269,7 @@ const App = {
           </div>
           <div style="text-align:right;">
             <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">+${this.fmt(gan)}</div>
+            <div class="venta-ganancia-value">${gan >= 0 ? '+' : ''}${this.fmt(gan)}</div>
           </div>
           <div class="venta-actions">
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
@@ -3565,7 +3565,7 @@ const App = {
 
   setFormaPago(tipo) {
     this.formaPago = tipo;
-    const opts = document.querySelectorAll('.seg-option');
+    const opts = document.querySelectorAll('#seg-forma-pago .seg-option');
     opts.forEach(o => {
       o.classList.toggle('active', o.textContent.trim().toLowerCase() === tipo);
     });
@@ -4551,7 +4551,7 @@ const App = {
     doc.text(`Perfumes en stock: ${this.perfumes.length} | Cuotas pendientes: ${this.cuotasData.filter(c=>!c.pagado).length}`, 14, y); y += 10;
 
     addSection('Ventas');
-    this.ventas.slice(-30).forEach(v => {
+    this.ventas.slice(0, 30).forEach(v => {
       if (y > 275) { doc.addPage(); y = 20; }
       const f = new Date(v.fecha).toLocaleDateString('es-AR');
       doc.text(`${f} — ${v.perfume} — ${this.fmt(v.precioVenta)} (ganancia: ${this.fmt(v.precioVenta - v.precioCompra)})${v.cliente ? ' — ' + v.cliente : ''}`, 14, y);
@@ -4588,8 +4588,8 @@ const App = {
       'Precio Compra': v.precioCompra,
       'Precio Venta': v.precioVenta,
       Ganancia: v.precioVenta - v.precioCompra,
-      Pago: v.metodoPago || 'contado',
-      Cuotas: v.cuotas || 1
+      Pago: v.formaPago || 'contado',
+      Cuotas: v.numCuotas || 1
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ventasRows), 'Ventas');
 
@@ -4606,7 +4606,7 @@ const App = {
       Venta: c.ventaId,
       'Cuota N°': c.numero,
       Monto: c.monto,
-      Vencimiento: new Date(c.vencimiento).toLocaleDateString('es-AR'),
+      Vencimiento: new Date(c.vence).toLocaleDateString('es-AR'),
       Pagado: c.pagado ? 'Sí' : 'No'
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(cuotasRows), 'Cuotas');
@@ -4615,7 +4615,7 @@ const App = {
       const cajaRows = this.cajaData.map(c => ({
         Fecha: new Date(c.fecha).toLocaleDateString('es-AR'),
         Tipo: c.tipo,
-        Concepto: c.concepto,
+        Concepto: c.descripcion || '',
         Monto: c.monto
       }));
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(cajaRows), 'Caja');
@@ -4625,7 +4625,7 @@ const App = {
       const gastosRows = this.gastosData.map(g => ({
         Fecha: new Date(g.fecha).toLocaleDateString('es-AR'),
         Categoría: g.categoria,
-        Concepto: g.concepto,
+        Concepto: g.descripcion || '',
         Monto: g.monto
       }));
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(gastosRows), 'Gastos');
@@ -4674,8 +4674,9 @@ const App = {
   },
 
   _toggleCatalogoItem(id, checked) {
-    if (checked) this._catalogoSelected.add(id);
-    else this._catalogoSelected.delete(id);
+    const numId = Number(id);
+    if (checked) this._catalogoSelected.add(numId);
+    else this._catalogoSelected.delete(numId);
     this._updateCatalogoCount();
   },
 
@@ -4688,7 +4689,7 @@ const App = {
       disponibles.forEach(p => this._catalogoSelected.add(p.id));
     }
     document.querySelectorAll('[data-cat-id]').forEach(cb => {
-      cb.checked = this._catalogoSelected.has(cb.dataset.catId);
+      cb.checked = this._catalogoSelected.has(Number(cb.dataset.catId));
     });
     this._updateCatalogoCount();
   },
@@ -4915,7 +4916,6 @@ const App = {
     const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos'];
     for (const store of stores) {
       await DB.clear(store);
-      }
     }
     await this.loadData();
     this.renderAll();
@@ -4926,9 +4926,10 @@ const App = {
 
   _moneda: '$',
 
-  fmt(n) {
+  fmt(n, forceAbs) {
     if (n === undefined || n === null) return this._moneda + '0';
-    return this._moneda + Math.abs(n).toLocaleString('es-AR');
+    if (forceAbs) return this._moneda + Math.abs(n).toLocaleString('es-AR');
+    return (n < 0 ? '-' : '') + this._moneda + Math.abs(n).toLocaleString('es-AR');
   },
 
   async setMoneda(val) {
@@ -5296,28 +5297,9 @@ const App = {
         this.toast(result.error || 'No se encontraron datos', 'error');
         return;
       }
-      const data = result.data;
-      const allStores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
-      for (const store of allStores) {
-        const existing = await DB.getAll(store);
-        for (const item of existing) await DB.delete(store, item.id || item.key);
-      }
-      for (const store of allStores) {
-        if (!data[store]) continue;
-        for (const item of data[store]) {
-          try { await DB.put(store, item); } catch {}
-        }
-      }
-      if (data.settings) {
-        if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
-        if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
-        if (data.settings.pin) localStorage.setItem('pt_pin', data.settings.pin);
-      }
-      await this.loadData();
-      this.loadMoneda();
-      this.loadNombreNegocio();
-      this.renderAll();
-      this.toast('Datos restaurados desde la nube', 'check_circle');
+      const data = this._normalizeBackupData(result.data || result);
+      const total = await this._restoreData(data);
+      this.toast(`${total} registros restaurados`, 'check_circle');
       this.haptic('success');
     } catch {
       this.toast('Error de conexión', 'cloud_off');

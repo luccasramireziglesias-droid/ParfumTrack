@@ -304,10 +304,10 @@ export async function onRequestPost(context) {
     name: safeName,
     daysLeft: Math.max(0, parseInt(data.daysLeft, 10) || 0),
     ventas: Math.max(0, parseInt(data.ventas, 10) || 0),
-    appUrl: /^https:\/\//.test(data.appUrl || "")
+    appUrl: sanitize(/^https:\/\//.test(data.appUrl || "")
       ? data.appUrl
-      : "https://parfumtrack.luccasramireziglesias.workers.dev",
-    waUrl: /^https:\/\//.test(data.waUrl || "") ? data.waUrl : null,
+      : "https://parfumtrack.luccasramireziglesias.workers.dev"),
+    waUrl: /^https:\/\//.test(data.waUrl || "") ? sanitize(data.waUrl) : null,
   };
   const tpl = TEMPLATES[template](safeData);
 
