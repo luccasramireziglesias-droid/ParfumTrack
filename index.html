@@ -2609,6 +2609,14 @@ input[type="date"].form-input {
         </div>
 
         <div id="cuenta-upgrade" class="hidden" style="width:100%;">
+          <div class="metrics-label">CÓDIGO DE LICENCIA</div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <input type="text" class="form-input" id="cuenta-license-code" placeholder="PT-XXXXXX-YYYYYY" style="flex:1;text-transform:uppercase;">
+            <button class="btn-primary" onclick="App.activarLicenciaInput()" style="white-space:nowrap;padding:0 16px;">
+              <span class="ms">key</span>Activar
+            </button>
+          </div>
+
           <div class="metrics-label">PLANES</div>
           <div class="plan-cards">
             <div class="plan-card">
@@ -4899,24 +4907,38 @@ const App = {
     }
   },
 
+  async activarLicenciaInput() {
+    const input = document.getElementById('cuenta-license-code');
+    const code = input?.value?.trim();
+    if (!code) { this.toast('Ingresá un código', 'warning'); return; }
+    return this._activarLicencia(code);
+  },
+
   async activarLicencia() {
     const code = prompt('Ingresá tu código de licencia:');
     if (!code) return;
+    return this._activarLicencia(code.trim());
+  },
+
+  async _activarLicencia(code) {
     this.toast('Validando…', 'hourglass_top');
     try {
       const res = await fetch('/validate-license', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code.trim() })
+        body: JSON.stringify({ code })
       });
       const data = await res.json();
       if (data.valid) {
         this._account = this._account || {};
-        this._account.license = code.trim();
+        this._account.license = code;
         this._account.licenseData = data;
         this.saveAccount();
         this.toast('Licencia activada', 'check_circle');
         this.haptic('success');
+        const input = document.getElementById('cuenta-license-code');
+        if (input) input.value = '';
+        this.updateCuentaScreen();
       } else {
         this.toast(data.error || 'Licencia inválida', 'error');
       }
