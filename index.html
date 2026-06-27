@@ -4521,11 +4521,17 @@ const App = {
   _renderCatalogoList(perfumes) {
     const list = document.getElementById('catalogo-list');
     list.innerHTML = perfumes.map(p => `
-      <label style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">
-        <input type="checkbox" data-cat-id="${p.id}" ${this._catalogoSelected.has(p.id) ? 'checked' : ''} onchange="App._toggleCatalogoItem('${p.id}', this.checked)" style="width:20px;height:20px;accent-color:var(--gold);">
-        <span style="flex:1;color:var(--text);font:500 14px 'DM Sans';">${this.esc(p.nombre)}</span>
-        <span style="color:var(--green);font:600 14px 'DM Sans';">${this.fmt(p.precioVenta)}</span>
-        <span style="color:var(--text4);font-size:12px;">(${p.stock})</span>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+        <input type="checkbox" data-cat-id="${p.id}" ${this._catalogoSelected.has(p.id) ? 'checked' : ''} onchange="App._toggleCatalogoItem('${p.id}', this.checked)" style="width:20px;height:20px;accent-color:var(--gold);flex-shrink:0;">
+        ${p.foto
+          ? `<img src="${this.esc(p.foto)}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;">`
+          : `<div style="width:40px;height:40px;border-radius:8px;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span class="ms" style="font-size:20px;color:var(--text4);">photo_camera</span></div>`
+        }
+        <div style="flex:1;min-width:0;">
+          <div style="color:var(--text);font:500 14px 'DM Sans';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.esc(p.nombre)}</div>
+          <div style="color:var(--text4);font-size:11px;">Stock: ${p.stock}</div>
+        </div>
+        <span style="color:var(--green);font:600 14px 'DM Sans';flex-shrink:0;">${this.fmt(p.precioVenta)}</span>
       </label>
     `).join('');
     this._updateCatalogoCount();
