@@ -2565,10 +2565,51 @@ input[type="date"].form-input {
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
 
+      <!-- Plan actual + código de licencia (siempre visible) -->
+      <div class="cuenta-card" id="cuenta-plan-section">
+        <span class="ms" style="font-size:48px;color:var(--gold2);" id="cuenta-plan-icon">lock_open</span>
+        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:8px 0 4px;" id="cuenta-plan-title">Plan Free</h3>
+        <p style="color:var(--text3);font-size:13px;line-height:1.5;margin-bottom:16px;" id="cuenta-plan-desc">Ventas, stock, cuotas, cobros WA, offline. Gratis para siempre.</p>
+
+        <div id="cuenta-license-section" style="width:100%;">
+          <div class="metrics-label">CÓDIGO DE LICENCIA</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input type="text" class="form-input" id="cuenta-license-code" placeholder="PT-XXXXXX-YYYYYY" style="flex:1;text-transform:uppercase;">
+            <button class="btn-primary" onclick="App.activarLicenciaInput()" style="white-space:nowrap;padding:0 16px;">
+              <span class="ms">key</span>Activar
+            </button>
+          </div>
+          <p style="color:var(--text4);font-size:11px;margin:0 0 16px;">Si ya tenés un código, ingresalo acá para desbloquear Pro.</p>
+        </div>
+
+        <div class="metrics-label">PLANES</div>
+        <div class="plan-cards">
+          <div class="plan-card" id="plan-card-free">
+            <div class="plan-name">Free</div>
+            <div class="plan-price">$0</div>
+            <div class="plan-desc">Ventas, stock, cuotas, cobros WA, offline</div>
+            <div class="plan-badge active" id="plan-badge-free">Plan actual</div>
+          </div>
+          <div class="plan-card pro" id="plan-card-pro">
+            <div class="plan-name">Básico Pro</div>
+            <div class="plan-price">$9.99<span style="font-size:12px;color:var(--text3);">/mes</span></div>
+            <div class="plan-desc">Estadísticas, catálogo WA, ranking, PDF/Excel, push</div>
+            <button class="btn-primary btn-full" id="plan-btn-suscribir" onclick="App.suscribirPro('monthly')" style="margin-top:8px;">
+              <span class="ms">star</span>Suscribirse
+            </button>
+            <div style="text-align:center;margin-top:6px;" id="plan-annual-option">
+              <span style="color:var(--text4);font-size:11px;cursor:pointer;" onclick="App.suscribirPro('annual')">o $7.99/mes anual ($95.88/año)</span>
+            </div>
+            <div class="plan-badge active hidden" id="plan-badge-pro">Plan actual</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cuenta / Sync (registro opcional para nube) -->
       <div id="cuenta-no-login" class="cuenta-card">
-        <span class="ms" style="font-size:48px;color:var(--gold2);">account_circle</span>
-        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:8px 0 4px;">Creá tu cuenta</h3>
-        <p style="color:var(--text3);font-size:13px;line-height:1.5;margin-bottom:16px;">Sincronizá tus datos en la nube, accedé desde cualquier dispositivo y desbloqueá funciones Pro.</p>
+        <span class="ms" style="font-size:48px;color:var(--gold2);">cloud</span>
+        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:8px 0 4px;">Sincronización en la nube</h3>
+        <p style="color:var(--text3);font-size:13px;line-height:1.5;margin-bottom:16px;">Opcional. Creá una cuenta para sincronizar tus datos entre dispositivos.</p>
         <div class="form-group" style="width:100%;">
           <input type="email" class="form-input" id="cuenta-email" placeholder="Tu email…">
         </div>
@@ -2591,11 +2632,10 @@ input[type="date"].form-input {
 
       <div id="cuenta-logged" class="cuenta-card hidden">
         <span class="ms" style="font-size:48px;color:var(--green);">check_circle</span>
-        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:8px 0 4px;">Cuenta activa</h3>
+        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:8px 0 4px;">Cuenta vinculada</h3>
         <p style="color:var(--text2);font-size:14px;" id="cuenta-email-display"></p>
-        <p style="color:var(--text3);font-size:12px;margin-bottom:16px;" id="cuenta-plan-display"></p>
 
-        <div class="mas-section" style="width:100%;margin-bottom:16px;">
+        <div class="mas-section" style="width:100%;margin:12px 0;">
           <div class="mas-item" onclick="App.syncToCloud()">
             <span class="ms gold">cloud_upload</span>
             <span>Sincronizar datos</span>
@@ -2608,38 +2648,7 @@ input[type="date"].form-input {
           </div>
         </div>
 
-        <div id="cuenta-upgrade" class="hidden" style="width:100%;">
-          <div class="metrics-label">CÓDIGO DE LICENCIA</div>
-          <div style="display:flex;gap:8px;margin-bottom:16px;">
-            <input type="text" class="form-input" id="cuenta-license-code" placeholder="PT-XXXXXX-YYYYYY" style="flex:1;text-transform:uppercase;">
-            <button class="btn-primary" onclick="App.activarLicenciaInput()" style="white-space:nowrap;padding:0 16px;">
-              <span class="ms">key</span>Activar
-            </button>
-          </div>
-
-          <div class="metrics-label">PLANES</div>
-          <div class="plan-cards">
-            <div class="plan-card">
-              <div class="plan-name">Free</div>
-              <div class="plan-price">$0</div>
-              <div class="plan-desc">Ventas, stock, cuotas, cobros WA, offline</div>
-              <div class="plan-badge active">Plan actual</div>
-            </div>
-            <div class="plan-card pro">
-              <div class="plan-name">Básico Pro</div>
-              <div class="plan-price">$9.99<span style="font-size:12px;color:var(--text3);">/mes</span></div>
-              <div class="plan-desc">Estadísticas, catálogo WA, ranking, PDF/Excel, push</div>
-              <button class="btn-primary btn-full" onclick="App.suscribirPro('monthly')" style="margin-top:8px;">
-                <span class="ms">star</span>Suscribirse
-              </button>
-              <div style="text-align:center;margin-top:6px;">
-                <span style="color:var(--text4);font-size:11px;cursor:pointer;" onclick="App.suscribirPro('annual')">o $7.99/mes anual ($95.88/año)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button class="btn-outline-gold" onclick="App.cerrarSesion()" style="width:100%;margin-top:16px;">
+        <button class="btn-outline-gold" onclick="App.cerrarSesion()" style="width:100%;">
           <span class="ms">logout</span>Cerrar sesión
         </button>
       </div>
@@ -4760,13 +4769,7 @@ const App = {
   },
 
   isPro() {
-    if (!this._account) return false;
-    if (this._account.license) return true;
-    if (this._account.trialStart) {
-      const days = (Date.now() - this._account.trialStart) / (1000 * 60 * 60 * 24);
-      return days <= 7;
-    }
-    return false;
+    return !!(this._account?.license);
   },
 
   updatePlanUI() {
@@ -4775,41 +4778,18 @@ const App = {
     const label = document.getElementById('plan-chip-label');
     const masStatus = document.getElementById('mas-cuenta-status');
 
-    if (this._account?.email) {
-      if (this._account.license) {
-        icon.textContent = 'diamond';
-        label.textContent = 'Pro';
-        chip.style.background = 'linear-gradient(135deg, var(--gold), var(--gold2))';
-        chip.style.color = '#1a1a2e';
-        if (masStatus) masStatus.textContent = 'Pro activo';
-      } else if (this._account.trialStart) {
-        const daysLeft = Math.max(0, 7 - Math.floor((Date.now() - this._account.trialStart) / 86400000));
-        if (daysLeft > 0) {
-          icon.textContent = 'hourglass_top';
-          label.textContent = `Trial · ${daysLeft}d`;
-          chip.style.background = 'var(--gold-dim)';
-          chip.style.color = 'var(--gold2)';
-          if (masStatus) masStatus.textContent = `Trial ${daysLeft} días`;
-        } else {
-          icon.textContent = 'person';
-          label.textContent = 'Free';
-          chip.style.background = '';
-          chip.style.color = '';
-          if (masStatus) masStatus.textContent = 'Trial expirado';
-        }
-      } else {
-        icon.textContent = 'person';
-        label.textContent = 'Free';
-        chip.style.background = '';
-        chip.style.color = '';
-        if (masStatus) masStatus.textContent = this._account.email;
-      }
+    if (this.isPro()) {
+      icon.textContent = 'diamond';
+      label.textContent = 'Pro';
+      chip.style.background = 'linear-gradient(135deg, var(--gold), var(--gold2))';
+      chip.style.color = '#1a1a2e';
+      if (masStatus) masStatus.textContent = 'Pro activo';
     } else {
       icon.textContent = 'person';
       label.textContent = 'Free';
       chip.style.background = '';
       chip.style.color = '';
-      if (masStatus) masStatus.textContent = '';
+      if (masStatus) masStatus.textContent = this._account?.email || '';
     }
 
     this.updateCuentaScreen();
@@ -4821,27 +4801,43 @@ const App = {
     const logged = document.getElementById('cuenta-logged');
     if (!noLogin) return;
 
+    const isPro = this.isPro();
+    const icon = document.getElementById('cuenta-plan-icon');
+    const title = document.getElementById('cuenta-plan-title');
+    const desc = document.getElementById('cuenta-plan-desc');
+    const licenseSection = document.getElementById('cuenta-license-section');
+    const badgeFree = document.getElementById('plan-badge-free');
+    const badgePro = document.getElementById('plan-badge-pro');
+    const btnSuscribir = document.getElementById('plan-btn-suscribir');
+    const annualOpt = document.getElementById('plan-annual-option');
+
+    if (isPro) {
+      icon.textContent = 'workspace_premium';
+      icon.style.color = 'var(--gold2)';
+      title.textContent = 'Plan Pro';
+      desc.textContent = 'Todas las funciones desbloqueadas.';
+      licenseSection.classList.add('hidden');
+      badgeFree.classList.add('hidden');
+      badgePro.classList.remove('hidden');
+      if (btnSuscribir) btnSuscribir.classList.add('hidden');
+      if (annualOpt) annualOpt.classList.add('hidden');
+    } else {
+      icon.textContent = 'lock_open';
+      icon.style.color = 'var(--gold2)';
+      title.textContent = 'Plan Free';
+      desc.textContent = 'Ventas, stock, cuotas, cobros WA, offline. Gratis para siempre.';
+      licenseSection.classList.remove('hidden');
+      badgeFree.classList.remove('hidden');
+      badgePro.classList.add('hidden');
+      if (btnSuscribir) btnSuscribir.classList.remove('hidden');
+      if (annualOpt) annualOpt.classList.remove('hidden');
+    }
+
     if (this._account?.email) {
       noLogin.classList.add('hidden');
       otpDiv.classList.add('hidden');
       logged.classList.remove('hidden');
       document.getElementById('cuenta-email-display').textContent = this._account.email;
-
-      let planText = 'Plan Free';
-      if (this._account.license) {
-        planText = 'Plan Pro activo';
-      } else if (this._account.trialStart) {
-        const daysLeft = Math.max(0, 7 - Math.floor((Date.now() - this._account.trialStart) / 86400000));
-        planText = daysLeft > 0 ? `Trial Pro · ${daysLeft} días restantes` : 'Trial expirado · Plan Free';
-      }
-      document.getElementById('cuenta-plan-display').textContent = planText;
-
-      const upgradeDiv = document.getElementById('cuenta-upgrade');
-      if (this._account.license) {
-        upgradeDiv.classList.add('hidden');
-      } else {
-        upgradeDiv.classList.remove('hidden');
-      }
     } else {
       noLogin.classList.remove('hidden');
       otpDiv.classList.add('hidden');
@@ -4891,11 +4887,9 @@ const App = {
       });
       const data = await res.json();
       if (data.verified) {
-        this._account = {
-          email: this._pendingEmail,
-          trialStart: data.startAt || Date.now(),
-          deviceId: this._getDeviceId()
-        };
+        this._account = this._account || {};
+        this._account.email = this._pendingEmail;
+        this._account.deviceId = this._getDeviceId();
         this.saveAccount();
         this.toast('Cuenta verificada', 'check_circle');
         this.haptic('success');
@@ -4949,7 +4943,7 @@ const App = {
 
   async suscribirPro(plan) {
     if (!this._account?.email) {
-      this.toast('Primero registrá tu cuenta', 'warning');
+      this.toast('Registrá tu email abajo para suscribirte', 'warning');
       return;
     }
     this.toast('Creando pago…', 'hourglass_top');
