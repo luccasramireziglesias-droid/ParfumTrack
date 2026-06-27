@@ -2648,6 +2648,17 @@ input[type="date"].form-input {
           </div>
         </div>
 
+        <div id="cuenta-logged-license" style="width:100%;margin-top:12px;">
+          <div class="metrics-label">CÓDIGO DE LICENCIA</div>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <input type="text" class="form-input" id="cuenta-logged-license-code" placeholder="PT-XXXXXX-YYYYYY" style="flex:1;text-transform:uppercase;">
+            <button class="btn-primary" onclick="App.activarLicenciaLoggedInput()" style="white-space:nowrap;padding:0 16px;">
+              <span class="ms">key</span>Activar
+            </button>
+          </div>
+          <p style="color:var(--text4);font-size:11px;margin:0 0 12px;">Si ya tenés un código, ingresalo acá.</p>
+        </div>
+
         <button class="btn-outline-gold" onclick="App.cerrarSesion()" style="width:100%;">
           <span class="ms">logout</span>Cerrar sesión
         </button>
@@ -4838,6 +4849,10 @@ const App = {
       otpDiv.classList.add('hidden');
       logged.classList.remove('hidden');
       document.getElementById('cuenta-email-display').textContent = this._account.email;
+      const loggedLicense = document.getElementById('cuenta-logged-license');
+      if (loggedLicense) {
+        loggedLicense.classList.toggle('hidden', isPro);
+      }
     } else {
       noLogin.classList.remove('hidden');
       otpDiv.classList.add('hidden');
@@ -4903,6 +4918,13 @@ const App = {
 
   async activarLicenciaInput() {
     const input = document.getElementById('cuenta-license-code');
+    const code = input?.value?.trim();
+    if (!code) { this.toast('Ingresá un código', 'warning'); return; }
+    return this._activarLicencia(code);
+  },
+
+  async activarLicenciaLoggedInput() {
+    const input = document.getElementById('cuenta-logged-license-code');
     const code = input?.value?.trim();
     if (!code) { this.toast('Ingresá un código', 'warning'); return; }
     return this._activarLicencia(code);
