@@ -1690,6 +1690,31 @@ body {
   color: var(--text);
 }
 
+.autocomplete-list {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-top: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.ac-item {
+  padding: 10px 14px;
+  font: 500 14px 'DM Sans';
+  color: var(--text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:active { background: var(--bg3); }
+
+input[type="date"].form-input {
+  color-scheme: dark;
+}
+
+.form-group { position: relative; }
+
 @media (display-mode: standalone) {
   .header-bar { padding-top: max(4px, env(safe-area-inset-top)); }
   .bottom-nav { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
@@ -1842,14 +1867,33 @@ body {
         </div>
       </div>
 
+      <div class="form-group">
+        <label class="form-label">PROVEEDOR</label>
+        <input type="text" class="form-input" id="venta-proveedor" placeholder="Nombre del proveedor…" autocomplete="off">
+        <div class="autocomplete-list hidden" id="ac-proveedor"></div>
+      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">CLIENTE</label>
-          <input type="text" class="form-input" id="venta-cliente" placeholder="Nombre…">
+          <input type="text" class="form-input" id="venta-cliente" placeholder="Nombre…" autocomplete="off">
+          <div class="autocomplete-list hidden" id="ac-cliente"></div>
         </div>
         <div class="form-group">
           <label class="form-label">VENDEDOR</label>
-          <input type="text" class="form-input" id="venta-vendedor" placeholder="Nombre…" value="Luccas">
+          <input type="text" class="form-input" id="venta-vendedor" placeholder="Nombre…" value="Luccas" autocomplete="off">
+          <div class="autocomplete-list hidden" id="ac-vendedor"></div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">DESCUENTO %</label>
+          <input type="number" class="form-input" id="venta-descuento" placeholder="0" min="0" max="100" oninput="App.calcLiveProfit()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">FECHA</label>
+          <input type="date" class="form-input" id="venta-fecha">
         </div>
       </div>
 
@@ -2611,6 +2655,8 @@ const App = {
             </div>
             <div class="venta-tags">
               <span class="tag">${this.esc(v.vendedor || '—')}</span>
+              ${v.proveedor ? `<span class="tag">${this.esc(v.proveedor)}</span>` : ''}
+              ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${v.descuento}%</span>` : ''}
               ${esCuotas
                 ? `<span class="tag-cuotas">En cuotas</span>`
                 : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
@@ -2659,6 +2705,8 @@ const App = {
             </div>
             <div class="venta-tags">
               <span class="tag">${this.esc(v.vendedor || '—')}</span>
+              ${v.proveedor ? `<span class="tag">${this.esc(v.proveedor)}</span>` : ''}
+              ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${v.descuento}%</span>` : ''}
               ${esCuotas
                 ? `<span class="tag-cuotas">En cuotas</span>`
                 : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
@@ -2858,21 +2906,58 @@ const App = {
     document.getElementById('venta-compra').value = '';
     document.getElementById('venta-cliente').value = '';
     document.getElementById('venta-vendedor').value = 'Luccas';
+    document.getElementById('venta-proveedor').value = '';
+    document.getElementById('venta-descuento').value = '';
+    document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
     document.getElementById('venta-nota').value = '';
     this.setFormaPago('contado');
     this.calcLiveProfit();
+    this.setupAutocomplete();
   },
 
   calcLiveProfit() {
     const pv = parseInt(document.getElementById('venta-precio').value) || 0;
     const pc = parseInt(document.getElementById('venta-compra').value) || 0;
-    const gan = pv - pc;
-    const margen = pv > 0 ? Math.round((gan / pv) * 100) : 0;
+    const desc = parseInt(document.getElementById('venta-descuento').value) || 0;
+    const pvFinal = desc > 0 ? Math.round(pv * (1 - desc / 100)) : pv;
+    const gan = pvFinal - pc;
+    const margen = pvFinal > 0 ? Math.round((gan / pvFinal) * 100) : 0;
 
     document.getElementById('live-ganancia').textContent = (gan >= 0 ? '+' : '') + this.fmt(gan);
-    document.getElementById('live-venta').textContent = this.fmt(pv);
+    document.getElementById('live-venta').textContent = this.fmt(pvFinal);
     document.getElementById('live-compra').textContent = this.fmt(pc);
     document.getElementById('live-margen').textContent = margen + '%';
+  },
+
+  setupAutocomplete() {
+    const fields = [
+      { input: 'venta-cliente', list: 'ac-cliente', key: 'cliente' },
+      { input: 'venta-vendedor', list: 'ac-vendedor', key: 'vendedor' },
+      { input: 'venta-proveedor', list: 'ac-proveedor', key: 'proveedor' }
+    ];
+    fields.forEach(f => {
+      const el = document.getElementById(f.input);
+      el.removeEventListener('input', el._acHandler);
+      el._acHandler = () => this.showAutocomplete(f.input, f.list, f.key);
+      el.addEventListener('input', el._acHandler);
+      el.addEventListener('focus', el._acHandler);
+      el.addEventListener('blur', () => setTimeout(() => {
+        document.getElementById(f.list).classList.add('hidden');
+      }, 200));
+    });
+  },
+
+  showAutocomplete(inputId, listId, key) {
+    const val = document.getElementById(inputId).value.toLowerCase();
+    const listEl = document.getElementById(listId);
+    const values = [...new Set(this.ventas.map(v => v[key]).filter(Boolean))];
+    const filtered = val ? values.filter(v => v.toLowerCase().includes(val)) : values.slice(0, 5);
+
+    if (filtered.length === 0) { listEl.classList.add('hidden'); return; }
+    listEl.innerHTML = filtered.map(v =>
+      `<div class="ac-item" onmousedown="document.getElementById('${inputId}').value='${this.esc(v)}';document.getElementById('${listId}').classList.add('hidden');App.calcLiveProfit()">${this.esc(v)}</div>`
+    ).join('');
+    listEl.classList.remove('hidden');
   },
 
   setFormaPago(tipo) {
@@ -2932,9 +3017,14 @@ const App = {
     const precioCompra = parseInt(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
     const vendedor = document.getElementById('venta-vendedor').value;
+    const proveedor = document.getElementById('venta-proveedor').value;
+    const descuento = parseInt(document.getElementById('venta-descuento').value) || 0;
+    const fechaStr = document.getElementById('venta-fecha').value;
+    const fecha = fechaStr ? new Date(fechaStr + 'T12:00:00').getTime() : Date.now();
     const nota = document.getElementById('venta-nota').value;
     const perfumeId = document.getElementById('venta-perfume-id').value;
     const numCuotas = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
+    const pvFinal = descuento > 0 ? Math.round(precioVenta * (1 - descuento / 100)) : precioVenta;
 
     if (!perfume || perfume === 'Elegir perfume…') {
       this.toast('Elegí un perfume', 'warning');
@@ -2947,11 +3037,15 @@ const App = {
 
     await DB.addVenta({
       perfume,
-      precioVenta,
+      precioVenta: pvFinal,
+      precioOriginal: precioVenta,
       precioCompra,
       cliente: cliente || 'Anónimo',
       vendedor: vendedor || 'Anónimo',
+      proveedor: proveedor || '',
+      descuento,
       nota,
+      fecha,
       formaPago: this.formaPago,
       numCuotas: this.formaPago === 'cuotas' ? numCuotas : 1,
       perfumeId: perfumeId ? parseInt(perfumeId) : ''
