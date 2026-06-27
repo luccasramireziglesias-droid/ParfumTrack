@@ -4318,27 +4318,126 @@ const App = {
     this.toast('Excel descargado', 'check_circle');
   },
 
-  compartirCatalogo() {
-    const disponibles = this.perfumes.filter(p => p.stock > 0);
+  async compartirCatalogo() {
+    const disponibles = this.perfumes.filter(p => p.stock > 0).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     if (disponibles.length === 0) {
       this.toast('No hay perfumes en stock', 'warning');
       return;
     }
-    let texto = '🍶 *CATÁLOGO DE PERFUMES*\n\n';
-    disponibles.forEach(p => {
-      texto += `✨ *${p.nombre}*\n`;
-      texto += `💰 ${this.fmt(p.precioVenta)}\n`;
-      if (p.stock <= 3) texto += `⚡ ¡Últimas ${p.stock} unidades!\n`;
-      texto += '\n';
-    });
-    texto += `📱 _Catálogo generado con Parfum Track_`;
+    this.toast('Generando catálogo…', 'hourglass_top');
 
-    if (navigator.share) {
-      navigator.share({ title: 'Catálogo de perfumes', text: texto }).catch(() => {});
-    } else {
-      window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+    const PER_PAGE = 12;
+    const pages = [];
+    for (let i = 0; i < disponibles.length; i += PER_PAGE) {
+      pages.push(disponibles.slice(i, i + PER_PAGE));
     }
-    this.toast('Catálogo listo', 'share');
+
+    const images = [];
+    for (let pi = 0; pi < pages.length; pi++) {
+      const img = await this._renderCatalogoPage(pages[pi], pi + 1, pages.length);
+      images.push(img);
+    }
+
+    if (navigator.share && navigator.canShare) {
+      const files = await Promise.all(images.map(async (dataUrl, i) => {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        return new File([blob], `catalogo-${i + 1}.png`, { type: 'image/png' });
+      }));
+      const shareData = { files };
+      if (navigator.canShare(shareData)) {
+        navigator.share(shareData).catch(() => {});
+        this.toast('Catálogo listo', 'share');
+        return;
+      }
+    }
+
+    images.forEach((dataUrl, i) => {
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = `catalogo-${i + 1}.png`;
+      a.click();
+    });
+    this.toast(`${images.length} imagen${images.length > 1 ? 'es' : ''} descargada${images.length > 1 ? 's' : ''}`, 'download');
+  },
+
+  _renderCatalogoPage(items, pageNum, totalPages) {
+    return new Promise(resolve => {
+      const W = 1080, HEADER = 160, ROW_H = 80, FOOTER = 60, PAD = 40;
+      const rows = items.length;
+      const H = HEADER + rows * ROW_H + FOOTER + PAD;
+
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      const ctx = c.getContext('2d');
+
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, '#0f0f1a');
+      grad.addColorStop(1, '#1a1a2e');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.fillStyle = '#c9a84c';
+      ctx.font = 'bold 48px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🍶 CATÁLOGO DE PERFUMES', W / 2, 70);
+
+      ctx.fillStyle = '#b8b5d0';
+      ctx.font = '24px sans-serif';
+      ctx.fillText(`Página ${pageNum} de ${totalPages} · ${items.length} perfumes`, W / 2, 115);
+
+      ctx.strokeStyle = 'rgba(201,168,76,0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(PAD, 140);
+      ctx.lineTo(W - PAD, 140);
+      ctx.stroke();
+
+      items.forEach((p, i) => {
+        const y = HEADER + i * ROW_H;
+
+        if (i % 2 === 0) {
+          ctx.fillStyle = 'rgba(255,255,255,0.03)';
+          ctx.fillRect(PAD, y, W - PAD * 2, ROW_H);
+        }
+
+        const num = String(i + 1 + (pageNum - 1) * 12).padStart(2, '0');
+        ctx.fillStyle = '#c9a84c';
+        ctx.font = 'bold 26px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(num, PAD + 16, y + 48);
+
+        ctx.fillStyle = '#f0ece4';
+        ctx.font = '28px sans-serif';
+        ctx.fillText(p.nombre, PAD + 80, y + 48);
+
+        ctx.fillStyle = '#70c9a0';
+        ctx.font = 'bold 28px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(this.fmt(p.precioVenta), W - PAD - 16, y + 48);
+        ctx.textAlign = 'left';
+
+        if (p.stock <= 3) {
+          ctx.fillStyle = '#e0b060';
+          ctx.font = '20px sans-serif';
+          ctx.fillText(`⚡ ${p.stock} uds`, W - PAD - 200, y + 48);
+        }
+      });
+
+      const fy = HEADER + rows * ROW_H + 20;
+      ctx.strokeStyle = 'rgba(201,168,76,0.3)';
+      ctx.beginPath();
+      ctx.moveTo(PAD, fy);
+      ctx.lineTo(W - PAD, fy);
+      ctx.stroke();
+
+      ctx.fillStyle = '#9a97c0';
+      ctx.font = '20px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Parfum Track · parfumtrack@gmail.com', W / 2, fy + 35);
+
+      resolve(c.toDataURL('image/png'));
+    });
   },
 
   _getBackupCode() {
