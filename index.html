@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,300,0,0&display=swap" rel="stylesheet">
+<script defer data-domain="parfumtrack.luccasramireziglesias.workers.dev" src="https://plausible.io/js/script.js"></script>
 <style>
 :root {
   --bg: #0f0f1a;
@@ -756,6 +757,38 @@ body {
   object-fit: cover;
 }
 
+.photo-upload-area {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.photo-upload-area:active { border-color: var(--gold); }
+.photo-preview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 24px;
+  color: var(--text4);
+  font-size: 12px;
+}
+.photo-preview-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+}
+.photo-preview-change {
+  text-align: center;
+  padding: 6px;
+  font-size: 11px;
+  color: var(--gold2);
+  background: var(--card2);
+}
+
 .stock-badge {
   position: absolute;
   top: 8px;
@@ -1150,7 +1183,7 @@ body {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 18px;
-  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .mas-item {
@@ -1751,9 +1784,100 @@ input[type="date"].form-input {
   font: 600 15px 'DM Sans';
   color: var(--text);
 }
+
+/* Rankings */
+.ranking-list { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+.ranking-item {
+  display:flex; align-items:center; gap:10px;
+  background:var(--card); border-radius:var(--radius-card);
+  padding:10px 14px; font-size:13px;
+}
+.ranking-pos {
+  font:700 14px 'DM Sans'; color:var(--gold2);
+  min-width:22px; text-align:center;
+}
+.ranking-name { flex:1; color:var(--text); }
+.ranking-count { color:var(--text3); font-size:12px; }
+.ranking-amount { color:var(--green); font-weight:600; }
+
+/* PIN Lock */
+.pin-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--text4);
+  transition: all 0.15s;
+}
+.pin-dot.filled {
+  background: var(--gold2);
+  border-color: var(--gold2);
+}
+.pin-key {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font: 600 22px 'DM Sans';
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.pin-key:active { background: var(--gold-dim); }
 </style>
 </head>
 <body>
+
+<!-- ====== LOCK SCREEN ====== -->
+<div id="lock-screen" class="hidden" style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;">
+  <div class="logo-drop" style="width:48px;height:48px;margin-bottom:8px;"></div>
+  <div style="font:600 16px 'DM Sans';color:var(--text2);">Ingresá tu PIN</div>
+  <div id="pin-dots" style="display:flex;gap:12px;">
+    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+  </div>
+  <div id="pin-error" style="font-size:12px;color:var(--red);height:16px;"></div>
+  <div style="display:grid;grid-template-columns:repeat(3,64px);gap:10px;">
+    <button class="pin-key" onclick="App.pinInput(1)">1</button>
+    <button class="pin-key" onclick="App.pinInput(2)">2</button>
+    <button class="pin-key" onclick="App.pinInput(3)">3</button>
+    <button class="pin-key" onclick="App.pinInput(4)">4</button>
+    <button class="pin-key" onclick="App.pinInput(5)">5</button>
+    <button class="pin-key" onclick="App.pinInput(6)">6</button>
+    <button class="pin-key" onclick="App.pinInput(7)">7</button>
+    <button class="pin-key" onclick="App.pinInput(8)">8</button>
+    <button class="pin-key" onclick="App.pinInput(9)">9</button>
+    <div></div>
+    <button class="pin-key" onclick="App.pinInput(0)">0</button>
+    <button class="pin-key" onclick="App.pinDelete()" style="font-size:20px;"><span class="ms">backspace</span></button>
+  </div>
+</div>
+
+<!-- ====== ONBOARDING ====== -->
+<div id="onboarding" class="hidden" style="position:fixed;inset:0;z-index:9998;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;">
+  <div class="logo-drop" style="width:64px;height:64px;margin-bottom:20px;"></div>
+  <h1 style="font:700 28px 'Cormorant Garamond';color:var(--gold2);margin-bottom:8px;">Bienvenido a Parfum Track</h1>
+  <p style="color:var(--text3);font-size:14px;line-height:1.6;max-width:320px;margin-bottom:32px;">
+    Registrá tus ventas en segundos, controlá tu stock y sabé exactamente cuánto ganás. Todo offline, desde tu celular.
+  </p>
+  <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:280px;margin-bottom:32px;">
+    <div style="display:flex;align-items:center;gap:12px;text-align:left;">
+      <span class="ms gold" style="font-size:28px;">bolt</span>
+      <span style="font-size:13px;color:var(--text2);">Vendé y registrá en 10 segundos</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;text-align:left;">
+      <span class="ms gold" style="font-size:28px;">monitoring</span>
+      <span style="font-size:13px;color:var(--text2);">Ganancia real automática</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;text-align:left;">
+      <span class="ms gold" style="font-size:28px;">wifi_off</span>
+      <span style="font-size:13px;color:var(--text2);">Funciona sin internet</span>
+    </div>
+  </div>
+  <button class="btn-primary btn-full" style="max-width:280px;" onclick="App.dismissOnboarding()">
+    <span class="ms">rocket_launch</span>Empezar
+  </button>
+</div>
 
 <div id="app">
   <!-- ====== TOAST ====== -->
@@ -2019,6 +2143,12 @@ input[type="date"].form-input {
           <div class="metric-value" id="m-mejor-dia">—</div>
         </div>
       </div>
+
+      <div class="metrics-label">RANKING PERFUMES</div>
+      <div id="ranking-perfumes" class="ranking-list"></div>
+
+      <div class="metrics-label">RANKING VENDEDORES</div>
+      <div id="ranking-vendedores" class="ranking-list"></div>
     </div>
   </div>
 
@@ -2056,8 +2186,55 @@ input[type="date"].form-input {
         </div>
         <div class="mas-item" onclick="App.exportData()">
           <span class="ms gold">download</span>
-          <span>Exportar datos</span>
+          <span>Exportar datos (JSON)</span>
           <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.exportPDF()">
+          <span class="ms gold">picture_as_pdf</span>
+          <span>Exportar reporte PDF</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.exportExcel()">
+          <span class="ms gold">table_chart</span>
+          <span>Exportar Excel</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.compartirCatalogo()">
+          <span class="ms gold">share</span>
+          <span>Catálogo WhatsApp</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.backupToCloud()">
+          <span class="ms gold">cloud_upload</span>
+          <span>Backup en la nube</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.restoreFromCloud()">
+          <span class="ms gold">cloud_download</span>
+          <span>Restaurar backup</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" style="cursor:default;">
+          <span class="ms gold">lock</span>
+          <span style="flex:1">PIN de seguridad</span>
+          <label style="position:relative;width:44px;height:24px;display:inline-block;">
+            <input type="checkbox" id="toggle-pin" onchange="App.togglePin(this.checked)" style="opacity:0;width:0;height:0;">
+            <span style="position:absolute;cursor:pointer;inset:0;background:var(--card2);border-radius:999px;transition:.3s;"></span>
+            <span id="toggle-pin-knob" style="position:absolute;left:2px;top:2px;width:20px;height:20px;background:var(--text4);border-radius:50%;transition:.3s;"></span>
+          </label>
+        </div>
+        <div class="mas-item" style="cursor:default;">
+          <span class="ms gold">paid</span>
+          <span style="flex:1">Moneda</span>
+          <select id="sel-moneda" onchange="App.setMoneda(this.value)" style="background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;font-family:'DM Sans';outline:none;">
+            <option value="$">$ (Peso/Dólar)</option>
+            <option value="UYU">UYU (Uruguay)</option>
+            <option value="ARS">ARS (Argentina)</option>
+            <option value="COP">COP (Colombia)</option>
+            <option value="MXN">MXN (México)</option>
+            <option value="€">€ (Euro)</option>
+            <option value="R$">R$ (Real)</option>
+          </select>
         </div>
         <div class="mas-item" onclick="App.clearData()">
           <span class="ms danger">delete_forever</span>
@@ -2323,6 +2500,16 @@ input[type="date"].form-input {
         <label class="form-label">STOCK INICIAL</label>
         <input type="number" class="form-input" id="add-perfume-stock" placeholder="0" value="1">
       </div>
+      <div class="form-group">
+        <label class="form-label">FOTO</label>
+        <div class="photo-upload-area" id="add-perfume-photo-area" onclick="document.getElementById('add-perfume-foto-input').click()">
+          <input type="file" id="add-perfume-foto-input" accept="image/*" capture="environment" style="display:none" onchange="App.handlePerfumePhoto(this)">
+          <div id="add-perfume-photo-preview" class="photo-preview-empty">
+            <span class="ms" style="font-size:32px;">add_a_photo</span>
+            <span>Tocar para agregar foto</span>
+          </div>
+        </div>
+      </div>
       <div class="save-bar" style="padding:12px 0 0;">
         <button class="btn-primary btn-full" onclick="App.savePerfume()">
           <span class="ms">save</span>Guardar perfume
@@ -2494,6 +2681,10 @@ const DB = {
     return id;
   },
 
+  async updateVenta(v) {
+    return this.put('ventas', v);
+  },
+
   async deleteVenta(id) {
     return this.delete('ventas', id);
   },
@@ -2645,6 +2836,9 @@ const App = {
     await DB.init();
     await DB.seedDemo();
     await this.loadData();
+    this.loadMoneda();
+    this.checkPinOnStart();
+    this.checkOnboarding();
     this.renderAll();
     this.registerSW();
   },
@@ -2829,6 +3023,7 @@ const App = {
             <div class="venta-ganancia-value">+${this.fmt(gan)}</div>
           </div>
           <div class="venta-actions">
+            <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
             <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})">delete</button>
           </div>
         </div>
@@ -2879,6 +3074,7 @@ const App = {
             <div class="venta-ganancia-value">+${this.fmt(gan)}</div>
           </div>
           <div class="venta-actions">
+            <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
             <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})">delete</button>
           </div>
         </div>
@@ -2910,7 +3106,7 @@ const App = {
     grid.innerHTML = items.map(p => {
       const badgeClass = p.stock === 0 ? 'zero' : p.stock <= 3 ? 'low' : 'high';
       return `<div class="stock-card">
-        <div class="stock-photo">
+        <div class="stock-photo" onclick="App.changeStockPhoto(${p.id})" style="cursor:pointer" title="Tocar para ${p.foto ? 'cambiar' : 'agregar'} foto">
           ${p.foto ? `<img src="${this.esc(p.foto)}" alt="">` : `<span class="stock-photo-label">FOTO</span>`}
           <span class="stock-badge ${badgeClass}">${p.stock}</span>
         </div>
@@ -3038,6 +3234,54 @@ const App = {
     thisMonth.forEach(v => diasCount[new Date(v.fecha).getDay()]++);
     const mejorDia = diasCount.indexOf(Math.max(...diasCount));
     document.getElementById('m-mejor-dia').textContent = diasCount[mejorDia] > 0 ? dias[mejorDia] : '—';
+
+    this.renderRankings(thisMonth);
+  },
+
+  renderRankings(ventas) {
+    const perfumeCounts = {};
+    const vendedorCounts = {};
+    ventas.forEach(v => {
+      const p = v.perfume || 'Sin nombre';
+      perfumeCounts[p] = (perfumeCounts[p] || { count: 0, amount: 0 });
+      perfumeCounts[p].count++;
+      perfumeCounts[p].amount += v.precioVenta;
+
+      const vd = v.vendedor || 'Anónimo';
+      vendedorCounts[vd] = (vendedorCounts[vd] || { count: 0, amount: 0 });
+      vendedorCounts[vd].count++;
+      vendedorCounts[vd].amount += v.precioVenta;
+    });
+
+    const topPerfumes = Object.entries(perfumeCounts)
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 5);
+
+    const topVendedores = Object.entries(vendedorCounts)
+      .sort((a, b) => b[1].amount - a[1].amount)
+      .slice(0, 5);
+
+    const medalEmojis = ['🥇', '🥈', '🥉'];
+
+    document.getElementById('ranking-perfumes').innerHTML = topPerfumes.length === 0
+      ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
+      : topPerfumes.map(([name, data], i) =>
+        `<div class="ranking-item">
+          <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
+          <span class="ranking-name">${this.esc(name)}</span>
+          <span class="ranking-count">${data.count} ventas</span>
+          <span class="ranking-amount">${this.fmt(data.amount)}</span>
+        </div>`).join('');
+
+    document.getElementById('ranking-vendedores').innerHTML = topVendedores.length === 0
+      ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
+      : topVendedores.map(([name, data], i) =>
+        `<div class="ranking-item">
+          <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
+          <span class="ranking-name">${this.esc(name)}</span>
+          <span class="ranking-count">${data.count} ventas</span>
+          <span class="ranking-amount">${this.fmt(data.amount)}</span>
+        </div>`).join('');
   },
 
   updateNavBadge() {
@@ -3066,6 +3310,14 @@ const App = {
     this.setFormaPago('contado');
     this.calcLiveProfit();
     this.setupAutocomplete();
+    this._editingVentaId = null;
+    const saveBtn = document.querySelector('#screen-nueva-venta .btn-primary');
+    if (saveBtn) {
+      saveBtn.innerHTML = '<span class="ms">save</span>Guardar venta';
+      saveBtn.setAttribute('onclick', 'App.guardarVenta()');
+    }
+    const title = document.querySelector('#screen-nueva-venta .sub-title');
+    if (title) title.textContent = 'Nueva venta';
   },
 
   calcLiveProfit() {
@@ -3233,16 +3485,94 @@ const App = {
     if (p.stock === 0 && delta < 0) this.haptic('warning');
   },
 
+  changeStockPhoto(id) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = async () => {
+          const MAX = 400;
+          let w = img.width, h = img.height;
+          if (w > MAX || h > MAX) {
+            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+            else { w = Math.round(w * MAX / h); h = MAX; }
+          }
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          let dataUrl = c.toDataURL('image/webp', 0.7);
+          if (dataUrl.startsWith('data:image/png')) {
+            dataUrl = c.toDataURL('image/jpeg', 0.7);
+          }
+          const p = this.perfumes.find(x => x.id === id);
+          if (p) {
+            p.foto = dataUrl;
+            await DB.updatePerfume(p);
+            await this.loadData();
+            this.renderStock();
+            this.toast('Foto actualizada', 'check_circle');
+          }
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  },
+
+  _pendingPerfumePhoto: '',
+
   openAddPerfume() {
     document.getElementById('modal-add-perfume').classList.remove('hidden');
     document.getElementById('add-perfume-nombre').value = '';
     document.getElementById('add-perfume-compra').value = '';
     document.getElementById('add-perfume-venta').value = '';
     document.getElementById('add-perfume-stock').value = '1';
+    document.getElementById('add-perfume-foto-input').value = '';
+    this._pendingPerfumePhoto = '';
+    document.getElementById('add-perfume-photo-preview').innerHTML =
+      '<span class="ms" style="font-size:32px;">add_a_photo</span><span>Tocar para agregar foto</span>';
+    document.getElementById('add-perfume-photo-preview').className = 'photo-preview-empty';
   },
 
   closeAddPerfume() {
     document.getElementById('modal-add-perfume').classList.add('hidden');
+  },
+
+  handlePerfumePhoto(input) {
+    const file = input.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 400;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        let dataUrl = c.toDataURL('image/webp', 0.7);
+        if (dataUrl.startsWith('data:image/png')) {
+          dataUrl = c.toDataURL('image/jpeg', 0.7);
+        }
+        this._pendingPerfumePhoto = dataUrl;
+        const preview = document.getElementById('add-perfume-photo-preview');
+        preview.className = '';
+        preview.innerHTML = `<img class="photo-preview-img" src="${dataUrl}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
   },
 
   async savePerfume() {
@@ -3256,7 +3586,8 @@ const App = {
       return;
     }
 
-    await DB.addPerfume({ nombre, precioCompra, precioVenta, stock, foto: '' });
+    await DB.addPerfume({ nombre, precioCompra, precioVenta, stock, foto: this._pendingPerfumePhoto || '' });
+    this._pendingPerfumePhoto = '';
     await this.loadData();
     this.closeAddPerfume();
     this.renderStock();
@@ -3279,7 +3610,81 @@ const App = {
     window.open('https://wa.me/?text=' + encoded, '_blank');
   },
 
-  // ====== VENTAS DELETE ======
+  // ====== VENTAS EDIT/DELETE ======
+
+  _editingVentaId: null,
+
+  editVenta(id) {
+    const v = this.ventas.find(x => x.id === id);
+    if (!v) return;
+    this._editingVentaId = id;
+    this.showScreen('nueva-venta');
+
+    document.getElementById('venta-perfume-display').textContent = v.perfume;
+    document.getElementById('venta-perfume-nombre').value = v.perfume;
+    document.getElementById('venta-perfume-id').value = v.perfumeId || '';
+    document.getElementById('venta-precio').value = v.precioOriginal || v.precioVenta;
+    document.getElementById('venta-compra').value = v.precioCompra;
+    document.getElementById('venta-cliente').value = v.cliente || '';
+    document.getElementById('venta-vendedor').value = v.vendedor || '';
+    document.getElementById('venta-proveedor').value = v.proveedor || '';
+    document.getElementById('venta-descuento').value = v.descuento || 0;
+    document.getElementById('venta-nota').value = v.nota || '';
+    if (v.fecha) {
+      const d = new Date(v.fecha);
+      document.getElementById('venta-fecha').value = d.toISOString().split('T')[0];
+    }
+
+    const saveBtn = document.querySelector('#screen-nueva-venta .btn-primary');
+    if (saveBtn) {
+      saveBtn.innerHTML = '<span class="ms">save</span>Actualizar venta';
+      saveBtn.setAttribute('onclick', 'App.updateVenta()');
+    }
+    const title = document.querySelector('#screen-nueva-venta .sub-title');
+    if (title) title.textContent = 'Editar venta';
+
+    this.calcLiveProfit();
+  },
+
+  async updateVenta() {
+    const id = this._editingVentaId;
+    if (!id) return;
+
+    const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
+    const precioVenta = parseInt(document.getElementById('venta-precio').value) || 0;
+    const precioCompra = parseInt(document.getElementById('venta-compra').value) || 0;
+    const cliente = document.getElementById('venta-cliente').value;
+    const vendedor = document.getElementById('venta-vendedor').value;
+    const proveedor = document.getElementById('venta-proveedor').value;
+    const descuento = parseInt(document.getElementById('venta-descuento').value) || 0;
+    const fechaStr = document.getElementById('venta-fecha').value;
+    const fecha = fechaStr ? new Date(fechaStr + 'T12:00:00').getTime() : Date.now();
+    const nota = document.getElementById('venta-nota').value;
+    const perfumeId = document.getElementById('venta-perfume-id').value;
+    const pvFinal = descuento > 0 ? Math.round(precioVenta * (1 - descuento / 100)) : precioVenta;
+
+    if (!perfume || perfume === 'Elegir perfume…') {
+      this.toast('Elegí un perfume', 'warning');
+      return;
+    }
+
+    const v = this.ventas.find(x => x.id === id);
+    if (v) {
+      Object.assign(v, {
+        perfume, precioVenta: pvFinal, precioOriginal: precioVenta, precioCompra,
+        cliente: cliente || 'Anónimo', vendedor: vendedor || 'Anónimo',
+        proveedor: proveedor || '', descuento, nota, fecha,
+        perfumeId: perfumeId ? parseInt(perfumeId) : ''
+      });
+      await DB.updateVenta(v);
+    }
+
+    this._editingVentaId = null;
+    await this.loadData();
+    this.toast('Venta actualizada', 'check_circle');
+    this.haptic('success');
+    this.showScreen('inicio');
+  },
 
   async deleteVenta(id) {
     if (!confirm('¿Eliminar esta venta?')) return;
@@ -3718,6 +4123,249 @@ const App = {
     this.toast('Datos exportados', 'download');
   },
 
+  async _loadScript(url) {
+    if (document.querySelector(`script[src="${url}"]`)) return;
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = url;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('No se pudo cargar: ' + url));
+      document.head.appendChild(s);
+    });
+  },
+
+  async exportPDF() {
+    this.toast('Generando PDF…', 'hourglass_top');
+    try {
+      await this._loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    } catch {
+      this.toast('Error al cargar jsPDF', 'error');
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const now = new Date();
+    const fecha = now.toLocaleDateString('es-AR');
+
+    doc.setFontSize(18);
+    doc.text('Parfum Track — Reporte', 14, 20);
+    doc.setFontSize(10);
+    doc.text(`Generado: ${fecha}`, 14, 28);
+
+    let y = 38;
+    const addSection = (title) => {
+      if (y > 260) { doc.addPage(); y = 20; }
+      doc.setFontSize(13);
+      doc.text(title, 14, y);
+      y += 8;
+      doc.setFontSize(9);
+    };
+
+    addSection('Resumen');
+    const totalVentas = this.ventas.reduce((s, v) => s + v.precioVenta, 0);
+    const totalGanancia = this.ventas.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
+    doc.text(`Ventas: ${this.ventas.length} | Total: ${this.fmt(totalVentas)} | Ganancia: ${this.fmt(totalGanancia)}`, 14, y); y += 6;
+    doc.text(`Perfumes en stock: ${this.perfumes.length} | Cuotas pendientes: ${this.cuotasData.filter(c=>!c.pagado).length}`, 14, y); y += 10;
+
+    addSection('Ventas');
+    this.ventas.slice(-30).forEach(v => {
+      if (y > 275) { doc.addPage(); y = 20; }
+      const f = new Date(v.fecha).toLocaleDateString('es-AR');
+      doc.text(`${f} — ${v.perfume} — ${this.fmt(v.precioVenta)} (ganancia: ${this.fmt(v.precioVenta - v.precioCompra)})${v.cliente ? ' — ' + v.cliente : ''}`, 14, y);
+      y += 5;
+    });
+
+    y += 5;
+    addSection('Stock');
+    this.perfumes.forEach(p => {
+      if (y > 275) { doc.addPage(); y = 20; }
+      doc.text(`${p.nombre} — Stock: ${p.stock} — Compra: ${this.fmt(p.precioCompra)} — Venta: ${this.fmt(p.precioVenta)}`, 14, y);
+      y += 5;
+    });
+
+    doc.save(`parfum-track-reporte-${fecha.replace(/\//g, '-')}.pdf`);
+    this.toast('PDF descargado', 'check_circle');
+  },
+
+  async exportExcel() {
+    this.toast('Generando Excel…', 'hourglass_top');
+    try {
+      await this._loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+    } catch {
+      this.toast('Error al cargar XLSX', 'error');
+      return;
+    }
+
+    const wb = XLSX.utils.book_new();
+
+    const ventasRows = this.ventas.map(v => ({
+      Fecha: new Date(v.fecha).toLocaleDateString('es-AR'),
+      Perfume: v.perfume,
+      Cliente: v.cliente || '',
+      'Precio Compra': v.precioCompra,
+      'Precio Venta': v.precioVenta,
+      Ganancia: v.precioVenta - v.precioCompra,
+      Pago: v.metodoPago || 'contado',
+      Cuotas: v.cuotas || 1
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ventasRows), 'Ventas');
+
+    const stockRows = this.perfumes.map(p => ({
+      Nombre: p.nombre,
+      Stock: p.stock,
+      'Precio Compra': p.precioCompra,
+      'Precio Venta': p.precioVenta,
+      Ganancia: p.precioVenta - p.precioCompra
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(stockRows), 'Stock');
+
+    const cuotasRows = this.cuotasData.map(c => ({
+      Venta: c.ventaId,
+      'Cuota N°': c.numero,
+      Monto: c.monto,
+      Vencimiento: new Date(c.vencimiento).toLocaleDateString('es-AR'),
+      Pagado: c.pagado ? 'Sí' : 'No'
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(cuotasRows), 'Cuotas');
+
+    if (this.cajaData.length > 0) {
+      const cajaRows = this.cajaData.map(c => ({
+        Fecha: new Date(c.fecha).toLocaleDateString('es-AR'),
+        Tipo: c.tipo,
+        Concepto: c.concepto,
+        Monto: c.monto
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(cajaRows), 'Caja');
+    }
+
+    if (this.gastosData.length > 0) {
+      const gastosRows = this.gastosData.map(g => ({
+        Fecha: new Date(g.fecha).toLocaleDateString('es-AR'),
+        Categoría: g.categoria,
+        Concepto: g.concepto,
+        Monto: g.monto
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(gastosRows), 'Gastos');
+    }
+
+    const fecha = new Date().toLocaleDateString('es-AR').replace(/\//g, '-');
+    XLSX.writeFile(wb, `parfum-track-${fecha}.xlsx`);
+    this.toast('Excel descargado', 'check_circle');
+  },
+
+  compartirCatalogo() {
+    const disponibles = this.perfumes.filter(p => p.stock > 0);
+    if (disponibles.length === 0) {
+      this.toast('No hay perfumes en stock', 'warning');
+      return;
+    }
+    let texto = '🍶 *CATÁLOGO DE PERFUMES*\n\n';
+    disponibles.forEach(p => {
+      texto += `✨ *${p.nombre}*\n`;
+      texto += `💰 ${this.fmt(p.precioVenta)}\n`;
+      if (p.stock <= 3) texto += `⚡ ¡Últimas ${p.stock} unidades!\n`;
+      texto += '\n';
+    });
+    texto += `📱 _Catálogo generado con Parfum Track_`;
+
+    if (navigator.share) {
+      navigator.share({ title: 'Catálogo de perfumes', text: texto }).catch(() => {});
+    } else {
+      window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+    }
+    this.toast('Catálogo listo', 'share');
+  },
+
+  _getBackupCode() {
+    return localStorage.getItem('pt_backup_code') || '';
+  },
+
+  async _generateToken(code) {
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey('raw', encoder.encode(code), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(code));
+    return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+  },
+
+  async backupToCloud() {
+    let code = this._getBackupCode();
+    if (!code) {
+      code = prompt('Ingresá tu email o código de respaldo:');
+      if (!code) return;
+      localStorage.setItem('pt_backup_code', code.trim());
+    }
+    this.toast('Subiendo backup…', 'cloud_upload');
+
+    const data = {
+      perfumes: this.perfumes,
+      ventas: this.ventas,
+      cuotas: this.cuotasData,
+      pedidos: this.pedidosData,
+      caja: this.cajaData,
+      gastos: this.gastosData
+    };
+
+    const token = await this._generateToken(code);
+    try {
+      const res = await fetch('/backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, token, data })
+      });
+      const result = await res.json();
+      if (result.ok) {
+        this.toast('Backup guardado en la nube', 'check_circle');
+        this.haptic('success');
+      } else {
+        this.toast(result.error || 'Error al guardar', 'error');
+      }
+    } catch {
+      this.toast('Error de conexión', 'cloud_off');
+    }
+  },
+
+  async restoreFromCloud() {
+    let code = this._getBackupCode();
+    if (!code) {
+      code = prompt('Ingresá tu email o código de respaldo:');
+      if (!code) return;
+      localStorage.setItem('pt_backup_code', code.trim());
+    }
+    if (!confirm('¿Restaurar datos desde la nube? Esto reemplazará tus datos actuales.')) return;
+
+    this.toast('Descargando backup…', 'cloud_download');
+    const token = await this._generateToken(code);
+    try {
+      const res = await fetch(`/backup?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`);
+      const result = await res.json();
+      if (!result.ok) {
+        this.toast(result.error || 'No se encontró backup', 'error');
+        return;
+      }
+      const data = result.data;
+      const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos'];
+      for (const store of stores) {
+        const existing = await DB.getAll(store);
+        for (const item of existing) {
+          await DB.delete(store, item.id || item.key);
+        }
+      }
+      if (data.perfumes) for (const p of data.perfumes) await DB.add('perfumes', p);
+      if (data.ventas) for (const v of data.ventas) await DB.add('ventas', v);
+      if (data.cuotas) for (const c of data.cuotas) await DB.add('cuotas', c);
+      if (data.pedidos) for (const p of data.pedidos) await DB.add('pedidos', p);
+      if (data.caja) for (const c of data.caja) await DB.add('caja', c);
+      if (data.gastos) for (const g of data.gastos) await DB.add('gastos', g);
+
+      await this.loadData();
+      this.renderAll();
+      this.toast('Datos restaurados', 'check_circle');
+      this.haptic('success');
+    } catch {
+      this.toast('Error de conexión', 'cloud_off');
+    }
+  },
+
   async clearData() {
     if (!confirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.')) return;
     const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos'];
@@ -3734,9 +4382,27 @@ const App = {
 
   // ====== UTILS ======
 
+  _moneda: '$',
+
   fmt(n) {
-    if (n === undefined || n === null) return '$0';
-    return '$' + Math.abs(n).toLocaleString('es-AR');
+    if (n === undefined || n === null) return this._moneda + '0';
+    return this._moneda + Math.abs(n).toLocaleString('es-AR');
+  },
+
+  async setMoneda(val) {
+    this._moneda = val;
+    localStorage.setItem('pt_moneda', val);
+    this.renderAll();
+    this.toast('Moneda actualizada', 'check_circle');
+  },
+
+  loadMoneda() {
+    const saved = localStorage.getItem('pt_moneda');
+    if (saved) {
+      this._moneda = saved;
+      const sel = document.getElementById('sel-moneda');
+      if (sel) sel.value = saved;
+    }
   },
 
   fmtDate(ts) {
@@ -3766,6 +4432,96 @@ const App = {
       if (type === 'success') navigator.vibrate([10, 30, 10]);
       else if (type === 'warning') navigator.vibrate(50);
       else navigator.vibrate(10);
+    }
+  },
+
+  // ====== ONBOARDING ======
+
+  checkOnboarding() {
+    if (!localStorage.getItem('pt_onboarded')) {
+      const el = document.getElementById('onboarding');
+      el.classList.remove('hidden');
+      el.style.display = 'flex';
+    }
+  },
+
+  dismissOnboarding() {
+    localStorage.setItem('pt_onboarded', '1');
+    const el = document.getElementById('onboarding');
+    el.classList.add('hidden');
+    el.style.display = 'none';
+  },
+
+  // ====== PIN LOCK ======
+  _pinBuffer: '',
+
+  checkPinOnStart() {
+    const pin = localStorage.getItem('pt_pin');
+    if (pin) {
+      document.getElementById('lock-screen').classList.remove('hidden');
+      document.getElementById('lock-screen').style.display = 'flex';
+    }
+    const toggle = document.getElementById('toggle-pin');
+    const knob = document.getElementById('toggle-pin-knob');
+    if (toggle && pin) {
+      toggle.checked = true;
+      knob.style.left = '22px';
+      knob.style.background = 'var(--gold2)';
+      knob.parentElement.previousElementSibling.nextElementSibling.style.background = 'var(--gold-dim)';
+    }
+  },
+
+  pinInput(n) {
+    if (this._pinBuffer.length >= 4) return;
+    this._pinBuffer += n;
+    this._updatePinDots();
+    if (this._pinBuffer.length === 4) {
+      const saved = localStorage.getItem('pt_pin');
+      if (this._pinBuffer === saved) {
+        document.getElementById('lock-screen').classList.add('hidden');
+        document.getElementById('lock-screen').style.display = 'none';
+        this._pinBuffer = '';
+        this.haptic('success');
+      } else {
+        document.getElementById('pin-error').textContent = 'PIN incorrecto';
+        this.haptic('warning');
+        setTimeout(() => {
+          this._pinBuffer = '';
+          this._updatePinDots();
+          document.getElementById('pin-error').textContent = '';
+        }, 800);
+      }
+    }
+  },
+
+  pinDelete() {
+    this._pinBuffer = this._pinBuffer.slice(0, -1);
+    this._updatePinDots();
+  },
+
+  _updatePinDots() {
+    const dots = document.querySelectorAll('#pin-dots .pin-dot');
+    dots.forEach((d, i) => d.classList.toggle('filled', i < this._pinBuffer.length));
+  },
+
+  togglePin(on) {
+    const knob = document.getElementById('toggle-pin-knob');
+    if (on) {
+      const pin = prompt('Creá un PIN de 4 dígitos:');
+      if (pin && /^\d{4}$/.test(pin)) {
+        localStorage.setItem('pt_pin', pin);
+        knob.style.left = '22px';
+        knob.style.background = 'var(--gold2)';
+        this.toast('PIN activado', 'lock');
+      } else {
+        document.getElementById('toggle-pin').checked = false;
+        if (pin !== null) this.toast('El PIN debe tener 4 dígitos', 'warning');
+      }
+    } else {
+      localStorage.removeItem('pt_pin');
+      knob.style.left = '2px';
+      knob.style.background = 'var(--text4)';
+      this.toast('PIN desactivado', 'lock_open');
     }
   }
 };
