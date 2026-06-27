@@ -2039,6 +2039,16 @@ input[type="date"].form-input {
           <span>Cuotas pendientes</span>
           <span class="ms muted chevron">chevron_right</span>
         </div>
+        <div class="mas-item" onclick="App.showScreen('caja')">
+          <span class="ms gold">account_balance</span>
+          <span>Caja diaria</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.showScreen('gastos')">
+          <span class="ms gold">payments</span>
+          <span>Gastos del negocio</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
         <div class="mas-item" onclick="App.showScreen('stock')">
           <span class="ms gold">inventory_2</span>
           <span>Gestionar stock</span>
@@ -2061,6 +2071,107 @@ input[type="date"].form-input {
         <span class="mas-app-name">Parfum Track</span>
         <span class="mas-version">v2.8</span>
       </div>
+    </div>
+  </div>
+
+  <!-- ====== SCREEN: CAJA ====== -->
+  <div id="screen-caja" class="screen">
+    <div class="screen-scroll">
+      <div class="sub-header">
+        <div class="back-btn" onclick="App.showScreen('mas')"><span class="ms">arrow_back</span></div>
+        <span class="sub-title">Caja diaria</span>
+        <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
+      </div>
+
+      <div class="stat-pair">
+        <div class="stat-card">
+          <div class="stat-header"><span class="ms green">arrow_downward</span><span>Entradas</span></div>
+          <div class="stat-value green" id="caja-entradas">$0</div>
+        </div>
+        <div class="stat-card stat-card--danger">
+          <div class="stat-header"><span class="ms danger">arrow_upward</span><span>Salidas</span></div>
+          <div class="stat-value danger" id="caja-salidas">$0</div>
+        </div>
+      </div>
+
+      <div class="hero-card" style="padding:14px 18px;">
+        <div class="hero-label">Balance del día</div>
+        <div class="hero-amount" id="caja-balance" style="font-size:36px;">$0</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">TIPO</label>
+        <div class="segmented" id="caja-tipo-seg">
+          <div class="seg-option active" onclick="App.setCajaTipo('entrada')">Entrada</div>
+          <div class="seg-option" onclick="App.setCajaTipo('salida')">Salida</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">MONTO</label>
+          <input type="number" class="form-input" id="caja-monto" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">DESCRIPCIÓN</label>
+          <input type="text" class="form-input" id="caja-desc" placeholder="Concepto…">
+        </div>
+      </div>
+
+      <button class="btn-primary btn-full" onclick="App.guardarCaja()">
+        <span class="ms">add_circle</span>Registrar movimiento
+      </button>
+
+      <div class="section-header" style="margin-top:4px;">
+        <span class="section-title">Movimientos de hoy</span>
+      </div>
+      <div id="caja-list"></div>
+    </div>
+  </div>
+
+  <!-- ====== SCREEN: GASTOS ====== -->
+  <div id="screen-gastos" class="screen">
+    <div class="screen-scroll">
+      <div class="sub-header">
+        <div class="back-btn" onclick="App.showScreen('mas')"><span class="ms">arrow_back</span></div>
+        <span class="sub-title">Gastos del negocio</span>
+        <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
+      </div>
+
+      <div class="hero-card" style="padding:14px 18px;">
+        <div class="hero-label">Total gastos · este mes</div>
+        <div class="hero-amount danger" id="gastos-total" style="font-size:36px;color:var(--red);">$0</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">CATEGORÍA</label>
+        <div class="segmented" id="gasto-cat-seg" style="flex-wrap:wrap;">
+          <div class="seg-option active" onclick="App.setGastoCat('transporte')">Transporte</div>
+          <div class="seg-option" onclick="App.setGastoCat('embalaje')">Embalaje</div>
+          <div class="seg-option" onclick="App.setGastoCat('publicidad')">Publicidad</div>
+          <div class="seg-option" onclick="App.setGastoCat('otro')">Otro</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">MONTO</label>
+          <input type="number" class="form-input" id="gasto-monto" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">DESCRIPCIÓN</label>
+          <input type="text" class="form-input" id="gasto-desc" placeholder="Detalle…">
+        </div>
+      </div>
+
+      <button class="btn-primary btn-full" onclick="App.guardarGasto()">
+        <span class="ms">add_circle</span>Registrar gasto
+      </button>
+
+      <div class="section-header" style="margin-top:4px;">
+        <span class="section-title">Gastos recientes</span>
+      </div>
+      <div id="gastos-list"></div>
     </div>
   </div>
 
@@ -2248,7 +2359,7 @@ input[type="date"].form-input {
 </div>
 <script>
 const DB_NAME = 'ParfumTrackDB';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 let db = null;
 
 function openDB() {
@@ -2275,6 +2386,14 @@ function openDB() {
       if (!d.objectStoreNames.contains('pedidos')) {
         const s = d.createObjectStore('pedidos', { keyPath: 'id', autoIncrement: true });
         s.createIndex('estado', 'estado', { unique: false });
+        s.createIndex('fecha', 'fecha', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('caja')) {
+        const s = d.createObjectStore('caja', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('fecha', 'fecha', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('gastos')) {
+        const s = d.createObjectStore('gastos', { keyPath: 'id', autoIncrement: true });
         s.createIndex('fecha', 'fecha', { unique: false });
       }
     };
@@ -2439,6 +2558,32 @@ const DB = {
     return p;
   },
 
+  async getCaja() {
+    const items = await this.getAll('caja');
+    return items.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
+  },
+
+  async addCaja(item) {
+    return this.add('caja', { ...item, fecha: Date.now() });
+  },
+
+  async deleteCaja(id) {
+    return this.delete('caja', id);
+  },
+
+  async getGastos() {
+    const items = await this.getAll('gastos');
+    return items.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
+  },
+
+  async addGasto(item) {
+    return this.add('gastos', { ...item, fecha: Date.now() });
+  },
+
+  async deleteGasto(id) {
+    return this.delete('gastos', id);
+  },
+
   async seedDemo() {
     const perfumes = await this.getPerfumes();
     if (perfumes.length > 0) return;
@@ -2491,6 +2636,10 @@ const App = {
   pedidosData: [],
   pedidosFilter: 'pendiente',
   pedidoPerfumes: [],
+  cajaData: [],
+  gastosData: [],
+  cajaTipo: 'entrada',
+  gastoCat: 'transporte',
 
   async init() {
     await DB.init();
@@ -2505,6 +2654,8 @@ const App = {
     this.ventas = await DB.getVentas();
     this.cuotasData = await DB.getCuotas();
     this.pedidosData = await DB.getPedidos();
+    this.cajaData = await DB.getCaja();
+    this.gastosData = await DB.getGastos();
   },
 
   registerSW() {
@@ -2544,6 +2695,8 @@ const App = {
     if (name === 'nueva-venta') this.resetVentaForm();
     if (name === 'pedidos') this.renderPedidos();
     if (name === 'nuevo-pedido') this.resetPedidoForm();
+    if (name === 'caja') this.renderCaja();
+    if (name === 'gastos') this.renderGastos();
   },
 
   // ====== RENDER ======
@@ -3410,6 +3563,139 @@ const App = {
     }
   },
 
+  // ====== CAJA ======
+
+  setCajaTipo(tipo) {
+    this.cajaTipo = tipo;
+    const opts = document.querySelectorAll('#caja-tipo-seg .seg-option');
+    opts.forEach((o, i) => o.classList.toggle('active', (i === 0 && tipo === 'entrada') || (i === 1 && tipo === 'salida')));
+  },
+
+  async guardarCaja() {
+    const monto = parseInt(document.getElementById('caja-monto').value) || 0;
+    const desc = document.getElementById('caja-desc').value.trim();
+    if (monto <= 0) { this.toast('Ingresá un monto', 'warning'); return; }
+
+    await DB.addCaja({ tipo: this.cajaTipo, monto, descripcion: desc || (this.cajaTipo === 'entrada' ? 'Entrada' : 'Salida') });
+    document.getElementById('caja-monto').value = '';
+    document.getElementById('caja-desc').value = '';
+    await this.loadData();
+    this.renderCaja();
+    this.toast(this.cajaTipo === 'entrada' ? 'Entrada registrada' : 'Salida registrada', 'check_circle');
+    this.haptic('success');
+  },
+
+  async deleteCaja(id) {
+    if (!confirm('¿Eliminar este movimiento?')) return;
+    await DB.deleteCaja(id);
+    await this.loadData();
+    this.renderCaja();
+    this.toast('Movimiento eliminado', 'delete');
+  },
+
+  renderCaja() {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const todayItems = this.cajaData.filter(c => new Date(c.fecha) >= today);
+    const entradas = todayItems.filter(c => c.tipo === 'entrada').reduce((s, c) => s + c.monto, 0);
+    const salidas = todayItems.filter(c => c.tipo === 'salida').reduce((s, c) => s + c.monto, 0);
+
+    document.getElementById('caja-entradas').textContent = this.fmt(entradas);
+    document.getElementById('caja-salidas').textContent = this.fmt(salidas);
+    const balance = entradas - salidas;
+    const balEl = document.getElementById('caja-balance');
+    balEl.textContent = (balance >= 0 ? '+' : '-') + this.fmt(Math.abs(balance));
+    balEl.style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
+
+    const container = document.getElementById('caja-list');
+    if (todayItems.length === 0) {
+      container.innerHTML = '<div class="empty-state"><span class="ms">account_balance</span><span>No hay movimientos hoy</span></div>';
+      return;
+    }
+    container.innerHTML = todayItems.map(c => {
+      const isEntrada = c.tipo === 'entrada';
+      return `<div class="venta-card" style="margin-bottom:8px;">
+        <div class="venta-top">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="ms ${isEntrada ? 'green' : 'danger'}">${isEntrada ? 'arrow_downward' : 'arrow_upward'}</span>
+            <span class="venta-nombre">${this.esc(c.descripcion)}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font:700 16px 'DM Sans';color:${isEntrada ? 'var(--green)' : 'var(--red)'};">${isEntrada ? '+' : '-'}${this.fmt(c.monto)}</span>
+            <button class="venta-action-btn ms" onclick="App.deleteCaja(${c.id})">delete</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  // ====== GASTOS ======
+
+  setGastoCat(cat) {
+    this.gastoCat = cat;
+    const opts = document.querySelectorAll('#gasto-cat-seg .seg-option');
+    opts.forEach(o => o.classList.toggle('active', o.textContent.trim().toLowerCase() === cat));
+  },
+
+  async guardarGasto() {
+    const monto = parseInt(document.getElementById('gasto-monto').value) || 0;
+    const desc = document.getElementById('gasto-desc').value.trim();
+    if (monto <= 0) { this.toast('Ingresá un monto', 'warning'); return; }
+
+    await DB.addGasto({ categoria: this.gastoCat, monto, descripcion: desc || this.gastoCat });
+    document.getElementById('gasto-monto').value = '';
+    document.getElementById('gasto-desc').value = '';
+    await this.loadData();
+    this.renderGastos();
+    this.toast('Gasto registrado', 'check_circle');
+    this.haptic('success');
+  },
+
+  async deleteGasto(id) {
+    if (!confirm('¿Eliminar este gasto?')) return;
+    await DB.deleteGasto(id);
+    await this.loadData();
+    this.renderGastos();
+    this.toast('Gasto eliminado', 'delete');
+  },
+
+  renderGastos() {
+    const now = new Date();
+    const thisMonth = this.gastosData.filter(g => {
+      const d = new Date(g.fecha);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+    const total = thisMonth.reduce((s, g) => s + g.monto, 0);
+    document.getElementById('gastos-total').textContent = this.fmt(total);
+
+    const container = document.getElementById('gastos-list');
+    const recientes = this.gastosData.slice(0, 10);
+    if (recientes.length === 0) {
+      container.innerHTML = '<div class="empty-state"><span class="ms">payments</span><span>No hay gastos registrados</span></div>';
+      return;
+    }
+    const catIcons = { transporte: 'local_shipping', embalaje: 'inventory', publicidad: 'campaign', otro: 'more_horiz' };
+    container.innerHTML = recientes.map(g => `
+      <div class="venta-card" style="margin-bottom:8px;">
+        <div class="venta-top">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="ms gold">${catIcons[g.categoria] || 'payments'}</span>
+            <div>
+              <span class="venta-nombre">${this.esc(g.descripcion)}</span>
+              <div style="display:flex;gap:6px;margin-top:3px;">
+                <span class="tag">${this.esc(g.categoria)}</span>
+                <span style="font:500 11px 'DM Sans';color:var(--text3);">${this.fmtDate(g.fecha)}</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font:700 16px 'DM Sans';color:var(--red);">-${this.fmt(g.monto)}</span>
+            <button class="venta-action-btn ms" onclick="App.deleteGasto(${g.id})">delete</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  },
+
   // ====== DATA MANAGEMENT ======
 
   async exportData() {
@@ -3418,6 +3704,8 @@ const App = {
       ventas: this.ventas,
       cuotas: this.cuotasData,
       pedidos: this.pedidosData,
+      caja: this.cajaData,
+      gastos: this.gastosData,
       exportDate: new Date().toISOString()
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -3432,7 +3720,7 @@ const App = {
 
   async clearData() {
     if (!confirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.')) return;
-    const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos'];
     for (const store of stores) {
       const items = await DB.getAll(store);
       for (const item of items) {
