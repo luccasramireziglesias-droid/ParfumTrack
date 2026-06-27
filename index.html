@@ -2231,6 +2231,12 @@ input[type="date"].form-input {
           <span>Exportar datos (JSON)</span>
           <span class="ms muted chevron">chevron_right</span>
         </div>
+        <div class="mas-item" onclick="App.importData()">
+          <span class="ms gold">upload</span>
+          <span>Importar datos (JSON)</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <input type="file" id="import-file-input" accept=".json,application/json" style="display:none" onchange="App._handleImportFile(this)">
         <div class="mas-item" onclick="App.exportPDF()">
           <span class="ms gold">picture_as_pdf</span>
           <span>Exportar reporte PDF</span>
@@ -4354,6 +4360,7 @@ const App = {
   // ====== DATA MANAGEMENT ======
 
   async exportData() {
+    const config = await DB.getAll('config');
     const data = {
       perfumes: this.perfumes,
       ventas: this.ventas,
@@ -4361,6 +4368,12 @@ const App = {
       pedidos: this.pedidosData,
       caja: this.cajaData,
       gastos: this.gastosData,
+      config,
+      settings: {
+        moneda: localStorage.getItem('pt_moneda'),
+        negocio: localStorage.getItem('pt_negocio'),
+        pin: localStorage.getItem('pt_pin'),
+      },
       exportDate: new Date().toISOString()
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -4371,6 +4384,52 @@ const App = {
     a.click();
     URL.revokeObjectURL(url);
     this.toast('Datos exportados', 'download');
+  },
+
+  importData() {
+    document.getElementById('import-file-input').click();
+  },
+
+  async _handleImportFile(input) {
+    const file = input.files?.[0];
+    if (!file) return;
+    input.value = '';
+
+    if (!confirm('¿Importar datos desde archivo? Esto reemplazará tus datos actuales.')) return;
+
+    this.toast('Leyendo archivo…', 'hourglass_top');
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      const allStores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+      for (const store of allStores) {
+        const existing = await DB.getAll(store);
+        for (const item of existing) {
+          await DB.delete(store, item.id || item.key);
+        }
+      }
+      for (const store of allStores) {
+        if (!data[store]) continue;
+        for (const item of data[store]) {
+          try { await DB.put(store, item); } catch {}
+        }
+      }
+      if (data.settings) {
+        if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
+        if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
+        if (data.settings.pin) localStorage.setItem('pt_pin', data.settings.pin);
+      }
+
+      await this.loadData();
+      this.loadMoneda();
+      this.loadNombreNegocio();
+      this.renderAll();
+      this.toast('Datos importados correctamente', 'check_circle');
+      this.haptic('success');
+    } catch (e) {
+      this.toast('Error al leer el archivo', 'error');
+    }
   },
 
   async _loadScript(url) {
