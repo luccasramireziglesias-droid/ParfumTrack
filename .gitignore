@@ -23,6 +23,9 @@ android/app/build/
 android/local.properties
 android/.idea/
 
+# Playwright
+test-results/
+
 # Build artifacts
 *.apk
 *.aab
