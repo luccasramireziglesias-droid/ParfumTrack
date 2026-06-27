@@ -3616,8 +3616,8 @@ const App = {
   editVenta(id) {
     const v = this.ventas.find(x => x.id === id);
     if (!v) return;
-    this._editingVentaId = id;
     this.showScreen('nueva-venta');
+    this._editingVentaId = id;
 
     document.getElementById('venta-perfume-display').textContent = v.perfume;
     document.getElementById('venta-perfume-nombre').value = v.perfume;
@@ -3908,8 +3908,8 @@ const App = {
   editPedido(id) {
     const p = this.pedidosData.find(x => x.id === id);
     if (!p) return;
-    this._editingPedidoId = id;
     this.showScreen('nuevo-pedido');
+    this._editingPedidoId = id;
 
     document.getElementById('pedido-nombre').value = p.nombre || '';
     document.getElementById('pedido-cedula').value = p.cedula || '';
