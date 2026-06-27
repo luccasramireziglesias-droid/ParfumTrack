@@ -3829,7 +3829,7 @@ const App = {
     document.getElementById('venta-nota').value = v.nota || '';
     if (v.fecha) {
       const d = new Date(v.fecha);
-      document.getElementById('venta-fecha').value = d.toISOString().split('T')[0];
+      if (!isNaN(d.getTime())) document.getElementById('venta-fecha').value = d.toISOString().split('T')[0];
     }
 
     const saveBtn = document.querySelector('#screen-nueva-venta .btn-primary');
@@ -3888,6 +3888,7 @@ const App = {
     await DB.deleteVenta(id);
     await this.loadData();
     this.renderAll();
+    this.renderAllVentas();
     this.toast('Venta eliminada', 'delete');
   },
 
@@ -4968,6 +4969,7 @@ const App = {
   fmtDate(ts) {
     if (!ts) return '—';
     const d = new Date(ts);
+    if (isNaN(d.getTime())) return '—';
     const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
     return d.getDate() + ' ' + months[d.getMonth()];
   },
