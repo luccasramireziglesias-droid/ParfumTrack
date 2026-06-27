@@ -3028,6 +3028,7 @@ const App = {
   async init() {
     await DB.init();
     await DB.seedDemo();
+    await this._fixCorruptDates();
     await this.loadData();
     this.loadMoneda();
     this.loadNombreNegocio();
@@ -3036,6 +3037,31 @@ const App = {
     this.checkOnboarding();
     this.renderAll();
     this.registerSW();
+  },
+
+  async _fixCorruptDates() {
+    if (localStorage.getItem('pt_dates_fixed')) return;
+    const ventas = await DB.getAll('ventas');
+    let fixed = 0;
+    for (const v of ventas) {
+      if (!v.fecha || isNaN(new Date(v.fecha).getTime())) {
+        v.fecha = v.creado || Date.now();
+        await DB.put('ventas', v);
+        fixed++;
+      } else if (typeof v.fecha === 'string') {
+        v.fecha = new Date(v.fecha).getTime();
+        await DB.put('ventas', v);
+        fixed++;
+      }
+    }
+    const cuotas = await DB.getAll('cuotas');
+    for (const c of cuotas) {
+      if (c.vence && (isNaN(new Date(c.vence).getTime()) || typeof c.vence === 'string')) {
+        c.vence = typeof c.vence === 'string' ? new Date(c.vence).getTime() || Date.now() : Date.now();
+        await DB.put('cuotas', c);
+      }
+    }
+    localStorage.setItem('pt_dates_fixed', '1');
   },
 
   async loadData() {
