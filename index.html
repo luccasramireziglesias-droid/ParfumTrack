@@ -4400,9 +4400,19 @@ const App = {
     this.toast('Leyendo archivo…', 'hourglass_top');
     try {
       const text = await file.text();
-      const data = JSON.parse(text);
+      let data = JSON.parse(text);
+
+      // Cloud backup format: {ok, data: {...}, savedAt}
+      if (data.data && typeof data.data === 'object' && (data.data.perfumes || data.data.ventas || data.data.cuotas)) {
+        data = data.data;
+      }
 
       const allStores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+      const hasData = allStores.some(s => Array.isArray(data[s]) && data[s].length > 0) || data.settings;
+      if (!hasData) {
+        this.toast('No se encontraron datos válidos en el archivo', 'error');
+        return;
+      }
       for (const store of allStores) {
         const existing = await DB.getAll(store);
         for (const item of existing) {
