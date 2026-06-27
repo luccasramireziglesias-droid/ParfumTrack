@@ -4596,23 +4596,16 @@ const App = {
     });
   },
 
-  _getBackupCode() {
-    return localStorage.getItem('pt_backup_code') || '';
-  },
-
-  async _generateToken(code) {
-    const encoder = new TextEncoder();
-    const key = await crypto.subtle.importKey('raw', encoder.encode(code), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-    const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(code));
-    return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+  _getAuthToken() {
+    return this._account?.licenseData?.token || '';
   },
 
   async backupToCloud() {
-    let code = this._getBackupCode();
-    if (!code) {
-      code = prompt('Ingresá tu email o código de respaldo:');
-      if (!code) return;
-      localStorage.setItem('pt_backup_code', code.trim());
+    const code = this._account?.license;
+    const token = this._getAuthToken();
+    if (!code || !token) {
+      this.toast('Activá una licencia primero', 'warning');
+      return;
     }
     this.toast('Subiendo backup…', 'cloud_upload');
 
@@ -4625,7 +4618,6 @@ const App = {
       gastos: this.gastosData
     };
 
-    const token = await this._generateToken(code);
     try {
       const res = await fetch('/backup', {
         method: 'POST',
@@ -4645,18 +4637,19 @@ const App = {
   },
 
   async restoreFromCloud() {
-    let code = this._getBackupCode();
-    if (!code) {
-      code = prompt('Ingresá tu email o código de respaldo:');
-      if (!code) return;
-      localStorage.setItem('pt_backup_code', code.trim());
+    const code = this._account?.license;
+    const token = this._getAuthToken();
+    if (!code || !token) {
+      this.toast('Activá una licencia primero', 'warning');
+      return;
     }
     if (!confirm('¿Restaurar datos desde la nube? Esto reemplazará tus datos actuales.')) return;
 
     this.toast('Descargando backup…', 'cloud_download');
-    const token = await this._generateToken(code);
     try {
-      const res = await fetch(`/backup?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`);
+      const res = await fetch('/backup', {
+        headers: { 'X-PT-Code': code, 'X-PT-Token': token }
+      });
       const result = await res.json();
       if (!result.ok) {
         this.toast(result.error || 'No se encontró backup', 'error');
@@ -5014,13 +5007,13 @@ const App = {
   },
 
   async syncToCloud() {
-    if (!this._account?.email) {
-      this.toast('Primero registrá tu cuenta', 'warning');
+    const code = this._account?.license;
+    const token = this._getAuthToken();
+    if (!code || !token) {
+      this.toast('Activá una licencia primero', 'warning');
       return;
     }
     this.toast('Sincronizando…', 'cloud_upload');
-    const code = this._account.email.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const token = await this._generateToken(code);
     const data = {
       perfumes: this.perfumes,
       ventas: this.ventas,
@@ -5050,16 +5043,18 @@ const App = {
   },
 
   async syncFromCloud() {
-    if (!this._account?.email) {
-      this.toast('Primero registrá tu cuenta', 'warning');
+    const code = this._account?.license;
+    const token = this._getAuthToken();
+    if (!code || !token) {
+      this.toast('Activá una licencia primero', 'warning');
       return;
     }
     if (!confirm('¿Cargar datos desde la nube? Esto reemplazará tus datos actuales.')) return;
     this.toast('Descargando…', 'cloud_download');
-    const code = this._account.email.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const token = await this._generateToken(code);
     try {
-      const res = await fetch(`/sync?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`);
+      const res = await fetch('/sync', {
+        headers: { 'X-PT-Code': code, 'X-PT-Token': token }
+      });
       const result = await res.json();
       if (!result.ok) {
         this.toast(result.error || 'No se encontraron datos', 'error');
