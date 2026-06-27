@@ -4424,16 +4424,25 @@ const App = {
     document.getElementById('import-file-input').click();
   },
 
+  _parseDate(v, fallback) {
+    if (!v) return fallback;
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string') {
+      if (/^\d+$/.test(v)) return Number(v);
+      const ms = new Date(v).getTime();
+      return isNaN(ms) ? fallback : ms;
+    }
+    return fallback;
+  },
+
   _normalizeBackupData(raw) {
     let data = raw;
-    // Cloud backup: {ok, data: {...}, savedAt}
     if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
       const inner = data.data;
       if (inner.perfumes || inner.ventas || inner.cuotas || inner.pedidos || inner.caja || inner.gastos) {
         data = inner;
       }
     }
-    // Ensure arrays and coerce numeric fields
     const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
     for (const s of stores) {
       if (data[s] && !Array.isArray(data[s])) {
@@ -4445,7 +4454,7 @@ const App = {
         ...v,
         precioVenta: Number(v.precioVenta) || 0,
         precioCompra: Number(v.precioCompra) || 0,
-        fecha: typeof v.fecha === 'string' ? new Date(v.fecha).getTime() || Date.now() : (v.fecha || Date.now()),
+        fecha: this._parseDate(v.fecha, Date.now()),
       }));
     }
     if (Array.isArray(data.cuotas)) {
@@ -4453,7 +4462,7 @@ const App = {
         ...c,
         monto: Number(c.monto) || 0,
         montoTotal: Number(c.montoTotal) || 0,
-        vence: typeof c.vence === 'string' ? new Date(c.vence).getTime() || 0 : (c.vence || 0),
+        vence: this._parseDate(c.vence, 0),
       }));
     }
     if (Array.isArray(data.perfumes)) {
@@ -4468,14 +4477,14 @@ const App = {
       data.gastos = data.gastos.map(g => ({
         ...g,
         monto: Number(g.monto) || 0,
-        fecha: typeof g.fecha === 'string' ? new Date(g.fecha).getTime() || Date.now() : (g.fecha || Date.now()),
+        fecha: this._parseDate(g.fecha, Date.now()),
       }));
     }
     if (Array.isArray(data.caja)) {
       data.caja = data.caja.map(c => ({
         ...c,
         monto: Number(c.monto) || 0,
-        fecha: typeof c.fecha === 'string' ? new Date(c.fecha).getTime() || Date.now() : (c.fecha || Date.now()),
+        fecha: this._parseDate(c.fecha, Date.now()),
       }));
     }
     return data;

@@ -161,7 +161,7 @@ test.describe('ParfumTrack — 5 tests de verificación', () => {
         ok: true,
         data: {
           ventas: [
-            { id: 1, perfume: 'Test', precioVenta: '5000', precioCompra: '3000', fecha: '2026-06-27T12:00:00Z' }
+            { id: 1, perfume: 'Test', precioVenta: '5000', precioCompra: '3000', fecha: '1751385600000' }
           ],
           perfumes: [
             { id: 1, nombre: 'Test', stock: '5', precioVenta: '5000', precioCompra: '3000' }
