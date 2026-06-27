@@ -2193,8 +2193,8 @@ input[type="date"].form-input {
       <div class="mas-section" style="margin-bottom:10px;">
         <div class="mas-item" onclick="App.showScreen('cuenta')">
           <span class="ms gold">account_circle</span>
-          <span>Mi cuenta</span>
-          <span class="ms muted" id="mas-cuenta-status" style="font-size:12px;margin-left:auto;"></span>
+          <span style="flex-shrink:0;">Mi cuenta</span>
+          <span id="mas-cuenta-status" style="font-size:11px;color:var(--text4);margin-left:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:50%;text-align:right;"></span>
           <span class="ms muted chevron">chevron_right</span>
         </div>
       </div>
@@ -2255,6 +2255,11 @@ input[type="date"].form-input {
           <span class="ms gold">cloud_download</span>
           <span>Restaurar backup</span>
           <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" style="cursor:default;">
+          <span class="ms gold">storefront</span>
+          <span style="flex-shrink:0;">Mi negocio</span>
+          <input type="text" id="input-negocio" class="form-input" placeholder="Nombre del negocio" oninput="App.setNombreNegocio(this.value)" style="flex:1;text-align:right;background:transparent;border:none;color:var(--text);font-size:13px;padding:4px 8px;min-width:0;">
         </div>
         <div class="mas-item" style="cursor:default;">
           <span class="ms gold">lock</span>
@@ -2577,12 +2582,10 @@ input[type="date"].form-input {
 
         <div id="cuenta-license-section" style="width:100%;">
           <div class="metrics-label">CÓDIGO DE LICENCIA</div>
-          <div style="display:flex;gap:8px;margin-bottom:12px;">
-            <input type="text" class="form-input" id="cuenta-license-code" placeholder="PT-XXXXXX-YYYYYY" style="flex:1;text-transform:uppercase;">
-            <button class="btn-primary" onclick="App.activarLicenciaInput()" style="white-space:nowrap;padding:0 16px;">
-              <span class="ms">key</span>Activar
-            </button>
-          </div>
+          <input type="text" class="form-input" id="cuenta-license-code" placeholder="PT-XXXXXX-YYYYYY" style="width:100%;text-transform:uppercase;margin-bottom:8px;box-sizing:border-box;">
+          <button class="btn-primary btn-full" onclick="App.activarLicenciaInput()" style="margin-bottom:8px;">
+            <span class="ms">key</span>Activar código
+          </button>
           <p style="color:var(--text4);font-size:11px;margin:0 0 16px;">Si ya tenés un código, ingresalo acá para desbloquear Pro.</p>
         </div>
 
@@ -2654,12 +2657,10 @@ input[type="date"].form-input {
 
         <div id="cuenta-logged-license" style="width:100%;margin-top:12px;">
           <div class="metrics-label">CÓDIGO DE LICENCIA</div>
-          <div style="display:flex;gap:8px;margin-bottom:8px;">
-            <input type="text" class="form-input" id="cuenta-logged-license-code" placeholder="PT-XXXXXX-YYYYYY" style="flex:1;text-transform:uppercase;">
-            <button class="btn-primary" onclick="App.activarLicenciaLoggedInput()" style="white-space:nowrap;padding:0 16px;">
-              <span class="ms">key</span>Activar
-            </button>
-          </div>
+          <input type="text" class="form-input" id="cuenta-logged-license-code" placeholder="PT-XXXXXX-YYYYYY" style="width:100%;text-transform:uppercase;margin-bottom:8px;box-sizing:border-box;">
+          <button class="btn-primary btn-full" onclick="App.activarLicenciaLoggedInput()" style="margin-bottom:8px;">
+            <span class="ms">key</span>Activar código
+          </button>
           <p style="color:var(--text4);font-size:11px;margin:0 0 12px;">Si ya tenés un código, ingresalo acá.</p>
         </div>
 
@@ -2989,6 +2990,7 @@ const App = {
     await DB.seedDemo();
     await this.loadData();
     this.loadMoneda();
+    this.loadNombreNegocio();
     this.loadAccount();
     this.checkPinOnStart();
     this.checkOnboarding();
@@ -4720,6 +4722,23 @@ const App = {
       this._moneda = saved;
       const sel = document.getElementById('sel-moneda');
       if (sel) sel.value = saved;
+    }
+  },
+
+  setNombreNegocio(val) {
+    const name = val.trim();
+    localStorage.setItem('pt_negocio', name);
+    const logo = document.querySelector('.logo-text');
+    if (logo) logo.textContent = name || 'Parfum Track';
+  },
+
+  loadNombreNegocio() {
+    const saved = localStorage.getItem('pt_negocio');
+    if (saved) {
+      const input = document.getElementById('input-negocio');
+      if (input) input.value = saved;
+      const logo = document.querySelector('.logo-text');
+      if (logo) logo.textContent = saved || 'Parfum Track';
     }
   },
 
