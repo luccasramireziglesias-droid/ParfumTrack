@@ -1,7 +1,7 @@
-// Parfum Track — Service Worker v7
-// v7: limpia TODOS los caches al instalar para forzar actualización
+// Parfum Track — Service Worker v8
+// v8: nuevo diseño con Pedidos, Material Symbols, logo actualizado
 
-const CACHE_NAME = "parfumtrack-v7";
+const CACHE_NAME = "parfumtrack-v8";
 const STATIC_ASSETS = [
   "/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",
   "/favicon.ico", "/favicon.svg", "/favicon-32.png",
