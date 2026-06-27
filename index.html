@@ -2818,6 +2818,11 @@ const DB = {
     return reqP(tx(store, 'readwrite').delete(id));
   },
 
+  async clear(store) {
+    await openDB();
+    return reqP(tx(store, 'readwrite').clear());
+  },
+
   async getPerfumes() {
     return this.getAll('perfumes');
   },
@@ -3151,7 +3156,9 @@ const App = {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayVentas = this.ventas.filter(v => new Date(v.fecha) >= today);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const todayVentas = this.ventas.filter(v => { const d = new Date(v.fecha); return d >= today && d < tomorrow; });
     const todayGan = todayVentas.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
     el('today-amount').textContent = this.fmt(todayGan);
     el('today-count').textContent = todayVentas.length;
@@ -4390,6 +4397,87 @@ const App = {
     document.getElementById('import-file-input').click();
   },
 
+  _normalizeBackupData(raw) {
+    let data = raw;
+    // Cloud backup: {ok, data: {...}, savedAt}
+    if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
+      const inner = data.data;
+      if (inner.perfumes || inner.ventas || inner.cuotas || inner.pedidos || inner.caja || inner.gastos) {
+        data = inner;
+      }
+    }
+    // Ensure arrays and coerce numeric fields
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+    for (const s of stores) {
+      if (data[s] && !Array.isArray(data[s])) {
+        data[s] = Object.values(data[s]);
+      }
+    }
+    if (Array.isArray(data.ventas)) {
+      data.ventas = data.ventas.map(v => ({
+        ...v,
+        precioVenta: Number(v.precioVenta) || 0,
+        precioCompra: Number(v.precioCompra) || 0,
+        fecha: typeof v.fecha === 'string' ? new Date(v.fecha).getTime() || Date.now() : (v.fecha || Date.now()),
+      }));
+    }
+    if (Array.isArray(data.cuotas)) {
+      data.cuotas = data.cuotas.map(c => ({
+        ...c,
+        monto: Number(c.monto) || 0,
+        montoTotal: Number(c.montoTotal) || 0,
+        vence: typeof c.vence === 'string' ? new Date(c.vence).getTime() || 0 : (c.vence || 0),
+      }));
+    }
+    if (Array.isArray(data.perfumes)) {
+      data.perfumes = data.perfumes.map(p => ({
+        ...p,
+        precioCompra: Number(p.precioCompra) || 0,
+        precioVenta: Number(p.precioVenta) || 0,
+        stock: Number(p.stock) || 0,
+      }));
+    }
+    if (Array.isArray(data.gastos)) {
+      data.gastos = data.gastos.map(g => ({
+        ...g,
+        monto: Number(g.monto) || 0,
+        fecha: typeof g.fecha === 'string' ? new Date(g.fecha).getTime() || Date.now() : (g.fecha || Date.now()),
+      }));
+    }
+    if (Array.isArray(data.caja)) {
+      data.caja = data.caja.map(c => ({
+        ...c,
+        monto: Number(c.monto) || 0,
+        fecha: typeof c.fecha === 'string' ? new Date(c.fecha).getTime() || Date.now() : (c.fecha || Date.now()),
+      }));
+    }
+    return data;
+  },
+
+  async _restoreData(data) {
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+    let total = 0;
+    for (const store of stores) {
+      await DB.clear(store);
+    }
+    for (const store of stores) {
+      if (!Array.isArray(data[store])) continue;
+      for (const item of data[store]) {
+        try { await DB.put(store, item); total++; } catch {}
+      }
+    }
+    if (data.settings) {
+      if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
+      if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
+      if (data.settings.pin) localStorage.setItem('pt_pin', data.settings.pin);
+    }
+    await this.loadData();
+    this.loadMoneda();
+    this.loadNombreNegocio();
+    this.renderAll();
+    return total;
+  },
+
   async _handleImportFile(input) {
     const file = input.files?.[0];
     if (!file) return;
@@ -4400,42 +4488,18 @@ const App = {
     this.toast('Leyendo archivo…', 'hourglass_top');
     try {
       const text = await file.text();
-      let data = JSON.parse(text);
+      const raw = JSON.parse(text);
+      const data = this._normalizeBackupData(raw);
 
-      // Cloud backup format: {ok, data: {...}, savedAt}
-      if (data.data && typeof data.data === 'object' && (data.data.perfumes || data.data.ventas || data.data.cuotas)) {
-        data = data.data;
-      }
-
-      const allStores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
-      const hasData = allStores.some(s => Array.isArray(data[s]) && data[s].length > 0) || data.settings;
+      const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+      const hasData = stores.some(s => Array.isArray(data[s]) && data[s].length > 0) || data.settings;
       if (!hasData) {
         this.toast('No se encontraron datos válidos en el archivo', 'error');
         return;
       }
-      for (const store of allStores) {
-        const existing = await DB.getAll(store);
-        for (const item of existing) {
-          await DB.delete(store, item.id || item.key);
-        }
-      }
-      for (const store of allStores) {
-        if (!data[store]) continue;
-        for (const item of data[store]) {
-          try { await DB.put(store, item); } catch {}
-        }
-      }
-      if (data.settings) {
-        if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
-        if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
-        if (data.settings.pin) localStorage.setItem('pt_pin', data.settings.pin);
-      }
 
-      await this.loadData();
-      this.loadMoneda();
-      this.loadNombreNegocio();
-      this.renderAll();
-      this.toast('Datos importados correctamente', 'check_circle');
+      const total = await this._restoreData(data);
+      this.toast(`${total} registros importados`, 'check_circle');
       this.haptic('success');
     } catch (e) {
       this.toast('Error al leer el archivo', 'error');
@@ -4837,31 +4901,9 @@ const App = {
         this.toast(result.error || 'No se encontró backup', 'error');
         return;
       }
-      const data = result.data;
-      const allStores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
-      for (const store of allStores) {
-        const existing = await DB.getAll(store);
-        for (const item of existing) {
-          await DB.delete(store, item.id || item.key);
-        }
-      }
-      for (const store of allStores) {
-        if (!data[store]) continue;
-        for (const item of data[store]) {
-          try { await DB.put(store, item); } catch {}
-        }
-      }
-      if (data.settings) {
-        if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
-        if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
-        if (data.settings.pin) localStorage.setItem('pt_pin', data.settings.pin);
-      }
-
-      await this.loadData();
-      this.loadMoneda();
-      this.loadNombreNegocio();
-      this.renderAll();
-      this.toast('Datos restaurados', 'check_circle');
+      const data = this._normalizeBackupData(result.data || result);
+      const total = await this._restoreData(data);
+      this.toast(`${total} registros restaurados`, 'check_circle');
       this.haptic('success');
     } catch {
       this.toast('Error de conexión', 'cloud_off');
@@ -4872,9 +4914,7 @@ const App = {
     if (!confirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.')) return;
     const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos'];
     for (const store of stores) {
-      const items = await DB.getAll(store);
-      for (const item of items) {
-        await DB.delete(store, item.id || item.key);
+      await DB.clear(store);
       }
     }
     await this.loadData();
