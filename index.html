@@ -2255,10 +2255,10 @@ input[type="date"].form-input {
         <div class="mas-item" style="cursor:default;">
           <span class="ms gold">lock</span>
           <span style="flex:1">PIN de seguridad</span>
-          <label style="position:relative;width:44px;height:24px;display:inline-block;">
-            <input type="checkbox" id="toggle-pin" onchange="App.togglePin(this.checked)" style="opacity:0;width:0;height:0;">
-            <span style="position:absolute;cursor:pointer;inset:0;background:var(--card2);border-radius:999px;transition:.3s;"></span>
-            <span id="toggle-pin-knob" style="position:absolute;left:2px;top:2px;width:20px;height:20px;background:var(--text4);border-radius:50%;transition:.3s;"></span>
+          <label style="position:relative;width:44px;min-width:44px;height:24px;display:inline-block;flex-shrink:0;">
+            <input type="checkbox" id="toggle-pin" onchange="App.togglePin(this.checked)" style="opacity:0;width:0;height:0;position:absolute;">
+            <span style="position:absolute;cursor:pointer;inset:0;background:var(--card2);border:1px solid var(--border);border-radius:999px;transition:.3s;"></span>
+            <span id="toggle-pin-knob" style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:var(--text4);border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.3);"></span>
           </label>
         </div>
         <div class="mas-item" style="cursor:default;">
@@ -4738,7 +4738,7 @@ const App = {
     }
   },
 
-  // ====== CUENTA / TRIAL / LICENCIA ======
+  // ====== CUENTA / LICENCIA ======
 
   _account: null,
 
@@ -5075,9 +5075,9 @@ const App = {
     const knob = document.getElementById('toggle-pin-knob');
     if (toggle && pin) {
       toggle.checked = true;
-      knob.style.left = '22px';
+      knob.style.left = '23px';
       knob.style.background = 'var(--gold2)';
-      knob.parentElement.previousElementSibling.nextElementSibling.style.background = 'var(--gold-dim)';
+      knob.parentElement.querySelector('span:nth-child(2)').style.background = 'rgba(201,168,76,.3)';
     }
   },
 
@@ -5120,8 +5120,9 @@ const App = {
       const pin = prompt('Creá un PIN de 4 dígitos:');
       if (pin && /^\d{4}$/.test(pin)) {
         localStorage.setItem('pt_pin', pin);
-        knob.style.left = '22px';
+        knob.style.left = '23px';
         knob.style.background = 'var(--gold2)';
+        knob.parentElement.querySelector('span:nth-child(2)').style.background = 'rgba(201,168,76,.3)';
         this.toast('PIN activado', 'lock');
       } else {
         document.getElementById('toggle-pin').checked = false;
@@ -5129,8 +5130,9 @@ const App = {
       }
     } else {
       localStorage.removeItem('pt_pin');
-      knob.style.left = '2px';
+      knob.style.left = '3px';
       knob.style.background = 'var(--text4)';
+      knob.parentElement.querySelector('span:nth-child(2)').style.background = 'var(--card2)';
       this.toast('PIN desactivado', 'lock_open');
     }
   }
