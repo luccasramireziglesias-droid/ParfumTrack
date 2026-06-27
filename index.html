@@ -3733,6 +3733,7 @@ const App = {
             ? `<button class="btn-enviar" onclick="App.marcarPedidoEnviado(${p.id})"><span class="ms">local_shipping</span>Marcar enviado</button>`
             : `<button class="btn-revertir" onclick="App.marcarPedidoPendiente(${p.id})"><span class="ms">undo</span>Revertir</button>`
           }
+          <button class="btn-delete-pedido" onclick="App.editPedido(${p.id})" style="background:var(--gold-dim);color:var(--gold2);"><span class="ms">edit</span></button>
           <button class="btn-delete-pedido" onclick="App.deletePedido(${p.id})"><span class="ms">delete</span></button>
         </div>
       </div>`;
@@ -3758,6 +3759,14 @@ const App = {
     document.getElementById('pedido-nota').value = '';
     this.pedidoPerfumes = [];
     this.renderPedidoPerfumesList();
+    this._editingPedidoId = null;
+    const saveBtn = document.querySelector('#screen-nuevo-pedido .btn-primary');
+    if (saveBtn) {
+      saveBtn.innerHTML = '<span class="ms">save</span>Guardar pedido';
+      saveBtn.setAttribute('onclick', 'App.guardarPedido()');
+    }
+    const title = document.querySelector('#screen-nuevo-pedido .sub-title');
+    if (title) title.textContent = 'Nuevo pedido';
   },
 
   renderPedidoPerfumesList() {
@@ -3894,6 +3903,62 @@ const App = {
     this.toast('Pedido revertido a pendiente', 'undo');
   },
 
+  _editingPedidoId: null,
+
+  editPedido(id) {
+    const p = this.pedidosData.find(x => x.id === id);
+    if (!p) return;
+    this._editingPedidoId = id;
+    this.showScreen('nuevo-pedido');
+
+    document.getElementById('pedido-nombre').value = p.nombre || '';
+    document.getElementById('pedido-cedula').value = p.cedula || '';
+    document.getElementById('pedido-transporte').value = p.transporte || '';
+    document.getElementById('pedido-direccion').value = p.direccion || '';
+    document.getElementById('pedido-nota').value = p.nota || '';
+    this.pedidoPerfumes = (p.perfumes || []).map(pf => ({ ...pf, cantidad: pf.cantidad || 1 }));
+    this.renderPedidoPerfumesList();
+
+    const saveBtn = document.querySelector('#screen-nuevo-pedido .btn-primary');
+    if (saveBtn) {
+      saveBtn.innerHTML = '<span class="ms">save</span>Actualizar pedido';
+      saveBtn.setAttribute('onclick', 'App.updatePedido()');
+    }
+    const title = document.querySelector('#screen-nuevo-pedido .sub-title');
+    if (title) title.textContent = 'Editar pedido';
+  },
+
+  async updatePedido() {
+    const id = this._editingPedidoId;
+    if (!id) return;
+
+    const nombre = document.getElementById('pedido-nombre').value.trim();
+    const cedula = document.getElementById('pedido-cedula').value.trim();
+    const transporte = document.getElementById('pedido-transporte').value.trim();
+    const direccion = document.getElementById('pedido-direccion').value.trim();
+    const nota = document.getElementById('pedido-nota').value.trim();
+
+    if (!nombre) { this.toast('Ingresá el nombre', 'warning'); return; }
+    if (!cedula) { this.toast('Ingresá la cédula / DNI', 'warning'); return; }
+    if (!transporte) { this.toast('Ingresá la empresa de transporte', 'warning'); return; }
+    if (this.pedidoPerfumes.length === 0) { this.toast('Agregá al menos un perfume', 'warning'); return; }
+
+    const p = this.pedidosData.find(x => x.id === id);
+    if (p) {
+      Object.assign(p, {
+        nombre, cedula, transporte, direccion, nota,
+        perfumes: this.pedidoPerfumes.map(pf => ({ id: pf.id, nombre: pf.nombre, precioVenta: pf.precioVenta, cantidad: pf.cantidad }))
+      });
+      await DB.updatePedido(p);
+    }
+
+    this._editingPedidoId = null;
+    await this.loadData();
+    this.toast('Pedido actualizado', 'check_circle');
+    this.haptic('success');
+    this.showScreen('pedidos');
+  },
+
   async deletePedido(id) {
     if (!confirm('¿Eliminar este pedido?')) return;
     await DB.deletePedido(id);
@@ -3953,6 +4018,7 @@ const App = {
           ? `<button class="btn-enviar" onclick="App.marcarPedidoEnviado(${p.id})"><span class="ms">local_shipping</span>Marcar enviado</button>`
           : `<button class="btn-revertir" onclick="App.marcarPedidoPendiente(${p.id})"><span class="ms">undo</span>Revertir</button>`
         }
+        <button class="btn-delete-pedido" onclick="App.editPedido(${p.id})" style="background:var(--gold-dim);color:var(--gold2);"><span class="ms">edit</span></button>
         <button class="btn-delete-pedido" onclick="App.deletePedido(${p.id})"><span class="ms">delete</span></button>
       </div>
     `;
