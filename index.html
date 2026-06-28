@@ -3022,7 +3022,7 @@ const DB = {
     ];
 
     for (const v of demoVentas) {
-      await this.add('ventas', v);
+      await this.addVenta(v);
     }
   }
 };
@@ -3056,28 +3056,22 @@ const App = {
   },
 
   async _fixCorruptDates() {
-    if (localStorage.getItem('pt_dates_fixed')) return;
+    if (localStorage.getItem('pt_dates_fixed_v2')) return;
     const ventas = await DB.getAll('ventas');
-    let fixed = 0;
     for (const v of ventas) {
-      if (!v.fecha || isNaN(new Date(v.fecha).getTime())) {
-        v.fecha = v.creado || Date.now();
+      if (!v.fecha || typeof v.fecha === 'string' || isNaN(new Date(v.fecha).getTime())) {
+        v.fecha = this._parseDate(v.fecha, v.creado || Date.now());
         await DB.put('ventas', v);
-        fixed++;
-      } else if (typeof v.fecha === 'string') {
-        v.fecha = new Date(v.fecha).getTime();
-        await DB.put('ventas', v);
-        fixed++;
       }
     }
     const cuotas = await DB.getAll('cuotas');
     for (const c of cuotas) {
-      if (c.vence && (isNaN(new Date(c.vence).getTime()) || typeof c.vence === 'string')) {
-        c.vence = typeof c.vence === 'string' ? new Date(c.vence).getTime() || Date.now() : Date.now();
+      if (c.vence && (typeof c.vence === 'string' || isNaN(new Date(c.vence).getTime()))) {
+        c.vence = this._parseDate(c.vence, Date.now());
         await DB.put('cuotas', c);
       }
     }
-    localStorage.setItem('pt_dates_fixed', '1');
+    localStorage.setItem('pt_dates_fixed_v2', '1');
   },
 
   async loadData() {
@@ -3124,7 +3118,7 @@ const App = {
     if (name === 'stats') this.renderStats();
     if (name === 'ventas-all') this.renderAllVentas();
     if (name === 'nueva-venta') this.resetVentaForm();
-    if (name === 'pedidos') this.renderPedidos();
+    if (name === 'pedidos') { this.renderPedidos(); this.updatePedidosBadge(); }
     if (name === 'nuevo-pedido') this.resetPedidoForm();
     if (name === 'caja') this.renderCaja();
     if (name === 'gastos') this.renderGastos();
@@ -3840,6 +3834,7 @@ const App = {
     await this.loadData();
     this.renderCuotas();
     this.renderDashboard();
+    this.updateNavBadge();
     this.toast('Cuota marcada como pagada', 'check_circle');
     this.haptic('success');
   },
@@ -4133,6 +4128,7 @@ const App = {
     await DB.marcarEnviado(id);
     await this.loadData();
     this.renderPedidos();
+    this.updatePedidosBadge();
     this.toast('Pedido marcado como enviado', 'local_shipping');
     this.haptic('success');
   },
@@ -4141,6 +4137,7 @@ const App = {
     await DB.marcarPendiente(id);
     await this.loadData();
     this.renderPedidos();
+    this.updatePedidosBadge();
     this.toast('Pedido revertido a pendiente', 'undo');
   },
 
@@ -4205,6 +4202,7 @@ const App = {
     await DB.deletePedido(id);
     await this.loadData();
     this.renderPedidos();
+    this.updatePedidosBadge();
     this.toast('Pedido eliminado', 'delete');
   },
 
