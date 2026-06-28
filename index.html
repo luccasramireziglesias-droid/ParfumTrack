@@ -2452,6 +2452,11 @@ input[type="date"].form-input {
             <option value="R$">R$ (Real)</option>
           </select>
         </div>
+        <div class="mas-item" onclick="App.showTutorial()">
+          <span class="ms gold">school</span>
+          <span>Ver tutorial</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
         <div class="mas-item" onclick="App.clearData()">
           <span class="ms danger">delete_forever</span>
           <span>Borrar todos los datos</span>
@@ -3377,7 +3382,7 @@ const App = {
     }
 
     const pendientes = this.cuotasData.filter(c => !c.pagado);
-    const totalCobrar = pendientes.reduce((s, c) => s + c.monto, 0);
+    const totalCobrar = pendientes.reduce((s, c) => s + c.monto - (c.montoPagado || 0), 0);
     el('stat-cobrar').textContent = this.fmt(totalCobrar);
     const deudasUnicas = new Set(pendientes.map(c => c.ventaId)).size;
     el('stat-deudas').textContent = deudasUnicas + ' deuda' + (deudasUnicas !== 1 ? 's' : '') + ' activa' + (deudasUnicas !== 1 ? 's' : '');
@@ -3760,9 +3765,9 @@ const App = {
   },
 
   calcLiveProfit() {
-    const pv = parseInt(document.getElementById('venta-precio').value) || 0;
-    const pc = parseInt(document.getElementById('venta-compra').value) || 0;
-    const desc = parseInt(document.getElementById('venta-descuento').value) || 0;
+    const pv = parseFloat(document.getElementById('venta-precio').value) || 0;
+    const pc = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const desc = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const pvFinal = desc > 0 ? Math.round(pv * (1 - desc / 100)) : pv;
     const gan = pvFinal - pc;
     const margen = pvFinal > 0 ? Math.round((gan / pvFinal) * 100) : 0;
@@ -3798,9 +3803,10 @@ const App = {
     const filtered = val ? values.filter(v => v.toLowerCase().includes(val)) : values.slice(0, 5);
 
     if (filtered.length === 0) { listEl.classList.add('hidden'); return; }
-    listEl.innerHTML = filtered.map(v =>
-      `<div class="ac-item" onmousedown="document.getElementById('${inputId}').value='${this.esc(v)}';document.getElementById('${listId}').classList.add('hidden');App.calcLiveProfit()">${this.esc(v)}</div>`
-    ).join('');
+    listEl.innerHTML = filtered.map(v => {
+      const safe = this.esc(v).replace(/'/g, '&#39;');
+      return `<div class="ac-item" onmousedown="document.getElementById('${inputId}').value='${safe}';document.getElementById('${listId}').classList.add('hidden');App.calcLiveProfit()">${this.esc(v)}</div>`;
+    }).join('');
     listEl.classList.remove('hidden');
   },
 
@@ -3857,12 +3863,12 @@ const App = {
 
   async guardarVenta() {
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
-    const precioVenta = parseInt(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = parseInt(document.getElementById('venta-compra').value) || 0;
+    const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
+    const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
     const vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
-    const descuento = parseInt(document.getElementById('venta-descuento').value) || 0;
+    const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
     const fecha = fechaStr ? new Date(fechaStr + 'T12:00:00').getTime() : Date.now();
     const nota = document.getElementById('venta-nota').value;
@@ -3896,6 +3902,7 @@ const App = {
     });
 
     await this.loadData();
+    this.track('sale_created', { method: this.formaPago });
     this.toast('Venta guardada', 'check_circle');
     this.haptic('success');
     this.showScreen('inicio');
@@ -4133,12 +4140,12 @@ const App = {
     if (!id) return;
 
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
-    const precioVenta = parseInt(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = parseInt(document.getElementById('venta-compra').value) || 0;
+    const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
+    const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
     const vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
-    const descuento = parseInt(document.getElementById('venta-descuento').value) || 0;
+    const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
     const fecha = fechaStr ? new Date(fechaStr + 'T12:00:00').getTime() : Date.now();
     const nota = document.getElementById('venta-nota').value;
@@ -4904,10 +4911,15 @@ const App = {
 
     const cuotasRows = this.cuotasData.map(c => ({
       Venta: c.ventaId,
+      Perfume: c.perfume || '',
+      Cliente: c.cliente || '',
       'Cuota N°': c.numero,
       Monto: c.monto,
+      'Monto pagado': c.montoPagado || 0,
+      Resta: c.monto - (c.montoPagado || 0),
       Vencimiento: new Date(c.vence).toLocaleDateString('es-AR'),
-      Pagado: c.pagado ? 'Sí' : 'No'
+      Pagado: c.pagado ? 'Sí' : (c.montoPagado ? 'Parcial' : 'No'),
+      'Cant. pagos': (c.pagos || []).length
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(cuotasRows), 'Cuotas');
 
@@ -5291,9 +5303,18 @@ const App = {
     return div.innerHTML;
   },
 
+  track(event, props) {
+    if (window.plausible) window.plausible(event, props ? { props } : undefined);
+  },
+
   toast(msg, icon) {
     const el = document.getElementById('toast');
-    el.innerHTML = `<span class="ms">${icon || 'info'}</span>${msg}`;
+    el.textContent = '';
+    const span = document.createElement('span');
+    span.className = 'ms';
+    span.textContent = icon || 'info';
+    el.appendChild(span);
+    el.appendChild(document.createTextNode(msg));
     el.classList.remove('hidden');
     clearTimeout(this._toastTimer);
     this._toastTimer = setTimeout(() => el.classList.add('hidden'), 2500);
@@ -5525,6 +5546,7 @@ const App = {
   },
 
   async suscribirPro(plan) {
+    this.track('click_subscribe', { plan });
     if (!this._account?.email) {
       this.toast('Registrá tu email abajo para suscribirte', 'warning');
       return;
@@ -5642,6 +5664,14 @@ const App = {
     const el = document.getElementById('onboarding');
     el.classList.add('hidden');
     el.style.display = 'none';
+  },
+
+  showTutorial() {
+    const el = document.getElementById('onboarding');
+    el.classList.remove('hidden');
+    el.style.display = 'flex';
+    const steps = el.querySelectorAll('.onb-step');
+    steps.forEach((s, i) => s.style.display = i === 0 ? 'flex' : 'none');
   },
 
   // ====== PIN LOCK ======
