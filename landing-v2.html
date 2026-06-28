@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parfum Track — Dejá de adivinar cuánto ganás</title>
+<meta name="description" content="App de gestión de ventas para revendedores de perfumes en LATAM. Registrá ventas, controlá stock y sabé cuánto ganás. Gratis y offline.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,300,0,0" rel="stylesheet">
+</head>
+<body>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0f0f1a; }
+  .ms { font-family: 'Material Symbols Rounded'; font-weight: normal; font-style: normal; line-height: 1; display: inline-block; }
+  ::selection { background: rgba(201,168,76,0.3); color: #f5dfa0; }
+</style>
+
+<div style="font-family:'DM Sans',sans-serif; background:#0f0f1a; color:#f0ece4; overflow:hidden;">
+
+  <!-- ambient glow -->
+  <div style="position:absolute; top:-200px; left:50%; transform:translateX(-50%); width:900px; height:700px; background:radial-gradient(closest-side, rgba(201,168,76,0.13), transparent); pointer-events:none; z-index:0;"></div>
+
+  <!-- ============ NAV ============ -->
+  <nav style="position:relative; z-index:10; max-width:1180px; margin:0 auto; padding:24px 32px; display:flex; align-items:center; justify-content:space-between;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="width:34px; height:34px; border-radius:50% 50% 50% 0; transform:rotate(135deg); background:linear-gradient(145deg,#f5dfa0,#c9a84c); box-shadow:0 5px 16px rgba(201,168,76,0.45), inset 2px 2px 4px rgba(255,255,255,0.4);"></div>
+      <span style="font-family:'Cormorant Garamond'; font-weight:700; font-size:26px; letter-spacing:0.005em;">Parfum Track</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:30px;">
+      <a href="#features" style="color:#b8b5d0; text-decoration:none; font-weight:500; font-size:15px;">Funciones</a>
+      <a href="#como" style="color:#b8b5d0; text-decoration:none; font-weight:500; font-size:15px;">Cómo funciona</a>
+      <a href="#precios" style="color:#b8b5d0; text-decoration:none; font-weight:500; font-size:15px;">Precios</a>
+      <a href="https://parfumtrack.luccasramireziglesias.workers.dev" style="display:flex; align-items:center; gap:7px; background:linear-gradient(135deg,#c9a84c,#e8c97e); color:#1a1a2e; text-decoration:none; font-weight:700; font-size:14px; padding:11px 20px; border-radius:12px; box-shadow:0 8px 20px rgba(201,168,76,0.32);">Empezar gratis</a>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <section style="position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:60px 32px 80px; display:grid; grid-template-columns:1.05fr 0.95fr; gap:50px; align-items:center;">
+    <div>
+      <div style="display:inline-flex; align-items:center; gap:8px; background:#1b1b30; border:1px solid rgba(201,168,76,0.25); padding:8px 15px; border-radius:999px; font-size:13px; font-weight:600; color:#e8c97e; margin-bottom:26px;">
+        <span class="ms" style="font-size:16px;">bolt</span>Para revendedores de perfumes en LATAM
+      </div>
+      <h1 style="font-family:'Cormorant Garamond'; font-weight:700; font-size:62px; line-height:1.04; margin:0 0 22px; letter-spacing:-0.01em;">Dejá de adivinar <span style="background:linear-gradient(135deg,#f5dfa0,#c9a84c); -webkit-background-clip:text; background-clip:text; color:transparent;">cuánto ganás</span></h1>
+      <p style="font-size:19px; line-height:1.6; color:#b8b5d0; margin:0 0 34px; max-width:480px;">Registrá tus ventas en segundos, controlá tu stock y sabé exactamente cuánto ganás. Todo offline, desde tu celular.</p>
+      <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+        <a href="https://parfumtrack.luccasramireziglesias.workers.dev" style="display:flex; align-items:center; gap:9px; background:linear-gradient(135deg,#c9a84c,#e8c97e); color:#1a1a2e; text-decoration:none; font-weight:700; font-size:17px; padding:16px 30px; border-radius:14px; box-shadow:0 12px 28px rgba(201,168,76,0.38);"><span class="ms" style="font-size:21px;">rocket_launch</span>Empezar gratis</a>
+        <a href="#como" style="display:flex; align-items:center; gap:8px; color:#f0ece4; text-decoration:none; font-weight:600; font-size:16px; padding:16px 8px;"><span class="ms" style="font-size:20px; color:#e8c97e;">play_circle</span>Ver cómo funciona</a>
+      </div>
+      <div style="display:flex; align-items:center; gap:24px; margin-top:34px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:8px; color:#9a97c0; font-size:14px; font-weight:500;"><span class="ms" style="font-size:18px; color:#70c9a0;">check_circle</span>Sin descarga</div>
+        <div style="display:flex; align-items:center; gap:8px; color:#9a97c0; font-size:14px; font-weight:500;"><span class="ms" style="font-size:18px; color:#70c9a0;">check_circle</span>100% offline</div>
+        <div style="display:flex; align-items:center; gap:8px; color:#9a97c0; font-size:14px; font-weight:500;"><span class="ms" style="font-size:18px; color:#70c9a0;">check_circle</span>Gratis para siempre</div>
+      </div>
+    </div>
+
+    <!-- phone mockup (dashboard) -->
+    <div style="display:flex; justify-content:center;">
+      <div style="background:#07070d; padding:8px; border-radius:42px; box-shadow:0 50px 90px -30px rgba(0,0,0,0.85), 0 0 0 1px rgba(201,168,76,0.1); width:310px;">
+        <div style="background:#0f0f1a; border-radius:35px; overflow:hidden; height:640px; display:flex; flex-direction:column; position:relative;">
+          <div style="position:absolute; top:-100px; left:50%; transform:translateX(-50%); width:340px; height:260px; background:radial-gradient(closest-side, rgba(201,168,76,0.16), transparent); pointer-events:none;"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:13px 22px 4px; font-weight:600; font-size:13px; position:relative; z-index:1;"><span>9:41</span><span style="display:flex; gap:6px; color:#cfcce0;"><span class="ms" style="font-size:15px; font-variation-settings:'FILL' 1;">wifi</span><span class="ms" style="font-size:16px; font-variation-settings:'FILL' 1;">battery_full</span></span></div>
+          <div style="flex:1; padding:8px 14px 0; display:flex; flex-direction:column; gap:11px; position:relative; z-index:1;">
+            <div style="display:flex; align-items:center; gap:9px;">
+              <div style="width:24px; height:24px; border-radius:50% 50% 50% 0; transform:rotate(135deg); background:linear-gradient(145deg,#f7e4ad,#c9a84c);"></div>
+              <span style="font-family:'Cormorant Garamond'; font-weight:700; font-size:19px;">Parfum Track</span>
+            </div>
+            <div style="background:linear-gradient(135deg,#1d1d36,#181a2d); border:1px solid rgba(201,168,76,0.2); border-radius:18px; padding:15px 17px;">
+              <div style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#9a97c0; font-weight:500;">Ganancia · Junio</div>
+              <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-top:3px;">
+                <div style="font-family:'Cormorant Garamond'; font-weight:700; font-size:38px; line-height:1; color:#e8c97e;">$9.671</div>
+                <div style="display:flex; align-items:center; gap:2px; background:rgba(112,201,160,0.15); color:#70c9a0; padding:4px 8px; border-radius:999px; font-size:11px; font-weight:600; margin-bottom:3px;"><span class="ms" style="font-size:13px;">trending_up</span>+22%</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:9px;">
+              <div style="flex:1; background:#1b1b30; border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:11px 13px;"><div style="font-size:10px; text-transform:uppercase; color:#9a97c0; font-weight:500;">Ventas</div><div style="font-family:'Cormorant Garamond'; font-weight:700; font-size:25px; margin-top:2px;">13</div></div>
+              <div style="flex:1; background:#1b1b30; border:1px solid rgba(224,112,112,0.18); border-radius:14px; padding:11px 13px;"><div style="font-size:10px; text-transform:uppercase; color:#9a97c0; font-weight:500;">Por cobrar</div><div style="font-family:'Cormorant Garamond'; font-weight:700; font-size:25px; color:#e07070; margin-top:2px;">$2.600</div></div>
+            </div>
+            <div style="background:#1b1b30; border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:13px;">
+              <div style="display:flex; align-items:center; gap:6px;"><span style="font-size:10px; color:#6b6885; font-weight:600;">#13</span><span style="font-family:'Cormorant Garamond'; font-weight:600; font-size:16px;">Yara EDT</span></div>
+              <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-top:9px;"><div><div style="font-size:10px; color:#9a97c0;">Precio</div><div style="font-family:'Cormorant Garamond'; font-weight:700; font-size:19px;">$4.400</div></div><div style="text-align:right;"><div style="font-size:10px; color:#9a97c0;">Ganancia</div><div style="font-weight:700; font-size:14px; color:#70c9a0;">+$1.200</div></div></div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(112,201,160,0.1); border:1px solid rgba(112,201,160,0.18); border-radius:13px; padding:10px 13px;"><span style="font-size:12px; color:#c8c5dc; font-weight:500;">Hoy <span style="color:#70c9a0; font-weight:700;">$600</span> · 1 venta</span><span class="ms" style="font-size:16px; color:#70c9a0;">chevron_right</span></div>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-around; padding:10px 18px 14px; background:#14142a; border-top:1px solid rgba(255,255,255,0.06);">
+            <span class="ms" style="font-size:21px; color:#e8c97e; font-variation-settings:'FILL' 1;">account_balance_wallet</span>
+            <span class="ms" style="font-size:21px; color:#7a7798;">calendar_month</span>
+            <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(145deg,#f5dfa0,#c9a84c); display:flex; align-items:center; justify-content:center; box-shadow:0 8px 16px rgba(201,168,76,0.45); transform:translateY(-12px); border:3px solid #14142a;"><span class="ms" style="font-size:25px; color:#1a1a2e;">add</span></div>
+            <span class="ms" style="font-size:21px; color:#7a7798;">monitoring</span>
+            <span class="ms" style="font-size:21px; color:#7a7798;">more_horiz</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROBLEMA ============ -->
+  <section style="position:relative; z-index:1; background:#13131f; border-top:1px solid rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.04);">
+    <div style="max-width:1180px; margin:0 auto; padding:70px 32px;">
+      <div style="text-align:center; max-width:620px; margin:0 auto 50px;">
+        <div style="font-size:13px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#e8c97e; margin-bottom:14px;">El problema</div>
+        <h2 style="font-family:'Cormorant Garamond'; font-weight:700; font-size:40px; line-height:1.1; margin:0;">Vendés perfumes, pero ¿sabés cuánto ganás de verdad?</h2>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:18px;">
+        <div style="background:#1b1b30; border:1px solid rgba(224,112,112,0.15); border-radius:16px; padding:22px;">
+          <span class="ms" style="font-size:28px; color:#e07070;">edit_note</span>
+          <p style="margin:14px 0 0; font-size:15px; line-height:1.5; color:#b8b5d0;">Anotás en cuadernos sueltos <span style="color:#f0ece4;">o no anotás nada</span>.</p>
+        </div>
+        <div style="background:#1b1b30; border:1px solid rgba(224,112,112,0.15); border-radius:16px; padding:22px;">
+          <span class="ms" style="font-size:28px; color:#e07070;">help</span>
+          <p style="margin:14px 0 0; font-size:15px; line-height:1.5; color:#b8b5d0;">No sabés qué perfume te <span style="color:#f0ece4;">deja más ganancia</span>.</p>
+        </div>
+        <div style="background:#1b1b30; border:1px solid rgba(224,112,112,0.15); border-radius:16px; padding:22px;">
+          <span class="ms" style="font-size:28px; color:#e07070;">running_with_errors</span>
+          <p style="margin:14px 0 0; font-size:15px; line-height:1.5; color:#b8b5d0;">Perdés el control de las <span style="color:#f0ece4;">ventas en cuotas</span>.</p>
+        </div>
+        <div style="background:#1b1b30; border:1px solid rgba(224,112,112,0.15); border-radius:16px; padding:22px;">
+          <span class="ms" style="font-size:28px; color:#e07070;">inventory_2</span>
+          <p style="margin:14px 0 0; font-size:15px; line-height:1.5; color:#b8b5d0;">No sabés qué <span style="color:#f0ece4;">tenés ni qué te falta</span> en stock.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURES ============ -->
+  <section id="features" style="position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:80px 32px;">
+    <div style="text-align:center; max-width:620px; margin:0 auto 52px;">
+      <div style="font-size:13px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#e8c97e; margin-bottom:14px;">Todo lo que necesitás</div>
+      <h2 style="font-family:'Cormorant Garamond'; font-weight:700; font-size:42px; line-height:1.1; margin:0;">Tu negocio entero, en el bolsillo</h2>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
+      <div style="background:linear-gradient(135deg,#1d1d36,#181a2d); border:1px solid rgba(201,168,76,0.18); border-radius:20px; padding:30px;">
+        <div style="width:52px; height:52px; border-radius:14px; background:rgba(201,168,76,0.13); display:flex; align-items:center; justify-content:center; margin-bottom:18px;"><span class="ms" style="font-size:28px; color:#e8c97e;">bolt</span></div>
+        <h3 style="font-family:'Cormorant Garamond'; font-weight:600; font-size:24px; margin:0 0 8px;">Vendé y registrá en 10 segundos</h3>
+        <p style="margin:0; font-size:15px; line-height:1.6; color:#b8b5d0;">Cargá una venta al toque: perfume, precio, cliente y vendedor. Así de rápido.</p>
+      </div>
+      <div style="background:linear-gradient(135deg,#1d1d36,#181a2d); border:1px solid rgba(201,168,76,0.18); border-radius:20px; padding:30px;">
+        <div style="width:52px; height:52px; border-radius:14px; background:rgba(112,201,160,0.13); display:flex; align-items:center; justify-content:center; margin-bottom:18px;"><span class="ms" style="font-size:28px; color:#70c9a0;">payments</span></div>
+        <h3 style="font-family:'Cormorant Garamond'; font-weight:600; font-size:24px; margin:0 0 8px;">Ganancia real automática</h3>
+        <p style="margin:0; font-size:15px; line-height:1.6; color:#b8b5d0;">Calcula tu ganancia neta al instante: precio de venta menos precio de compra. Sin cuentas.</p>
+      </div>
+      <div style="background:linear-gradient(135deg,#1d1d36,#181a2d); border:1px solid rgba(201,168,76,0.18); border-radius:20px; padding:30px;">
+        <div style="width:52px; height:52px; border-radius:14px; background:rgba(201,168,76,0.13); display:flex; align-items:center; justify-content:center; margin-bottom:18px;"><span class="ms" style="font-size:28px; color:#e8c97e;">wifi_off</span></div>
+        <h3 style="font-family:'Cormorant Garamond'; font-weight:600; font-size:24px; margin:0 0 8px;">Funciona sin internet</h3>
+        <p style="margin:0; font-size:15px; line-height:1.6; color:#b8b5d0;">100% offline. Cargá ventas en la feria, en la calle o donde sea — sin depender de los datos.</p>
+      </div>
+      <div style="background:linear-gradient(135deg,#1d1d36,#181a2d); border:1px solid rgba(201,168,76,0.18); border-radius:20px; padding:30px;">
+        <div style="width:52px; height:52px; border-radius:14px; background:rgba(112,201,160,0.13); display:flex; align-items:center; justify-content:center; margin-bottom:18px;"><span class="ms" style="font-size:28px; color:#70c9a0;">chat</span></div>
+        <h3 style="font-family:'Cormorant Garamond'; font-weight:600; font-size:24px; margin:0 0 8px;">Cobros por WhatsApp</h3>
+        <p style="margin:0; font-size:15px; line-height:1.6; color:#b8b5d0;">Enviá recordatorios de cobro y armá tu catálogo con fotos, directo por WhatsApp.</p>
+      </div>
+    </div>
+    <!-- secondary feature chips -->
+    <div style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:30px;">
+      <span style="display:flex; align-items:center; gap:8px; background:#1b1b30; border:1px solid rgba(255,255,255,0.06); padding:11px 18px; border-radius:999px; font-size:14px; font-weight:500; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#e8c97e;">inventory_2</span>Control de stock</span>
+      <span style="display:flex; align-items:center; gap:8px; background:#1b1b30; border:1px solid rgba(255,255,255,0.06); padding:11px 18px; border-radius:999px; font-size:14px; font-weight:500; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#e8c97e;">credit_card</span>Sistema de cuotas</span>
+      <span style="display:flex; align-items:center; gap:8px; background:#1b1b30; border:1px solid rgba(255,255,255,0.06); padding:11px 18px; border-radius:999px; font-size:14px; font-weight:500; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#e8c97e;">monitoring</span>Estadísticas y gráficos</span>
+      <span style="display:flex; align-items:center; gap:8px; background:#1b1b30; border:1px solid rgba(255,255,255,0.06); padding:11px 18px; border-radius:999px; font-size:14px; font-weight:500; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#e8c97e;">leaderboard</span>Ranking de vendedores</span>
+      <span style="display:flex; align-items:center; gap:8px; background:#1b1b30; border:1px solid rgba(255,255,255,0.06); padding:11px 18px; border-radius:999px; font-size:14px; font-weight:500; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#e8c97e;">description</span>Exportar PDF y Excel</span>
+      <span style="display:flex; align-items:center; gap:8px; background:#1b1b30; border:1px solid rgba(255,255,255,0.06); padding:11px 18px; border-radius:999px; font-size:14px; font-weight:500; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#e8c97e;">cloud_done</span>Backup en la nube</span>
+    </div>
+  </section>
+
+  <!-- ============ CÓMO FUNCIONA ============ -->
+  <section id="como" style="position:relative; z-index:1; background:#13131f; border-top:1px solid rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.04);">
+    <div style="max-width:1180px; margin:0 auto; padding:80px 32px;">
+      <div style="text-align:center; max-width:620px; margin:0 auto 56px;">
+        <div style="font-size:13px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#e8c97e; margin-bottom:14px;">Simple de verdad</div>
+        <h2 style="font-family:'Cormorant Garamond'; font-weight:700; font-size:42px; line-height:1.1; margin:0;">Tres pasos y listo</h2>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:24px;">
+        <div style="text-align:center; padding:0 12px;">
+          <div style="width:64px; height:64px; margin:0 auto 22px; border-radius:50%; background:linear-gradient(135deg,#c9a84c,#e8c97e); display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond'; font-weight:700; font-size:30px; color:#1a1a2e; box-shadow:0 10px 24px rgba(201,168,76,0.35);">1</div>
+          <h3 style="font-family:'Cormorant Garamond'; font-weight:600; font-size:23px; margin:0 0 9px;">Registrá tu venta</h3>
+          <p style="margin:0; font-size:15px; line-height:1.6; color:#b8b5d0;">Elegí el perfume y cargá la venta en 10 segundos.</p>
+        </div>
+        <div style="text-align:center; padding:0 12px;">
+          <div style="width:64px; height:64px; margin:0 auto 22px; border-radius:50%; background:linear-gradient(135deg,#c9a84c,#e8c97e); display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond'; font-weight:700; font-size:30px; color:#1a1a2e; box-shadow:0 10px 24px rgba(201,168,76,0.35);">2</div>
+          <h3 style="font-family:'Cormorant Garamond'; font-weight:600; font-size:23px; margin:0 0 9px;">La app calcula tu ganancia</h3>
+          <p style="margin:0; font-size:15px; line-height:1.6; color:#b8b5d0;">Al instante sabés cuánto ganaste, neto y real.</p>
+        </div>
+        <div style="text-align:center; padding:0 12px;">
+          <div style="width:64px; height:64px; margin:0 auto 22px; border-radius:50%; background:linear-gradient(135deg,#c9a84c,#e8c97e); display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond'; font-weight:700; font-size:30px; color:#1a1a2e; box-shadow:0 10px 24px rgba(201,168,76,0.35);">3</div>
+          <h3 style="font-family:'Cormorant Garamond'; font-weight:600; font-size:23px; margin:0 0 9px;">Controlá todo desde tu celular</h3>
+          <p style="margin:0; font-size:15px; line-height:1.6; color:#b8b5d0;">Stock, cuotas, cobros y estadísticas, siempre con vos.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRECIOS ============ -->
+  <section id="precios" style="position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:80px 32px;">
+    <div style="text-align:center; max-width:620px; margin:0 auto 52px;">
+      <div style="font-size:13px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#e8c97e; margin-bottom:14px;">Planes y precios</div>
+      <h2 style="font-family:'Cormorant Garamond'; font-weight:700; font-size:42px; line-height:1.1; margin:0 0 12px;">Empezá gratis. Crecé cuando quieras.</h2>
+      <p style="margin:0; font-size:16px; color:#b8b5d0;">El plan Free es gratis para siempre. Sin tarjeta, sin letra chica.</p>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px; align-items:stretch;">
+      <!-- Free -->
+      <div style="background:#1b1b30; border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:30px; display:flex; flex-direction:column;">
+        <div style="font-weight:600; font-size:14px; letter-spacing:0.05em; text-transform:uppercase; color:#9a97c0;">Free</div>
+        <div style="display:flex; align-items:baseline; gap:6px; margin:12px 0 4px;"><span style="font-family:'Cormorant Garamond'; font-weight:700; font-size:46px;">$0</span></div>
+        <div style="font-size:14px; color:#9a97c0; margin-bottom:22px;">Para siempre</div>
+        <a href="https://parfumtrack.luccasramireziglesias.workers.dev" style="display:block; text-align:center; background:#16213e; border:1px solid rgba(255,255,255,0.1); color:#f0ece4; text-decoration:none; font-weight:600; font-size:15px; padding:13px; border-radius:12px; margin-bottom:24px;">Empezar gratis</a>
+        <div style="display:flex; flex-direction:column; gap:11px;">
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#70c9a0;">check</span>Ventas ilimitadas</div>
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#70c9a0;">check</span>Control de stock</div>
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#70c9a0;">check</span>Ganancia automática</div>
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#70c9a0;">check</span>Cuotas y cobros por WA</div>
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#70c9a0;">check</span>Funciona offline</div>
+        </div>
+      </div>
+      <!-- Básico Pro (featured) -->
+      <div style="background:linear-gradient(135deg,#22223e,#1a1a30); border:1.5px solid rgba(201,168,76,0.5); border-radius:20px; padding:30px; display:flex; flex-direction:column; position:relative; box-shadow:0 24px 50px -20px rgba(201,168,76,0.3);">
+        <div style="position:absolute; top:-13px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg,#c9a84c,#e8c97e); color:#1a1a2e; font-weight:700; font-size:12px; letter-spacing:0.04em; padding:6px 16px; border-radius:999px;">MÁS ELEGIDO</div>
+        <div style="font-weight:600; font-size:14px; letter-spacing:0.05em; text-transform:uppercase; color:#e8c97e;">Básico Pro</div>
+        <div style="display:flex; align-items:baseline; gap:6px; margin:12px 0 4px;"><span style="font-family:'Cormorant Garamond'; font-weight:700; font-size:46px;">$9.99</span><span style="font-size:15px; color:#9a97c0;">/mes</span></div>
+        <div style="font-size:14px; color:#70c9a0; margin-bottom:22px;">o $7.99/mes pagando anual</div>
+        <a href="https://parfumtrack.luccasramireziglesias.workers.dev" style="display:block; text-align:center; background:linear-gradient(135deg,#c9a84c,#e8c97e); color:#1a1a2e; text-decoration:none; font-weight:700; font-size:15px; padding:13px; border-radius:12px; margin-bottom:24px; box-shadow:0 10px 24px rgba(201,168,76,0.35);">Probar Básico Pro</a>
+        <div style="display:flex; flex-direction:column; gap:11px;">
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#f0ece4; font-weight:600;"><span class="ms" style="font-size:18px; color:#e8c97e;">stars</span>Todo lo del plan Free, más:</div>
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#70c9a0;">check</span>Estadísticas avanzadas</div>
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#70c9a0;">check</span>Catálogo por WhatsApp</div>
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#70c9a0;">check</span>Ranking de vendedores</div>
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#70c9a0;">check</span>Exportar PDF / Excel</div>
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#70c9a0;">check</span>Notificaciones push</div>
+        </div>
+      </div>
+      <!-- Pro -->
+      <div style="background:#1b1b30; border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:30px; display:flex; flex-direction:column; position:relative; overflow:hidden;">
+        <div style="position:absolute; top:26px; right:-52px; width:200px; transform:rotate(45deg); background:repeating-linear-gradient(-45deg,#f4c20d,#f4c20d 11px,#15151c 11px,#15151c 22px); padding:8px 0; text-align:center; box-shadow:0 6px 16px rgba(0,0,0,0.45); z-index:3;">
+          <span style="display:inline-block; background:#f4c20d; color:#15151c; font-weight:800; font-size:11px; letter-spacing:0.1em; padding:2px 10px; border-radius:3px;">EN OBRA</span>
+        </div>
+        <div style="font-weight:600; font-size:14px; letter-spacing:0.05em; text-transform:uppercase; color:#9a97c0;">Pro</div>
+        <div style="display:flex; align-items:baseline; gap:6px; margin:12px 0 4px;"><span style="font-family:'Cormorant Garamond'; font-weight:700; font-size:46px;">$19.99</span><span style="font-size:15px; color:#9a97c0;">/mes</span></div>
+        <div style="font-size:14px; color:#9a97c0; margin-bottom:22px;">Para equipos que crecen</div>
+        <a href="https://parfumtrack.luccasramireziglesias.workers.dev" style="display:block; text-align:center; background:#16213e; border:1px solid rgba(255,255,255,0.1); color:#f0ece4; text-decoration:none; font-weight:600; font-size:15px; padding:13px; border-radius:12px; margin-bottom:24px;">Elegir Pro</a>
+        <div style="display:flex; flex-direction:column; gap:11px;">
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#f0ece4; font-weight:600;"><span class="ms" style="font-size:18px; color:#e8c97e;">stars</span>Todo lo de Básico, más:</div>
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#70c9a0;">check</span>Multi-perfil</div>
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#70c9a0;">check</span>Backup automático</div>
+          <div style="display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#c8c5dc;"><span class="ms" style="font-size:18px; color:#70c9a0;">check</span>Sync multi-dispositivo</div>
+          <div style="display:flex; align-items:center; gap:7px; font-size:12px; font-weight:700; color:#15151c; background:#f4c20d; padding:7px 12px; border-radius:7px; align-self:flex-start; margin-top:4px; box-shadow:inset 0 0 0 2px #15151c;"><span class="ms" style="font-size:15px;">construction</span>Próximamente</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA BANNER ============ -->
+  <section style="position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:20px 32px 80px;">
+    <div style="background:linear-gradient(135deg,#1d1d36,#181a2d); border:1px solid rgba(201,168,76,0.25); border-radius:24px; padding:54px 40px; text-align:center; position:relative; overflow:hidden;">
+      <div style="position:absolute; right:-60px; top:-60px; width:280px; height:280px; background:radial-gradient(closest-side, rgba(201,168,76,0.14), transparent);"></div>
+      <div style="position:relative; z-index:1;">
+        <h2 style="font-family:'Cormorant Garamond'; font-weight:700; font-size:40px; line-height:1.1; margin:0 0 14px;">Empezá a saber cuánto ganás hoy</h2>
+        <p style="font-size:17px; color:#b8b5d0; margin:0 0 28px;">Gratis, sin descargas y sin vueltas. Lo instalás en 30 segundos.</p>
+        <a href="https://parfumtrack.luccasramireziglesias.workers.dev" style="display:inline-flex; align-items:center; gap:9px; background:linear-gradient(135deg,#c9a84c,#e8c97e); color:#1a1a2e; text-decoration:none; font-weight:700; font-size:17px; padding:16px 34px; border-radius:14px; box-shadow:0 12px 28px rgba(201,168,76,0.4);"><span class="ms" style="font-size:21px;">rocket_launch</span>Empezar gratis</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section style="position:relative; z-index:1; background:#13131f; border-top:1px solid rgba(255,255,255,0.04);">
+    <div style="max-width:780px; margin:0 auto; padding:80px 32px;">
+      <div style="text-align:center; margin-bottom:46px;">
+        <div style="font-size:13px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#e8c97e; margin-bottom:14px;">Preguntas frecuentes</div>
+        <h2 style="font-family:'Cormorant Garamond'; font-weight:700; font-size:40px; line-height:1.1; margin:0;">Lo que querés saber</h2>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div style="background:#1b1b30; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:22px 26px;">
+          <div style="display:flex; align-items:center; gap:11px; font-family:'Cormorant Garamond'; font-weight:600; font-size:21px;"><span class="ms" style="font-size:22px; color:#e8c97e;">payments</span>¿Es gratis?</div>
+          <p style="margin:11px 0 0 33px; font-size:15px; line-height:1.6; color:#b8b5d0;">Sí. El plan Free es gratis para siempre, con ventas ilimitadas, stock, ganancia automática, cuotas y cobros por WhatsApp.</p>
+        </div>
+        <div style="background:#1b1b30; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:22px 26px;">
+          <div style="display:flex; align-items:center; gap:11px; font-family:'Cormorant Garamond'; font-weight:600; font-size:21px;"><span class="ms" style="font-size:22px; color:#e8c97e;">download</span>¿Necesito descargar algo?</div>
+          <p style="margin:11px 0 0 33px; font-size:15px; line-height:1.6; color:#b8b5d0;">No. Se instala desde el navegador como una app nativa, sin pasar por ninguna tienda de aplicaciones.</p>
+        </div>
+        <div style="background:#1b1b30; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:22px 26px;">
+          <div style="display:flex; align-items:center; gap:11px; font-family:'Cormorant Garamond'; font-weight:600; font-size:21px;"><span class="ms" style="font-size:22px; color:#e8c97e;">wifi_off</span>¿Funciona sin internet?</div>
+          <p style="margin:11px 0 0 33px; font-size:15px; line-height:1.6; color:#b8b5d0;">Sí, 100% offline. Podés cargar ventas y consultar todo sin conexión; se sincroniza cuando vuelvas a tener datos.</p>
+        </div>
+        <div style="background:#1b1b30; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:22px 26px;">
+          <div style="display:flex; align-items:center; gap:11px; font-family:'Cormorant Garamond'; font-weight:600; font-size:21px;"><span class="ms" style="font-size:22px; color:#e8c97e;">lock</span>¿Mis datos son privados?</div>
+          <p style="margin:11px 0 0 33px; font-size:15px; line-height:1.6; color:#b8b5d0;">Sí. Tus datos se guardan en tu celular, no en servidores externos. Vos tenés el control total de tu información.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer style="position:relative; z-index:1; background:#0c0c15; border-top:1px solid rgba(255,255,255,0.06);">
+    <div style="max-width:1180px; margin:0 auto; padding:54px 32px 40px;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:40px; flex-wrap:wrap;">
+        <div style="max-width:320px;">
+          <div style="display:flex; align-items:center; gap:11px; margin-bottom:14px;">
+            <div style="width:30px; height:30px; border-radius:50% 50% 50% 0; transform:rotate(135deg); background:linear-gradient(145deg,#f5dfa0,#c9a84c);"></div>
+            <span style="font-family:'Cormorant Garamond'; font-weight:700; font-size:22px;">Parfum Track</span>
+          </div>
+          <p style="margin:0; font-size:14px; line-height:1.6; color:#9a97c0;">La forma más simple de saber cuánto ganás vendiendo perfumes. Hecho con cariño para revendedores de LATAM.</p>
+        </div>
+        <div style="display:flex; gap:60px; flex-wrap:wrap;">
+          <div>
+            <div style="font-weight:600; font-size:13px; letter-spacing:0.06em; text-transform:uppercase; color:#e8c97e; margin-bottom:16px;">Contacto</div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <a href="mailto:parfumtrack@gmail.com" style="display:flex; align-items:center; gap:9px; color:#c8c5dc; text-decoration:none; font-size:14px;"><span class="ms" style="font-size:18px; color:#9a97c0;">mail</span>parfumtrack@gmail.com</a>
+              <a href="https://wa.me/59894466577" style="display:flex; align-items:center; gap:9px; color:#c8c5dc; text-decoration:none; font-size:14px;"><span class="ms" style="font-size:18px; color:#70c9a0;">chat</span>+598 94 466 577</a>
+              <div style="display:flex; align-items:center; gap:9px; color:#c8c5dc; font-size:14px;"><span class="ms" style="font-size:18px; color:#9a97c0;">location_on</span>Montevideo, Uruguay</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-weight:600; font-size:13px; letter-spacing:0.06em; text-transform:uppercase; color:#e8c97e; margin-bottom:16px;">Legal</div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <a href="/terminos.html" style="color:#c8c5dc; text-decoration:none; font-size:14px;">Términos y condiciones</a>
+              <a href="/privacidad.html" style="color:#c8c5dc; text-decoration:none; font-size:14px;">Política de privacidad</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="height:1px; background:rgba(255,255,255,0.06); margin:36px 0 22px;"></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+        <span style="font-size:13px; color:#7a7798;">© 2026 Parfum Track. Todos los derechos reservados.</span>
+        <span style="font-size:13px; color:#9a97c0; font-weight:500;">Hecho en Uruguay 🇺🇾</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+</body></html>
