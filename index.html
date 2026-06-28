@@ -63,6 +63,10 @@ body {
   white-space: nowrap;
   direction: ltr;
   font-size: 20px;
+  overflow: hidden;
+  max-width: 1.2em;
+  vertical-align: middle;
+  flex-shrink: 0;
 }
 
 .hidden { display: none !important; }
@@ -72,6 +76,21 @@ body {
 .muted { color: var(--text4); }
 .bold { font-weight: 700; }
 .text-primary { color: var(--text); }
+
+:focus-visible {
+  outline: 2px solid var(--gold2);
+  outline-offset: 2px;
+}
+button:focus-visible, .btn-primary:focus-visible, .btn-whatsapp:focus-visible,
+.nav-item:focus-visible, .back-btn:focus-visible {
+  outline: 2px solid var(--gold2);
+  outline-offset: 2px;
+}
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none;
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+}
 
 /* ====== APP LAYOUT ====== */
 #app {
@@ -100,6 +119,12 @@ body {
 
 .screen.active {
   display: flex;
+  animation: screenFadeIn 0.18s ease-out;
+}
+
+@keyframes screenFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .screen-scroll {
@@ -111,6 +136,8 @@ body {
   flex-direction: column;
   gap: 13px;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
 }
 
 .screen-scroll::-webkit-scrollbar { display: none; }
@@ -167,7 +194,10 @@ body {
   border-radius: var(--radius-pill);
   font: 600 12px 'DM Sans';
   color: var(--gold2);
+  cursor: pointer;
+  transition: background 0.15s;
 }
+.profile-chip:active { background: var(--bg3); }
 .profile-chip .ms { font-size: 14px; }
 
 /* ====== HERO CARD ====== */
@@ -207,9 +237,12 @@ body {
 .hero-amount {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
-  font-size: 47px;
+  font-size: clamp(36px, 10vw, 47px);
   line-height: 1;
   color: var(--gold2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hero-badge {
@@ -245,6 +278,7 @@ body {
 
 .stat-card {
   flex: 1;
+  min-width: 0;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
@@ -271,9 +305,12 @@ body {
 .stat-value {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
-  font-size: 30px;
+  font-size: clamp(24px, 7vw, 30px);
   color: var(--text);
   margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .stat-value.danger { color: var(--red); }
 
@@ -284,6 +321,7 @@ body {
 
 .stat-card-sm {
   flex: 1;
+  min-width: 0;
   background: var(--bg3);
   border: 1px solid rgba(255,255,255,0.05);
   border-radius: 14px;
@@ -316,7 +354,10 @@ body {
   border: 1px solid rgba(112,201,160,0.18);
   border-radius: 14px;
   padding: 11px 15px;
+  cursor: pointer;
+  transition: background 0.15s;
 }
+.today-strip:active { background: rgba(112,201,160,0.18); }
 
 .today-left {
   display: flex;
@@ -346,7 +387,9 @@ body {
   font: 600 12px 'DM Sans';
   color: var(--gold2);
   cursor: pointer;
+  transition: opacity 0.15s;
 }
+.section-link:active { opacity: 0.6; }
 
 /* ====== VENTA CARD ====== */
 .venta-card {
@@ -357,7 +400,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transition: background 0.15s, border-color 0.15s;
 }
+.venta-card:active { background: var(--bg3); }
 
 .venta-card.faded { opacity: 0.55; }
 
@@ -377,6 +422,10 @@ body {
   font-weight: 600;
   font-size: 18px;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
 }
 
 .venta-tags {
@@ -440,7 +489,7 @@ body {
 .venta-precio-value {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
-  font-size: 22px;
+  font-size: clamp(18px, 5vw, 22px);
   color: var(--text);
 }
 
@@ -458,12 +507,18 @@ body {
   font-size: 18px;
   color: var(--text4);
   background: rgba(255,255,255,0.05);
-  padding: 6px;
+  width: 34px;
+  height: 34px;
   border-radius: 9px;
   cursor: pointer;
   border: none;
   font-family: 'Material Symbols Rounded';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
 }
+.venta-action-btn:active { background: rgba(255,255,255,0.12); }
 
 /* ====== SUB HEADER ====== */
 .sub-header {
@@ -474,8 +529,8 @@ body {
 }
 
 .back-btn {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 11px;
   background: var(--card);
   border: 1px solid var(--border);
@@ -484,7 +539,9 @@ body {
   justify-content: center;
   color: var(--gold2);
   cursor: pointer;
+  transition: background 0.15s;
 }
+.back-btn:active { background: var(--bg3); }
 
 .sub-title {
   font-family: 'Cormorant Garamond', serif;
@@ -526,7 +583,7 @@ body {
 .live-profit-amount {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
-  font-size: 42px;
+  font-size: clamp(32px, 9vw, 42px);
   line-height: 1.05;
   color: var(--green);
   margin-top: 2px;
@@ -534,7 +591,8 @@ body {
 
 .live-profit-detail {
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 8px 16px;
   margin-top: 6px;
   font: 500 12px 'DM Sans';
   color: var(--text3);
@@ -544,6 +602,7 @@ body {
 .form-group {
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .form-label {
@@ -567,9 +626,11 @@ body {
   color: var(--text);
   outline: none;
   width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .form-input:focus {
-  border-color: rgba(201,168,76,0.25);
+  border-color: rgba(201,168,76,0.4);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
 }
 .form-input::placeholder {
   color: var(--text4);
@@ -591,7 +652,9 @@ body {
   border-radius: var(--radius-input);
   padding: 13px 14px;
   cursor: pointer;
+  transition: background 0.15s;
 }
+.select-field:active { background: var(--card); }
 
 .select-value {
   font: 600 15px 'DM Sans';
@@ -640,7 +703,9 @@ body {
   cursor: pointer;
   width: 100%;
   -webkit-appearance: none;
+  transition: opacity 0.15s, transform 0.1s;
 }
+.btn-primary:active { opacity: 0.85; transform: scale(0.98); }
 .btn-primary .ms { font-size: 20px; }
 
 .btn-full { width: 100%; }
@@ -714,11 +779,13 @@ body {
   border: 1px solid var(--border);
 }
 
+.chip:active { opacity: 0.7; }
 .chip.active {
   color: #1a1a2e;
   background: linear-gradient(135deg, var(--gold), var(--gold2));
   border-color: transparent;
 }
+.chip.active:active { opacity: 0.85; }
 
 .chip-red { color: var(--red) !important; background: rgba(224,112,112,0.12) !important; border-color: transparent !important; }
 .chip-warn { color: var(--warn) !important; background: rgba(224,176,96,0.12) !important; border-color: transparent !important; }
@@ -811,6 +878,9 @@ body {
   font-weight: 600;
   font-size: 16px;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .stock-row {
@@ -833,7 +903,8 @@ body {
 .stock-btn {
   font-family: 'Material Symbols Rounded';
   font-size: 16px;
-  padding: 4px;
+  width: 30px;
+  height: 28px;
   border-radius: 7px;
   border: none;
   cursor: pointer;
@@ -841,7 +912,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: opacity 0.15s;
 }
+.stock-btn:active { opacity: 0.7; }
 
 .stock-btn.minus {
   color: var(--text3);
@@ -874,15 +947,19 @@ body {
 .owed-amount {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
-  font-size: 38px;
+  font-size: clamp(28px, 8vw, 38px);
   line-height: 1;
   color: var(--red);
   margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .owed-icon {
   font-size: 38px !important;
   color: rgba(224,112,112,0.5);
+  max-width: 46px !important;
 }
 
 .cuota-card {
@@ -906,6 +983,10 @@ body {
   font-weight: 600;
   font-size: 19px;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 55%;
 }
 
 .cuota-cliente {
@@ -973,7 +1054,9 @@ body {
   font: 700 13px 'DM Sans';
   border: none;
   cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
 }
+.btn-whatsapp:active { opacity: 0.85; transform: scale(0.98); }
 .btn-whatsapp .ms { font-size: 18px; }
 
 .btn-pay {
@@ -986,8 +1069,49 @@ body {
   border-radius: 11px;
   color: var(--gold2);
   cursor: pointer;
+  transition: background 0.15s;
 }
+.btn-pay:active { background: var(--card); }
 .btn-pay .ms { font-size: 20px; }
+
+.pago-cuota-info {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pago-cuota-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pago-cuota-label {
+  font: 500 12px 'DM Sans';
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pago-cuota-value {
+  font: 600 14px 'DM Sans';
+  color: var(--text);
+  max-width: 60%;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pago-cuota-value.gold { color: var(--gold2); }
+.cuota-partial-badge {
+  font: 600 10px 'DM Sans';
+  color: var(--warn);
+  background: rgba(224,176,96,0.12);
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  margin-left: 6px;
+}
 
 .wa-preview-label {
   font: 600 11px 'DM Sans';
@@ -1038,7 +1162,10 @@ body {
   border-radius: var(--radius-pill);
   font: 600 12px 'DM Sans';
   color: var(--gold2);
+  cursor: pointer;
+  transition: background 0.15s;
 }
+.month-picker:active { background: var(--bg3); }
 .month-picker .ms { font-size: 15px; }
 
 .chart-card {
@@ -1149,6 +1276,7 @@ body {
   border: 1px solid rgba(255,255,255,0.05);
   border-radius: 15px;
   padding: 14px;
+  min-width: 0;
 }
 
 .metric-header {
@@ -1165,9 +1293,12 @@ body {
 .metric-value {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
-  font-size: 28px;
+  font-size: clamp(22px, 6vw, 28px);
   color: var(--text);
   margin-top: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .metric-value.green { color: var(--green); }
 
@@ -1195,7 +1326,9 @@ body {
   color: var(--text);
   cursor: pointer;
   border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
 }
+.mas-item:active { background: rgba(255,255,255,0.04); }
 .mas-item:last-child { border-bottom: none; }
 .mas-item .ms { font-size: clamp(18px, 3vw, 22px); }
 .mas-item .chevron { margin-left: auto; font-size: 18px; }
@@ -1247,7 +1380,11 @@ body {
   cursor: pointer;
   position: relative;
   min-width: 48px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  transition: color 0.2s, background 0.15s;
 }
+.nav-item:active { background: rgba(255,255,255,0.05); }
 .nav-item .ms { font-size: 23px; }
 
 .nav-item.active {
@@ -1297,6 +1434,11 @@ body {
   box-shadow: 0 8px 18px rgba(201,168,76,0.45);
   transform: translateY(-16px);
   border: 3px solid var(--nav-bg);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.nav-fab:active .fab-circle {
+  transform: translateY(-16px) scale(0.93);
+  box-shadow: 0 4px 10px rgba(201,168,76,0.35);
 }
 .fab-circle .ms { font-size: 30px; color: #1a1a2e; }
 
@@ -1309,6 +1451,12 @@ body {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  animation: overlayFadeIn 0.2s ease-out;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-content {
@@ -1321,6 +1469,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  animation: modalSlideUp 0.25s ease-out;
+}
+
+@keyframes modalSlideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .modal-header {
@@ -1438,7 +1592,9 @@ body {
   font: 600 14px 'DM Sans';
   cursor: pointer;
   width: 100%;
+  transition: background 0.15s;
 }
+.btn-outline-gold:active { background: rgba(201,168,76,0.1); }
 .btn-outline-gold .ms { font-size: 18px; }
 
 .pedido-perfumes-list {
@@ -1633,7 +1789,9 @@ body {
   font: 700 13px 'DM Sans';
   border: none;
   cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
 }
+.btn-enviar:active { opacity: 0.85; transform: scale(0.98); }
 .btn-enviar .ms { font-size: 18px; }
 
 .btn-revertir {
@@ -1661,8 +1819,10 @@ body {
   border: 1px solid rgba(224,112,112,0.2);
   border-radius: 11px;
   color: var(--red);
+  transition: opacity 0.15s;
   cursor: pointer;
 }
+.btn-delete-pedido:active { opacity: 0.6; }
 .btn-delete-pedido .ms { font-size: 18px; }
 
 .nav-badge-inline {
@@ -1691,6 +1851,10 @@ body {
   font-weight: 600;
   font-size: 18px;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
 }
 
 .pedido-card-fecha {
@@ -1750,7 +1914,6 @@ input[type="date"].form-input {
   color-scheme: dark;
 }
 
-.form-group { position: relative; }
 
 @media (display-mode: standalone) {
   .header-bar { padding-top: max(4px, env(safe-area-inset-top)); }
@@ -1800,7 +1963,7 @@ input[type="date"].form-input {
   font:700 14px 'DM Sans'; color:var(--gold2);
   min-width:22px; text-align:center;
 }
-.ranking-name { flex:1; color:var(--text); }
+.ranking-name { flex:1; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ranking-count { color:var(--text3); font-size:12px; }
 .ranking-amount { color:var(--green); font-weight:600; }
 
@@ -1824,7 +1987,7 @@ input[type="date"].form-input {
 }
 .plan-card.pro { border-color: var(--gold); }
 .plan-name { font: 700 16px 'Cormorant Garamond'; color: var(--gold2); }
-.plan-price { font: 700 28px 'DM Sans'; color: var(--text); margin: 4px 0; }
+.plan-price { font: 700 clamp(22px, 7vw, 28px) 'DM Sans'; color: var(--text); margin: 4px 0; }
 .plan-desc { font-size: 12px; color: var(--text3); line-height: 1.4; }
 .plan-badge {
   display: inline-block; font-size: 11px; padding: 4px 12px;
@@ -1984,7 +2147,7 @@ input[type="date"].form-input {
   <div id="screen-nueva-venta" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('inicio')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('inicio')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Nueva venta</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2308,7 +2471,7 @@ input[type="date"].form-input {
   <div id="screen-caja" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('mas')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Caja diaria</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2363,7 +2526,7 @@ input[type="date"].form-input {
   <div id="screen-gastos" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('mas')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Gastos del negocio</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2426,7 +2589,7 @@ input[type="date"].form-input {
   <div id="screen-nuevo-pedido" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('pedidos')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('pedidos')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Nuevo pedido</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2478,7 +2641,7 @@ input[type="date"].form-input {
   <div id="screen-pedido-detalle" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('pedidos')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('pedidos')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Detalle del pedido</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2491,7 +2654,7 @@ input[type="date"].form-input {
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span class="modal-title">Agregar perfume</span>
-        <div class="back-btn" onclick="App.closePedidoPerfumeSelector()"><span class="ms">close</span></div>
+        <div class="back-btn" onclick="App.closePedidoPerfumeSelector()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
       </div>
       <div class="search-bar modal-search">
         <span class="ms muted">search</span>
@@ -2501,11 +2664,46 @@ input[type="date"].form-input {
     </div>
   </div>
 
+  <!-- ====== MODAL: REGISTRAR PAGO DE CUOTA ====== -->
+  <div id="modal-pago-cuota" class="modal-overlay hidden" onclick="App.cerrarPagoCuota()">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-height:auto;gap:16px;">
+      <div class="modal-header">
+        <span class="modal-title">Registrar pago</span>
+        <div class="back-btn" onclick="App.cerrarPagoCuota()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
+      </div>
+      <div class="pago-cuota-info">
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Perfume</span>
+          <span class="pago-cuota-value" id="pago-cuota-perfume"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Cliente</span>
+          <span class="pago-cuota-value" id="pago-cuota-cliente"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Cuota</span>
+          <span class="pago-cuota-value" id="pago-cuota-numero"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Monto cuota</span>
+          <span class="pago-cuota-value gold" id="pago-cuota-monto"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">MONTO QUE PAGA</label>
+        <input type="number" class="form-input" id="pago-cuota-input" placeholder="0" min="0" step="0.01" inputmode="decimal">
+      </div>
+      <button class="btn gold-btn" onclick="App.confirmarPagoCuota()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
+        <span class="ms">check_circle</span> Registrar pago
+      </button>
+    </div>
+  </div>
+
   <!-- ====== SCREEN: VER TODAS LAS VENTAS ====== -->
   <div id="screen-ventas-all" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('inicio')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('inicio')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Todas las ventas</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2518,7 +2716,7 @@ input[type="date"].form-input {
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span class="modal-title">Elegir perfume</span>
-        <div class="back-btn" onclick="App.closeModal()"><span class="ms">close</span></div>
+        <div class="back-btn" onclick="App.closeModal()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
       </div>
       <div class="search-bar modal-search">
         <span class="ms muted">search</span>
@@ -2533,7 +2731,7 @@ input[type="date"].form-input {
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span class="modal-title">Agregar perfume</span>
-        <div class="back-btn" onclick="App.closeAddPerfume()"><span class="ms">close</span></div>
+        <div class="back-btn" onclick="App.closeAddPerfume()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
       </div>
       <div class="form-group">
         <label class="form-label">NOMBRE</label>
@@ -2575,7 +2773,7 @@ input[type="date"].form-input {
   <div id="screen-cuenta" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('mas')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Mi cuenta</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2681,7 +2879,7 @@ input[type="date"].form-input {
   <div id="screen-catalogo" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('mas')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Catálogo WhatsApp</span>
         <div class="back-btn" onclick="App.toggleSelectAllCatalogo()"><span class="ms">select_all</span></div>
       </div>
@@ -2709,24 +2907,24 @@ input[type="date"].form-input {
   </div><!-- /screens-container -->
 
   <!-- ====== BOTTOM NAV ====== -->
-  <nav class="bottom-nav">
-    <div class="nav-item active" onclick="App.showScreen('inicio')" data-tab="inicio">
+  <nav class="bottom-nav" role="tablist" aria-label="Navegación principal">
+    <div class="nav-item active" onclick="App.showScreen('inicio')" data-tab="inicio" role="tab" aria-label="Ventas" tabindex="0">
       <span class="ms" style="font-variation-settings:'FILL' 1;">account_balance_wallet</span>
       <span class="nav-label">Ventas</span>
     </div>
-    <div class="nav-item" onclick="App.showScreen('cuotas')" data-tab="cuotas">
+    <div class="nav-item" onclick="App.showScreen('cuotas')" data-tab="cuotas" role="tab" aria-label="Cuotas" tabindex="0">
       <span class="ms">calendar_month</span>
       <span class="nav-label">Cuotas</span>
       <span class="nav-badge" id="nav-cuotas-badge">0</span>
     </div>
-    <div class="nav-fab" onclick="App.showScreen('nueva-venta')">
+    <div class="nav-fab" onclick="App.showScreen('nueva-venta')" role="button" aria-label="Nueva venta" tabindex="0">
       <div class="fab-circle"><span class="ms">add</span></div>
     </div>
-    <div class="nav-item" onclick="App.showScreen('stats')" data-tab="stats">
+    <div class="nav-item" onclick="App.showScreen('stats')" data-tab="stats" role="tab" aria-label="Gráficos" tabindex="0">
       <span class="ms">monitoring</span>
       <span class="nav-label">Gráficos</span>
     </div>
-    <div class="nav-item" onclick="App.showScreen('mas')" data-tab="mas">
+    <div class="nav-item" onclick="App.showScreen('mas')" data-tab="mas" role="tab" aria-label="Más opciones" tabindex="0">
       <span class="ms">more_horiz</span>
       <span class="nav-label">Más</span>
     </div>
@@ -2879,6 +3077,22 @@ const DB = {
   },
 
   async deleteVenta(id) {
+    const v = await this.get('ventas', id);
+    if (v) {
+      if (v.perfumeId && v.perfumeId !== '') {
+        const p = await this.get('perfumes', v.perfumeId);
+        if (p) {
+          p.stock = (p.stock || 0) + 1;
+          await this.put('perfumes', p);
+        }
+      }
+      if (v.formaPago === 'cuotas') {
+        const allCuotas = await this.getAll('cuotas');
+        for (const c of allCuotas) {
+          if (c.ventaId === id) await this.delete('cuotas', c.id);
+        }
+      }
+    }
     return this.delete('ventas', id);
   },
 
@@ -2886,11 +3100,16 @@ const DB = {
     return this.getAll('cuotas');
   },
 
-  async pagarCuota(id) {
+  async pagarCuota(id, montoPagado) {
     const c = await this.get('cuotas', id);
     if (c) {
-      c.pagado = true;
+      const prevPagado = c.montoPagado || 0;
+      const totalPagado = prevPagado + montoPagado;
+      c.montoPagado = Math.min(totalPagado, c.monto);
+      c.pagado = c.montoPagado >= c.monto;
       c.fechaPago = Date.now();
+      if (!c.pagos) c.pagos = [];
+      c.pagos.push({ monto: montoPagado, fecha: Date.now() });
       await this.put('cuotas', c);
     }
     return c;
@@ -3006,7 +3225,7 @@ const DB = {
     ];
 
     for (const v of demoVentas) {
-      await this.add('ventas', v);
+      await this.addVenta(v);
     }
   }
 };
@@ -3040,28 +3259,22 @@ const App = {
   },
 
   async _fixCorruptDates() {
-    if (localStorage.getItem('pt_dates_fixed')) return;
+    if (localStorage.getItem('pt_dates_fixed_v2')) return;
     const ventas = await DB.getAll('ventas');
-    let fixed = 0;
     for (const v of ventas) {
-      if (!v.fecha || isNaN(new Date(v.fecha).getTime())) {
-        v.fecha = v.creado || Date.now();
+      if (!v.fecha || typeof v.fecha === 'string' || isNaN(new Date(v.fecha).getTime())) {
+        v.fecha = this._parseDate(v.fecha, v.creado || Date.now());
         await DB.put('ventas', v);
-        fixed++;
-      } else if (typeof v.fecha === 'string') {
-        v.fecha = new Date(v.fecha).getTime();
-        await DB.put('ventas', v);
-        fixed++;
       }
     }
     const cuotas = await DB.getAll('cuotas');
     for (const c of cuotas) {
-      if (c.vence && (isNaN(new Date(c.vence).getTime()) || typeof c.vence === 'string')) {
-        c.vence = typeof c.vence === 'string' ? new Date(c.vence).getTime() || Date.now() : Date.now();
+      if (c.vence && (typeof c.vence === 'string' || isNaN(new Date(c.vence).getTime()))) {
+        c.vence = this._parseDate(c.vence, Date.now());
         await DB.put('cuotas', c);
       }
     }
-    localStorage.setItem('pt_dates_fixed', '1');
+    localStorage.setItem('pt_dates_fixed_v2', '1');
   },
 
   async loadData() {
@@ -3108,7 +3321,7 @@ const App = {
     if (name === 'stats') this.renderStats();
     if (name === 'ventas-all') this.renderAllVentas();
     if (name === 'nueva-venta') this.resetVentaForm();
-    if (name === 'pedidos') this.renderPedidos();
+    if (name === 'pedidos') { this.renderPedidos(); this.updatePedidosBadge(); }
     if (name === 'nuevo-pedido') this.resetPedidoForm();
     if (name === 'caja') this.renderCaja();
     if (name === 'gastos') this.renderGastos();
@@ -3192,7 +3405,7 @@ const App = {
     const container = document.getElementById('ventas-recientes');
     const recientes = this.ventas.slice(0, 3);
     if (recientes.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span>No hay ventas registradas</span></div>';
+      container.innerHTML = '<div class="empty-state"><span class="ms">receipt_long</span><span>No hay ventas registradas</span></div>';
       return;
     }
 
@@ -3244,7 +3457,7 @@ const App = {
           </div>
           <div style="text-align:right;">
             <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">${gan >= 0 ? '+' : ''}${this.fmt(gan)}</div>
+            <div class="venta-ganancia-value">${this.fmtSigned(gan)}</div>
           </div>
           <div class="venta-actions">
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
@@ -3258,7 +3471,7 @@ const App = {
   renderAllVentas() {
     const container = document.getElementById('ventas-all-list');
     if (this.ventas.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span>No hay ventas registradas</span></div>';
+      container.innerHTML = '<div class="empty-state"><span class="ms">receipt_long</span><span>No hay ventas registradas</span></div>';
       return;
     }
 
@@ -3295,7 +3508,7 @@ const App = {
           </div>
           <div style="text-align:right;">
             <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">${gan >= 0 ? '+' : ''}${this.fmt(gan)}</div>
+            <div class="venta-ganancia-value">${this.fmtSigned(gan)}</div>
           </div>
           <div class="venta-actions">
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
@@ -3323,7 +3536,7 @@ const App = {
     if (chipBajo) chipBajo.textContent = bajoStock;
 
     if (items.length === 0) {
-      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span>No hay perfumes</span></div>';
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span class="ms">inventory_2</span><span>No hay perfumes</span></div>';
       return;
     }
 
@@ -3350,7 +3563,7 @@ const App = {
 
   renderCuotas() {
     const pendientes = this.cuotasData.filter(c => !c.pagado);
-    const totalAdeudado = pendientes.reduce((s, c) => s + c.monto, 0);
+    const totalAdeudado = pendientes.reduce((s, c) => s + c.monto - (c.montoPagado || 0), 0);
     document.getElementById('cuotas-total').textContent = this.fmt(totalAdeudado);
 
     const badge = document.getElementById('nav-cuotas-badge');
@@ -3361,7 +3574,7 @@ const App = {
 
     const container = document.getElementById('cuotas-list');
     if (pendientes.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span>No hay cuotas pendientes</span></div>';
+      container.innerHTML = '<div class="empty-state"><span class="ms">check_circle</span><span>No hay cuotas pendientes</span></div>';
       return;
     }
 
@@ -3377,13 +3590,15 @@ const App = {
 
       const proxima = pendientesGrupo[0];
       const pagadas = cuotas.filter(c => c.pagado).length;
-      const totalPagado = cuotas.filter(c => c.pagado).reduce((s, c) => s + c.monto, 0);
+      const totalPagado = cuotas.reduce((s, c) => s + (c.pagado ? c.monto : (c.montoPagado || 0)), 0);
       const montoTotal = proxima.montoTotal;
       const pctPagado = montoTotal > 0 ? Math.round((totalPagado / montoTotal) * 100) : 0;
       const venceDate = this.fmtDate(proxima.vence);
       const resta = montoTotal - totalPagado;
+      const parcialProxima = proxima.montoPagado || 0;
+      const restaProxima = proxima.monto - parcialProxima;
 
-      const waMsg = `Hola ${this.esc(proxima.cliente)}! 👋 Te recuerdo tu cuota pendiente de *${this.esc(proxima.perfume)}*:\n\n📅 Cuota ${proxima.numero} de ${proxima.total}\n💰 Monto: ${this.fmt(proxima.monto)}\n📊 Total: ${this.fmt(montoTotal)}`;
+      const waMsg = `Hola ${this.esc(proxima.cliente)}! 👋 Te recuerdo tu cuota pendiente de *${this.esc(proxima.perfume)}*:\n\n📅 Cuota ${proxima.numero} de ${proxima.total}\n💰 Monto: ${this.fmt(restaProxima)}\n📊 Total: ${this.fmt(montoTotal)}`;
 
       return `<div class="cuota-card" style="margin-bottom:12px;">
         <div class="cuota-top">
@@ -3400,10 +3615,10 @@ const App = {
           </div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pctPagado}%"></div></div>
         </div>
-        <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span></div>
+        <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
           <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar por WhatsApp</button>
-          <button class="btn-pay" onclick="App.marcarPagada(${proxima.id})"><span class="ms">add_card</span></button>
+          <button class="btn-pay" onclick="App.abrirPagoCuota(${proxima.id})"><span class="ms">add_card</span></button>
         </div>
         <div class="wa-preview-label">VISTA PREVIA DEL MENSAJE</div>
         <div class="wa-bubble">
@@ -3440,7 +3655,7 @@ const App = {
     const yLabels = ['cy5','cy4','cy3','cy2','cy1'];
     yLabels.forEach((id, i) => {
       const v = steps[i];
-      document.getElementById(id).textContent = v >= 1000 ? '$' + Math.round(v / 1000) + 'k' : '$' + Math.round(v);
+      document.getElementById(id).textContent = v >= 1000 ? this._moneda + Math.round(v / 1000) + 'k' : this._moneda + Math.round(v);
     });
 
     const ticket = thisMonth.length > 0 ? Math.round(totalVenta / thisMonth.length) : 0;
@@ -3552,7 +3767,7 @@ const App = {
     const gan = pvFinal - pc;
     const margen = pvFinal > 0 ? Math.round((gan / pvFinal) * 100) : 0;
 
-    document.getElementById('live-ganancia').textContent = (gan >= 0 ? '+' : '') + this.fmt(gan);
+    document.getElementById('live-ganancia').textContent = this.fmtSigned(gan);
     document.getElementById('live-venta').textContent = this.fmt(pvFinal);
     document.getElementById('live-compra').textContent = this.fmt(pc);
     document.getElementById('live-margen').textContent = margen + '%';
@@ -3819,13 +4034,57 @@ const App = {
 
   // ====== CUOTAS ======
 
-  async marcarPagada(id) {
-    await DB.pagarCuota(id);
+  _pagoCuotaId: null,
+
+  abrirPagoCuota(id) {
+    const cuota = this.cuotasData.find(c => c.id === id);
+    if (!cuota) return;
+    this._pagoCuotaId = id;
+    const restante = cuota.monto - (cuota.montoPagado || 0);
+    document.getElementById('pago-cuota-perfume').textContent = cuota.perfume;
+    document.getElementById('pago-cuota-cliente').textContent = cuota.cliente;
+    document.getElementById('pago-cuota-numero').textContent = `${cuota.numero} de ${cuota.total}`;
+    document.getElementById('pago-cuota-monto').textContent = this.fmt(restante);
+    const input = document.getElementById('pago-cuota-input');
+    input.value = restante;
+    input.max = restante;
+    document.getElementById('modal-pago-cuota').classList.remove('hidden');
+    setTimeout(() => input.select(), 100);
+  },
+
+  cerrarPagoCuota() {
+    document.getElementById('modal-pago-cuota').classList.add('hidden');
+    this._pagoCuotaId = null;
+  },
+
+  async confirmarPagoCuota() {
+    const id = this._pagoCuotaId;
+    if (!id) return;
+    const input = document.getElementById('pago-cuota-input');
+    const monto = parseFloat(input.value);
+    if (!monto || monto <= 0) {
+      this.toast('Ingresá un monto válido', 'error');
+      return;
+    }
+    const cuota = this.cuotasData.find(c => c.id === id);
+    const restante = cuota ? cuota.monto - (cuota.montoPagado || 0) : 0;
+    if (monto > restante + 0.01) {
+      this.toast('El monto supera lo que resta', 'error');
+      return;
+    }
+    await DB.pagarCuota(id, monto);
+    this.cerrarPagoCuota();
     await this.loadData();
     this.renderCuotas();
     this.renderDashboard();
-    this.toast('Cuota marcada como pagada', 'check_circle');
+    this.updateNavBadge();
+    const paid = monto >= restante - 0.01;
+    this.toast(paid ? 'Cuota pagada completa' : 'Pago parcial registrado', 'check_circle');
     this.haptic('success');
+  },
+
+  async marcarPagada(id) {
+    this.abrirPagoCuota(id);
   },
 
   cobrarWhatsApp(msg) {
@@ -3932,7 +4191,7 @@ const App = {
 
     if (items.length === 0) {
       const msg = this.pedidosFilter === 'pendiente' ? 'No hay pedidos pendientes' : 'No hay pedidos enviados';
-      container.innerHTML = `<div class="empty-state"><span>${msg}</span></div>`;
+      container.innerHTML = `<div class="empty-state"><span class="ms">package_2</span><span>${msg}</span></div>`;
       return;
     }
 
@@ -4117,6 +4376,7 @@ const App = {
     await DB.marcarEnviado(id);
     await this.loadData();
     this.renderPedidos();
+    this.updatePedidosBadge();
     this.toast('Pedido marcado como enviado', 'local_shipping');
     this.haptic('success');
   },
@@ -4125,6 +4385,7 @@ const App = {
     await DB.marcarPendiente(id);
     await this.loadData();
     this.renderPedidos();
+    this.updatePedidosBadge();
     this.toast('Pedido revertido a pendiente', 'undo');
   },
 
@@ -4189,6 +4450,7 @@ const App = {
     await DB.deletePedido(id);
     await this.loadData();
     this.renderPedidos();
+    this.updatePedidosBadge();
     this.toast('Pedido eliminado', 'delete');
   },
 
@@ -4202,7 +4464,7 @@ const App = {
     const p = this.pedidosData.find(x => x.id === id);
     const container = document.getElementById('pedido-detalle-content');
     if (!p) {
-      container.innerHTML = '<div class="empty-state"><span>Pedido no encontrado</span></div>';
+      container.innerHTML = '<div class="empty-state"><span class="ms">search_off</span><span>Pedido no encontrado</span></div>';
       return;
     }
 
@@ -4298,12 +4560,14 @@ const App = {
     document.getElementById('caja-salidas').textContent = this.fmt(salidas);
     const balance = entradas - salidas;
     const balEl = document.getElementById('caja-balance');
-    balEl.textContent = (balance >= 0 ? '+' : '-') + this.fmt(Math.abs(balance));
+    const sign = balance >= 0 ? '+' : '-';
+    const prefix = this._moneda + (this._moneda.length > 1 ? ' ' : '');
+    balEl.textContent = prefix + sign + Math.abs(balance).toLocaleString('es-AR');
     balEl.style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
 
     const container = document.getElementById('caja-list');
     if (todayItems.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span>No hay movimientos hoy</span></div>';
+      container.innerHTML = '<div class="empty-state"><span class="ms">account_balance</span><span>No hay movimientos hoy</span></div>';
       return;
     }
     container.innerHTML = todayItems.map(c => {
@@ -4315,7 +4579,7 @@ const App = {
             <span class="venta-nombre">${this.esc(c.descripcion)}</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font:700 16px 'DM Sans';color:${isEntrada ? 'var(--green)' : 'var(--red)'};">${isEntrada ? '+' : '-'}${this.fmt(c.monto)}</span>
+            <span style="font:700 16px 'DM Sans';color:${isEntrada ? 'var(--green)' : 'var(--red)'};">${this.fmt(isEntrada ? c.monto : -c.monto)}</span>
             <button class="venta-action-btn ms" onclick="App.deleteCaja(${c.id})">delete</button>
           </div>
         </div>
@@ -4365,7 +4629,7 @@ const App = {
     const container = document.getElementById('gastos-list');
     const recientes = this.gastosData.slice(0, 10);
     if (recientes.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span>No hay gastos registrados</span></div>';
+      container.innerHTML = '<div class="empty-state"><span class="ms">payments</span><span>No hay gastos registrados</span></div>';
       return;
     }
     const catIcons = { transporte: 'local_shipping', embalaje: 'inventory', publicidad: 'campaign', otro: 'more_horiz' };
@@ -4383,7 +4647,7 @@ const App = {
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font:700 16px 'DM Sans';color:var(--red);">-${this.fmt(g.monto)}</span>
+            <span style="font:700 16px 'DM Sans';color:var(--red);">${this.fmt(-g.monto)}</span>
             <button class="venta-action-btn ms" onclick="App.deleteGasto(${g.id})">delete</button>
           </div>
         </div>
@@ -4964,10 +5228,19 @@ const App = {
   _moneda: '$',
 
   fmt(n, forceAbs) {
-    const prefix = this._moneda + (this._moneda.length > 1 ? ' ' : '');
-    if (n === undefined || n === null) return prefix + '0';
-    if (forceAbs) return prefix + Math.abs(n).toLocaleString('es-AR');
-    return (n < 0 ? '-' : '') + prefix + Math.abs(n).toLocaleString('es-AR');
+    const sep = this._moneda.length > 1 ? ' ' : '';
+    if (n === undefined || n === null) return this._moneda + sep + '0';
+    const abs = Math.abs(n).toLocaleString('es-AR');
+    if (forceAbs) return this._moneda + sep + abs;
+    if (n < 0) return '-' + this._moneda + sep + abs;
+    return this._moneda + sep + abs;
+  },
+
+  fmtSigned(n) {
+    const sep = this._moneda.length > 1 ? ' ' : '';
+    const abs = Math.abs(n || 0).toLocaleString('es-AR');
+    const sign = (n || 0) >= 0 ? '+' : '-';
+    return sign + this._moneda + sep + abs;
   },
 
   async setMoneda(val) {
