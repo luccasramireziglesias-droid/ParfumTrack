@@ -4883,6 +4883,7 @@ const App = {
       this.toast('Activá una licencia primero', 'warning');
       return;
     }
+    if (!confirm('¿Subir backup a la nube? Esto reemplazará tu backup anterior.')) return;
     this.toast('Subiendo backup…', 'cloud_upload');
 
     const config = await DB.getAll('config');
@@ -5280,6 +5281,7 @@ const App = {
       this.toast('Activá una licencia primero', 'warning');
       return;
     }
+    if (!confirm('¿Subir datos a la nube? Esto reemplazará los datos guardados.')) return;
     this.toast('Sincronizando…', 'cloud_upload');
     const config = await DB.getAll('config');
     const data = {
