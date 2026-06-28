@@ -175,14 +175,13 @@ async function processEvent({ type, resourceId, env, idKey }) {
 // ── Evento de pago ────────────────────────────────────────────────
 
 async function handlePaymentEvent(paymentId, env) {
-  if (!env.MP_ACCESS_TOKEN) { log('error', 'mp-webhook', 'MP_ACCESS_TOKEN missing'); return; }
+  if (!env.MP_ACCESS_TOKEN) { throw new Error('MP_ACCESS_TOKEN missing'); }
 
   const resp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
     headers: { Authorization: `Bearer ${env.MP_ACCESS_TOKEN}` },
   });
   if (!resp.ok) {
-    log('error', 'mp-webhook', 'failed to fetch payment', { paymentId, status: resp.status });
-    return;
+    throw new Error(`MP API returned ${resp.status} for payment ${paymentId}`);
   }
 
   const payment = await resp.json();
@@ -255,7 +254,8 @@ async function handleSinglePayment(paymentId, payment, env) {
       if (!lic) { /* corrupted — skip renewal, create fresh below */ }
       else {
         const isAnnual = plan === 'annual' || lic.plan === 'basic_annual';
-        const base     = new Date(Math.max(Date.now(), new Date(lic.expiresAt || Date.now()).getTime()));
+        const expiryMs = new Date(lic.expiresAt).getTime();
+        const base     = new Date(Math.max(Date.now(), isNaN(expiryMs) ? Date.now() : expiryMs));
         base.setDate(base.getDate() + (isAnnual ? 365 : 31));
         const expiresAt = base.toISOString().split('T')[0];
 

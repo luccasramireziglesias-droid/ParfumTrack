@@ -2056,7 +2056,7 @@ input[type="date"].form-input {
 
       <div class="form-group">
         <label class="form-label">FORMA DE PAGO</label>
-        <div class="segmented">
+        <div class="segmented" id="seg-forma-pago">
           <div class="seg-option active" onclick="App.setFormaPago('contado')">Contado</div>
           <div class="seg-option" onclick="App.setFormaPago('cuotas')">Cuotas</div>
         </div>
@@ -2818,6 +2818,11 @@ const DB = {
     return reqP(tx(store, 'readwrite').delete(id));
   },
 
+  async clear(store) {
+    await openDB();
+    return reqP(tx(store, 'readwrite').clear());
+  },
+
   async getPerfumes() {
     return this.getAll('perfumes');
   },
@@ -3023,6 +3028,7 @@ const App = {
   async init() {
     await DB.init();
     await DB.seedDemo();
+    await this._fixCorruptDates();
     await this.loadData();
     this.loadMoneda();
     this.loadNombreNegocio();
@@ -3031,6 +3037,31 @@ const App = {
     this.checkOnboarding();
     this.renderAll();
     this.registerSW();
+  },
+
+  async _fixCorruptDates() {
+    if (localStorage.getItem('pt_dates_fixed')) return;
+    const ventas = await DB.getAll('ventas');
+    let fixed = 0;
+    for (const v of ventas) {
+      if (!v.fecha || isNaN(new Date(v.fecha).getTime())) {
+        v.fecha = v.creado || Date.now();
+        await DB.put('ventas', v);
+        fixed++;
+      } else if (typeof v.fecha === 'string') {
+        v.fecha = new Date(v.fecha).getTime();
+        await DB.put('ventas', v);
+        fixed++;
+      }
+    }
+    const cuotas = await DB.getAll('cuotas');
+    for (const c of cuotas) {
+      if (c.vence && (isNaN(new Date(c.vence).getTime()) || typeof c.vence === 'string')) {
+        c.vence = typeof c.vence === 'string' ? new Date(c.vence).getTime() || Date.now() : Date.now();
+        await DB.put('cuotas', c);
+      }
+    }
+    localStorage.setItem('pt_dates_fixed', '1');
   },
 
   async loadData() {
@@ -3151,7 +3182,9 @@ const App = {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayVentas = this.ventas.filter(v => new Date(v.fecha) >= today);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const todayVentas = this.ventas.filter(v => { const d = new Date(v.fecha); return d >= today && d < tomorrow; });
     const todayGan = todayVentas.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
     el('today-amount').textContent = this.fmt(todayGan);
     el('today-count').textContent = todayVentas.length;
@@ -3211,7 +3244,7 @@ const App = {
           </div>
           <div style="text-align:right;">
             <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">+${this.fmt(gan)}</div>
+            <div class="venta-ganancia-value">${gan >= 0 ? '+' : ''}${this.fmt(gan)}</div>
           </div>
           <div class="venta-actions">
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
@@ -3262,7 +3295,7 @@ const App = {
           </div>
           <div style="text-align:right;">
             <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">+${this.fmt(gan)}</div>
+            <div class="venta-ganancia-value">${gan >= 0 ? '+' : ''}${this.fmt(gan)}</div>
           </div>
           <div class="venta-actions">
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
@@ -3558,7 +3591,7 @@ const App = {
 
   setFormaPago(tipo) {
     this.formaPago = tipo;
-    const opts = document.querySelectorAll('.seg-option');
+    const opts = document.querySelectorAll('#seg-forma-pago .seg-option');
     opts.forEach(o => {
       o.classList.toggle('active', o.textContent.trim().toLowerCase() === tipo);
     });
@@ -3822,7 +3855,7 @@ const App = {
     document.getElementById('venta-nota').value = v.nota || '';
     if (v.fecha) {
       const d = new Date(v.fecha);
-      document.getElementById('venta-fecha').value = d.toISOString().split('T')[0];
+      if (!isNaN(d.getTime())) document.getElementById('venta-fecha').value = d.toISOString().split('T')[0];
     }
 
     const saveBtn = document.querySelector('#screen-nueva-venta .btn-primary');
@@ -3881,6 +3914,7 @@ const App = {
     await DB.deleteVenta(id);
     await this.loadData();
     this.renderAll();
+    this.renderAllVentas();
     this.toast('Venta eliminada', 'delete');
   },
 
@@ -4390,6 +4424,96 @@ const App = {
     document.getElementById('import-file-input').click();
   },
 
+  _parseDate(v, fallback) {
+    if (!v) return fallback;
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string') {
+      if (/^\d+$/.test(v)) return Number(v);
+      const ms = new Date(v).getTime();
+      return isNaN(ms) ? fallback : ms;
+    }
+    return fallback;
+  },
+
+  _normalizeBackupData(raw) {
+    let data = raw;
+    if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
+      const inner = data.data;
+      if (inner.perfumes || inner.ventas || inner.cuotas || inner.pedidos || inner.caja || inner.gastos) {
+        data = inner;
+      }
+    }
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+    for (const s of stores) {
+      if (data[s] && !Array.isArray(data[s])) {
+        data[s] = Object.values(data[s]);
+      }
+    }
+    if (Array.isArray(data.ventas)) {
+      data.ventas = data.ventas.map(v => ({
+        ...v,
+        precioVenta: Number(v.precioVenta) || 0,
+        precioCompra: Number(v.precioCompra) || 0,
+        fecha: this._parseDate(v.fecha, Date.now()),
+      }));
+    }
+    if (Array.isArray(data.cuotas)) {
+      data.cuotas = data.cuotas.map(c => ({
+        ...c,
+        monto: Number(c.monto) || 0,
+        montoTotal: Number(c.montoTotal) || 0,
+        vence: this._parseDate(c.vence, 0),
+      }));
+    }
+    if (Array.isArray(data.perfumes)) {
+      data.perfumes = data.perfumes.map(p => ({
+        ...p,
+        precioCompra: Number(p.precioCompra) || 0,
+        precioVenta: Number(p.precioVenta) || 0,
+        stock: Number(p.stock) || 0,
+      }));
+    }
+    if (Array.isArray(data.gastos)) {
+      data.gastos = data.gastos.map(g => ({
+        ...g,
+        monto: Number(g.monto) || 0,
+        fecha: this._parseDate(g.fecha, Date.now()),
+      }));
+    }
+    if (Array.isArray(data.caja)) {
+      data.caja = data.caja.map(c => ({
+        ...c,
+        monto: Number(c.monto) || 0,
+        fecha: this._parseDate(c.fecha, Date.now()),
+      }));
+    }
+    return data;
+  },
+
+  async _restoreData(data) {
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+    let total = 0;
+    for (const store of stores) {
+      await DB.clear(store);
+    }
+    for (const store of stores) {
+      if (!Array.isArray(data[store])) continue;
+      for (const item of data[store]) {
+        try { await DB.put(store, item); total++; } catch {}
+      }
+    }
+    if (data.settings) {
+      if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
+      if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
+      if (data.settings.pin) localStorage.setItem('pt_pin', data.settings.pin);
+    }
+    await this.loadData();
+    this.loadMoneda();
+    this.loadNombreNegocio();
+    this.renderAll();
+    return total;
+  },
+
   async _handleImportFile(input) {
     const file = input.files?.[0];
     if (!file) return;
@@ -4400,32 +4524,18 @@ const App = {
     this.toast('Leyendo archivo…', 'hourglass_top');
     try {
       const text = await file.text();
-      const data = JSON.parse(text);
+      const raw = JSON.parse(text);
+      const data = this._normalizeBackupData(raw);
 
-      const allStores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
-      for (const store of allStores) {
-        const existing = await DB.getAll(store);
-        for (const item of existing) {
-          await DB.delete(store, item.id || item.key);
-        }
-      }
-      for (const store of allStores) {
-        if (!data[store]) continue;
-        for (const item of data[store]) {
-          try { await DB.put(store, item); } catch {}
-        }
-      }
-      if (data.settings) {
-        if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
-        if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
-        if (data.settings.pin) localStorage.setItem('pt_pin', data.settings.pin);
+      const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+      const hasData = stores.some(s => Array.isArray(data[s]) && data[s].length > 0) || data.settings;
+      if (!hasData) {
+        this.toast('No se encontraron datos válidos en el archivo', 'error');
+        return;
       }
 
-      await this.loadData();
-      this.loadMoneda();
-      this.loadNombreNegocio();
-      this.renderAll();
-      this.toast('Datos importados correctamente', 'check_circle');
+      const total = await this._restoreData(data);
+      this.toast(`${total} registros importados`, 'check_circle');
       this.haptic('success');
     } catch (e) {
       this.toast('Error al leer el archivo', 'error');
@@ -4477,7 +4587,7 @@ const App = {
     doc.text(`Perfumes en stock: ${this.perfumes.length} | Cuotas pendientes: ${this.cuotasData.filter(c=>!c.pagado).length}`, 14, y); y += 10;
 
     addSection('Ventas');
-    this.ventas.slice(-30).forEach(v => {
+    this.ventas.slice(0, 30).forEach(v => {
       if (y > 275) { doc.addPage(); y = 20; }
       const f = new Date(v.fecha).toLocaleDateString('es-AR');
       doc.text(`${f} — ${v.perfume} — ${this.fmt(v.precioVenta)} (ganancia: ${this.fmt(v.precioVenta - v.precioCompra)})${v.cliente ? ' — ' + v.cliente : ''}`, 14, y);
@@ -4514,8 +4624,8 @@ const App = {
       'Precio Compra': v.precioCompra,
       'Precio Venta': v.precioVenta,
       Ganancia: v.precioVenta - v.precioCompra,
-      Pago: v.metodoPago || 'contado',
-      Cuotas: v.cuotas || 1
+      Pago: v.formaPago || 'contado',
+      Cuotas: v.numCuotas || 1
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ventasRows), 'Ventas');
 
@@ -4532,7 +4642,7 @@ const App = {
       Venta: c.ventaId,
       'Cuota N°': c.numero,
       Monto: c.monto,
-      Vencimiento: new Date(c.vencimiento).toLocaleDateString('es-AR'),
+      Vencimiento: new Date(c.vence).toLocaleDateString('es-AR'),
       Pagado: c.pagado ? 'Sí' : 'No'
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(cuotasRows), 'Cuotas');
@@ -4541,7 +4651,7 @@ const App = {
       const cajaRows = this.cajaData.map(c => ({
         Fecha: new Date(c.fecha).toLocaleDateString('es-AR'),
         Tipo: c.tipo,
-        Concepto: c.concepto,
+        Concepto: c.descripcion || '',
         Monto: c.monto
       }));
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(cajaRows), 'Caja');
@@ -4551,7 +4661,7 @@ const App = {
       const gastosRows = this.gastosData.map(g => ({
         Fecha: new Date(g.fecha).toLocaleDateString('es-AR'),
         Categoría: g.categoria,
-        Concepto: g.concepto,
+        Concepto: g.descripcion || '',
         Monto: g.monto
       }));
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(gastosRows), 'Gastos');
@@ -4600,8 +4710,9 @@ const App = {
   },
 
   _toggleCatalogoItem(id, checked) {
-    if (checked) this._catalogoSelected.add(id);
-    else this._catalogoSelected.delete(id);
+    const numId = Number(id);
+    if (checked) this._catalogoSelected.add(numId);
+    else this._catalogoSelected.delete(numId);
     this._updateCatalogoCount();
   },
 
@@ -4614,7 +4725,7 @@ const App = {
       disponibles.forEach(p => this._catalogoSelected.add(p.id));
     }
     document.querySelectorAll('[data-cat-id]').forEach(cb => {
-      cb.checked = this._catalogoSelected.has(cb.dataset.catId);
+      cb.checked = this._catalogoSelected.has(Number(cb.dataset.catId));
     });
     this._updateCatalogoCount();
   },
@@ -4827,31 +4938,9 @@ const App = {
         this.toast(result.error || 'No se encontró backup', 'error');
         return;
       }
-      const data = result.data;
-      const allStores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
-      for (const store of allStores) {
-        const existing = await DB.getAll(store);
-        for (const item of existing) {
-          await DB.delete(store, item.id || item.key);
-        }
-      }
-      for (const store of allStores) {
-        if (!data[store]) continue;
-        for (const item of data[store]) {
-          try { await DB.put(store, item); } catch {}
-        }
-      }
-      if (data.settings) {
-        if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
-        if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
-        if (data.settings.pin) localStorage.setItem('pt_pin', data.settings.pin);
-      }
-
-      await this.loadData();
-      this.loadMoneda();
-      this.loadNombreNegocio();
-      this.renderAll();
-      this.toast('Datos restaurados', 'check_circle');
+      const data = this._normalizeBackupData(result.data || result);
+      const total = await this._restoreData(data);
+      this.toast(`${total} registros restaurados`, 'check_circle');
       this.haptic('success');
     } catch {
       this.toast('Error de conexión', 'cloud_off');
@@ -4862,10 +4951,7 @@ const App = {
     if (!confirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.')) return;
     const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos'];
     for (const store of stores) {
-      const items = await DB.getAll(store);
-      for (const item of items) {
-        await DB.delete(store, item.id || item.key);
-      }
+      await DB.clear(store);
     }
     await this.loadData();
     this.renderAll();
@@ -4876,9 +4962,10 @@ const App = {
 
   _moneda: '$',
 
-  fmt(n) {
+  fmt(n, forceAbs) {
     if (n === undefined || n === null) return this._moneda + '0';
-    return this._moneda + Math.abs(n).toLocaleString('es-AR');
+    if (forceAbs) return this._moneda + Math.abs(n).toLocaleString('es-AR');
+    return (n < 0 ? '-' : '') + this._moneda + Math.abs(n).toLocaleString('es-AR');
   },
 
   async setMoneda(val) {
@@ -4917,6 +5004,7 @@ const App = {
   fmtDate(ts) {
     if (!ts) return '—';
     const d = new Date(ts);
+    if (isNaN(d.getTime())) return '—';
     const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
     return d.getDate() + ' ' + months[d.getMonth()];
   },
@@ -5246,28 +5334,9 @@ const App = {
         this.toast(result.error || 'No se encontraron datos', 'error');
         return;
       }
-      const data = result.data;
-      const allStores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
-      for (const store of allStores) {
-        const existing = await DB.getAll(store);
-        for (const item of existing) await DB.delete(store, item.id || item.key);
-      }
-      for (const store of allStores) {
-        if (!data[store]) continue;
-        for (const item of data[store]) {
-          try { await DB.put(store, item); } catch {}
-        }
-      }
-      if (data.settings) {
-        if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
-        if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
-        if (data.settings.pin) localStorage.setItem('pt_pin', data.settings.pin);
-      }
-      await this.loadData();
-      this.loadMoneda();
-      this.loadNombreNegocio();
-      this.renderAll();
-      this.toast('Datos restaurados desde la nube', 'check_circle');
+      const data = this._normalizeBackupData(result.data || result);
+      const total = await this._restoreData(data);
+      this.toast(`${total} registros restaurados`, 'check_circle');
       this.haptic('success');
     } catch {
       this.toast('Error de conexión', 'cloud_off');

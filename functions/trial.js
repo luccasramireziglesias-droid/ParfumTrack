@@ -299,8 +299,7 @@ async function sendOtpEmail(email, otp, env) {
   const fromEmail = env.FROM_EMAIL || "parfumtrack@gmail.com";
   const fromName = env.FROM_NAME || "Parfum Track";
   if (!apiKey) {
-    log('error', 'trial', 'BREVO_API_KEY not set');
-    return;
+    throw new Error('BREVO_API_KEY not set');
   }
   log('info', 'trial', 'sending OTP via Brevo');
 
@@ -347,9 +346,9 @@ async function sendOtpEmail(email, otp, env) {
   }).then(async (res) => {
     if (!res.ok) {
       log('error', 'trial', 'Brevo error', { status: res.status });
-    } else {
-      log('info', 'trial', 'Brevo OK', { status: res.status });
+      throw new Error(`Brevo returned ${res.status}`);
     }
+    log('info', 'trial', 'Brevo OK', { status: res.status });
   });
 }
 
