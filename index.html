@@ -2704,6 +2704,18 @@ input[type="date"].form-input {
     </div>
   </div>
 
+  <!-- ====== MODAL: CONFIRMACIÓN CUSTOM ====== -->
+  <div id="modal-confirm" class="modal-overlay hidden" onclick="App._confirmReject&&App._confirmReject()">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width:340px;gap:16px;text-align:center;">
+      <span class="ms" id="confirm-icon" style="font-size:40px;color:var(--warn);">warning</span>
+      <div id="confirm-msg" style="font-size:15px;line-height:1.5;color:var(--text);"></div>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button class="btn-outline-gold" id="confirm-cancel" style="flex:1;padding:12px;" onclick="App._confirmReject&&App._confirmReject()">Cancelar</button>
+        <button class="btn gold-btn" id="confirm-ok" style="flex:1;padding:12px;" onclick="App._confirmResolve&&App._confirmResolve()"></button>
+      </div>
+    </div>
+  </div>
+
   <!-- ====== SCREEN: VER TODAS LAS VENTAS ====== -->
   <div id="screen-ventas-all" class="screen">
     <div class="screen-scroll">
@@ -3261,6 +3273,22 @@ const App = {
     this.checkOnboarding();
     this.renderAll();
     this.registerSW();
+    this._initTabSync();
+  },
+
+  _tabChannel: null,
+  _initTabSync() {
+    if (!('BroadcastChannel' in window)) return;
+    this._tabChannel = new BroadcastChannel('pt_sync');
+    this._tabChannel.onmessage = async (e) => {
+      if (e.data === 'data_changed') {
+        await this.loadData();
+        this.renderAll();
+      }
+    };
+  },
+  _notifyTabs() {
+    if (this._tabChannel) this._tabChannel.postMessage('data_changed');
   },
 
   async _fixCorruptDates() {
@@ -3335,13 +3363,21 @@ const App = {
 
   // ====== RENDER ======
 
+  _debounceTimers: {},
+  debounce(key, fn, ms = 100) {
+    clearTimeout(this._debounceTimers[key]);
+    this._debounceTimers[key] = setTimeout(fn, ms);
+  },
+
   renderAll() {
-    this.renderDashboard();
-    this.renderStock();
-    this.renderCuotas();
-    this.renderStats();
-    this.updateNavBadge();
-    this.updatePedidosBadge();
+    this.debounce('renderAll', () => {
+      this.renderDashboard();
+      this.renderStock();
+      this.renderCuotas();
+      this.renderStats();
+      this.updateNavBadge();
+      this.updatePedidosBadge();
+    });
   },
 
   renderDashboard() {
@@ -3905,6 +3941,7 @@ const App = {
     this.track('sale_created', { method: this.formaPago });
     this.toast('Venta guardada', 'check_circle');
     this.haptic('success');
+    this._notifyTabs();
     this.showScreen('inicio');
   },
 
@@ -4088,6 +4125,7 @@ const App = {
     const paid = monto >= restante - 0.01;
     this.toast(paid ? 'Cuota pagada completa' : 'Pago parcial registrado', 'check_circle');
     this.haptic('success');
+    this._notifyTabs();
   },
 
   async marcarPagada(id) {
@@ -4176,12 +4214,13 @@ const App = {
   },
 
   async deleteVenta(id) {
-    if (!confirm('¿Eliminar esta venta?')) return;
+    if (!await this.appConfirm('¿Eliminar esta venta?', 'Eliminar', 'delete')) return;
     await DB.deleteVenta(id);
     await this.loadData();
     this.renderAll();
     this.renderAllVentas();
     this.toast('Venta eliminada', 'delete');
+    this._notifyTabs();
   },
 
   // ====== PEDIDOS ======
@@ -4376,6 +4415,7 @@ const App = {
     await this.loadData();
     this.toast('Pedido guardado', 'check_circle');
     this.haptic('success');
+    this._notifyTabs();
     this.showScreen('pedidos');
   },
 
@@ -4453,12 +4493,13 @@ const App = {
   },
 
   async deletePedido(id) {
-    if (!confirm('¿Eliminar este pedido?')) return;
+    if (!await this.appConfirm('¿Eliminar este pedido?', 'Eliminar', 'delete')) return;
     await DB.deletePedido(id);
     await this.loadData();
     this.renderPedidos();
     this.updatePedidosBadge();
     this.toast('Pedido eliminado', 'delete');
+    this._notifyTabs();
   },
 
   showPedidoDetalle(id) {
@@ -4547,14 +4588,16 @@ const App = {
     this.renderCaja();
     this.toast(this.cajaTipo === 'entrada' ? 'Entrada registrada' : 'Salida registrada', 'check_circle');
     this.haptic('success');
+    this._notifyTabs();
   },
 
   async deleteCaja(id) {
-    if (!confirm('¿Eliminar este movimiento?')) return;
+    if (!await this.appConfirm('¿Eliminar este movimiento?', 'Eliminar', 'delete')) return;
     await DB.deleteCaja(id);
     await this.loadData();
     this.renderCaja();
     this.toast('Movimiento eliminado', 'delete');
+    this._notifyTabs();
   },
 
   renderCaja() {
@@ -4614,14 +4657,16 @@ const App = {
     this.renderGastos();
     this.toast('Gasto registrado', 'check_circle');
     this.haptic('success');
+    this._notifyTabs();
   },
 
   async deleteGasto(id) {
-    if (!confirm('¿Eliminar este gasto?')) return;
+    if (!await this.appConfirm('¿Eliminar este gasto?', 'Eliminar', 'delete')) return;
     await DB.deleteGasto(id);
     await this.loadData();
     this.renderGastos();
     this.toast('Gasto eliminado', 'delete');
+    this._notifyTabs();
   },
 
   renderGastos() {
@@ -4790,7 +4835,7 @@ const App = {
     if (!file) return;
     input.value = '';
 
-    if (!confirm('¿Importar datos desde archivo? Esto reemplazará tus datos actuales.')) return;
+    if (!await this.appConfirm('¿Importar datos desde archivo? Esto reemplazará tus datos actuales.', 'Importar', 'upload_file')) return;
 
     this.toast('Leyendo archivo…', 'hourglass_top');
     try {
@@ -4808,6 +4853,7 @@ const App = {
       const total = await this._restoreData(data);
       this.toast(`${total} registros importados`, 'check_circle');
       this.haptic('success');
+      this._notifyTabs();
     } catch (e) {
       this.toast('Error al leer el archivo', 'error');
     }
@@ -5159,7 +5205,7 @@ const App = {
       this.toast('Activá una licencia primero', 'warning');
       return;
     }
-    if (!confirm('¿Subir backup a la nube? Esto reemplazará tu backup anterior.')) return;
+    if (!await this.appConfirm('¿Subir backup a la nube? Esto reemplazará tu backup anterior.', 'Subir', 'cloud_upload')) return;
     this.toast('Subiendo backup…', 'cloud_upload');
 
     const config = await DB.getAll('config');
@@ -5203,7 +5249,7 @@ const App = {
       this.toast('Activá una licencia primero', 'warning');
       return;
     }
-    if (!confirm('¿Restaurar datos desde la nube? Esto reemplazará tus datos actuales.')) return;
+    if (!await this.appConfirm('¿Restaurar datos desde la nube? Esto reemplazará tus datos actuales.', 'Restaurar', 'cloud_download')) return;
 
     this.toast('Descargando backup…', 'cloud_download');
     try {
@@ -5219,13 +5265,14 @@ const App = {
       const total = await this._restoreData(data);
       this.toast(`${total} registros restaurados`, 'check_circle');
       this.haptic('success');
+      this._notifyTabs();
     } catch {
       this.toast('Error de conexión', 'cloud_off');
     }
   },
 
   async clearData() {
-    if (!confirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.')) return;
+    if (!await this.appConfirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.', 'Borrar todo', 'delete_forever')) return;
     const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos'];
     for (const store of stores) {
       await DB.clear(store);
@@ -5233,6 +5280,7 @@ const App = {
     await this.loadData();
     this.renderAll();
     this.toast('Datos borrados', 'delete_forever');
+    this._notifyTabs();
   },
 
   // ====== UTILS ======
@@ -5326,6 +5374,19 @@ const App = {
       else if (type === 'warning') navigator.vibrate(50);
       else navigator.vibrate(10);
     }
+  },
+
+  appConfirm(msg, okLabel = 'Confirmar', icon = 'warning') {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('modal-confirm');
+      document.getElementById('confirm-msg').textContent = msg;
+      document.getElementById('confirm-ok').textContent = okLabel;
+      document.getElementById('confirm-icon').textContent = icon;
+      modal.classList.remove('hidden');
+      const cleanup = (val) => { modal.classList.add('hidden'); App._confirmResolve = null; App._confirmReject = null; resolve(val); };
+      App._confirmResolve = () => cleanup(true);
+      App._confirmReject = () => cleanup(false);
+    });
   },
 
   // ====== CUENTA / LICENCIA ======
@@ -5577,7 +5638,7 @@ const App = {
       this.toast('Activá una licencia primero', 'warning');
       return;
     }
-    if (!confirm('¿Subir datos a la nube? Esto reemplazará los datos guardados.')) return;
+    if (!await this.appConfirm('¿Subir datos a la nube? Esto reemplazará los datos guardados.', 'Subir', 'cloud_upload')) return;
     this.toast('Sincronizando…', 'cloud_upload');
     const config = await DB.getAll('config');
     const data = {
@@ -5621,7 +5682,7 @@ const App = {
       this.toast('Activá una licencia primero', 'warning');
       return;
     }
-    if (!confirm('¿Cargar datos desde la nube? Esto reemplazará tus datos actuales.')) return;
+    if (!await this.appConfirm('¿Cargar datos desde la nube? Esto reemplazará tus datos actuales.', 'Cargar', 'cloud_download')) return;
     this.toast('Descargando…', 'cloud_download');
     try {
       const res = await fetch('/sync', {
@@ -5636,13 +5697,14 @@ const App = {
       const total = await this._restoreData(data);
       this.toast(`${total} registros restaurados`, 'check_circle');
       this.haptic('success');
+      this._notifyTabs();
     } catch {
       this.toast('Error de conexión', 'cloud_off');
     }
   },
 
-  cerrarSesion() {
-    if (!confirm('¿Cerrar sesión? Tus datos locales se mantienen.')) return;
+  async cerrarSesion() {
+    if (!await this.appConfirm('¿Cerrar sesión? Tus datos locales se mantienen.', 'Cerrar sesión', 'logout')) return;
     this._account = null;
     this.saveAccount();
     this.updatePlanUI();
