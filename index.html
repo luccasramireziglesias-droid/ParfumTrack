@@ -4964,9 +4964,10 @@ const App = {
   _moneda: '$',
 
   fmt(n, forceAbs) {
-    if (n === undefined || n === null) return this._moneda + '0';
-    if (forceAbs) return this._moneda + Math.abs(n).toLocaleString('es-AR');
-    return (n < 0 ? '-' : '') + this._moneda + Math.abs(n).toLocaleString('es-AR');
+    const prefix = this._moneda + (this._moneda.length > 1 ? ' ' : '');
+    if (n === undefined || n === null) return prefix + '0';
+    if (forceAbs) return prefix + Math.abs(n).toLocaleString('es-AR');
+    return (n < 0 ? '-' : '') + prefix + Math.abs(n).toLocaleString('es-AR');
   },
 
   async setMoneda(val) {
