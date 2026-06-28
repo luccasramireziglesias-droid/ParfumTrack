@@ -1074,6 +1074,45 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .btn-pay:active { background: var(--card); }
 .btn-pay .ms { font-size: 20px; }
 
+.pago-cuota-info {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pago-cuota-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pago-cuota-label {
+  font: 500 12px 'DM Sans';
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pago-cuota-value {
+  font: 600 14px 'DM Sans';
+  color: var(--text);
+  max-width: 60%;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pago-cuota-value.gold { color: var(--gold2); }
+.cuota-partial-badge {
+  font: 600 10px 'DM Sans';
+  color: var(--warn);
+  background: rgba(224,176,96,0.12);
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  margin-left: 6px;
+}
+
 .wa-preview-label {
   font: 600 11px 'DM Sans';
   color: var(--text3);
@@ -2625,6 +2664,41 @@ input[type="date"].form-input {
     </div>
   </div>
 
+  <!-- ====== MODAL: REGISTRAR PAGO DE CUOTA ====== -->
+  <div id="modal-pago-cuota" class="modal-overlay hidden" onclick="App.cerrarPagoCuota()">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-height:auto;gap:16px;">
+      <div class="modal-header">
+        <span class="modal-title">Registrar pago</span>
+        <div class="back-btn" onclick="App.cerrarPagoCuota()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
+      </div>
+      <div class="pago-cuota-info">
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Perfume</span>
+          <span class="pago-cuota-value" id="pago-cuota-perfume"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Cliente</span>
+          <span class="pago-cuota-value" id="pago-cuota-cliente"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Cuota</span>
+          <span class="pago-cuota-value" id="pago-cuota-numero"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Monto cuota</span>
+          <span class="pago-cuota-value gold" id="pago-cuota-monto"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">MONTO QUE PAGA</label>
+        <input type="number" class="form-input" id="pago-cuota-input" placeholder="0" min="0" step="0.01" inputmode="decimal">
+      </div>
+      <button class="btn gold-btn" onclick="App.confirmarPagoCuota()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
+        <span class="ms">check_circle</span> Registrar pago
+      </button>
+    </div>
+  </div>
+
   <!-- ====== SCREEN: VER TODAS LAS VENTAS ====== -->
   <div id="screen-ventas-all" class="screen">
     <div class="screen-scroll">
@@ -3026,11 +3100,16 @@ const DB = {
     return this.getAll('cuotas');
   },
 
-  async pagarCuota(id) {
+  async pagarCuota(id, montoPagado) {
     const c = await this.get('cuotas', id);
     if (c) {
-      c.pagado = true;
+      const prevPagado = c.montoPagado || 0;
+      const totalPagado = prevPagado + montoPagado;
+      c.montoPagado = Math.min(totalPagado, c.monto);
+      c.pagado = c.montoPagado >= c.monto;
       c.fechaPago = Date.now();
+      if (!c.pagos) c.pagos = [];
+      c.pagos.push({ monto: montoPagado, fecha: Date.now() });
       await this.put('cuotas', c);
     }
     return c;
@@ -3484,7 +3563,7 @@ const App = {
 
   renderCuotas() {
     const pendientes = this.cuotasData.filter(c => !c.pagado);
-    const totalAdeudado = pendientes.reduce((s, c) => s + c.monto, 0);
+    const totalAdeudado = pendientes.reduce((s, c) => s + c.monto - (c.montoPagado || 0), 0);
     document.getElementById('cuotas-total').textContent = this.fmt(totalAdeudado);
 
     const badge = document.getElementById('nav-cuotas-badge');
@@ -3511,13 +3590,15 @@ const App = {
 
       const proxima = pendientesGrupo[0];
       const pagadas = cuotas.filter(c => c.pagado).length;
-      const totalPagado = cuotas.filter(c => c.pagado).reduce((s, c) => s + c.monto, 0);
+      const totalPagado = cuotas.reduce((s, c) => s + (c.pagado ? c.monto : (c.montoPagado || 0)), 0);
       const montoTotal = proxima.montoTotal;
       const pctPagado = montoTotal > 0 ? Math.round((totalPagado / montoTotal) * 100) : 0;
       const venceDate = this.fmtDate(proxima.vence);
       const resta = montoTotal - totalPagado;
+      const parcialProxima = proxima.montoPagado || 0;
+      const restaProxima = proxima.monto - parcialProxima;
 
-      const waMsg = `Hola ${this.esc(proxima.cliente)}! 👋 Te recuerdo tu cuota pendiente de *${this.esc(proxima.perfume)}*:\n\n📅 Cuota ${proxima.numero} de ${proxima.total}\n💰 Monto: ${this.fmt(proxima.monto)}\n📊 Total: ${this.fmt(montoTotal)}`;
+      const waMsg = `Hola ${this.esc(proxima.cliente)}! 👋 Te recuerdo tu cuota pendiente de *${this.esc(proxima.perfume)}*:\n\n📅 Cuota ${proxima.numero} de ${proxima.total}\n💰 Monto: ${this.fmt(restaProxima)}\n📊 Total: ${this.fmt(montoTotal)}`;
 
       return `<div class="cuota-card" style="margin-bottom:12px;">
         <div class="cuota-top">
@@ -3534,10 +3615,10 @@ const App = {
           </div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pctPagado}%"></div></div>
         </div>
-        <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span></div>
+        <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
           <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar por WhatsApp</button>
-          <button class="btn-pay" onclick="App.marcarPagada(${proxima.id})"><span class="ms">add_card</span></button>
+          <button class="btn-pay" onclick="App.abrirPagoCuota(${proxima.id})"><span class="ms">add_card</span></button>
         </div>
         <div class="wa-preview-label">VISTA PREVIA DEL MENSAJE</div>
         <div class="wa-bubble">
@@ -3953,14 +4034,57 @@ const App = {
 
   // ====== CUOTAS ======
 
-  async marcarPagada(id) {
-    await DB.pagarCuota(id);
+  _pagoCuotaId: null,
+
+  abrirPagoCuota(id) {
+    const cuota = this.cuotasData.find(c => c.id === id);
+    if (!cuota) return;
+    this._pagoCuotaId = id;
+    const restante = cuota.monto - (cuota.montoPagado || 0);
+    document.getElementById('pago-cuota-perfume').textContent = cuota.perfume;
+    document.getElementById('pago-cuota-cliente').textContent = cuota.cliente;
+    document.getElementById('pago-cuota-numero').textContent = `${cuota.numero} de ${cuota.total}`;
+    document.getElementById('pago-cuota-monto').textContent = this.fmt(restante);
+    const input = document.getElementById('pago-cuota-input');
+    input.value = restante;
+    input.max = restante;
+    document.getElementById('modal-pago-cuota').classList.remove('hidden');
+    setTimeout(() => input.select(), 100);
+  },
+
+  cerrarPagoCuota() {
+    document.getElementById('modal-pago-cuota').classList.add('hidden');
+    this._pagoCuotaId = null;
+  },
+
+  async confirmarPagoCuota() {
+    const id = this._pagoCuotaId;
+    if (!id) return;
+    const input = document.getElementById('pago-cuota-input');
+    const monto = parseFloat(input.value);
+    if (!monto || monto <= 0) {
+      this.toast('Ingresá un monto válido', 'error');
+      return;
+    }
+    const cuota = this.cuotasData.find(c => c.id === id);
+    const restante = cuota ? cuota.monto - (cuota.montoPagado || 0) : 0;
+    if (monto > restante + 0.01) {
+      this.toast('El monto supera lo que resta', 'error');
+      return;
+    }
+    await DB.pagarCuota(id, monto);
+    this.cerrarPagoCuota();
     await this.loadData();
     this.renderCuotas();
     this.renderDashboard();
     this.updateNavBadge();
-    this.toast('Cuota marcada como pagada', 'check_circle');
+    const paid = monto >= restante - 0.01;
+    this.toast(paid ? 'Cuota pagada completa' : 'Pago parcial registrado', 'check_circle');
     this.haptic('success');
+  },
+
+  async marcarPagada(id) {
+    this.abrirPagoCuota(id);
   },
 
   cobrarWhatsApp(msg) {
