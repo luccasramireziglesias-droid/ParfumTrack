@@ -63,6 +63,10 @@ body {
   white-space: nowrap;
   direction: ltr;
   font-size: 20px;
+  overflow: hidden;
+  max-width: 1.2em;
+  vertical-align: middle;
+  flex-shrink: 0;
 }
 
 .hidden { display: none !important; }
@@ -72,6 +76,21 @@ body {
 .muted { color: var(--text4); }
 .bold { font-weight: 700; }
 .text-primary { color: var(--text); }
+
+:focus-visible {
+  outline: 2px solid var(--gold2);
+  outline-offset: 2px;
+}
+button:focus-visible, .btn-primary:focus-visible, .btn-whatsapp:focus-visible,
+.nav-item:focus-visible, .back-btn:focus-visible {
+  outline: 2px solid var(--gold2);
+  outline-offset: 2px;
+}
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none;
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+}
 
 /* ====== APP LAYOUT ====== */
 #app {
@@ -100,6 +119,12 @@ body {
 
 .screen.active {
   display: flex;
+  animation: screenFadeIn 0.18s ease-out;
+}
+
+@keyframes screenFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .screen-scroll {
@@ -167,7 +192,10 @@ body {
   border-radius: var(--radius-pill);
   font: 600 12px 'DM Sans';
   color: var(--gold2);
+  cursor: pointer;
+  transition: background 0.15s;
 }
+.profile-chip:active { background: var(--bg3); }
 .profile-chip .ms { font-size: 14px; }
 
 /* ====== HERO CARD ====== */
@@ -207,9 +235,12 @@ body {
 .hero-amount {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
-  font-size: 47px;
+  font-size: clamp(36px, 10vw, 47px);
   line-height: 1;
   color: var(--gold2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hero-badge {
@@ -245,6 +276,7 @@ body {
 
 .stat-card {
   flex: 1;
+  min-width: 0;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
@@ -274,6 +306,9 @@ body {
   font-size: 30px;
   color: var(--text);
   margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .stat-value.danger { color: var(--red); }
 
@@ -284,6 +319,7 @@ body {
 
 .stat-card-sm {
   flex: 1;
+  min-width: 0;
   background: var(--bg3);
   border: 1px solid rgba(255,255,255,0.05);
   border-radius: 14px;
@@ -316,7 +352,10 @@ body {
   border: 1px solid rgba(112,201,160,0.18);
   border-radius: 14px;
   padding: 11px 15px;
+  cursor: pointer;
+  transition: background 0.15s;
 }
+.today-strip:active { background: rgba(112,201,160,0.18); }
 
 .today-left {
   display: flex;
@@ -346,7 +385,9 @@ body {
   font: 600 12px 'DM Sans';
   color: var(--gold2);
   cursor: pointer;
+  transition: opacity 0.15s;
 }
+.section-link:active { opacity: 0.6; }
 
 /* ====== VENTA CARD ====== */
 .venta-card {
@@ -357,7 +398,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transition: background 0.15s, border-color 0.15s;
 }
+.venta-card:active { background: var(--bg3); }
 
 .venta-card.faded { opacity: 0.55; }
 
@@ -377,6 +420,10 @@ body {
   font-weight: 600;
   font-size: 18px;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
 }
 
 .venta-tags {
@@ -474,8 +521,8 @@ body {
 }
 
 .back-btn {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 11px;
   background: var(--card);
   border: 1px solid var(--border);
@@ -484,7 +531,9 @@ body {
   justify-content: center;
   color: var(--gold2);
   cursor: pointer;
+  transition: background 0.15s;
 }
+.back-btn:active { background: var(--bg3); }
 
 .sub-title {
   font-family: 'Cormorant Garamond', serif;
@@ -567,9 +616,11 @@ body {
   color: var(--text);
   outline: none;
   width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .form-input:focus {
-  border-color: rgba(201,168,76,0.25);
+  border-color: rgba(201,168,76,0.4);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
 }
 .form-input::placeholder {
   color: var(--text4);
@@ -591,7 +642,9 @@ body {
   border-radius: var(--radius-input);
   padding: 13px 14px;
   cursor: pointer;
+  transition: background 0.15s;
 }
+.select-field:active { background: var(--card); }
 
 .select-value {
   font: 600 15px 'DM Sans';
@@ -640,7 +693,9 @@ body {
   cursor: pointer;
   width: 100%;
   -webkit-appearance: none;
+  transition: opacity 0.15s, transform 0.1s;
 }
+.btn-primary:active { opacity: 0.85; transform: scale(0.98); }
 .btn-primary .ms { font-size: 20px; }
 
 .btn-full { width: 100%; }
@@ -811,6 +866,9 @@ body {
   font-weight: 600;
   font-size: 16px;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .stock-row {
@@ -833,7 +891,8 @@ body {
 .stock-btn {
   font-family: 'Material Symbols Rounded';
   font-size: 16px;
-  padding: 4px;
+  width: 30px;
+  height: 28px;
   border-radius: 7px;
   border: none;
   cursor: pointer;
@@ -841,7 +900,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: opacity 0.15s;
 }
+.stock-btn:active { opacity: 0.7; }
 
 .stock-btn.minus {
   color: var(--text3);
@@ -874,15 +935,19 @@ body {
 .owed-amount {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
-  font-size: 38px;
+  font-size: clamp(28px, 8vw, 38px);
   line-height: 1;
   color: var(--red);
   margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .owed-icon {
   font-size: 38px !important;
   color: rgba(224,112,112,0.5);
+  max-width: 46px !important;
 }
 
 .cuota-card {
@@ -906,6 +971,10 @@ body {
   font-weight: 600;
   font-size: 19px;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
 }
 
 .cuota-cliente {
@@ -973,7 +1042,9 @@ body {
   font: 700 13px 'DM Sans';
   border: none;
   cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
 }
+.btn-whatsapp:active { opacity: 0.85; transform: scale(0.98); }
 .btn-whatsapp .ms { font-size: 18px; }
 
 .btn-pay {
@@ -1149,6 +1220,7 @@ body {
   border: 1px solid rgba(255,255,255,0.05);
   border-radius: 15px;
   padding: 14px;
+  min-width: 0;
 }
 
 .metric-header {
@@ -1165,9 +1237,12 @@ body {
 .metric-value {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
-  font-size: 28px;
+  font-size: clamp(22px, 6vw, 28px);
   color: var(--text);
   margin-top: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .metric-value.green { color: var(--green); }
 
@@ -1195,7 +1270,9 @@ body {
   color: var(--text);
   cursor: pointer;
   border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
 }
+.mas-item:active { background: rgba(255,255,255,0.04); }
 .mas-item:last-child { border-bottom: none; }
 .mas-item .ms { font-size: clamp(18px, 3vw, 22px); }
 .mas-item .chevron { margin-left: auto; font-size: 18px; }
@@ -1247,7 +1324,11 @@ body {
   cursor: pointer;
   position: relative;
   min-width: 48px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  transition: color 0.2s, background 0.15s;
 }
+.nav-item:active { background: rgba(255,255,255,0.05); }
 .nav-item .ms { font-size: 23px; }
 
 .nav-item.active {
@@ -1297,6 +1378,11 @@ body {
   box-shadow: 0 8px 18px rgba(201,168,76,0.45);
   transform: translateY(-16px);
   border: 3px solid var(--nav-bg);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.nav-fab:active .fab-circle {
+  transform: translateY(-16px) scale(0.93);
+  box-shadow: 0 4px 10px rgba(201,168,76,0.35);
 }
 .fab-circle .ms { font-size: 30px; color: #1a1a2e; }
 
@@ -1309,6 +1395,12 @@ body {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  animation: overlayFadeIn 0.2s ease-out;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-content {
@@ -1321,6 +1413,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  animation: modalSlideUp 0.25s ease-out;
+}
+
+@keyframes modalSlideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .modal-header {
@@ -1438,7 +1536,9 @@ body {
   font: 600 14px 'DM Sans';
   cursor: pointer;
   width: 100%;
+  transition: background 0.15s;
 }
+.btn-outline-gold:active { background: rgba(201,168,76,0.1); }
 .btn-outline-gold .ms { font-size: 18px; }
 
 .pedido-perfumes-list {
@@ -1633,7 +1733,9 @@ body {
   font: 700 13px 'DM Sans';
   border: none;
   cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
 }
+.btn-enviar:active { opacity: 0.85; transform: scale(0.98); }
 .btn-enviar .ms { font-size: 18px; }
 
 .btn-revertir {
@@ -1691,6 +1793,10 @@ body {
   font-weight: 600;
   font-size: 18px;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
 }
 
 .pedido-card-fecha {
@@ -1800,7 +1906,7 @@ input[type="date"].form-input {
   font:700 14px 'DM Sans'; color:var(--gold2);
   min-width:22px; text-align:center;
 }
-.ranking-name { flex:1; color:var(--text); }
+.ranking-name { flex:1; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ranking-count { color:var(--text3); font-size:12px; }
 .ranking-amount { color:var(--green); font-weight:600; }
 
@@ -1824,7 +1930,7 @@ input[type="date"].form-input {
 }
 .plan-card.pro { border-color: var(--gold); }
 .plan-name { font: 700 16px 'Cormorant Garamond'; color: var(--gold2); }
-.plan-price { font: 700 28px 'DM Sans'; color: var(--text); margin: 4px 0; }
+.plan-price { font: 700 clamp(22px, 7vw, 28px) 'DM Sans'; color: var(--text); margin: 4px 0; }
 .plan-desc { font-size: 12px; color: var(--text3); line-height: 1.4; }
 .plan-badge {
   display: inline-block; font-size: 11px; padding: 4px 12px;
