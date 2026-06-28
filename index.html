@@ -305,7 +305,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .stat-value {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
-  font-size: 30px;
+  font-size: clamp(24px, 7vw, 30px);
   color: var(--text);
   margin-top: 4px;
   overflow: hidden;
@@ -425,7 +425,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 200px;
+  max-width: 60%;
 }
 
 .venta-tags {
@@ -489,7 +489,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .venta-precio-value {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
-  font-size: 22px;
+  font-size: clamp(18px, 5vw, 22px);
   color: var(--text);
 }
 
@@ -583,7 +583,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .live-profit-amount {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
-  font-size: 42px;
+  font-size: clamp(32px, 9vw, 42px);
   line-height: 1.05;
   color: var(--green);
   margin-top: 2px;
@@ -591,7 +591,8 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 
 .live-profit-detail {
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 8px 16px;
   margin-top: 6px;
   font: 500 12px 'DM Sans';
   color: var(--text3);
@@ -985,7 +986,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 200px;
+  max-width: 55%;
 }
 
 .cuota-cliente {
@@ -1814,7 +1815,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 200px;
+  max-width: 60%;
 }
 
 .pedido-card-fecha {
