@@ -136,6 +136,8 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   flex-direction: column;
   gap: 13px;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
 }
 
 .screen-scroll::-webkit-scrollbar { display: none; }
@@ -505,12 +507,18 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   font-size: 18px;
   color: var(--text4);
   background: rgba(255,255,255,0.05);
-  padding: 6px;
+  width: 34px;
+  height: 34px;
   border-radius: 9px;
   cursor: pointer;
   border: none;
   font-family: 'Material Symbols Rounded';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
 }
+.venta-action-btn:active { background: rgba(255,255,255,0.12); }
 
 /* ====== SUB HEADER ====== */
 .sub-header {
@@ -593,6 +601,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .form-group {
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .form-label {
@@ -769,11 +778,13 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   border: 1px solid var(--border);
 }
 
+.chip:active { opacity: 0.7; }
 .chip.active {
   color: #1a1a2e;
   background: linear-gradient(135deg, var(--gold), var(--gold2));
   border-color: transparent;
 }
+.chip.active:active { opacity: 0.85; }
 
 .chip-red { color: var(--red) !important; background: rgba(224,112,112,0.12) !important; border-color: transparent !important; }
 .chip-warn { color: var(--warn) !important; background: rgba(224,176,96,0.12) !important; border-color: transparent !important; }
@@ -1057,7 +1068,9 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   border-radius: 11px;
   color: var(--gold2);
   cursor: pointer;
+  transition: background 0.15s;
 }
+.btn-pay:active { background: var(--card); }
 .btn-pay .ms { font-size: 20px; }
 
 .wa-preview-label {
@@ -1109,7 +1122,10 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   border-radius: var(--radius-pill);
   font: 600 12px 'DM Sans';
   color: var(--gold2);
+  cursor: pointer;
+  transition: background 0.15s;
 }
+.month-picker:active { background: var(--bg3); }
 .month-picker .ms { font-size: 15px; }
 
 .chart-card {
@@ -1763,8 +1779,10 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   border: 1px solid rgba(224,112,112,0.2);
   border-radius: 11px;
   color: var(--red);
+  transition: opacity 0.15s;
   cursor: pointer;
 }
+.btn-delete-pedido:active { opacity: 0.6; }
 .btn-delete-pedido .ms { font-size: 18px; }
 
 .nav-badge-inline {
@@ -1856,7 +1874,6 @@ input[type="date"].form-input {
   color-scheme: dark;
 }
 
-.form-group { position: relative; }
 
 @media (display-mode: standalone) {
   .header-bar { padding-top: max(4px, env(safe-area-inset-top)); }
@@ -2090,7 +2107,7 @@ input[type="date"].form-input {
   <div id="screen-nueva-venta" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('inicio')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('inicio')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Nueva venta</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2414,7 +2431,7 @@ input[type="date"].form-input {
   <div id="screen-caja" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('mas')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Caja diaria</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2469,7 +2486,7 @@ input[type="date"].form-input {
   <div id="screen-gastos" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('mas')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Gastos del negocio</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2532,7 +2549,7 @@ input[type="date"].form-input {
   <div id="screen-nuevo-pedido" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('pedidos')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('pedidos')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Nuevo pedido</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2584,7 +2601,7 @@ input[type="date"].form-input {
   <div id="screen-pedido-detalle" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('pedidos')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('pedidos')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Detalle del pedido</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2597,7 +2614,7 @@ input[type="date"].form-input {
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span class="modal-title">Agregar perfume</span>
-        <div class="back-btn" onclick="App.closePedidoPerfumeSelector()"><span class="ms">close</span></div>
+        <div class="back-btn" onclick="App.closePedidoPerfumeSelector()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
       </div>
       <div class="search-bar modal-search">
         <span class="ms muted">search</span>
@@ -2611,7 +2628,7 @@ input[type="date"].form-input {
   <div id="screen-ventas-all" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('inicio')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('inicio')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Todas las ventas</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2624,7 +2641,7 @@ input[type="date"].form-input {
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span class="modal-title">Elegir perfume</span>
-        <div class="back-btn" onclick="App.closeModal()"><span class="ms">close</span></div>
+        <div class="back-btn" onclick="App.closeModal()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
       </div>
       <div class="search-bar modal-search">
         <span class="ms muted">search</span>
@@ -2639,7 +2656,7 @@ input[type="date"].form-input {
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span class="modal-title">Agregar perfume</span>
-        <div class="back-btn" onclick="App.closeAddPerfume()"><span class="ms">close</span></div>
+        <div class="back-btn" onclick="App.closeAddPerfume()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
       </div>
       <div class="form-group">
         <label class="form-label">NOMBRE</label>
@@ -2681,7 +2698,7 @@ input[type="date"].form-input {
   <div id="screen-cuenta" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('mas')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Mi cuenta</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
@@ -2787,7 +2804,7 @@ input[type="date"].form-input {
   <div id="screen-catalogo" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
-        <div class="back-btn" onclick="App.showScreen('mas')"><span class="ms">arrow_back</span></div>
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Catálogo WhatsApp</span>
         <div class="back-btn" onclick="App.toggleSelectAllCatalogo()"><span class="ms">select_all</span></div>
       </div>
@@ -2815,24 +2832,24 @@ input[type="date"].form-input {
   </div><!-- /screens-container -->
 
   <!-- ====== BOTTOM NAV ====== -->
-  <nav class="bottom-nav">
-    <div class="nav-item active" onclick="App.showScreen('inicio')" data-tab="inicio">
+  <nav class="bottom-nav" role="tablist" aria-label="Navegación principal">
+    <div class="nav-item active" onclick="App.showScreen('inicio')" data-tab="inicio" role="tab" aria-label="Ventas" tabindex="0">
       <span class="ms" style="font-variation-settings:'FILL' 1;">account_balance_wallet</span>
       <span class="nav-label">Ventas</span>
     </div>
-    <div class="nav-item" onclick="App.showScreen('cuotas')" data-tab="cuotas">
+    <div class="nav-item" onclick="App.showScreen('cuotas')" data-tab="cuotas" role="tab" aria-label="Cuotas" tabindex="0">
       <span class="ms">calendar_month</span>
       <span class="nav-label">Cuotas</span>
       <span class="nav-badge" id="nav-cuotas-badge">0</span>
     </div>
-    <div class="nav-fab" onclick="App.showScreen('nueva-venta')">
+    <div class="nav-fab" onclick="App.showScreen('nueva-venta')" role="button" aria-label="Nueva venta" tabindex="0">
       <div class="fab-circle"><span class="ms">add</span></div>
     </div>
-    <div class="nav-item" onclick="App.showScreen('stats')" data-tab="stats">
+    <div class="nav-item" onclick="App.showScreen('stats')" data-tab="stats" role="tab" aria-label="Gráficos" tabindex="0">
       <span class="ms">monitoring</span>
       <span class="nav-label">Gráficos</span>
     </div>
-    <div class="nav-item" onclick="App.showScreen('mas')" data-tab="mas">
+    <div class="nav-item" onclick="App.showScreen('mas')" data-tab="mas" role="tab" aria-label="Más opciones" tabindex="0">
       <span class="ms">more_horiz</span>
       <span class="nav-label">Más</span>
     </div>
@@ -3308,7 +3325,7 @@ const App = {
     const container = document.getElementById('ventas-recientes');
     const recientes = this.ventas.slice(0, 3);
     if (recientes.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span>No hay ventas registradas</span></div>';
+      container.innerHTML = '<div class="empty-state"><span class="ms">receipt_long</span><span>No hay ventas registradas</span></div>';
       return;
     }
 
@@ -3374,7 +3391,7 @@ const App = {
   renderAllVentas() {
     const container = document.getElementById('ventas-all-list');
     if (this.ventas.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span>No hay ventas registradas</span></div>';
+      container.innerHTML = '<div class="empty-state"><span class="ms">receipt_long</span><span>No hay ventas registradas</span></div>';
       return;
     }
 
@@ -3439,7 +3456,7 @@ const App = {
     if (chipBajo) chipBajo.textContent = bajoStock;
 
     if (items.length === 0) {
-      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span>No hay perfumes</span></div>';
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span class="ms">inventory_2</span><span>No hay perfumes</span></div>';
       return;
     }
 
@@ -3477,7 +3494,7 @@ const App = {
 
     const container = document.getElementById('cuotas-list');
     if (pendientes.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span>No hay cuotas pendientes</span></div>';
+      container.innerHTML = '<div class="empty-state"><span class="ms">check_circle</span><span>No hay cuotas pendientes</span></div>';
       return;
     }
 
@@ -4049,7 +4066,7 @@ const App = {
 
     if (items.length === 0) {
       const msg = this.pedidosFilter === 'pendiente' ? 'No hay pedidos pendientes' : 'No hay pedidos enviados';
-      container.innerHTML = `<div class="empty-state"><span>${msg}</span></div>`;
+      container.innerHTML = `<div class="empty-state"><span class="ms">package_2</span><span>${msg}</span></div>`;
       return;
     }
 
@@ -4322,7 +4339,7 @@ const App = {
     const p = this.pedidosData.find(x => x.id === id);
     const container = document.getElementById('pedido-detalle-content');
     if (!p) {
-      container.innerHTML = '<div class="empty-state"><span>Pedido no encontrado</span></div>';
+      container.innerHTML = '<div class="empty-state"><span class="ms">search_off</span><span>Pedido no encontrado</span></div>';
       return;
     }
 
@@ -4425,7 +4442,7 @@ const App = {
 
     const container = document.getElementById('caja-list');
     if (todayItems.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span>No hay movimientos hoy</span></div>';
+      container.innerHTML = '<div class="empty-state"><span class="ms">account_balance</span><span>No hay movimientos hoy</span></div>';
       return;
     }
     container.innerHTML = todayItems.map(c => {
@@ -4487,7 +4504,7 @@ const App = {
     const container = document.getElementById('gastos-list');
     const recientes = this.gastosData.slice(0, 10);
     if (recientes.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span>No hay gastos registrados</span></div>';
+      container.innerHTML = '<div class="empty-state"><span class="ms">payments</span><span>No hay gastos registrados</span></div>';
       return;
     }
     const catIcons = { transporte: 'local_shipping', embalaje: 'inventory', publicidad: 'campaign', otro: 'more_horiz' };
