@@ -2879,6 +2879,22 @@ const DB = {
   },
 
   async deleteVenta(id) {
+    const v = await this.get('ventas', id);
+    if (v) {
+      if (v.perfumeId && v.perfumeId !== '') {
+        const p = await this.get('perfumes', v.perfumeId);
+        if (p) {
+          p.stock = (p.stock || 0) + 1;
+          await this.put('perfumes', p);
+        }
+      }
+      if (v.formaPago === 'cuotas') {
+        const allCuotas = await this.getAll('cuotas');
+        for (const c of allCuotas) {
+          if (c.ventaId === id) await this.delete('cuotas', c.id);
+        }
+      }
+    }
     return this.delete('ventas', id);
   },
 
@@ -3244,7 +3260,7 @@ const App = {
           </div>
           <div style="text-align:right;">
             <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">${gan >= 0 ? '+' : ''}${this.fmt(gan)}</div>
+            <div class="venta-ganancia-value">${this.fmtSigned(gan)}</div>
           </div>
           <div class="venta-actions">
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
@@ -3295,7 +3311,7 @@ const App = {
           </div>
           <div style="text-align:right;">
             <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">${gan >= 0 ? '+' : ''}${this.fmt(gan)}</div>
+            <div class="venta-ganancia-value">${this.fmtSigned(gan)}</div>
           </div>
           <div class="venta-actions">
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
@@ -3440,7 +3456,7 @@ const App = {
     const yLabels = ['cy5','cy4','cy3','cy2','cy1'];
     yLabels.forEach((id, i) => {
       const v = steps[i];
-      document.getElementById(id).textContent = v >= 1000 ? '$' + Math.round(v / 1000) + 'k' : '$' + Math.round(v);
+      document.getElementById(id).textContent = v >= 1000 ? this._moneda + Math.round(v / 1000) + 'k' : this._moneda + Math.round(v);
     });
 
     const ticket = thisMonth.length > 0 ? Math.round(totalVenta / thisMonth.length) : 0;
@@ -3552,7 +3568,7 @@ const App = {
     const gan = pvFinal - pc;
     const margen = pvFinal > 0 ? Math.round((gan / pvFinal) * 100) : 0;
 
-    document.getElementById('live-ganancia').textContent = (gan >= 0 ? '+' : '') + this.fmt(gan);
+    document.getElementById('live-ganancia').textContent = this.fmtSigned(gan);
     document.getElementById('live-venta').textContent = this.fmt(pvFinal);
     document.getElementById('live-compra').textContent = this.fmt(pc);
     document.getElementById('live-margen').textContent = margen + '%';
@@ -4298,7 +4314,9 @@ const App = {
     document.getElementById('caja-salidas').textContent = this.fmt(salidas);
     const balance = entradas - salidas;
     const balEl = document.getElementById('caja-balance');
-    balEl.textContent = (balance >= 0 ? '+' : '-') + this.fmt(Math.abs(balance));
+    const sign = balance >= 0 ? '+' : '-';
+    const prefix = this._moneda + (this._moneda.length > 1 ? ' ' : '');
+    balEl.textContent = prefix + sign + Math.abs(balance).toLocaleString('es-AR');
     balEl.style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
 
     const container = document.getElementById('caja-list');
@@ -4315,7 +4333,7 @@ const App = {
             <span class="venta-nombre">${this.esc(c.descripcion)}</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font:700 16px 'DM Sans';color:${isEntrada ? 'var(--green)' : 'var(--red)'};">${isEntrada ? '+' : '-'}${this.fmt(c.monto)}</span>
+            <span style="font:700 16px 'DM Sans';color:${isEntrada ? 'var(--green)' : 'var(--red)'};">${this.fmt(isEntrada ? c.monto : -c.monto)}</span>
             <button class="venta-action-btn ms" onclick="App.deleteCaja(${c.id})">delete</button>
           </div>
         </div>
@@ -4383,7 +4401,7 @@ const App = {
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font:700 16px 'DM Sans';color:var(--red);">-${this.fmt(g.monto)}</span>
+            <span style="font:700 16px 'DM Sans';color:var(--red);">${this.fmt(-g.monto)}</span>
             <button class="venta-action-btn ms" onclick="App.deleteGasto(${g.id})">delete</button>
           </div>
         </div>
@@ -4964,10 +4982,19 @@ const App = {
   _moneda: '$',
 
   fmt(n, forceAbs) {
-    const prefix = this._moneda + (this._moneda.length > 1 ? ' ' : '');
-    if (n === undefined || n === null) return prefix + '0';
-    if (forceAbs) return prefix + Math.abs(n).toLocaleString('es-AR');
-    return (n < 0 ? '-' : '') + prefix + Math.abs(n).toLocaleString('es-AR');
+    const sep = this._moneda.length > 1 ? ' ' : '';
+    if (n === undefined || n === null) return this._moneda + sep + '0';
+    const abs = Math.abs(n).toLocaleString('es-AR');
+    if (forceAbs) return this._moneda + sep + abs;
+    if (n < 0) return '-' + this._moneda + sep + abs;
+    return this._moneda + sep + abs;
+  },
+
+  fmtSigned(n) {
+    const sep = this._moneda.length > 1 ? ' ' : '';
+    const abs = Math.abs(n || 0).toLocaleString('es-AR');
+    const sign = (n || 0) >= 0 ? '+' : '-';
+    return sign + this._moneda + sep + abs;
   },
 
   async setMoneda(val) {
