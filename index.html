@@ -3192,7 +3192,7 @@ const App = {
     const container = document.getElementById('ventas-recientes');
     const recientes = this.ventas.slice(0, 3);
     if (recientes.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span class="ms">receipt_long</span><span>No hay ventas registradas</span></div>';
+      container.innerHTML = '<div class="empty-state"><span>No hay ventas registradas</span></div>';
       return;
     }
 
@@ -3258,7 +3258,7 @@ const App = {
   renderAllVentas() {
     const container = document.getElementById('ventas-all-list');
     if (this.ventas.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span class="ms">receipt_long</span><span>No hay ventas registradas</span></div>';
+      container.innerHTML = '<div class="empty-state"><span>No hay ventas registradas</span></div>';
       return;
     }
 
@@ -3323,7 +3323,7 @@ const App = {
     if (chipBajo) chipBajo.textContent = bajoStock;
 
     if (items.length === 0) {
-      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span class="ms">inventory_2</span><span>No hay perfumes</span></div>';
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span>No hay perfumes</span></div>';
       return;
     }
 
@@ -3361,7 +3361,7 @@ const App = {
 
     const container = document.getElementById('cuotas-list');
     if (pendientes.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span class="ms">celebration</span><span>No hay cuotas pendientes</span></div>';
+      container.innerHTML = '<div class="empty-state"><span>No hay cuotas pendientes</span></div>';
       return;
     }
 
@@ -3932,7 +3932,7 @@ const App = {
 
     if (items.length === 0) {
       const msg = this.pedidosFilter === 'pendiente' ? 'No hay pedidos pendientes' : 'No hay pedidos enviados';
-      container.innerHTML = `<div class="empty-state"><span class="ms">package_2</span><span>${msg}</span></div>`;
+      container.innerHTML = `<div class="empty-state"><span>${msg}</span></div>`;
       return;
     }
 
@@ -4202,7 +4202,7 @@ const App = {
     const p = this.pedidosData.find(x => x.id === id);
     const container = document.getElementById('pedido-detalle-content');
     if (!p) {
-      container.innerHTML = '<div class="empty-state"><span class="ms">error</span><span>Pedido no encontrado</span></div>';
+      container.innerHTML = '<div class="empty-state"><span>Pedido no encontrado</span></div>';
       return;
     }
 
@@ -4303,7 +4303,7 @@ const App = {
 
     const container = document.getElementById('caja-list');
     if (todayItems.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span class="ms">account_balance</span><span>No hay movimientos hoy</span></div>';
+      container.innerHTML = '<div class="empty-state"><span>No hay movimientos hoy</span></div>';
       return;
     }
     container.innerHTML = todayItems.map(c => {
@@ -4365,7 +4365,7 @@ const App = {
     const container = document.getElementById('gastos-list');
     const recientes = this.gastosData.slice(0, 10);
     if (recientes.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span class="ms">payments</span><span>No hay gastos registrados</span></div>';
+      container.innerHTML = '<div class="empty-state"><span>No hay gastos registrados</span></div>';
       return;
     }
     const catIcons = { transporte: 'local_shipping', embalaje: 'inventory', publicidad: 'campaign', otro: 'more_horiz' };
