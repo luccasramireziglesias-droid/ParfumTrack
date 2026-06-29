@@ -1,7 +1,7 @@
-// Parfum Track — Service Worker v10
-// v10: force refresh after 360 audit fixes
+// Parfum Track — Service Worker v11
+// v11: fix cuota buttons + migrate string IDs
 
-const CACHE_NAME = "parfumtrack-v10";
+const CACHE_NAME = "parfumtrack-v11";
 const STATIC_ASSETS = [
   "/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",
   "/favicon.ico", "/favicon.svg", "/favicon-32.png",

@@ -3453,6 +3453,7 @@ const App = {
     await DB.init();
     await DB.seedDemo();
     await this._fixCorruptDates();
+    await this._fixStringCuotaIds();
     await this.loadData();
     this.loadMoneda();
     this.loadNombreNegocio();
@@ -3513,6 +3514,20 @@ const App = {
       }
     }
     localStorage.setItem('pt_dates_fixed_v3', '1');
+  },
+
+  async _fixStringCuotaIds() {
+    if (localStorage.getItem('pt_cuota_ids_fixed')) return;
+    const cuotas = await DB.getAll('cuotas');
+    for (const c of cuotas) {
+      if (typeof c.id === 'string') {
+        const copy = Object.assign({}, c);
+        delete copy.id;
+        await DB.delete('cuotas', c.id);
+        await DB.add('cuotas', copy);
+      }
+    }
+    localStorage.setItem('pt_cuota_ids_fixed', '1');
   },
 
   async loadData() {
