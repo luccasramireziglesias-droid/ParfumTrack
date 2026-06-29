@@ -284,6 +284,7 @@ async function getTs(env, key) {
     // Support both plain string (legacy) and JSON { startAt }
     try {
       const parsed = JSON.parse(raw);
+      if (typeof parsed === 'number' && isFinite(parsed)) return parsed;
       return parsed.startAt || null;
     } catch {
       const n = parseInt(raw, 10);
