@@ -57,12 +57,17 @@ export async function onRequestGet(context) {
     return json({ ok: false, error: 'Unauthorized' }, 401, headers);
   }
 
-  const licenseCode = await env.PT_LICENSES.get(`mp_pay:${paymentId}`);
-  if (!licenseCode) {
-    return json({ ok: true, status: 'pending' }, 200, headers);
+  let licenseCode, licRaw;
+  try {
+    licenseCode = await env.PT_LICENSES.get(`mp_pay:${paymentId}`);
+    if (!licenseCode) {
+      return json({ ok: true, status: 'pending' }, 200, headers);
+    }
+    licRaw = await env.PT_LICENSES.get(`license:${licenseCode}`);
+  } catch (e) {
+    log('error', 'mp-payment-status', 'KV read failed', { error: e.message });
+    return json({ ok: false, error: 'Storage error' }, 500, headers);
   }
-
-  const licRaw = await env.PT_LICENSES.get(`license:${licenseCode}`);
   if (!licRaw) {
     return json({ ok: true, status: 'pending' }, 200, headers);
   }

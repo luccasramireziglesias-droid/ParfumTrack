@@ -100,11 +100,16 @@ export async function onRequestPost(context) {
       const ttl = Math.floor((new Date(license.expiresAt).getTime() - Date.now()) / 1000) + 86400 * 30;
       if (ttl > 60) putOpts.expirationTtl = ttl;
     }
-    await env.PT_LICENSES.put(
-      `license:${normalizedCode}`,
-      JSON.stringify(license),
-      putOpts,
-    );
+    try {
+      await env.PT_LICENSES.put(
+        `license:${normalizedCode}`,
+        JSON.stringify(license),
+        putOpts,
+      );
+    } catch (e) {
+      log('error', 'validate-license', 'KV write failed', { error: e.message });
+      return json({ ok: false, valid: false, error: 'Storage error' }, 500, headers);
+    }
 
     log('info', 'validate-license', 'license activated', { code: normalizedCode.slice(0, 7) + '***', use: `${license.usedCount}/${license.maxUses ?? '∞'}` });
   } else {

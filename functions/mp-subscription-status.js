@@ -36,7 +36,12 @@ export async function onRequestGet(context) {
     return json({ ok: false, error: 'Service unavailable' }, 500, headers);
   }
 
-  const licRaw = await env.PT_LICENSES.get(`license:${code}`);
+  let licRaw;
+  try {
+    licRaw = await env.PT_LICENSES.get(`license:${code}`);
+  } catch (e) {
+    return json({ ok: false, error: 'Storage error' }, 500, headers);
+  }
   if (!licRaw) return json({ ok: false, error: 'Licencia no encontrada' }, 404, headers);
 
   let lic;

@@ -221,7 +221,7 @@
         if (resp.ok) {
           const data = await resp.json();
           if (data.ok && data.status === 'active') {
-            if (data.code) {
+            if (data.code && /^PT-[A-F0-9]{6}-[A-F0-9]{6}$/.test(data.code)) {
               try {
                 localStorage.setItem('pt_pending_license', data.code);
                 const btn = document.getElementById('open-app-btn');
