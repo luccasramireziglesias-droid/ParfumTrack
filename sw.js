@@ -1,7 +1,7 @@
-// Parfum Track — Service Worker v9
-// v9: cache Google Fonts offline, fix galería fotos
+// Parfum Track — Service Worker v10
+// v10: force refresh after 360 audit fixes
 
-const CACHE_NAME = "parfumtrack-v9";
+const CACHE_NAME = "parfumtrack-v10";
 const STATIC_ASSETS = [
   "/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",
   "/favicon.ico", "/favicon.svg", "/favicon-32.png",
