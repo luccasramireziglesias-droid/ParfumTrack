@@ -5245,6 +5245,7 @@ const App = {
         data[s] = Object.values(data[s]);
       }
     }
+    if (!Array.isArray(data.cuotas)) data.cuotas = [];
     if (Array.isArray(data.ventas)) {
       data.ventas = data.ventas.map(v => {
         const venta = {
@@ -5258,6 +5259,40 @@ const App = {
             ...cp,
             fecha: this._parseDate(cp.fecha, venta.fecha),
           }));
+        }
+        // Map esCuotas format to internal formaPago format
+        if (venta.esCuotas && !venta.formaPago) {
+          const numCuotas = Number(venta.cuotasTotal) || 1;
+          venta.formaPago = numCuotas > 1 ? 'cuotas' : 'contado';
+          venta.numCuotas = numCuotas;
+          if (numCuotas > 1 && venta.id) {
+            const existingCuotas = data.cuotas.filter(c => c.ventaId === venta.id);
+            if (existingCuotas.length === 0) {
+              const pagos = Array.isArray(venta.cuotasPagos) ? venta.cuotasPagos : [];
+              const montoCuota = Math.round(venta.precioVenta / numCuotas);
+              const lastCuota = venta.precioVenta - montoCuota * (numCuotas - 1);
+              for (let i = 0; i < numCuotas; i++) {
+                const isLast = i === numCuotas - 1;
+                const monto = isLast ? lastCuota : montoCuota;
+                const pago = pagos.find(p => p.numCuota === i);
+                const vence = new Date(venta.fecha);
+                vence.setMonth(vence.getMonth() + i);
+                data.cuotas.push({
+                  id: venta.id + '_c' + i,
+                  ventaId: venta.id,
+                  perfume: venta.perfume || '',
+                  cliente: venta.cliente || '',
+                  numero: i + 1,
+                  total: numCuotas,
+                  monto,
+                  montoTotal: venta.precioVenta,
+                  pagado: !!pago,
+                  montoPagado: pago ? Number(pago.monto) || 0 : 0,
+                  vence: vence.getTime(),
+                });
+              }
+            }
+          }
         }
         return venta;
       });
