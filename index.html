@@ -3497,7 +3497,7 @@ const App = {
   },
 
   async _fixCorruptDates() {
-    if (localStorage.getItem('pt_dates_fixed_v2')) return;
+    if (localStorage.getItem('pt_dates_fixed_v3')) return;
     const ventas = await DB.getAll('ventas');
     for (const v of ventas) {
       if (!v.fecha || typeof v.fecha === 'string' || isNaN(new Date(v.fecha).getTime())) {
@@ -3512,7 +3512,7 @@ const App = {
         await DB.put('cuotas', c);
       }
     }
-    localStorage.setItem('pt_dates_fixed_v2', '1');
+    localStorage.setItem('pt_dates_fixed_v3', '1');
   },
 
   async loadData() {
@@ -5219,6 +5219,12 @@ const App = {
     if (typeof v === 'number') return v;
     if (typeof v === 'string') {
       if (/^\d+$/.test(v)) return Number(v);
+      // DD/MM/YYYY or DD-MM-YYYY
+      const dmy = v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (dmy) {
+        const ms = new Date(+dmy[3], +dmy[2] - 1, +dmy[1], 12).getTime();
+        return isNaN(ms) ? fallback : ms;
+      }
       const ms = new Date(v).getTime();
       return isNaN(ms) ? fallback : ms;
     }
@@ -5240,12 +5246,21 @@ const App = {
       }
     }
     if (Array.isArray(data.ventas)) {
-      data.ventas = data.ventas.map(v => ({
-        ...v,
-        precioVenta: Number(v.precioVenta) || 0,
-        precioCompra: Number(v.precioCompra) || 0,
-        fecha: this._parseDate(v.fecha, Date.now()),
-      }));
+      data.ventas = data.ventas.map(v => {
+        const venta = {
+          ...v,
+          precioVenta: Number(v.precioVenta) || 0,
+          precioCompra: Number(v.precioCompra) || 0,
+          fecha: this._parseDate(v.fecha, Date.now()),
+        };
+        if (Array.isArray(venta.cuotasPagos)) {
+          venta.cuotasPagos = venta.cuotasPagos.map(cp => ({
+            ...cp,
+            fecha: this._parseDate(cp.fecha, venta.fecha),
+          }));
+        }
+        return venta;
+      });
     }
     if (Array.isArray(data.cuotas)) {
       data.cuotas = data.cuotas.map(c => ({
