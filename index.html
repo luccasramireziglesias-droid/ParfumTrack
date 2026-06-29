@@ -4360,7 +4360,12 @@ const App = {
     const p = this.perfumes.find(x => x.id === id);
     if (!p) return;
     p.stock = Math.max(0, p.stock + delta);
-    await DB.updatePerfume(p);
+    try {
+      await DB.updatePerfume(p);
+    } catch (e) {
+      this.toast('Error al actualizar stock', 'error');
+      return;
+    }
     await this.loadData();
     this.renderStock();
     if (p.stock === 0 && delta < 0) this.haptic('warning');
@@ -4393,7 +4398,12 @@ const App = {
           const p = this.perfumes.find(x => x.id === id);
           if (p) {
             p.foto = dataUrl;
-            await DB.updatePerfume(p);
+            try {
+              await DB.updatePerfume(p);
+            } catch (e) {
+              App.toast('Error al guardar la foto', 'error');
+              return;
+            }
             await this.loadData();
             this.renderStock();
             this.toast('Foto actualizada', 'check_circle');
@@ -4519,7 +4529,12 @@ const App = {
       this.toast('El monto supera lo que resta', 'error');
       return;
     }
-    await DB.pagarCuota(id, monto);
+    try {
+      await DB.pagarCuota(id, monto);
+    } catch (e) {
+      this.toast('Error al registrar el pago', 'error');
+      return;
+    }
     this.cerrarPagoCuota();
     await this.loadData();
     this.renderCuotas();
@@ -4607,7 +4622,12 @@ const App = {
         proveedor: proveedor || '', descuento, nota, fecha,
         perfumeId: perfumeId ? parseInt(perfumeId) : ''
       });
-      await DB.updateVenta(v);
+      try {
+        await DB.updateVenta(v);
+      } catch (e) {
+        this.toast('Error al actualizar la venta', 'error');
+        return;
+      }
     }
 
     this._editingVentaId = null;
@@ -4834,7 +4854,12 @@ const App = {
   },
 
   async marcarPedidoEnviado(id) {
-    await DB.marcarEnviado(id);
+    try {
+      await DB.marcarEnviado(id);
+    } catch (e) {
+      this.toast('Error al actualizar el pedido', 'error');
+      return;
+    }
     await this.loadData();
     this.renderPedidos();
     this.updatePedidosBadge();
@@ -4843,7 +4868,12 @@ const App = {
   },
 
   async marcarPedidoPendiente(id) {
-    await DB.marcarPendiente(id);
+    try {
+      await DB.marcarPendiente(id);
+    } catch (e) {
+      this.toast('Error al actualizar el pedido', 'error');
+      return;
+    }
     await this.loadData();
     this.renderPedidos();
     this.updatePedidosBadge();
@@ -4896,7 +4926,12 @@ const App = {
         nombre, cedula, transporte, direccion, nota,
         perfumes: this.pedidoPerfumes.map(pf => ({ id: pf.id, nombre: pf.nombre, precioVenta: pf.precioVenta, cantidad: pf.cantidad }))
       });
-      await DB.updatePedido(p);
+      try {
+        await DB.updatePedido(p);
+      } catch (e) {
+        this.toast('Error al actualizar el pedido', 'error');
+        return;
+      }
     }
 
     this._editingPedidoId = null;
