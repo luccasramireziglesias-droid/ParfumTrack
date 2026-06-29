@@ -4482,6 +4482,10 @@ const App = {
     this.abrirPagoCuota(id);
   },
 
+  async marcarPagada(id) {
+    this.abrirPagoCuota(id);
+  },
+
   cobrarWhatsApp(msg) {
     const encoded = encodeURIComponent(msg);
     window.open('https://wa.me/?text=' + encoded, '_blank');
