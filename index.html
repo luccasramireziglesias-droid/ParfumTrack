@@ -3779,7 +3779,7 @@ const App = {
           <span style="font:500 13px 'DM Sans';color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.esc(name)}</span>
         </div>
         <span style="font:700 14px 'DM Sans';color:var(--red);margin:0 10px;white-space:nowrap;">${this.fmt(total)}</span>
-        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/'/g, "\\'")}')"><span class="ms" style="font-size:16px;">chat</span></button>
+        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms" style="font-size:16px;">chat</span></button>
       </div>`;
     }).join('');
   },
@@ -3984,8 +3984,8 @@ const App = {
         </div>
         <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
-          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar por WhatsApp</button>
-          <button class="btn-pay" onclick="App.abrirPagoCuota(${proxima.id})"><span class="ms">add_card</span></button>
+          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar por WhatsApp</button>
+          <button class="btn-pay" onclick="App.abrirPagoCuota(${JSON.stringify(proxima.id)})"><span class="ms">add_card</span></button>
         </div>
         <div class="wa-preview-label">VISTA PREVIA DEL MENSAJE</div>
         <div class="wa-bubble">
@@ -4057,7 +4057,7 @@ const App = {
         </div>
         <div class="deudor-items">${items}</div>
         <div class="deudor-actions">
-          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
+          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
         </div>
       </div>`;
     }).join('');
@@ -5328,7 +5328,6 @@ const App = {
                 const vence = new Date(venta.fecha);
                 vence.setMonth(vence.getMonth() + i);
                 data.cuotas.push({
-                  id: venta.id + '_c' + i,
                   ventaId: venta.id,
                   perfume: venta.perfume || '',
                   cliente: venta.cliente || '',
