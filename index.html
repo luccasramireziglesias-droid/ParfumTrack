@@ -2693,7 +2693,7 @@ input[type="date"].form-input {
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
 
-      <div class="hero-card" style="padding:14px 18px;">
+      <div class="hero-card" style="padding:14px 18px;margin-bottom:12px;">
         <div class="hero-label">Total gastos · este mes</div>
         <div class="hero-amount danger" id="gastos-total" style="font-size:36px;color:var(--red);">$0</div>
       </div>
@@ -5204,16 +5204,20 @@ const App = {
       container.innerHTML = '<div class="empty-state"><span class="ms">payments</span><span>No hay gastos registrados</span></div>';
       return;
     }
-    const catIcons = { transporte: 'local_shipping', embalaje: 'inventory', publicidad: 'campaign', otro: 'more_horiz' };
-    container.innerHTML = recientes.map(g => `
+    const catIcons = { transporte: 'local_shipping', embalaje: 'inventory', publicidad: 'campaign', envio_compra: 'local_shipping', otro: 'more_horiz' };
+    const catLabels = { transporte: 'Transporte', embalaje: 'Embalaje', publicidad: 'Publicidad', envio_compra: 'Envío de compra', otro: 'Otro' };
+    container.innerHTML = recientes.map(g => {
+      const desc = g.descripcion || catLabels[g.categoria] || g.categoria || 'Sin descripción';
+      const catLabel = catLabels[g.categoria] || g.categoria || 'otro';
+      return `
       <div class="venta-card" style="margin-bottom:8px;">
         <div class="venta-top">
-          <div style="display:flex;align-items:center;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
             <span class="ms gold">${catIcons[g.categoria] || 'payments'}</span>
-            <div>
-              <span class="venta-nombre">${this.esc(g.descripcion)}</span>
+            <div style="min-width:0;">
+              <span class="venta-nombre" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.esc(desc)}</span>
               <div style="display:flex;gap:6px;margin-top:3px;">
-                <span class="tag">${this.esc(g.categoria)}</span>
+                <span class="tag">${this.esc(catLabel)}</span>
                 <span style="font:500 11px 'DM Sans';color:var(--text3);">${this.fmtDate(g.fecha)}</span>
               </div>
             </div>
@@ -5224,7 +5228,7 @@ const App = {
           </div>
         </div>
       </div>
-    `).join('');
+    `}).join('');
   },
 
   // ====== DATA MANAGEMENT ======
@@ -5359,11 +5363,14 @@ const App = {
         stock: Number(p.stock) || 0,
       }));
     }
+    const validCats = ['transporte', 'embalaje', 'publicidad', 'otro'];
     if (Array.isArray(data.gastos)) {
       data.gastos = data.gastos.map(g => ({
         ...g,
         monto: Number(g.monto) || 0,
         fecha: this._parseDate(g.fecha, Date.now()),
+        categoria: validCats.includes(g.categoria) ? g.categoria : 'otro',
+        descripcion: g.descripcion || g.nota || '',
       }));
     }
     if (Array.isArray(data.caja)) {
