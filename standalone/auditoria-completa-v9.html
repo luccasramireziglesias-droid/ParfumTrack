@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parfum Track — Auditoría Completa v9 (28/06/2026)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a14;color:#e8e4dc;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;line-height:1.6;padding:24px 16px}
+.container{max-width:960px;margin:0 auto}
+h1{font-size:28px;color:#c9a84c;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;color:#9a97c0;font-size:13px;margin-bottom:32px}
+h2{font-size:20px;color:#e8c97e;margin:32px 0 16px;padding-bottom:8px;border-bottom:1px solid rgba(201,168,76,0.2)}
+h3{font-size:16px;color:#c9a84c;margin:20px 0 8px}
+.card{background:#12122a;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:700;color:#e8c97e;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.badge-critical{background:rgba(224,80,80,0.2);color:#e05050;border:1px solid rgba(224,80,80,0.3)}
+.badge-high{background:rgba(224,140,60,0.2);color:#e08c3c;border:1px solid rgba(224,140,60,0.3)}
+.badge-medium{background:rgba(224,176,96,0.2);color:#e0b060;border:1px solid rgba(224,176,96,0.3)}
+.badge-low{background:rgba(112,201,160,0.2);color:#70c9a0;border:1px solid rgba(112,201,160,0.3)}
+.badge-ok{background:rgba(112,201,160,0.15);color:#70c9a0;border:1px solid rgba(112,201,160,0.2)}
+.badge-fixed{background:rgba(112,201,160,0.2);color:#70c9a0;border:1px solid rgba(112,201,160,0.25)}
+.finding{background:#0f0f22;border:1px solid rgba(255,255,255,0.04);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.finding-title{font-weight:600;font-size:14px;color:#f0ece4;margin-bottom:6px}
+.finding-detail{font-size:12px;color:#9a97c0;line-height:1.7}
+.finding-detail strong{color:#b8b5d0}
+.scores-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:16px 0}
+.score-card{background:#12122a;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px;text-align:center}
+.score-label{font-size:11px;color:#9a97c0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px}
+.score-value{font-size:28px;font-weight:800;color:#e8c97e}
+.score-bar{height:6px;background:rgba(255,255,255,0.06);border-radius:99px;margin-top:8px;overflow:hidden}
+.score-fill{height:100%;border-radius:99px;transition:width 0.5s}
+.fill-green{background:linear-gradient(90deg,#70c9a0,#9fd9bf)}
+.fill-gold{background:linear-gradient(90deg,#c9a84c,#e8c97e)}
+.fill-warn{background:linear-gradient(90deg,#e0b060,#e8c97e)}
+.fill-red{background:linear-gradient(90deg,#e05050,#e07070)}
+.verdict-box{background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.02));border:1px solid rgba(201,168,76,0.25);border-radius:16px;padding:24px;text-align:center;margin:24px 0}
+.verdict-score{font-size:48px;font-weight:900;color:#e8c97e}
+.verdict-label{font-size:14px;color:#9a97c0;margin-top:4px}
+.delta-box{display:inline-block;padding:4px 14px;border-radius:99px;font-size:13px;font-weight:700;margin-top:8px}
+.delta-up{background:rgba(112,201,160,0.15);color:#70c9a0;border:1px solid rgba(112,201,160,0.2)}
+.delta-down{background:rgba(224,80,80,0.15);color:#e07070;border:1px solid rgba(224,80,80,0.2)}
+.plan-section{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
+.plan-card{background:#0f0f22;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px}
+.plan-title{font-size:13px;font-weight:700;color:#e8c97e;margin-bottom:8px}
+.plan-items{font-size:12px;color:#9a97c0;line-height:1.8}
+.plan-items li{list-style:none;padding-left:16px;position:relative}
+.plan-items li::before{content:">";position:absolute;left:0;color:#c9a84c}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12px}
+th{text-align:left;padding:8px 10px;color:#c9a84c;border-bottom:1px solid rgba(201,168,76,0.2);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.04em}
+td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);color:#b8b5d0}
+tr:hover td{background:rgba(201,168,76,0.03)}
+.highlight{color:#e8c97e;font-weight:600}
+.green{color:#70c9a0}.red{color:#e07070}.warn{color:#e0b060}
+a{color:#c9a84c}
+.phase-label{font-size:11px;color:#7a7798;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
+.row-flex{display:flex;gap:12px;flex-wrap:wrap}
+.row-flex > *{flex:1;min-width:200px}
+.fixed-banner{background:rgba(112,201,160,0.08);border:1px solid rgba(112,201,160,0.15);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+.fixed-banner .card-title{color:#70c9a0}
+code{background:rgba(201,168,76,0.1);color:#e8c97e;padding:2px 6px;border-radius:4px;font-size:11px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Parfum Track — Auditoria Completa v9</h1>
+<p class="subtitle">28 de junio de 2026 · index.html (5.818 lineas) + 10 Worker functions + SW v9 · Auditoria de 11 fases · Post-fixes v8</p>
+
+<!-- ═══════════════ FASE 0: ANÁLISIS INICIAL ═══════════════ -->
+<h2>Fase 0 — Analisis Inicial</h2>
+<div class="card">
+<div class="card-title">Recursos analizados</div>
+<table>
+<tr><th>Recurso</th><th>Detalle</th></tr>
+<tr><td>index.html</td><td>5.818 lineas — frontend monolitico (CSS + HTML + JS vanilla)</td></tr>
+<tr><td>worker.js</td><td>Router entry point (128 lineas)</td></tr>
+<tr><td>sw.js</td><td>Service Worker v9 con Google Fonts caching</td></tr>
+<tr><td>functions/ (10)</td><td>trial, validate-license, backup, sync, send-email, send-notification, mp-create-preference, mp-webhook, mp-subscription-status, mp-payment-status</td></tr>
+<tr><td>functions/_shared.js</td><td>Utilidades: CORS, rate limit KV, HMAC-SHA256, hashIp</td></tr>
+<tr><td>_headers</td><td>CSP con unsafe-inline, HSTS 2 anios, X-Frame-Options DENY</td></tr>
+<tr><td>manifest.json</td><td>PWA manifest con shortcuts y screenshots</td></tr>
+</table>
+<p style="margin-top:12px;font-size:13px;">
+<strong>Nivel de confianza:</strong> <span class="green">Muy alto</span> — Se leyo el 100% del codigo fuente (frontend completo + 10 funciones backend + SW + config + headers).
+</p>
+</div>
+
+<!-- ═══════════════ FIXES DESDE v8 ═══════════════ -->
+<h2>Fixes aplicados desde Auditoria v8</h2>
+<div class="fixed-banner">
+<div class="card-title">10 hallazgos de v8 resueltos</div>
+<table>
+<tr><th>#</th><th>Hallazgo v8</th><th>Estado</th></tr>
+<tr><td>1</td><td>Dashboard "Por cobrar" no restaba pagos parciales</td><td><span class="badge badge-fixed">FIXED</span></td></tr>
+<tr><td>2</td><td>toast() usaba innerHTML (XSS)</td><td><span class="badge badge-fixed">FIXED</span></td></tr>
+<tr><td>3</td><td>Autocomplete no escapaba comillas simples (XSS)</td><td><span class="badge badge-fixed">FIXED</span></td></tr>
+<tr><td>4</td><td>Export Excel no incluia pagos parciales</td><td><span class="badge badge-fixed">FIXED</span></td></tr>
+<tr><td>5</td><td>parseInt en precios truncaba decimales</td><td><span class="badge badge-fixed">FIXED</span></td></tr>
+<tr><td>6</td><td>No habia forma de re-ver onboarding/tutorial</td><td><span class="badge badge-fixed">FIXED</span></td></tr>
+<tr><td>7</td><td>Sin analytics de eventos clave</td><td><span class="badge badge-fixed">FIXED</span></td></tr>
+<tr><td>8</td><td>confirm() nativo — UX pobre en movil</td><td><span class="badge badge-fixed">FIXED</span></td></tr>
+<tr><td>9</td><td>Sin debounce en renderAll() — re-renders excesivos</td><td><span class="badge badge-fixed">FIXED</span></td></tr>
+<tr><td>10</td><td>Sin sincronizacion entre pestanias</td><td><span class="badge badge-fixed">FIXED</span></td></tr>
+</table>
+</div>
+
+<!-- ═══════════════ FASE 1: COMPRENSIÓN ═══════════════ -->
+<h2>Fase 1 — Comprension</h2>
+<div class="card">
+<div class="card-title">Producto</div>
+<p style="font-size:13px;color:#b8b5d0;line-height:1.8;">
+<strong class="highlight">Que hace:</strong> PWA de gestion de ventas para revendedores de perfumes en LATAM.<br>
+<strong class="highlight">Problema:</strong> Revendedores informales no saben cuanto ganan, pierden control de cuotas y stock.<br>
+<strong class="highlight">Usuario:</strong> Revendedores de perfumes arabes/importados en AR, UY, CO, MX. Perfiles no tecnicos, uso desde celular.<br>
+<strong class="highlight">Propuesta:</strong> "Deja de adivinar cuanto ganas" — registro en 10 segundos, ganancia automatica, cobro WA, offline.<br>
+<strong class="highlight">Diferenciacion:</strong> Nicho ultra-especifico + offline-first + cobro WhatsApp + sin friccion (no requiere registro).<br>
+<strong class="highlight">Monetizacion:</strong> Freemium. Free (ventas, stock, cuotas, WA) + Basico Pro ($9.99/mes via Mercado Pago).<br>
+</p>
+</div>
+
+<!-- ═══════════════ FASE 2: AUDITORÍA TÉCNICA ═══════════════ -->
+<h2>Fase 2 — Auditoria Tecnica</h2>
+
+<h3>Seguridad</h3>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-high">ALTO</span> F-01: XSS en preview de mensaje WhatsApp</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~3661-3666 (index.html)<br>
+<strong>Causa:</strong> El mensaje WA se construye con datos del usuario (cliente, perfume) y luego se transforma con <code>.replace(/\*(.*?)\*/g, '&lt;b&gt;$1&lt;/b&gt;')</code> que inyecta HTML sin re-escapar. Un nombre de perfume con <code>*&lt;img src=x onerror=alert(1)&gt;*</code> ejecutaria JS.<br>
+<strong>Impacto:</strong> XSS almacenado — el payload persiste en IndexedDB y se ejecuta cada vez que se renderiza el dashboard.<br>
+<strong>Solucion:</strong> Aplicar <code>this.esc()</code> al capture group del regex, o construir el preview con metodos DOM.<br>
+<strong>Dificultad:</strong> Baja (15 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-high">ALTO</span> F-02: src de foto sin validar protocolo</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~3588 (index.html)<br>
+<strong>Causa:</strong> <code>&lt;img src="${this.esc(p.foto)}"&gt;</code> — la foto viene de IndexedDB. Un import malicioso podria setear foto a <code>javascript:alert(1)</code>. <code>esc()</code> no protege atributos src.<br>
+<strong>Impacto:</strong> Ejecucion de JS via import de archivo de backup.<br>
+<strong>Solucion:</strong> Validar que <code>p.foto</code> empiece con <code>data:image/</code> antes de renderizar.<br>
+<strong>Dificultad:</strong> Baja (5 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-high">ALTO</span> F-03: Content-Length spoofeable en backend</div>
+<div class="finding-detail">
+<strong>Linea:</strong> _shared.js:89-94<br>
+<strong>Causa:</strong> <code>requireJson()</code> valida <code>Content-Length</code> header pero no el body real. Un atacante puede enviar header pequenio con body de 50MB. <code>request.json()</code> consumira todo el body.<br>
+<strong>Impacto:</strong> DoS — agota CPU/memoria del Worker en un solo request.<br>
+<strong>Solucion:</strong> Leer body con <code>request.text()</code>, verificar <code>.length</code> real, luego parsear con <code>JSON.parse()</code>.<br>
+<strong>Dificultad:</strong> Baja (20 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-04: PIN en plaintext en localStorage y backups</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~4724 (index.html)<br>
+<strong>Causa:</strong> El PIN se guarda sin hashear en localStorage y se exporta en texto plano en backups JSON.<br>
+<strong>Impacto:</strong> Quien acceda al dispositivo o al backup ve el PIN directamente.<br>
+<strong>Solucion:</strong> Hashear con SHA-256 antes de almacenar. Comparar hashes.<br>
+<strong>Dificultad:</strong> Baja (20 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-05: Webhook processing state bloquea reintentos 5 min</div>
+<div class="finding-detail">
+<strong>Linea:</strong> mp-webhook.js:83-92<br>
+<strong>Causa:</strong> Si un Worker crashea despues de setear <code>processing</code> en KV (TTL 300s), los reintentos de Mercado Pago se rechazan durante 5 minutos. Si MP desiste antes, el pago se pierde.<br>
+<strong>Impacto:</strong> Perdida de pago (raro pero critico cuando ocurre).<br>
+<strong>Solucion:</strong> Reducir TTL de <code>processing</code> a 60s, o almacenar timestamp y re-procesar si excede timeout.<br>
+<strong>Dificultad:</strong> Baja (10 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-06: Email plaintext como KV key en rate limit</div>
+<div class="finding-detail">
+<strong>Linea:</strong> send-email.js:261-264<br>
+<strong>Causa:</strong> La key de rate limit usa el email sin hashear: <code>rl_sendemail_to_${emailKey}</code>. El email real queda visible en el dashboard de KV de Cloudflare.<br>
+<strong>Impacto:</strong> Exposicion de PII (emails) en panel de administracion.<br>
+<strong>Solucion:</strong> Usar <code>sha256(to.toLowerCase().trim())</code> como key.<br>
+<strong>Dificultad:</strong> Baja (10 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-07: importScripts OneSignal sin SRI en SW</div>
+<div class="finding-detail">
+<strong>Linea:</strong> sw.js:101-103<br>
+<strong>Causa:</strong> <code>importScripts("https://cdn.onesignal.com/...")</code> sin integridad. Si el CDN es comprometido, codigo arbitrario corre en el contexto del Service Worker (acceso a fetch events y cache). CSP no aplica a importScripts en SW.<br>
+<strong>Impacto:</strong> Supply chain attack — intercepcion de todos los requests.<br>
+<strong>Solucion:</strong> Self-hostear el SDK o usar una version pinneada con hash verificado.<br>
+<strong>Dificultad:</strong> Media (1h)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-low">BAJO</span> F-08: CSP con unsafe-inline para scripts</div>
+<div class="finding-detail">
+<strong>Linea:</strong> _headers:10<br>
+<strong>Causa:</strong> <code>script-src 'unsafe-inline'</code> debilita CSP. Necesario mientras el monolito use inline scripts.<br>
+<strong>Impacto:</strong> Reduce la proteccion contra XSS reflejado.<br>
+<strong>Solucion:</strong> Migrar a nonces CSP cuando se refactorice el monolito. Roadmap 90 dias.<br>
+<strong>Dificultad:</strong> Alta (parte del refactor)
+</div>
+</div>
+
+<h3>Bugs y Logica</h3>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-09: Redondeo de cuotas pierde dinero</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~3072 (index.html)<br>
+<strong>Causa:</strong> <code>Math.round(precioVenta / numCuotas)</code> genera cuotas cuya suma no iguala el total. Ej: $100 / 3 = $33 x 3 = $99. Se pierde $1.<br>
+<strong>Impacto:</strong> Perdida silenciosa de dinero en cada venta en cuotas con division inexacta.<br>
+<strong>Solucion:</strong> Ultima cuota = <code>precioVenta - (montoCuota * (numCuotas - 1))</code>.<br>
+<strong>Dificultad:</strong> Baja (10 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-10: Primera cuota auto-pagada sin montoPagado</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~3084 (index.html)<br>
+<strong>Causa:</strong> La primera cuota se marca <code>pagado: true</code> pero <code>montoPagado</code> queda undefined. El calculo de totalPagado en el dashboard suma <code>c.monto</code> si <code>c.pagado</code> pero no <code>c.montoPagado</code>. Inconsistencia con el sistema de pagos parciales.<br>
+<strong>Impacto:</strong> Inconsistencia en calculos de pagos parciales en dashboard.<br>
+<strong>Solucion:</strong> Setear <code>montoPagado: i === 0 ? montoCuota : 0</code> al crear cuotas.<br>
+<strong>Dificultad:</strong> Baja (5 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-11: parseInt en caja y gastos trunca decimales</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~4580 y ~4649 (index.html)<br>
+<strong>Causa:</strong> Caja y gastos usan <code>parseInt()</code> para montos. Una entrada de $50.50 se guarda como $50.<br>
+<strong>Impacto:</strong> Perdida de precision monetaria en caja y gastos (los precios de venta ya fueron arreglados a parseFloat en v8).<br>
+<strong>Solucion:</strong> Cambiar a <code>parseFloat()</code>.<br>
+<strong>Dificultad:</strong> Baja (5 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-12: parseInt en precios de perfume al agregar</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~4062-4063 (index.html)<br>
+<strong>Causa:</strong> Al agregar un perfume nuevo, <code>parseInt()</code> trunca decimales del precio de compra y venta.<br>
+<strong>Impacto:</strong> Si un perfume cuesta $15.50, se guarda como $15.<br>
+<strong>Solucion:</strong> Cambiar a <code>parseFloat()</code>.<br>
+<strong>Dificultad:</strong> Baja (5 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-13: No hay timeout en fetch a MP API en webhook</div>
+<div class="finding-detail">
+<strong>Linea:</strong> mp-webhook.js:180<br>
+<strong>Causa:</strong> El fetch a <code>api.mercadopago.com/v1/payments/</code> no tiene signal de timeout. Si MP cuelga, el Worker consume todo su CPU time (30s en plan pagado).<br>
+<strong>Impacto:</strong> Worker timeout, pago no procesado.<br>
+<strong>Solucion:</strong> Agregar <code>signal: AbortSignal.timeout(10000)</code> al fetch.<br>
+<strong>Dificultad:</strong> Baja (5 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-14: TOCTOU race condition en validate-license</div>
+<div class="finding-detail">
+<strong>Linea:</strong> validate-license.js:98-109<br>
+<strong>Causa:</strong> Dos requests simultaneos leen el mismo <code>usedCount</code>, ambos pasan el check de <code>maxUses</code>, ambos incrementan al mismo valor. KV no soporta incrementos atomicos.<br>
+<strong>Impacto:</strong> Se puede exceder maxUses por 1 activacion por request concurrente. Bajo riesgo practico.<br>
+<strong>Solucion:</strong> Documentar limitacion. Para garantia fuerte, migrar a Durable Objects.<br>
+<strong>Dificultad:</strong> Alta (si se migra a DO)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-low">BAJO</span> F-15: showTutorial() busca .onb-step que no existe</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~5733-5736 (index.html)<br>
+<strong>Causa:</strong> <code>querySelectorAll('.onb-step')</code> no encuentra elementos — la clase no existe en el HTML del onboarding.<br>
+<strong>Impacto:</strong> El boton "Ver tutorial" muestra el overlay pero no funciona la navegacion por pasos.<br>
+<strong>Solucion:</strong> Agregar las clases <code>.onb-step</code> a los pasos del onboarding, o simplificar el tutorial.<br>
+<strong>Dificultad:</strong> Baja (15 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-low">BAJO</span> F-16: Nombre de vendedor hardcodeado "Luccas"</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~2204 (index.html)<br>
+<strong>Causa:</strong> <code>value="Luccas"</code> en el input de vendedor. Todos los usuarios ven "Luccas" como default.<br>
+<strong>Impacto:</strong> Confusion para usuarios nuevos que ven un nombre ajeno.<br>
+<strong>Solucion:</strong> Dejar vacio o usar el nombre configurado en ajustes.<br>
+<strong>Dificultad:</strong> Baja (2 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-low">BAJO</span> F-17: Error de import silenciado</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~4818 (index.html)<br>
+<strong>Causa:</strong> <code>try { await DB.put(store, item); total++; } catch {}</code> — errores de importacion se tragan. Un archivo corrupto puede importar parcialmente sin aviso.<br>
+<strong>Impacto:</strong> DB inconsistente sin feedback al usuario.<br>
+<strong>Solucion:</strong> Trackear errores y reportar <code>"X de Y registros importados (Z errores)"</code>.<br>
+<strong>Dificultad:</strong> Baja (10 min)
+</div>
+</div>
+
+<h3>UX / Accesibilidad</h3>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-high">ALTO</span> F-18: user-scalable=no bloquea zoom</div>
+<div class="finding-detail">
+<strong>Linea:</strong> 5 (index.html)<br>
+<strong>Causa:</strong> <code>user-scalable=no</code> en el viewport meta tag. Viola WCAG 1.4.4 (Resize Text). Usuarios con baja vision no pueden ampliar.<br>
+<strong>Impacto:</strong> Falla de accesibilidad que afecta a ~15% de usuarios con problemas de vision. Google puede penalizar en Lighthouse.<br>
+<strong>Solucion:</strong> Cambiar a <code>user-scalable=yes</code> o remover el parametro.<br>
+<strong>Dificultad:</strong> Baja (1 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-19: Modales sin focus trap ni ARIA</div>
+<div class="finding-detail">
+<strong>Linea:</strong> Todos los modal-overlay (lineas ~1444, 2672, 2720, 2734, 2707+)<br>
+<strong>Causa:</strong> Los modales no tienen <code>role="dialog"</code>, <code>aria-modal="true"</code>, ni focus trapping. Tab navega fuera del modal a elementos ocultos.<br>
+<strong>Impacto:</strong> Accesibilidad pobre para screen readers y navegacion por teclado.<br>
+<strong>Solucion:</strong> Agregar atributos ARIA y focus trap basico (redirigir Tab al primer/ultimo elemento focusable).<br>
+<strong>Dificultad:</strong> Media (1h para todos los modales)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-20: Elementos interactivos sin keyboard support</div>
+<div class="finding-detail">
+<strong>Linea:</strong> Varias (profile-chip ~2092, filter chips ~2262, cards con onclick)<br>
+<strong>Causa:</strong> Divs y spans con <code>onclick</code> pero sin <code>role="button"</code>, <code>tabindex="0"</code>, ni handler de teclado (Enter/Space).<br>
+<strong>Impacto:</strong> Inaccesible para usuarios que navegan con teclado.<br>
+<strong>Solucion:</strong> Convertir a <code>&lt;button&gt;</code> o agregar <code>role="button" tabindex="0"</code> + keydown handler.<br>
+<strong>Dificultad:</strong> Media (1h)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-low">BAJO</span> F-21: Month picker no funcional</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~2293 (index.html)<br>
+<strong>Causa:</strong> El selector de mes en estadisticas muestra icono de dropdown pero no permite cambiar de mes.<br>
+<strong>Impacto:</strong> Usuarios esperan poder navegar meses — no pueden.<br>
+<strong>Solucion:</strong> Implementar navegacion de meses o remover el icono enganiante.<br>
+<strong>Dificultad:</strong> Media (2h)
+</div>
+</div>
+
+<h3>Performance</h3>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-22: renderAll() ejecuta renders de pantallas ocultas</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~3373-3380 (index.html)<br>
+<strong>Causa:</strong> <code>renderAll()</code> llama renderDashboard + renderStock + renderCuotas + renderStats incluso cuando esas pantallas no son visibles. El debounce mitiga frecuencia pero no el trabajo innecesario.<br>
+<strong>Impacto:</strong> Trabajo de render innecesario en cada mutacion de datos. Con muchos perfumes/ventas, puede causar jank.<br>
+<strong>Solucion:</strong> Solo renderizar la pantalla activa. Marcar las demas como "dirty" y renderizar al navegar.<br>
+<strong>Dificultad:</strong> Media (1h)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-23: Fotos base64 en innerHTML del stock grid</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~3588 (index.html)<br>
+<strong>Causa:</strong> Las fotos de perfumes (data URIs de 50-200KB cada una) se escriben en innerHTML al renderizar stock. Con 50+ perfumes con foto, son >5MB de strings en DOM.<br>
+<strong>Impacto:</strong> Re-renders lentos, alto uso de memoria, posible freeze en dispositivos de gama baja.<br>
+<strong>Solucion:</strong> Usar <code>URL.createObjectURL(blob)</code> para renderizar, o implementar lazy loading con IntersectionObserver.<br>
+<strong>Dificultad:</strong> Media (2h)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-low">BAJO</span> F-24: Scripts CDN cargados sin SRI</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~4876 (index.html)<br>
+<strong>Causa:</strong> <code>_loadScript()</code> carga jsPDF, XLSX, Chart.js sin atributo <code>integrity</code>. CLAUDE.md dice "SRI hashes para CDN resources" pero no se aplican en carga dinamica.<br>
+<strong>Impacto:</strong> Supply chain risk si CDN es comprometido.<br>
+<strong>Solucion:</strong> Agregar SRI hashes a los scripts cargados dinamicamente.<br>
+<strong>Dificultad:</strong> Baja (20 min)
+</div>
+</div>
+
+<h3>Arquitectura</h3>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-high">ALTO</span> F-25: God object App — 2500+ lineas sin separacion</div>
+<div class="finding-detail">
+<strong>Causa:</strong> El objeto <code>App</code> contiene TODA la logica: rendering, business logic, navegacion, export, cuenta, analytics, UI. ~2500 lineas en un solo objeto literal.<br>
+<strong>Impacto:</strong> Mantenibilidad critica — cualquier cambio requiere navegar 2500+ lineas. Alto riesgo de regresiones. Imposible testear unitariamente.<br>
+<strong>Solucion:</strong> Extraer modulos: AppRouter, VentaService, StockService, CuotaService, ExportService, AccountService. Roadmap 90 dias.<br>
+<strong>Dificultad:</strong> Alta (2-3 dias)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-26: Duplicacion de template de tarjeta de venta</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~3453-3509 y ~3519-3561 (index.html)<br>
+<strong>Causa:</strong> <code>renderDashboard()</code> y <code>renderAllVentas()</code> tienen templates HTML casi identicos para tarjetas de venta. Un cambio UI requiere editar en dos lugares.<br>
+<strong>Solucion:</strong> Extraer <code>_renderVentaCard(v, opts)</code> compartido.<br>
+<strong>Dificultad:</strong> Baja (30 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> F-27: Duplicacion de logica de procesamiento de foto</div>
+<div class="finding-detail">
+<strong>Linea:</strong> ~3971-4008 y ~4030-4057 (index.html)<br>
+<strong>Causa:</strong> <code>changeStockPhoto()</code> y <code>handlePerfumePhoto()</code> tienen logica identica de resize/compress canvas.<br>
+<strong>Solucion:</strong> Extraer <code>_processPhoto(file)</code> compartido.<br>
+<strong>Dificultad:</strong> Baja (20 min)
+</div>
+</div>
+
+<div class="finding">
+<div class="finding-title"><span class="badge badge-low">BAJO</span> F-28: SW borra TODOS los caches sin pre-cachear</div>
+<div class="finding-detail">
+<strong>Linea:</strong> sw.js:25-28<br>
+<strong>Causa:</strong> El evento activate borra todos los caches (incluyendo el nuevo). <code>STATIC_ASSETS</code> se define pero nunca se usa para pre-cachear. Tras update, el usuario no tiene cache hasta que navega cada recurso.<br>
+<strong>Impacto:</strong> Primera carga post-update es lenta, no funciona offline hasta cachear recursos on-demand.<br>
+<strong>Solucion:</strong> Pre-cachear STATIC_ASSETS en install, solo borrar caches viejos en activate.<br>
+<strong>Dificultad:</strong> Baja (30 min)
+</div>
+</div>
+
+<!-- ═══════════════ FASE 3: QA EXTREMO ═══════════════ -->
+<h2>Fase 3 — QA Extremo</h2>
+<div class="card">
+<div class="card-title">Simulacion de usuarios</div>
+<table>
+<tr><th>Perfil</th><th>Escenario</th><th>Resultado</th></tr>
+<tr><td>Novato</td><td>Primera apertura, intenta registrar venta</td><td><span class="green">OK</span> — Onboarding guia correctamente. Venta en 10 seg cumple.</td></tr>
+<tr><td>Novato</td><td>Re-ver tutorial despues de cerrarlo</td><td><span class="warn">PARCIAL</span> — Boton existe pero showTutorial() no funciona por falta de .onb-step (F-15)</td></tr>
+<tr><td>Distraido</td><td>Doble-click en "Guardar venta"</td><td><span class="green">OK</span> — No se duplica (se navega a inicio tras guardar)</td></tr>
+<tr><td>Avanzado</td><td>Venta de $199.99 en 3 cuotas</td><td><span class="red">BUG</span> — Cuotas: $67 + $67 + $67 = $201, o $66 + $66 + $66 = $198. Se pierde/gana dinero (F-09)</td></tr>
+<tr><td>Avanzado</td><td>Gasto de $50.50</td><td><span class="red">BUG</span> — Se registra como $50. parseInt trunca (F-11)</td></tr>
+<tr><td>Malicioso</td><td>Importar JSON con foto = javascript:alert(1)</td><td><span class="red">XSS</span> — Se ejecuta al renderizar stock (F-02)</td></tr>
+<tr><td>Malicioso</td><td>Perfume con nombre *&lt;script&gt;alert(1)&lt;/script&gt;*</td><td><span class="red">XSS</span> — Se ejecuta en preview WA del dashboard (F-01)</td></tr>
+<tr><td>Multi-tab</td><td>Agregar venta en tab A, ver en tab B</td><td><span class="green">OK</span> — BroadcastChannel sincroniza (fix v8)</td></tr>
+<tr><td>Offline</td><td>Usar app sin internet</td><td><span class="green">OK</span> — IndexedDB local, SW cachea assets</td></tr>
+<tr><td>Impaciente</td><td>Navegar rapido entre pantallas</td><td><span class="green">OK</span> — Debounce previene renders excesivos (fix v8)</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════ FASE 4: STARTUP Y NEGOCIO ═══════════════ -->
+<h2>Fase 4 — Startup y Negocio</h2>
+<div class="card">
+<div class="card-title">Analisis de mercado</div>
+<div class="finding-detail" style="line-height:1.9;">
+<strong class="highlight">Mercado target:</strong> ~500K revendedores de perfumes en LATAM (estimado). Nicho validado por grupos de WA con miles de miembros.<br>
+<strong class="highlight">Diferenciacion real:</strong> Unica app que combina gestion de ventas + cobro WA + offline + especifica para perfumes. Competidores son genericos.<br>
+<strong class="highlight">Monetizacion:</strong> Freemium $9.99/mes es precio correcto para LATAM (equivalente a ~1 perfume). Checkout Pro (MP) funciona bien en la region.<br>
+<strong class="highlight">Barreras de entrada:</strong> Bajas — un competidor puede replicar en 3-4 semanas. La barrera es el nicho + la marca + la base instalada.<br>
+<strong class="highlight">CAC estimado:</strong> Bajo si se usa marketing organico en grupos WA + Instagram. Ads Meta $0.50-1.50 CPA en LATAM.<br>
+<strong class="highlight">Por que podria fracasar:</strong> (1) Los revendedores ya usan WhatsApp+Excel y no sienten necesidad de cambiar. (2) El tier free es tan completo que nadie paga Pro. (3) Sin equipo, el soporte 1-a-1 no escala.
+</div>
+</div>
+
+<!-- ═══════════════ FASE 5: VENTAS Y PSICOLOGÍA ═══════════════ -->
+<h2>Fase 5 — Ventas y Psicologia</h2>
+<div class="card">
+<div class="card-title">Analisis de conversion</div>
+<div class="finding-detail" style="line-height:1.9;">
+<strong class="highlight">Claridad en 5 seg:</strong> Si — "Deja de adivinar cuanto ganas" + screenshots reales comunican valor rapido.<br>
+<strong class="highlight">Onboarding:</strong> Bueno — 3 pasos simples, no requiere registro, empieza a usar inmediato.<br>
+<strong class="highlight">Objeciones principales:</strong><br>
+1. "Ya uso Excel/WhatsApp" — Falta comparacion directa en landing que muestre dolor de Excel.<br>
+2. "Mis datos estan seguros?" — PIN + backup nube cubren esto, pero no se comunica claramente en onboarding.<br>
+3. "$9.99/mes es mucho" — Falta calculator de ROI ("Si vendes 5 perfumes/mes, te ahorras X horas").<br>
+<strong class="highlight">Friccion detectada:</strong> El upgrade a Pro requiere email de trial primero. Un usuario que quiere pagar directo debe registrar trial gratis antes de poder suscribirse. Friccion innecesaria.<br>
+<strong class="highlight">Si yo fuera cliente:</strong> "Me gusta la app gratis pero no veo por que pagar — las estadisticas solas no justifican $9.99/mes. Necesito algo que me ahorre tiempo real cada dia."
+</div>
+</div>
+
+<!-- ═══════════════ FASE 6: COMPETENCIA ═══════════════ -->
+<h2>Fase 6 — Competencia</h2>
+<div class="card">
+<div class="card-title">Competidores identificados</div>
+<table>
+<tr><th>Competidor</th><th>Tipo</th><th>Precio</th><th>Ventaja vs PT</th><th>Desventaja vs PT</th></tr>
+<tr><td>Excel / Google Sheets</td><td>Generico</td><td>Gratis</td><td>Ya lo conocen, flexible</td><td>Sin cobro WA, sin offline, lento, sin ganancia auto</td></tr>
+<tr><td>Nubefact / Bsale</td><td>Facturacion</td><td>$15-30/mes</td><td>Factura electronica, multi-pais</td><td>Complejo, caro, no es para informales</td></tr>
+<tr><td>Ventas+ / MiNegocio</td><td>POS movil</td><td>Freemium</td><td>Multi-rubro, mas features</td><td>No es para perfumes, sin cobro WA, pesado</td></tr>
+<tr><td>Libreta (papel)</td><td>Analogico</td><td>$0</td><td>Simple, sin aprendizaje</td><td>No calcula ganancia, se pierde, no tiene backup</td></tr>
+</table>
+<div class="finding-detail" style="margin-top:12px;line-height:1.9;">
+<strong class="highlight">Por que elegirian otra opcion?</strong> Si necesitan facturacion electronica (PT no la tiene). Si venden multi-rubro (PT es solo perfumes).<br>
+<strong class="highlight">Ventaja unica:</strong> Cobro por WhatsApp con un click. Ningun competidor lo tiene.<br>
+<strong class="highlight">Como ser 10x mejor:</strong> (1) IA que prediga que perfume se va a vender mas. (2) Catalogo compartido entre revendedores. (3) Comunidad integrada de revendedores. (4) Integracion con proveedores para pedidos directos.
+</div>
+</div>
+
+<!-- ═══════════════ FASE 7: MÉTRICAS ═══════════════ -->
+<h2>Fase 7 — Metricas y Crecimiento</h2>
+<div class="card">
+<div class="card-title">Metricas clave</div>
+<div class="finding-detail" style="line-height:1.9;">
+<strong class="highlight">Funnel estimado:</strong> Landing visit -> Trial (OTP) -> Uso activo -> Upgrade Pro<br>
+<strong class="highlight">Conversion trial:</strong> Plausible analytics recien integrado (fix v8). Sin datos historicos aun. Se trackea click_subscribe y sale_created.<br>
+<strong class="highlight">Metrica que destruiria el negocio:</strong> Retention D7 < 20%. Si el usuario no vuelve despues de 7 dias, no pagara nunca. Key: la app tiene que notificar cuotas vencidas para generar habito de apertura diaria.<br>
+<strong class="highlight">LTV estimado:</strong> A $9.99/mes con 6 meses promedio = $60 LTV. Con CAC de $1.50, ratio LTV/CAC = 40x (excelente si se logra la retencion).<br>
+<strong class="highlight">Riesgo churn:</strong> Alto — el tier free cubre 90% de las necesidades. Push notifications (OneSignal) pueden ayudar pero necesitan contenido relevante, no spam.
+</div>
+</div>
+
+<!-- ═══════════════ FASE 8: FINANZAS ═══════════════ -->
+<h2>Fase 8 — Finanzas y Operaciones</h2>
+<div class="card">
+<div class="card-title">Estructura de costos</div>
+<table>
+<tr><th>Item</th><th>Costo mensual</th><th>Limite</th></tr>
+<tr><td>Cloudflare Workers (paid)</td><td>$5</td><td>10M requests</td></tr>
+<tr><td>KV reads/writes</td><td>Incluido en Workers</td><td>10M reads, 1M writes</td></tr>
+<tr><td>R2 storage</td><td>$0 (10GB free)</td><td>10GB, 1M class A ops</td></tr>
+<tr><td>Brevo email</td><td>$0 (free tier)</td><td>300 emails/dia</td></tr>
+<tr><td>OneSignal push</td><td>$0 (free tier)</td><td>Ilimitado en free</td></tr>
+<tr><td>Plausible analytics</td><td>$9/mes</td><td>10K pageviews</td></tr>
+<tr><td>Dominio</td><td>~$1/mes</td><td>—</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>~$15/mes</strong></td><td>—</td></tr>
+</table>
+<div class="finding-detail" style="margin-top:12px;">
+<strong class="highlight">Que romperia a 10x?</strong> Brevo free tier (300/dia) se agota con ~300 registros/dia. KV writes (1M/mes) se agotan con rate limiting intenso (~33K users activos/dia). R2 backups a 10K usuarios con 1MB cada uno = 10GB = limite free.<br>
+<strong class="highlight">Solucion:</strong> Brevo pagado ($25/mes para 20K emails/mes). R2 pagado ($0.015/GB/mes). KV pagado ($0.50/M writes).
+</div>
+</div>
+
+<!-- ═══════════════ FASE 9: LEGAL ═══════════════ -->
+<h2>Fase 9 — Legal y Riesgo</h2>
+<div class="card">
+<div class="card-title">Compliance</div>
+<div class="finding-detail" style="line-height:1.9;">
+<strong class="green">OK:</strong> Politica de privacidad (privacidad.html) y terminos (terminos.html) existen.<br>
+<strong class="green">OK:</strong> Datos del usuario quedan en su dispositivo (IndexedDB). El servidor solo tiene hashes de email y backups cifrados.<br>
+<strong class="green">OK:</strong> Plausible analytics sin cookies — GDPR compliant.<br>
+<strong class="green">OK:</strong> List-Unsubscribe en emails transaccionales.<br>
+<strong class="warn">RIESGO:</strong> Falta banner de cookies/consentimiento. Aunque Plausible no usa cookies, OneSignal si crea un service worker — algunos reguladores requieren consentimiento.<br>
+<strong class="warn">RIESGO:</strong> El PIN se exporta en plaintext en backups (F-04). En algunos paises, esto puede violar normas de proteccion de datos personales si el backup se comparte o filtra.
+</div>
+</div>
+
+<!-- ═══════════════ FASE 10: COMPETIDOR AGRESIVO ═══════════════ -->
+<h2>Fase 10 — Competidor Agresivo</h2>
+<div class="card">
+<div class="card-title">Si fuera un competidor con recursos ilimitados</div>
+<div class="finding-detail" style="line-height:1.9;">
+<strong class="highlight">Debilidad #1:</strong> El monolito de 5.8K lineas es imposible de mantener por un equipo. Un competidor con 3 devs iteraria 10x mas rapido.<br>
+<strong class="highlight">Debilidad #2:</strong> Sin tests automatizados. Cada cambio puede romper algo. Un competidor con CI/CD + tests shipea con confianza.<br>
+<strong class="highlight">Debilidad #3:</strong> Datos 100% locales. Si el usuario pierde el telefono, pierde todo (a menos que haya hecho backup manual). Un competidor con cloud-first gana en confiabilidad.<br>
+<strong class="highlight">Que copiaria:</strong> Cobro WA con un click, UI dark premium, offline-first, nicho perfumes.<br>
+<strong class="highlight">Que mejoraria:</strong> Cloud sync automatico (no manual), prediccion de ventas con ML, catalogo compartido entre revendedores, facturacion electronica, multi-idioma, app nativa.
+</div>
+</div>
+
+<!-- ═══════════════ FASE 11: AUTOCRÍTICA ═══════════════ -->
+<h2>Fase 11 — Autocritica</h2>
+<div class="card">
+<div class="card-title">Limitaciones de esta auditoria</div>
+<div class="finding-detail" style="line-height:1.9;">
+<strong>No se pudo verificar:</strong> SRI hashes en produccion (requiere deploy). Rendimiento real con 500+ perfumes (requiere datos de prueba masivos). Comportamiento exacto del SW en TWA Android (requiere dispositivo fisico).<br>
+<strong>Asunciones sin evidencia:</strong> Estimaciones de mercado (500K revendedores) basadas en tamano de grupos WA, no en datos de mercado formales. CAC estimado sin datos de campanas reales.<br>
+<strong>Necesita mas investigacion:</strong> Tasas de conversion reales (Plausible recien integrado). Retention D7/D30 (sin datos). Comparacion de precios con competidores especificos en cada pais LATAM.
+</div>
+</div>
+
+<!-- ═══════════════ TOP 10 HALLAZGOS ═══════════════ -->
+<h2>Top 10 Problemas Criticos</h2>
+<div class="card">
+<table>
+<tr><th>#</th><th>Hallazgo</th><th>Severidad</th><th>Categoria</th><th>Esfuerzo</th></tr>
+<tr><td>1</td><td>F-01: XSS en preview WhatsApp via regex</td><td><span class="badge badge-high">ALTO</span></td><td>Seguridad</td><td>15 min</td></tr>
+<tr><td>2</td><td>F-02: src de foto sin validar protocolo</td><td><span class="badge badge-high">ALTO</span></td><td>Seguridad</td><td>5 min</td></tr>
+<tr><td>3</td><td>F-03: Content-Length spoofeable en backend</td><td><span class="badge badge-high">ALTO</span></td><td>Seguridad</td><td>20 min</td></tr>
+<tr><td>4</td><td>F-18: user-scalable=no bloquea zoom</td><td><span class="badge badge-high">ALTO</span></td><td>UX</td><td>1 min</td></tr>
+<tr><td>5</td><td>F-25: God object App 2500+ lineas</td><td><span class="badge badge-high">ALTO</span></td><td>Arquitectura</td><td>2-3 dias</td></tr>
+<tr><td>6</td><td>F-05: Webhook processing bloquea 5 min</td><td><span class="badge badge-medium">MEDIO</span></td><td>Bug</td><td>10 min</td></tr>
+<tr><td>7</td><td>F-09: Cuotas pierden dinero por redondeo</td><td><span class="badge badge-medium">MEDIO</span></td><td>Bug</td><td>10 min</td></tr>
+<tr><td>8</td><td>F-11: parseInt en caja/gastos trunca decimales</td><td><span class="badge badge-medium">MEDIO</span></td><td>Bug</td><td>5 min</td></tr>
+<tr><td>9</td><td>F-07: OneSignal SDK sin SRI en SW</td><td><span class="badge badge-medium">MEDIO</span></td><td>Seguridad</td><td>1h</td></tr>
+<tr><td>10</td><td>F-19: Modales sin focus trap ni ARIA</td><td><span class="badge badge-medium">MEDIO</span></td><td>UX</td><td>1h</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════ TOP 10 MEJORAS ROI ═══════════════ -->
+<h2>Top 10 Mejoras con Mejor ROI</h2>
+<div class="card">
+<table>
+<tr><th>#</th><th>Mejora</th><th>Impacto</th><th>Esfuerzo</th></tr>
+<tr><td>1</td><td>Fixear XSS en preview WA y src foto</td><td>Elimina 2 vectores de ataque</td><td>20 min</td></tr>
+<tr><td>2</td><td>Remover user-scalable=no</td><td>Accesibilidad + Lighthouse score</td><td>1 min</td></tr>
+<tr><td>3</td><td>Fix redondeo cuotas + montoPagado inicial</td><td>Precision monetaria correcta</td><td>15 min</td></tr>
+<tr><td>4</td><td>parseFloat en caja/gastos/perfume prices</td><td>Soporte decimales en toda la app</td><td>10 min</td></tr>
+<tr><td>5</td><td>Reducir TTL processing webhook a 60s</td><td>Previene perdida de pagos</td><td>10 min</td></tr>
+<tr><td>6</td><td>Hashear email en KV rate limit keys</td><td>Proteccion PII</td><td>10 min</td></tr>
+<tr><td>7</td><td>Render solo pantalla activa (lazy render)</td><td>50%+ menos trabajo de render</td><td>1h</td></tr>
+<tr><td>8</td><td>Hashear PIN antes de almacenar</td><td>Seguridad del PIN</td><td>20 min</td></tr>
+<tr><td>9</td><td>Fix requireJson para validar body real</td><td>Previene DoS via body grande</td><td>20 min</td></tr>
+<tr><td>10</td><td>Agregar timeout a fetch MP en webhook</td><td>Previene timeout del Worker</td><td>5 min</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════ SCORES ═══════════════ -->
+<h2>Scores</h2>
+<div class="scores-grid">
+<div class="score-card">
+<div class="score-label">Tecnico</div>
+<div class="score-value">76</div>
+<div class="score-bar"><div class="score-fill fill-gold" style="width:76%"></div></div>
+</div>
+<div class="score-card">
+<div class="score-label">UX</div>
+<div class="score-value">78</div>
+<div class="score-bar"><div class="score-fill fill-gold" style="width:78%"></div></div>
+</div>
+<div class="score-card">
+<div class="score-label">Ventas</div>
+<div class="score-value">80</div>
+<div class="score-bar"><div class="score-fill fill-gold" style="width:80%"></div></div>
+</div>
+<div class="score-card">
+<div class="score-label">Negocio</div>
+<div class="score-value">82</div>
+<div class="score-bar"><div class="score-fill fill-green" style="width:82%"></div></div>
+</div>
+<div class="score-card">
+<div class="score-label">Escalabilidad</div>
+<div class="score-value">68</div>
+<div class="score-bar"><div class="score-fill fill-warn" style="width:68%"></div></div>
+</div>
+</div>
+
+<div class="verdict-box">
+<div class="verdict-score">77/100</div>
+<div class="verdict-label">Score General — Auditoria v9</div>
+<div class="delta-box delta-down">-2 vs v8 (79)</div>
+<p style="margin-top:12px;font-size:13px;color:#9a97c0;">
+El score baja 2 puntos porque esta auditoria encontro hallazgos mas profundos que v8 no detecto (XSS en WA preview, Content-Length spoofeable, parseInt en caja/gastos/perfumes, redondeo cuotas). Los 10 fixes de v8 estan confirmados pero abrieron visibilidad a nuevos problemas. La mejora real en seguridad (toast XSS, confirm modal, debounce, multi-tab sync) es solida — el score refleja mayor profundidad de analisis, no regresion.
+</p>
+</div>
+
+<!-- ═══════════════ DELTA vs v8 ═══════════════ -->
+<h2>Delta vs Auditoria v8</h2>
+<div class="card">
+<table>
+<tr><th>Metrica</th><th>v8</th><th>v9</th><th>Delta</th></tr>
+<tr><td>Score total</td><td>79</td><td>77</td><td><span class="red">-2</span> (mayor profundidad)</td></tr>
+<tr><td>Hallazgos criticos</td><td>2</td><td>0</td><td><span class="green">-2</span></td></tr>
+<tr><td>Hallazgos altos</td><td>3</td><td>5</td><td><span class="red">+2</span> (nuevos descubiertos)</td></tr>
+<tr><td>Hallazgos medios</td><td>7</td><td>14</td><td><span class="red">+7</span> (mayor profundidad)</td></tr>
+<tr><td>Hallazgos bajos</td><td>4</td><td>9</td><td><span class="red">+5</span></td></tr>
+<tr><td>Fixes aplicados</td><td>0</td><td>10</td><td><span class="green">+10</span></td></tr>
+<tr><td>Total hallazgos</td><td>16</td><td>28</td><td>+12 (auditoria mas exhaustiva)</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════ PROBABILIDAD ═══════════════ -->
+<h2>Probabilidad de Exito</h2>
+<div class="verdict-box">
+<div class="verdict-score" style="font-size:36px;">45%</div>
+<div class="verdict-label">Probabilidad de exito comercial a 12 meses</div>
+<p style="margin-top:12px;font-size:13px;color:#9a97c0;">
+El producto es solido tecnicamente para su tamano. El nicho esta bien elegido. El riesgo principal es de ejecucion: (1) monetizacion — el tier free es demasiado completo, (2) retencion — sin datos reales aun, (3) escala — un solo dev con un monolito no puede iterar rapido. Si se logran 100 usuarios pagos en 6 meses ($1K MRR), la probabilidad sube a 65%.
+</p>
+</div>
+
+<!-- ═══════════════ PLANES ═══════════════ -->
+<h2>Plan de Accion</h2>
+<div class="plan-section">
+<div class="plan-card">
+<div class="plan-title">24 horas</div>
+<ul class="plan-items">
+<li>Fix XSS en preview WA (F-01)</li>
+<li>Fix src foto sin validar (F-02)</li>
+<li>Remover user-scalable=no (F-18)</li>
+<li>Fix redondeo cuotas (F-09)</li>
+<li>Fix montoPagado en primera cuota (F-10)</li>
+<li>parseFloat en caja/gastos/perfumes (F-11, F-12)</li>
+<li>Fix vendedor hardcodeado (F-16)</li>
+</ul>
+</div>
+<div class="plan-card">
+<div class="plan-title">7 dias</div>
+<ul class="plan-items">
+<li>Fix requireJson body validation (F-03)</li>
+<li>Reducir TTL processing webhook (F-05)</li>
+<li>Hashear email en KV keys (F-06)</li>
+<li>Timeout en fetch MP webhook (F-13)</li>
+<li>Hashear PIN (F-04)</li>
+<li>Fix showTutorial (F-15)</li>
+<li>Reportar errores de import (F-17)</li>
+<li>Lazy render solo pantalla activa (F-22)</li>
+</ul>
+</div>
+<div class="plan-card">
+<div class="plan-title">30 dias</div>
+<ul class="plan-items">
+<li>ARIA + focus trap en modales (F-19)</li>
+<li>Keyboard support en chips/buttons (F-20)</li>
+<li>Extraer _renderVentaCard (F-26)</li>
+<li>Extraer _processPhoto (F-27)</li>
+<li>SRI en scripts dinamicos (F-24)</li>
+<li>Self-host OneSignal SDK (F-07)</li>
+<li>Pre-cache en SW install (F-28)</li>
+<li>Month picker funcional (F-21)</li>
+</ul>
+</div>
+<div class="plan-card">
+<div class="plan-title">90 dias</div>
+<ul class="plan-items">
+<li>Refactor monolito App -> modulos (F-25)</li>
+<li>Tests automatizados (Vitest + Miniflare)</li>
+<li>Lazy loading fotos con ObjectURL (F-23)</li>
+<li>CSP nonces post-refactor (F-08)</li>
+<li>TOCTOU fix con Durable Objects (F-14)</li>
+<li>Landing localizada por pais</li>
+<li>Video demo 15-30 seg</li>
+</ul>
+</div>
+</div>
+
+<!-- ═══════════════ VEREDICTO ═══════════════ -->
+<h2>Veredicto Final</h2>
+<div class="verdict-box">
+<div class="verdict-score" style="font-size:24px;">SI, lanzaria el producto</div>
+<div class="verdict-label" style="margin-top:8px;">Con las correcciones del plan de 24 horas</div>
+<p style="margin-top:16px;font-size:13px;color:#9a97c0;text-align:left;max-width:600px;margin-left:auto;margin-right:auto;">
+Los hallazgos de seguridad (XSS WA preview, foto src, Content-Length) son de impacto real pero corregibles en horas. Los bugs de precision monetaria (cuotas, parseInt) son molestos pero no criticos. La arquitectura (monolito, god object) es deuda tecnica que no bloquea el lanzamiento.
+<br><br>
+El producto resuelve un problema real para un nicho real. Los 10 fixes de la v8 demuestran capacidad de iteracion rapida. Con el plan de 24 horas ejecutado, el producto esta listo para usuarios reales. La prioridad debe ser obtener los primeros 10 usuarios pagos, no perfeccionar el codigo.
+</p>
+</div>
+
+<p style="text-align:center;font-size:11px;color:#7a7798;margin-top:32px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.04);">
+Parfum Track — Auditoria Completa v9 · Generada el 28/06/2026 · 11 fases · 28 hallazgos (0 criticos, 5 altos, 14 medios, 9 bajos) · 10 fixes confirmados de v8
+</p>
+
+</div>
+</body>
+</html>

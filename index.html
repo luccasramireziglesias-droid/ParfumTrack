@@ -869,6 +869,42 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .stock-badge.low { background: var(--warn); color: #1a1a2e; }
 .stock-badge.zero { background: var(--red); color: #fff; }
 
+.stock-alert-card {
+  background: rgba(224,176,96,0.08);
+  border: 1px solid rgba(224,176,96,0.15);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.stock-alert-card .ms { font-size: 18px; color: var(--warn); }
+.stock-alert-card.critical { background: rgba(224,112,112,0.08); border-color: rgba(224,112,112,0.15); }
+.stock-alert-card.critical .ms { color: var(--red); }
+.stock-alert-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.stock-alert-text {
+  font: 500 12px 'DM Sans';
+  color: var(--text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stock-alert-text strong { color: var(--text); font-weight: 600; }
+.stock-alert-velocity {
+  font: 600 11px 'DM Sans';
+  color: var(--text3);
+  white-space: nowrap;
+}
+#stock-alerts { margin-bottom: 12px; }
+
 .stock-info {
   padding: 11px 13px;
 }
@@ -1111,6 +1147,106 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   padding: 3px 8px;
   border-radius: var(--radius-pill);
   margin-left: 6px;
+}
+
+.cuotas-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  background: var(--card);
+  border-radius: 14px;
+  padding: 4px;
+}
+.cuotas-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border: none;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--text3);
+  font: 600 13px 'DM Sans';
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cuotas-tab .ms { font-size: 17px; }
+.cuotas-tab.active {
+  background: var(--bg3);
+  color: var(--gold2);
+}
+
+.deudor-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.deudor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.deudor-name {
+  font: 700 16px 'DM Sans';
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.deudor-name .ms { font-size: 20px; color: var(--gold); }
+.deudor-amount {
+  font: 800 18px 'DM Sans';
+  color: var(--red);
+}
+.deudor-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.deudor-chip {
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+  background: rgba(255,255,255,0.04);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.deudor-chip .ms { font-size: 14px; }
+.deudor-chip.overdue { color: var(--red); background: rgba(224,112,112,0.1); }
+.deudor-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.deudor-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: 500 12px 'DM Sans';
+  color: var(--text2);
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
+}
+.deudor-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+.deudor-item-amount { color: var(--warn); font-weight: 600; }
+.deudor-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .wa-preview-label {
@@ -2134,12 +2270,22 @@ input[type="date"].form-input {
         <span class="ms green">chevron_right</span>
       </div>
 
+      <div id="month-compare" class="hidden" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:14px;"></div>
+
       <div class="section-header">
         <span class="section-title">Ventas recientes</span>
         <span class="section-link" onclick="App.showScreen('ventas-all')">Ver todas</span>
       </div>
 
       <div id="ventas-recientes"></div>
+
+      <div id="dashboard-deudores" class="hidden" style="margin-top:16px;">
+        <div class="section-header">
+          <span class="section-title"><span class="ms gold">group</span>Quién te debe</span>
+          <span class="section-link" onclick="App.showScreen('cuotas');App.switchCuotasView('deudores')">Ver todos</span>
+        </div>
+        <div id="dashboard-deudores-list"></div>
+      </div>
     </div>
   </div>
 
@@ -2264,6 +2410,7 @@ input[type="date"].form-input {
         <span class="chip chip-warn" onclick="App.filterStockBy('bajo')">Bajo · <span id="chip-bajo">0</span></span>
       </div>
 
+      <div id="stock-alerts" class="hidden"></div>
       <div class="stock-grid" id="stock-grid"></div>
     </div>
   </div>
@@ -2281,7 +2428,17 @@ input[type="date"].form-input {
         <span class="ms owed-icon">account_balance_wallet</span>
       </div>
 
+      <div class="cuotas-tabs">
+        <button class="cuotas-tab active" id="tab-cuotas" onclick="App.switchCuotasView('cuotas')">
+          <span class="ms">receipt_long</span>Por cuota
+        </button>
+        <button class="cuotas-tab" id="tab-deudores" onclick="App.switchCuotasView('deudores')">
+          <span class="ms">group</span>Por deudor
+        </button>
+      </div>
+
       <div id="cuotas-list"></div>
+      <div id="deudores-list" class="hidden"></div>
     </div>
   </div>
 
@@ -2451,6 +2608,11 @@ input[type="date"].form-input {
             <option value="€">€ (Euro)</option>
             <option value="R$">R$ (Real)</option>
           </select>
+        </div>
+        <div class="mas-item" onclick="App.showTutorial()">
+          <span class="ms gold">school</span>
+          <span>Ver tutorial</span>
+          <span class="ms muted chevron">chevron_right</span>
         </div>
         <div class="mas-item" onclick="App.clearData()">
           <span class="ms danger">delete_forever</span>
@@ -2699,6 +2861,18 @@ input[type="date"].form-input {
     </div>
   </div>
 
+  <!-- ====== MODAL: CONFIRMACIÓN CUSTOM ====== -->
+  <div id="modal-confirm" class="modal-overlay hidden" onclick="App._confirmReject&&App._confirmReject()">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width:340px;gap:16px;text-align:center;">
+      <span class="ms" id="confirm-icon" style="font-size:40px;color:var(--warn);">warning</span>
+      <div id="confirm-msg" style="font-size:15px;line-height:1.5;color:var(--text);"></div>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button class="btn-outline-gold" id="confirm-cancel" style="flex:1;padding:12px;" onclick="App._confirmReject&&App._confirmReject()">Cancelar</button>
+        <button class="btn gold-btn" id="confirm-ok" style="flex:1;padding:12px;" onclick="App._confirmResolve&&App._confirmResolve()"></button>
+      </div>
+    </div>
+  </div>
+
   <!-- ====== SCREEN: VER TODAS LAS VENTAS ====== -->
   <div id="screen-ventas-all" class="screen">
     <div class="screen-scroll">
@@ -2893,12 +3067,17 @@ input[type="date"].form-input {
         <div id="catalogo-preview-imgs" style="display:flex;flex-direction:column;gap:12px;"></div>
       </div>
 
-      <div style="padding:16px;display:flex;gap:8px;">
-        <button class="btn-primary btn-full" onclick="App.previewCatalogo()" id="btn-catalogo-preview">
-          <span class="ms">visibility</span>Vista previa (<span id="catalogo-count">0</span>)
-        </button>
-        <button class="btn-primary btn-full" onclick="App.enviarCatalogo()" id="btn-catalogo-send" style="background:var(--green);display:none;">
-          <span class="ms">share</span>Enviar
+      <div style="padding:16px;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:8px;">
+          <button class="btn-primary btn-full" onclick="App.previewCatalogo()" id="btn-catalogo-preview">
+            <span class="ms">visibility</span>Vista previa (<span id="catalogo-count">0</span>)
+          </button>
+          <button class="btn-primary btn-full" onclick="App.enviarCatalogo()" id="btn-catalogo-send" style="background:var(--green);display:none;">
+            <span class="ms">share</span>Enviar
+          </button>
+        </div>
+        <button class="btn-whatsapp" onclick="App.enviarCatalogoTexto()" style="border-radius:12px;">
+          <span class="ms">chat</span>Enviar listado por WhatsApp
         </button>
       </div>
     </div>
@@ -3256,6 +3435,22 @@ const App = {
     this.checkOnboarding();
     this.renderAll();
     this.registerSW();
+    this._initTabSync();
+  },
+
+  _tabChannel: null,
+  _initTabSync() {
+    if (!('BroadcastChannel' in window)) return;
+    this._tabChannel = new BroadcastChannel('pt_sync');
+    this._tabChannel.onmessage = async (e) => {
+      if (e.data === 'data_changed') {
+        await this.loadData();
+        this.renderAll();
+      }
+    };
+  },
+  _notifyTabs() {
+    if (this._tabChannel) this._tabChannel.postMessage('data_changed');
   },
 
   async _fixCorruptDates() {
@@ -3330,13 +3525,21 @@ const App = {
 
   // ====== RENDER ======
 
+  _debounceTimers: {},
+  debounce(key, fn, ms = 100) {
+    clearTimeout(this._debounceTimers[key]);
+    this._debounceTimers[key] = setTimeout(fn, ms);
+  },
+
   renderAll() {
-    this.renderDashboard();
-    this.renderStock();
-    this.renderCuotas();
-    this.renderStats();
-    this.updateNavBadge();
-    this.updatePedidosBadge();
+    this.debounce('renderAll', () => {
+      this.renderDashboard();
+      this.renderStock();
+      this.renderCuotas();
+      this.renderStats();
+      this.updateNavBadge();
+      this.updatePedidosBadge();
+    });
   },
 
   renderDashboard() {
@@ -3376,8 +3579,43 @@ const App = {
       badge.className = 'hero-badge';
     }
 
+    const compareEl = el('month-compare');
+    if (compareEl) {
+      if (prevVentas.length > 0 || thisMonth.length > 0) {
+        const prevTotal = prevVentas.reduce((s, v) => s + v.precioVenta, 0);
+        const prevMonthName = monthNames[prevMonth.getMonth()];
+        const diff = ganancia - prevGanancia;
+        const diffColor = diff >= 0 ? 'var(--green)' : 'var(--red)';
+        const diffIcon = diff >= 0 ? 'arrow_upward' : 'arrow_downward';
+        compareEl.classList.remove('hidden');
+        compareEl.innerHTML = `
+          <div style="font:600 12px 'DM Sans';color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+            <span class="ms" style="font-size:16px;color:var(--gold);">compare_arrows</span>Este mes vs ${prevMonthName}
+          </div>
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;text-align:center;padding:8px;background:rgba(255,255,255,0.03);border-radius:10px;">
+              <div style="font:500 10px 'DM Sans';color:var(--text4);text-transform:uppercase;margin-bottom:4px;">Ganancia</div>
+              <div style="font:700 15px 'DM Sans';color:var(--text);">${this.fmt(ganancia)}</div>
+              <div style="font:500 10px 'DM Sans';color:var(--text4);">vs ${this.fmt(prevGanancia)}</div>
+            </div>
+            <div style="flex:1;text-align:center;padding:8px;background:rgba(255,255,255,0.03);border-radius:10px;">
+              <div style="font:500 10px 'DM Sans';color:var(--text4);text-transform:uppercase;margin-bottom:4px;">Ventas</div>
+              <div style="font:700 15px 'DM Sans';color:var(--text);">${totalVentas}</div>
+              <div style="font:500 10px 'DM Sans';color:var(--text4);">vs ${prevVentas.length}</div>
+            </div>
+            <div style="flex:1;text-align:center;padding:8px;background:rgba(255,255,255,0.03);border-radius:10px;">
+              <div style="font:500 10px 'DM Sans';color:var(--text4);text-transform:uppercase;margin-bottom:4px;">Diferencia</div>
+              <div style="font:700 15px 'DM Sans';color:${diffColor};display:flex;align-items:center;justify-content:center;gap:2px;"><span class="ms" style="font-size:16px;">${diffIcon}</span>${this.fmt(Math.abs(diff))}</div>
+              <div style="font:500 10px 'DM Sans';color:${diffColor};">${diff >= 0 ? '+' : ''}${prevGanancia > 0 ? Math.round((diff / prevGanancia) * 100) : 0}%</div>
+            </div>
+          </div>`;
+      } else {
+        compareEl.classList.add('hidden');
+      }
+    }
+
     const pendientes = this.cuotasData.filter(c => !c.pagado);
-    const totalCobrar = pendientes.reduce((s, c) => s + c.monto, 0);
+    const totalCobrar = pendientes.reduce((s, c) => s + c.monto - (c.montoPagado || 0), 0);
     el('stat-cobrar').textContent = this.fmt(totalCobrar);
     const deudasUnicas = new Set(pendientes.map(c => c.ventaId)).size;
     el('stat-deudas').textContent = deudasUnicas + ' deuda' + (deudasUnicas !== 1 ? 's' : '') + ' activa' + (deudasUnicas !== 1 ? 's' : '');
@@ -3466,6 +3704,41 @@ const App = {
         </div>
       </div>`;
     }).join('');
+
+    this._renderDashboardDeudores();
+  },
+
+  _renderDashboardDeudores() {
+    const section = document.getElementById('dashboard-deudores');
+    const list = document.getElementById('dashboard-deudores-list');
+    if (!section || !list) return;
+
+    const pendientes = this.cuotasData.filter(c => !c.pagado);
+    if (pendientes.length === 0) {
+      section.classList.add('hidden');
+      return;
+    }
+
+    const byClient = {};
+    pendientes.forEach(c => {
+      const name = (c.cliente || 'Sin nombre').trim();
+      if (!byClient[name]) byClient[name] = 0;
+      byClient[name] += c.monto - (c.montoPagado || 0);
+    });
+
+    const sorted = Object.entries(byClient).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    section.classList.remove('hidden');
+    list.innerHTML = sorted.map(([name, total]) => {
+      const waMsg = `Hola ${name}! Te recuerdo que tenés un saldo pendiente de *${this.fmt(total)}*. Avisame cuando puedas pagar!`;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
+          <span class="ms" style="color:var(--gold);font-size:18px;">person</span>
+          <span style="font:500 13px 'DM Sans';color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.esc(name)}</span>
+        </div>
+        <span style="font:700 14px 'DM Sans';color:var(--red);margin:0 10px;white-space:nowrap;">${this.fmt(total)}</span>
+        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/'/g, "\\'")}')"><span class="ms" style="font-size:16px;">chat</span></button>
+      </div>`;
+    }).join('');
   },
 
   renderAllVentas() {
@@ -3535,6 +3808,8 @@ const App = {
     if (chipSin) chipSin.textContent = sinStock;
     if (chipBajo) chipBajo.textContent = bajoStock;
 
+    this._renderStockAlerts();
+
     if (items.length === 0) {
       grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span class="ms">inventory_2</span><span>No hay perfumes</span></div>';
       return;
@@ -3557,6 +3832,55 @@ const App = {
             </div>
           </div>
         </div>
+      </div>`;
+    }).join('');
+  },
+
+  _renderStockAlerts() {
+    const container = document.getElementById('stock-alerts');
+    if (!container) return;
+
+    const now = Date.now();
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+    const salesLast30 = this.ventas.filter(v => now - v.fecha < thirtyDays);
+
+    const salesByPerfume = {};
+    salesLast30.forEach(v => {
+      const name = (v.perfume || '').trim();
+      if (name) salesByPerfume[name] = (salesByPerfume[name] || 0) + 1;
+    });
+
+    const alerts = [];
+    this.perfumes.forEach(p => {
+      const sold = salesByPerfume[p.nombre] || 0;
+      if (sold === 0) return;
+      const monthsLeft = p.stock > 0 ? p.stock / sold : 0;
+      if (p.stock === 0) {
+        alerts.push({ perfume: p.nombre, stock: 0, sold, monthsLeft: 0, critical: true });
+      } else if (monthsLeft <= 1) {
+        alerts.push({ perfume: p.nombre, stock: p.stock, sold, monthsLeft, critical: false });
+      }
+    });
+
+    if (alerts.length === 0) {
+      container.classList.add('hidden');
+      return;
+    }
+
+    alerts.sort((a, b) => a.monthsLeft - b.monthsLeft);
+    container.classList.remove('hidden');
+    container.innerHTML = alerts.map(a => {
+      const cls = a.critical ? 'critical' : '';
+      const icon = a.critical ? 'error' : 'trending_down';
+      const msg = a.critical
+        ? `<strong>${this.esc(a.perfume)}</strong> sin stock — vendés ${a.sold}/mes`
+        : `<strong>${this.esc(a.perfume)}</strong> quedan ${a.stock} — vendés ${a.sold}/mes`;
+      return `<div class="stock-alert-card ${cls}">
+        <div class="stock-alert-left">
+          <span class="ms">${icon}</span>
+          <span class="stock-alert-text">${msg}</span>
+        </div>
+        <span class="stock-alert-velocity">${a.critical ? 'Reponer' : `~${Math.round(a.monthsLeft * 30)}d`}</span>
       </div>`;
     }).join('');
   },
@@ -3624,6 +3948,73 @@ const App = {
         <div class="wa-bubble">
           <div class="wa-text">${waMsg.replace(/\n/g, '<br>').replace(/\*(.*?)\*/g, '<b>$1</b>')}</div>
           <div class="wa-meta">${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2,'0')} <span class="ms">done_all</span></div>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  _cuotasView: 'cuotas',
+
+  switchCuotasView(view) {
+    this._cuotasView = view;
+    document.getElementById('tab-cuotas').classList.toggle('active', view === 'cuotas');
+    document.getElementById('tab-deudores').classList.toggle('active', view === 'deudores');
+    document.getElementById('cuotas-list').classList.toggle('hidden', view !== 'cuotas');
+    document.getElementById('deudores-list').classList.toggle('hidden', view !== 'deudores');
+    if (view === 'deudores') this.renderDeudores();
+  },
+
+  renderDeudores() {
+    const pendientes = this.cuotasData.filter(c => !c.pagado);
+    const container = document.getElementById('deudores-list');
+
+    if (pendientes.length === 0) {
+      container.innerHTML = '<div class="empty-state"><span class="ms">check_circle</span><span>No hay deudores</span></div>';
+      return;
+    }
+
+    const byClient = {};
+    pendientes.forEach(c => {
+      const name = (c.cliente || 'Sin nombre').trim();
+      if (!byClient[name]) byClient[name] = { cuotas: [], total: 0, oldestDue: Infinity };
+      const resta = c.monto - (c.montoPagado || 0);
+      byClient[name].cuotas.push(c);
+      byClient[name].total += resta;
+      if (c.vence < byClient[name].oldestDue) byClient[name].oldestDue = c.vence;
+    });
+
+    const sorted = Object.entries(byClient).sort((a, b) => b[1].total - a[1].total);
+    const now = Date.now();
+
+    container.innerHTML = sorted.map(([name, data]) => {
+      const overdue = data.cuotas.filter(c => c.vence < now);
+      const items = data.cuotas.map(c => {
+        const resta = c.monto - (c.montoPagado || 0);
+        return `<div class="deudor-item">
+          <span class="deudor-item-name">${this.esc(c.perfume)} · Cuota ${c.numero}/${c.total}</span>
+          <span class="deudor-item-amount">${this.fmt(resta)}</span>
+        </div>`;
+      }).join('');
+
+      const cuotasList = data.cuotas.map(c => {
+        const r = c.monto - (c.montoPagado || 0);
+        return `${this.esc(c.perfume)} cuota ${c.numero}: ${this.fmt(r)}`;
+      }).join('\n');
+      const waMsg = `Hola ${this.esc(name)}! Te paso el resumen de tus cuotas pendientes:\n\n${cuotasList}\n\n*Total: ${this.fmt(data.total)}*\n\nGracias!`;
+
+      return `<div class="deudor-card">
+        <div class="deudor-header">
+          <div class="deudor-name"><span class="ms">person</span>${this.esc(name)}</div>
+          <div class="deudor-amount">${this.fmt(data.total)}</div>
+        </div>
+        <div class="deudor-meta">
+          <span class="deudor-chip"><span class="ms">receipt_long</span>${data.cuotas.length} cuota${data.cuotas.length > 1 ? 's' : ''}</span>
+          ${overdue.length > 0 ? `<span class="deudor-chip overdue"><span class="ms">warning</span>${overdue.length} vencida${overdue.length > 1 ? 's' : ''}</span>` : ''}
+          <span class="deudor-chip"><span class="ms">event</span>${this.fmtDate(data.oldestDue)}</span>
+        </div>
+        <div class="deudor-items">${items}</div>
+        <div class="deudor-actions">
+          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
         </div>
       </div>`;
     }).join('');
@@ -3760,9 +4151,9 @@ const App = {
   },
 
   calcLiveProfit() {
-    const pv = parseInt(document.getElementById('venta-precio').value) || 0;
-    const pc = parseInt(document.getElementById('venta-compra').value) || 0;
-    const desc = parseInt(document.getElementById('venta-descuento').value) || 0;
+    const pv = parseFloat(document.getElementById('venta-precio').value) || 0;
+    const pc = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const desc = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const pvFinal = desc > 0 ? Math.round(pv * (1 - desc / 100)) : pv;
     const gan = pvFinal - pc;
     const margen = pvFinal > 0 ? Math.round((gan / pvFinal) * 100) : 0;
@@ -3798,9 +4189,10 @@ const App = {
     const filtered = val ? values.filter(v => v.toLowerCase().includes(val)) : values.slice(0, 5);
 
     if (filtered.length === 0) { listEl.classList.add('hidden'); return; }
-    listEl.innerHTML = filtered.map(v =>
-      `<div class="ac-item" onmousedown="document.getElementById('${inputId}').value='${this.esc(v)}';document.getElementById('${listId}').classList.add('hidden');App.calcLiveProfit()">${this.esc(v)}</div>`
-    ).join('');
+    listEl.innerHTML = filtered.map(v => {
+      const safe = this.esc(v).replace(/'/g, '&#39;');
+      return `<div class="ac-item" onmousedown="document.getElementById('${inputId}').value='${safe}';document.getElementById('${listId}').classList.add('hidden');App.calcLiveProfit()">${this.esc(v)}</div>`;
+    }).join('');
     listEl.classList.remove('hidden');
   },
 
@@ -3857,12 +4249,12 @@ const App = {
 
   async guardarVenta() {
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
-    const precioVenta = parseInt(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = parseInt(document.getElementById('venta-compra').value) || 0;
+    const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
+    const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
     const vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
-    const descuento = parseInt(document.getElementById('venta-descuento').value) || 0;
+    const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
     const fecha = fechaStr ? new Date(fechaStr + 'T12:00:00').getTime() : Date.now();
     const nota = document.getElementById('venta-nota').value;
@@ -3896,8 +4288,10 @@ const App = {
     });
 
     await this.loadData();
+    this.track('sale_created', { method: this.formaPago });
     this.toast('Venta guardada', 'check_circle');
     this.haptic('success');
+    this._notifyTabs();
     this.showScreen('inicio');
   },
 
@@ -4081,6 +4475,11 @@ const App = {
     const paid = monto >= restante - 0.01;
     this.toast(paid ? 'Cuota pagada completa' : 'Pago parcial registrado', 'check_circle');
     this.haptic('success');
+    this._notifyTabs();
+  },
+
+  async marcarPagada(id) {
+    this.abrirPagoCuota(id);
   },
 
   async marcarPagada(id) {
@@ -4133,12 +4532,12 @@ const App = {
     if (!id) return;
 
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
-    const precioVenta = parseInt(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = parseInt(document.getElementById('venta-compra').value) || 0;
+    const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
+    const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
     const vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
-    const descuento = parseInt(document.getElementById('venta-descuento').value) || 0;
+    const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
     const fecha = fechaStr ? new Date(fechaStr + 'T12:00:00').getTime() : Date.now();
     const nota = document.getElementById('venta-nota').value;
@@ -4169,12 +4568,13 @@ const App = {
   },
 
   async deleteVenta(id) {
-    if (!confirm('¿Eliminar esta venta?')) return;
+    if (!await this.appConfirm('¿Eliminar esta venta?', 'Eliminar', 'delete')) return;
     await DB.deleteVenta(id);
     await this.loadData();
     this.renderAll();
     this.renderAllVentas();
     this.toast('Venta eliminada', 'delete');
+    this._notifyTabs();
   },
 
   // ====== PEDIDOS ======
@@ -4369,6 +4769,7 @@ const App = {
     await this.loadData();
     this.toast('Pedido guardado', 'check_circle');
     this.haptic('success');
+    this._notifyTabs();
     this.showScreen('pedidos');
   },
 
@@ -4446,12 +4847,13 @@ const App = {
   },
 
   async deletePedido(id) {
-    if (!confirm('¿Eliminar este pedido?')) return;
+    if (!await this.appConfirm('¿Eliminar este pedido?', 'Eliminar', 'delete')) return;
     await DB.deletePedido(id);
     await this.loadData();
     this.renderPedidos();
     this.updatePedidosBadge();
     this.toast('Pedido eliminado', 'delete');
+    this._notifyTabs();
   },
 
   showPedidoDetalle(id) {
@@ -4540,14 +4942,16 @@ const App = {
     this.renderCaja();
     this.toast(this.cajaTipo === 'entrada' ? 'Entrada registrada' : 'Salida registrada', 'check_circle');
     this.haptic('success');
+    this._notifyTabs();
   },
 
   async deleteCaja(id) {
-    if (!confirm('¿Eliminar este movimiento?')) return;
+    if (!await this.appConfirm('¿Eliminar este movimiento?', 'Eliminar', 'delete')) return;
     await DB.deleteCaja(id);
     await this.loadData();
     this.renderCaja();
     this.toast('Movimiento eliminado', 'delete');
+    this._notifyTabs();
   },
 
   renderCaja() {
@@ -4607,14 +5011,16 @@ const App = {
     this.renderGastos();
     this.toast('Gasto registrado', 'check_circle');
     this.haptic('success');
+    this._notifyTabs();
   },
 
   async deleteGasto(id) {
-    if (!confirm('¿Eliminar este gasto?')) return;
+    if (!await this.appConfirm('¿Eliminar este gasto?', 'Eliminar', 'delete')) return;
     await DB.deleteGasto(id);
     await this.loadData();
     this.renderGastos();
     this.toast('Gasto eliminado', 'delete');
+    this._notifyTabs();
   },
 
   renderGastos() {
@@ -4783,7 +5189,7 @@ const App = {
     if (!file) return;
     input.value = '';
 
-    if (!confirm('¿Importar datos desde archivo? Esto reemplazará tus datos actuales.')) return;
+    if (!await this.appConfirm('¿Importar datos desde archivo? Esto reemplazará tus datos actuales.', 'Importar', 'upload_file')) return;
 
     this.toast('Leyendo archivo…', 'hourglass_top');
     try {
@@ -4801,6 +5207,7 @@ const App = {
       const total = await this._restoreData(data);
       this.toast(`${total} registros importados`, 'check_circle');
       this.haptic('success');
+      this._notifyTabs();
     } catch (e) {
       this.toast('Error al leer el archivo', 'error');
     }
@@ -4904,10 +5311,15 @@ const App = {
 
     const cuotasRows = this.cuotasData.map(c => ({
       Venta: c.ventaId,
+      Perfume: c.perfume || '',
+      Cliente: c.cliente || '',
       'Cuota N°': c.numero,
       Monto: c.monto,
+      'Monto pagado': c.montoPagado || 0,
+      Resta: c.monto - (c.montoPagado || 0),
       Vencimiento: new Date(c.vence).toLocaleDateString('es-AR'),
-      Pagado: c.pagado ? 'Sí' : 'No'
+      Pagado: c.pagado ? 'Sí' : (c.montoPagado ? 'Parcial' : 'No'),
+      'Cant. pagos': (c.pagos || []).length
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(cuotasRows), 'Cuotas');
 
@@ -5057,6 +5469,23 @@ const App = {
     this.toast(`${this._catalogoImages.length} imagen${this._catalogoImages.length > 1 ? 'es' : ''} descargada${this._catalogoImages.length > 1 ? 's' : ''}`, 'download');
   },
 
+  enviarCatalogoTexto() {
+    const selected = this.perfumes
+      .filter(p => this._catalogoSelected.has(p.id))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    if (selected.length === 0) {
+      this.toast('Seleccioná al menos un perfume', 'warning');
+      return;
+    }
+    const negocio = localStorage.getItem('pt_negocio') || 'Parfum Track';
+    const lines = selected.map(p => {
+      const stock = p.stock > 0 ? `(${p.stock} disponible${p.stock > 1 ? 's' : ''})` : '(agotado)';
+      return `• ${p.nombre} — ${this.fmt(p.precioVenta)} ${stock}`;
+    });
+    const msg = `*${negocio} — Catálogo actualizado*\n\n${lines.join('\n')}\n\n_${selected.length} perfumes · ${new Date().toLocaleDateString('es-AR')}_`;
+    this.cobrarWhatsApp(msg);
+  },
+
   _renderCatalogoPage(items, pageNum, totalPages) {
     return new Promise(resolve => {
       const W = 1080, HEADER = 160, ROW_H = 80, FOOTER = 60, PAD = 40;
@@ -5147,7 +5576,7 @@ const App = {
       this.toast('Activá una licencia primero', 'warning');
       return;
     }
-    if (!confirm('¿Subir backup a la nube? Esto reemplazará tu backup anterior.')) return;
+    if (!await this.appConfirm('¿Subir backup a la nube? Esto reemplazará tu backup anterior.', 'Subir', 'cloud_upload')) return;
     this.toast('Subiendo backup…', 'cloud_upload');
 
     const config = await DB.getAll('config');
@@ -5191,7 +5620,7 @@ const App = {
       this.toast('Activá una licencia primero', 'warning');
       return;
     }
-    if (!confirm('¿Restaurar datos desde la nube? Esto reemplazará tus datos actuales.')) return;
+    if (!await this.appConfirm('¿Restaurar datos desde la nube? Esto reemplazará tus datos actuales.', 'Restaurar', 'cloud_download')) return;
 
     this.toast('Descargando backup…', 'cloud_download');
     try {
@@ -5207,13 +5636,14 @@ const App = {
       const total = await this._restoreData(data);
       this.toast(`${total} registros restaurados`, 'check_circle');
       this.haptic('success');
+      this._notifyTabs();
     } catch {
       this.toast('Error de conexión', 'cloud_off');
     }
   },
 
   async clearData() {
-    if (!confirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.')) return;
+    if (!await this.appConfirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.', 'Borrar todo', 'delete_forever')) return;
     const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos'];
     for (const store of stores) {
       await DB.clear(store);
@@ -5221,6 +5651,7 @@ const App = {
     await this.loadData();
     this.renderAll();
     this.toast('Datos borrados', 'delete_forever');
+    this._notifyTabs();
   },
 
   // ====== UTILS ======
@@ -5291,9 +5722,18 @@ const App = {
     return div.innerHTML;
   },
 
+  track(event, props) {
+    if (window.plausible) window.plausible(event, props ? { props } : undefined);
+  },
+
   toast(msg, icon) {
     const el = document.getElementById('toast');
-    el.innerHTML = `<span class="ms">${icon || 'info'}</span>${msg}`;
+    el.textContent = '';
+    const span = document.createElement('span');
+    span.className = 'ms';
+    span.textContent = icon || 'info';
+    el.appendChild(span);
+    el.appendChild(document.createTextNode(msg));
     el.classList.remove('hidden');
     clearTimeout(this._toastTimer);
     this._toastTimer = setTimeout(() => el.classList.add('hidden'), 2500);
@@ -5305,6 +5745,19 @@ const App = {
       else if (type === 'warning') navigator.vibrate(50);
       else navigator.vibrate(10);
     }
+  },
+
+  appConfirm(msg, okLabel = 'Confirmar', icon = 'warning') {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('modal-confirm');
+      document.getElementById('confirm-msg').textContent = msg;
+      document.getElementById('confirm-ok').textContent = okLabel;
+      document.getElementById('confirm-icon').textContent = icon;
+      modal.classList.remove('hidden');
+      const cleanup = (val) => { modal.classList.add('hidden'); App._confirmResolve = null; App._confirmReject = null; resolve(val); };
+      App._confirmResolve = () => cleanup(true);
+      App._confirmReject = () => cleanup(false);
+    });
   },
 
   // ====== CUENTA / LICENCIA ======
@@ -5525,6 +5978,7 @@ const App = {
   },
 
   async suscribirPro(plan) {
+    this.track('click_subscribe', { plan });
     if (!this._account?.email) {
       this.toast('Registrá tu email abajo para suscribirte', 'warning');
       return;
@@ -5555,7 +6009,7 @@ const App = {
       this.toast('Activá una licencia primero', 'warning');
       return;
     }
-    if (!confirm('¿Subir datos a la nube? Esto reemplazará los datos guardados.')) return;
+    if (!await this.appConfirm('¿Subir datos a la nube? Esto reemplazará los datos guardados.', 'Subir', 'cloud_upload')) return;
     this.toast('Sincronizando…', 'cloud_upload');
     const config = await DB.getAll('config');
     const data = {
@@ -5599,7 +6053,7 @@ const App = {
       this.toast('Activá una licencia primero', 'warning');
       return;
     }
-    if (!confirm('¿Cargar datos desde la nube? Esto reemplazará tus datos actuales.')) return;
+    if (!await this.appConfirm('¿Cargar datos desde la nube? Esto reemplazará tus datos actuales.', 'Cargar', 'cloud_download')) return;
     this.toast('Descargando…', 'cloud_download');
     try {
       const res = await fetch('/sync', {
@@ -5614,13 +6068,14 @@ const App = {
       const total = await this._restoreData(data);
       this.toast(`${total} registros restaurados`, 'check_circle');
       this.haptic('success');
+      this._notifyTabs();
     } catch {
       this.toast('Error de conexión', 'cloud_off');
     }
   },
 
-  cerrarSesion() {
-    if (!confirm('¿Cerrar sesión? Tus datos locales se mantienen.')) return;
+  async cerrarSesion() {
+    if (!await this.appConfirm('¿Cerrar sesión? Tus datos locales se mantienen.', 'Cerrar sesión', 'logout')) return;
     this._account = null;
     this.saveAccount();
     this.updatePlanUI();
@@ -5642,6 +6097,14 @@ const App = {
     const el = document.getElementById('onboarding');
     el.classList.add('hidden');
     el.style.display = 'none';
+  },
+
+  showTutorial() {
+    const el = document.getElementById('onboarding');
+    el.classList.remove('hidden');
+    el.style.display = 'flex';
+    const steps = el.querySelectorAll('.onb-step');
+    steps.forEach((s, i) => s.style.display = i === 0 ? 'flex' : 'none');
   },
 
   // ====== PIN LOCK ======
