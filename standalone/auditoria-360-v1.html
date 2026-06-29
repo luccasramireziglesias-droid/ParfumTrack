@@ -158,15 +158,15 @@ a{color:var(--gold)}
 <button class="btn-sm" onclick="collapseAll()">Colapsar todo</button>
 </div>
 </div>
-<p style="color:var(--text3);font-size:12px;margin-bottom:24px;">29 de junio 2026 (actualizado) · index.html (6.189 líneas) + 10 Worker functions + SW v10 · 42 fases · 209 tests · Auditoría completa offline</p>
+<p style="color:var(--text3);font-size:12px;margin-bottom:24px;">29 de junio 2026 · index.html (6.189 líneas) + 10 Worker functions + SW v9 · 42 fases · Auditoría completa offline</p>
 
 <!-- ═══ DASHBOARD KPIs ═══ -->
 <div class="kpi-grid">
-<div class="kpi"><div class="kpi-val">8.2</div><div class="kpi-name">Score Global /10</div></div>
+<div class="kpi"><div class="kpi-val">7.8</div><div class="kpi-name">Score Global /10</div></div>
 <div class="kpi"><div class="kpi-val">42</div><div class="kpi-name">Fases Analizadas</div></div>
-<div class="kpi"><div class="kpi-val">14</div><div class="kpi-name">Hallazgos Activos</div></div>
-<div class="kpi"><div class="kpi-val">0</div><div class="kpi-name">Críticos</div></div>
-<div class="kpi"><div class="kpi-val">83%</div><div class="kpi-name">Prob. Éxito</div></div>
+<div class="kpi"><div class="kpi-val">23</div><div class="kpi-name">Hallazgos Activos</div></div>
+<div class="kpi"><div class="kpi-val">4</div><div class="kpi-name">Críticos</div></div>
+<div class="kpi"><div class="kpi-val">78%</div><div class="kpi-name">Prob. Éxito</div></div>
 </div>
 
 <!-- ═══ FASE 1: VISIÓN DEL SISTEMA ═══ -->
@@ -238,37 +238,50 @@ a{color:var(--gold)}
 <section id="f03" class="phase-section">
 <h2><span class="phase-num">Fase 03 — Arquitectura</span>Auditoría Frontend</h2>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> FE-01: XSS en preview WhatsApp (cuotas)</div>
+<div class="finding-title"><span class="badge badge-high">ALTO</span> FE-01: XSS en preview WhatsApp (cuotas)</div>
 <div class="finding-detail">
-<strong>Estado:</strong> <span class="green">RESUELTO en PR #48</span> — Se escapa el mensaje WA con <code>this.esc()</code> antes de inyectar en HTML.
+<strong>Línea:</strong> ~3949 index.html<br>
+<strong>Causa:</strong> <code>.replace(/\*(.*?)\*/g, '&lt;b&gt;$1&lt;/b&gt;')</code> inyecta HTML sin escapar el capture group. Un nombre de perfume con <code>*&lt;img onerror=alert(1)&gt;*</code> ejecuta JS.<br>
+<strong>Impacto:</strong> XSS almacenado — persiste en IndexedDB, se ejecuta cada vez que se abre cuotas.<br>
+<strong>Fix:</strong> Escapar el capture group: <code>.replace(/\*(.*?)\*/g, (_, m) => '&lt;b&gt;' + esc(m) + '&lt;/b&gt;')</code>
 </div>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> FE-02: innerHTML en stat-mejor sin sanitizar</div>
+<div class="finding-title"><span class="badge badge-high">ALTO</span> FE-02: innerHTML en stat-mejor sin sanitizar</div>
 <div class="finding-detail">
-<strong>Estado:</strong> <span class="green">RESUELTO en PR #48</span> — Se usa <code>this.esc(mejorV[0])</code> para escapar el nombre antes de inyectar.
+<strong>Línea:</strong> 3629<br>
+<strong>Causa:</strong> <code>el('stat-mejor').innerHTML = mejorV ? \`${mejorV[0]}...\`</code> — el nombre del vendedor viene de IndexedDB sin escapar.<br>
+<strong>Impacto:</strong> XSS vía import de backup malicioso o entrada directa.<br>
+<strong>Fix:</strong> Usar <code>this.esc(mejorV[0])</code> en el template literal.
 </div>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> FE-03: parseInt trunca decimales en precios</div>
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> FE-03: parseInt trunca decimales en precios</div>
 <div class="finding-detail">
-<strong>Estado:</strong> <span class="green">RESUELTO en PR #48</span> — <code>parseInt()</code> reemplazado por <code>parseFloat()</code> en savePerfume, guardarCaja y guardarGasto.
+<strong>Líneas:</strong> 4412-4413 (savePerfume), 4934 (guardarCaja), 5003 (guardarGasto)<br>
+<strong>Causa:</strong> <code>parseInt()</code> en vez de <code>parseFloat()</code>. Un perfume de $27.50 se guarda como $27.<br>
+<strong>Impacto:</strong> Pérdida silenciosa de centavos. Acumulado, distorsiona ganancias.<br>
+<strong>Fix:</strong> Cambiar a <code>parseFloat()</code> en las 3 ocurrencias.
 </div>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> FE-04: Redondeo de cuotas pierde dinero</div>
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> FE-04: Redondeo de cuotas pierde dinero</div>
 <div class="finding-detail">
-<strong>Fix:</strong> Última cuota ajustada con <code>montoTotal - (montoCuota * (n-1))</code> (PR #48).
+<strong>Línea:</strong> 3234<br>
+<strong>Causa:</strong> <code>Math.round(v.precioVenta / v.numCuotas)</code>. Una venta de $100 en 3 cuotas = 3 × $33 = $99. Se pierde $1.<br>
+<strong>Fix:</strong> Ajustar la última cuota: <code>montoTotal - (montoCuota * (n-1))</code>
 </div>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> FE-05: Método duplicado marcarPagada</div>
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> FE-05: Método duplicado marcarPagada</div>
 <div class="finding-detail">
-<strong>Fix:</strong> Duplicación eliminada (PR #48).
+<strong>Líneas:</strong> 4481-4487<br>
+<strong>Causa:</strong> <code>marcarPagada(id)</code> está definido 2 veces idénticas en App. La segunda sobreescribe la primera sin efecto.<br>
+<strong>Fix:</strong> Eliminar la duplicación.
 </div>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> FE-06: togglePin usa prompt() nativo</div>
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> FE-06: togglePin usa prompt() nativo</div>
 <div class="finding-detail">
 <strong>Línea:</strong> 6165<br>
 <strong>Causa:</strong> <code>prompt('Creá un PIN...')</code> en vez del modal custom <code>appConfirm()</code>. UX inconsistente en móvil.<br>
@@ -276,15 +289,19 @@ a{color:var(--gold)}
 </div>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> FE-07: user-scalable=no en viewport</div>
+<div class="finding-title"><span class="badge badge-low">BAJO</span> FE-07: user-scalable=no en viewport</div>
 <div class="finding-detail">
-<strong>Estado:</strong> <span class="green">RESUELTO en PR #48</span> — Removido <code>user-scalable=no</code>, agregado <code>touch-action: manipulation</code>.
+<strong>Línea:</strong> 5<br>
+<strong>Causa:</strong> <code>user-scalable=no</code> bloquea zoom. Viola WCAG 1.4.4.<br>
+<strong>Fix:</strong> Remover <code>user-scalable=no</code>. Usar <code>touch-action: manipulation</code> para evitar double-tap zoom.
 </div>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> FE-08: Primera cuota marcada pagada sin monto</div>
+<div class="finding-title"><span class="badge badge-low">BAJO</span> FE-08: Primera cuota marcada pagada sin monto</div>
 <div class="finding-detail">
-<strong>Fix:</strong> Agregado <code>montoPagado: i === 0 ? montoCuota : 0</code> (PR #48).
+<strong>Línea:</strong> 3246<br>
+<strong>Causa:</strong> <code>pagado: i === 0</code> pero no setea <code>montoPagado</code>. La cuota 1 aparece como "pagada" con $0 pagado.<br>
+<strong>Fix:</strong> Agregar <code>montoPagado: i === 0 ? montoCuota : 0</code>
 </div>
 </div>
 </section>
@@ -293,10 +310,11 @@ a{color:var(--gold)}
 <section id="f04" class="phase-section">
 <h2><span class="phase-num">Fase 04 — Arquitectura</span>Auditoría Backend</h2>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> BE-01: requireJson solo valida Content-Length header</div>
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> BE-01: requireJson solo valida Content-Length header</div>
 <div class="finding-detail">
-<strong>Archivo:</strong> _shared.js<br>
-<strong>Fix:</strong> Se agregó <code>parseJsonBody()</code> que lee el body real con <code>request.text()</code> y valida <code>text.length > maxBytes</code> antes de parsear. Migrado en 7 endpoints.
+<strong>Archivo:</strong> _shared.js:89-94<br>
+<strong>Causa:</strong> Solo verifica el header <code>Content-Length</code> que el cliente puede falsear. El body real puede exceder el límite.<br>
+<strong>Fix:</strong> Leer el body con streaming y abortar si excede maxBytes. O confiar en el límite de Workers (100MB) y verificar post-parse.
 </div>
 </div>
 <div class="finding">
@@ -331,11 +349,11 @@ Signature verification con timing-safe comparison, replay protection (5 min wind
 <tr><th>Store</th><th>Tipo</th><th>Índices</th><th>Notas</th></tr>
 <tr><td>perfumes</td><td>IndexedDB</td><td>nombre</td><td>Fotos como data URI (puede crecer mucho)</td></tr>
 <tr><td>ventas</td><td>IndexedDB</td><td>fecha</td><td>OK, bien modelado</td></tr>
-<tr><td>cuotas</td><td>IndexedDB</td><td>ventaId</td><td>OK (montoPagado corregido)</td></tr>
+<tr><td>cuotas</td><td>IndexedDB</td><td>ventaId</td><td>Bug: primera cuota sin montoPagado</td></tr>
 <tr><td>config</td><td>IndexedDB</td><td>key</td><td>Key-value store</td></tr>
 <tr><td>pedidos</td><td>IndexedDB</td><td>estado, fecha</td><td>OK</td></tr>
-<tr><td>caja</td><td>IndexedDB</td><td>fecha</td><td>OK (parseFloat)</td></tr>
-<tr><td>gastos</td><td>IndexedDB</td><td>fecha</td><td>OK (parseFloat)</td></tr>
+<tr><td>caja</td><td>IndexedDB</td><td>fecha</td><td>parseInt trunca decimales</td></tr>
+<tr><td>gastos</td><td>IndexedDB</td><td>fecha</td><td>parseInt trunca decimales</td></tr>
 <tr><td>PT_LICENSES</td><td>Cloudflare KV</td><td>—</td><td>Trial, rate limit, licencias. Multi-use namespace.</td></tr>
 <tr><td>PT_BACKUP</td><td>Cloudflare R2</td><td>—</td><td>Backup y sync. Limit 5MB.</td></tr>
 </table>
@@ -391,11 +409,11 @@ Todos los endpoints devuelven <code>{ ok: boolean, error?: string, ...data }</co
 <tr><th>Métrica</th><th>Valor</th><th>Evaluación</th></tr>
 <tr><td>Líneas totales</td><td>~7.500</td><td>Aceptable para el scope</td></tr>
 <tr><td>Archivo más grande</td><td>index.html (6.189)</td><td class="red">Excesivo — refactorizar</td></tr>
-<tr><td>Funciones duplicadas</td><td>0</td><td class="green">Limpio</td></tr>
+<tr><td>Funciones duplicadas</td><td>1 (marcarPagada)</td><td class="warn">Limpiar</td></tr>
 <tr><td>Patrones consistentes</td><td>Sí</td><td class="green">Bueno</td></tr>
 <tr><td>Error handling backend</td><td>Completo</td><td class="green">Excelente</td></tr>
 <tr><td>Naming conventions</td><td>camelCase JS, consistente</td><td class="green">Bueno</td></tr>
-<tr><td>Tests automatizados</td><td>215 tests (10 endpoints + _shared.js)</td><td class="green">Bueno</td></tr>
+<tr><td>Tests automatizados</td><td>Solo _shared.js</td><td class="red">Insuficiente</td></tr>
 </table>
 </div>
 </section>
@@ -450,12 +468,12 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <table>
 <tr><th>Item</th><th>Severidad</th><th>Esfuerzo</th><th>Impacto</th></tr>
 <tr><td>Monolito 6K líneas</td><td class="red">Alta</td><td>2-4 semanas</td><td>Mantenibilidad +60%</td></tr>
-<tr><td><s>Sin tests frontend</s></td><td class="green">Resuelto</td><td>—</td><td>209 tests backend (PR #49)</td></tr>
-<tr><td><s>parseInt en precios</s></td><td class="green">Resuelto</td><td>—</td><td>parseFloat en PR #48</td></tr>
-<tr><td><s>XSS en WA preview</s></td><td class="green">Resuelto</td><td>—</td><td>esc() en PR #48</td></tr>
-<tr><td><s>prompt() nativo</s></td><td class="green">Resuelto</td><td>—</td><td>appPrompt() en PR #48</td></tr>
-<tr><td><s>Método duplicado</s></td><td class="green">Resuelto</td><td>—</td><td>Eliminado en PR #48</td></tr>
-<tr><td><s>user-scalable=no</s></td><td class="green">Resuelto</td><td>—</td><td>Removido en PR #48</td></tr>
+<tr><td>Sin tests frontend</td><td class="red">Alta</td><td>1 semana</td><td>Confianza en deploys</td></tr>
+<tr><td>parseInt en precios</td><td class="warn">Media</td><td>15 min</td><td>Precisión financiera</td></tr>
+<tr><td>XSS en WA preview</td><td class="red">Alta</td><td>30 min</td><td>Seguridad</td></tr>
+<tr><td>prompt() nativo</td><td class="warn">Media</td><td>1 hora</td><td>UX consistente</td></tr>
+<tr><td>Método duplicado</td><td>Baja</td><td>5 min</td><td>Limpieza</td></tr>
+<tr><td>user-scalable=no</td><td>Baja</td><td>5 min</td><td>Accesibilidad</td></tr>
 </table>
 </div>
 </section>
@@ -467,18 +485,18 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <div class="roadmap-card">
 <div class="roadmap-title">Sprint 1 (Semana 1-2)</div>
 <ul class="roadmap-items">
-<li><s>Fix XSS en WA preview y stat-mejor</s> ✓</li>
-<li><s>parseInt → parseFloat en 3 sitios</s> ✓</li>
-<li><s>Eliminar marcarPagada duplicado</s> ✓</li>
-<li><s>Remover user-scalable=no</s> ✓</li>
-<li><s>Fix cuota 1 sin montoPagado</s> ✓</li>
+<li>Fix XSS en WA preview y stat-mejor</li>
+<li>parseInt → parseFloat en 3 sitios</li>
+<li>Eliminar marcarPagada duplicado</li>
+<li>Remover user-scalable=no</li>
+<li>Fix cuota 1 sin montoPagado</li>
 </ul>
 </div>
 <div class="roadmap-card">
 <div class="roadmap-title">Sprint 2 (Semana 3-4)</div>
 <ul class="roadmap-items">
-<li><s>Reemplazar prompt() por modal custom</s> ✓</li>
-<li><s>Fix redondeo de cuotas</s> ✓</li>
+<li>Reemplazar prompt() por modal custom</li>
+<li>Fix redondeo de cuotas</li>
 <li>Agregar tests para DB layer</li>
 <li>Agregar tests para App.fmt/esc</li>
 </ul>
@@ -505,7 +523,7 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><td>Offline-first</td><td class="green">✓ Completo</td><td>Parcial o ninguno</td></tr>
 <tr><td>Time to value</td><td class="green">~10 seg</td><td>2-5 min</td></tr>
 <tr><td>Sin registro inicial</td><td class="green">✓</td><td>Casi ninguno</td></tr>
-<tr><td>Tests automatizados</td><td class="green">215 tests (10 endpoints)</td><td>Básicos</td></tr>
+<tr><td>Tests automatizados</td><td class="red">Mínimos</td><td>Básicos</td></tr>
 <tr><td>Modularidad</td><td class="red">Monolito</td><td>Componentes</td></tr>
 <tr><td>Cobro por WhatsApp</td><td class="green">✓ Único</td><td>No existe</td></tr>
 <tr><td>Multi-moneda</td><td class="green">✓</td><td>Raro</td></tr>
@@ -522,7 +540,7 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><th>OWASP</th><th>Estado</th><th>Detalle</th></tr>
 <tr><td>A01: Broken Access Control</td><td><span class="badge badge-ok">OK</span></td><td>HMAC auth en backup/sync. CORS whitelist. X-Frame-Options DENY.</td></tr>
 <tr><td>A02: Cryptographic Failures</td><td><span class="badge badge-ok">OK</span></td><td>ECDSA P-256 + HMAC-SHA256. HSTS 2 años. No se almacenan passwords.</td></tr>
-<tr><td>A03: Injection</td><td><span class="badge badge-ok">OK</span></td><td>2 XSS corregidos (PR #48). No hay SQL (IndexedDB). Foto validation agregada.</td></tr>
+<tr><td>A03: Injection</td><td><span class="badge badge-high">ALTO</span></td><td>2 XSS activos (WA preview, stat-mejor). No hay SQL (IndexedDB).</td></tr>
 <tr><td>A04: Insecure Design</td><td><span class="badge badge-ok">OK</span></td><td>Trial con triple anchor. Fail-closed en rate limiting.</td></tr>
 <tr><td>A05: Security Misconfiguration</td><td><span class="badge badge-medium">MEDIO</span></td><td>CSP tiene unsafe-inline. Sin nonces/hashes para scripts inline.</td></tr>
 <tr><td>A06: Vulnerable Components</td><td><span class="badge badge-ok">OK</span></td><td>CDN libs con SRI hashes. Pocas dependencias.</td></tr>
@@ -545,13 +563,15 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><td>License validation</td><td>ECDSA P-256 firma + HMAC token</td><td class="green">9/10</td></tr>
 <tr><td>Backup/Sync auth</td><td>HMAC-SHA256(code, secret) timing-safe</td><td class="green">9/10</td></tr>
 <tr><td>MP webhook verify</td><td>HMAC signature + replay protection + idempotency</td><td class="green">9/10</td></tr>
-<tr><td>PIN lock (local)</td><td>4 dígitos hasheado SHA-256 en localStorage</td><td class="green">8/10</td></tr>
+<tr><td>PIN lock (local)</td><td>4 dígitos en localStorage (plain text)</td><td class="warn">5/10</td></tr>
 </table>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> AUTH-01: PIN almacenado en plain text</div>
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> AUTH-01: PIN almacenado en plain text</div>
 <div class="finding-detail">
-<strong>Fix:</strong> PIN se hashea con SHA-256 antes de guardar en localStorage (PR #48). Verificación usa <code>_hashPin()</code> para comparar.
+<strong>Línea:</strong> 6166 — <code>localStorage.setItem('pt_pin', pin)</code><br>
+<strong>Impacto:</strong> Cualquier script con acceso a localStorage puede leer el PIN. En un contexto PWA, el riesgo es bajo porque no hay extensiones de terceros, pero no es best practice.<br>
+<strong>Fix:</strong> Hashear el PIN con SHA-256 antes de guardar.
 </div>
 </div>
 </section>
@@ -563,16 +583,16 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <div class="card-title">Bugs activos encontrados</div>
 <table>
 <tr><th>#</th><th>Bug</th><th>Severidad</th><th>Línea</th><th>Tipo</th></tr>
-<tr><td>B01</td><td>XSS en WA preview (cuotas)</td><td><span class="badge badge-ok">RESUELTO</span></td><td>~3949</td><td>Seguridad</td></tr>
-<tr><td>B02</td><td>XSS en stat-mejor (dashboard)</td><td><span class="badge badge-ok">RESUELTO</span></td><td>3629</td><td>Seguridad</td></tr>
-<tr><td>B03</td><td>parseInt trunca decimales (3 sitios)</td><td><span class="badge badge-ok">RESUELTO</span></td><td>4412,4934,5003</td><td>Datos</td></tr>
-<tr><td>B04</td><td>Redondeo cuotas pierde dinero</td><td><span class="badge badge-ok">RESUELTO</span></td><td>3234</td><td>Datos</td></tr>
-<tr><td>B05</td><td>Cuota 1 sin montoPagado</td><td><span class="badge badge-ok">RESUELTO</span></td><td>3246</td><td>Datos</td></tr>
-<tr><td>B06</td><td>marcarPagada duplicado</td><td><span class="badge badge-ok">RESUELTO</span></td><td>4481-4487</td><td>Código</td></tr>
-<tr><td>B07</td><td>prompt() nativo en togglePin</td><td><span class="badge badge-ok">RESUELTO</span></td><td>6165</td><td>UX</td></tr>
-<tr><td>B08</td><td>prompt() nativo en activarLicencia</td><td><span class="badge badge-ok">RESUELTO</span></td><td>5946</td><td>UX</td></tr>
-<tr><td>B09</td><td>user-scalable=no</td><td><span class="badge badge-ok">RESUELTO</span></td><td>5</td><td>A11y</td></tr>
-<tr><td>B10</td><td>requireJson no valida body real</td><td><span class="badge badge-ok">RESUELTO</span></td><td>_shared.js</td><td>Seguridad</td></tr>
+<tr><td>B01</td><td>XSS en WA preview (cuotas)</td><td><span class="badge badge-high">ALTO</span></td><td>~3949</td><td>Seguridad</td></tr>
+<tr><td>B02</td><td>XSS en stat-mejor (dashboard)</td><td><span class="badge badge-high">ALTO</span></td><td>3629</td><td>Seguridad</td></tr>
+<tr><td>B03</td><td>parseInt trunca decimales (3 sitios)</td><td><span class="badge badge-medium">MEDIO</span></td><td>4412,4934,5003</td><td>Datos</td></tr>
+<tr><td>B04</td><td>Redondeo cuotas pierde dinero</td><td><span class="badge badge-medium">MEDIO</span></td><td>3234</td><td>Datos</td></tr>
+<tr><td>B05</td><td>Cuota 1 sin montoPagado</td><td><span class="badge badge-medium">MEDIO</span></td><td>3246</td><td>Datos</td></tr>
+<tr><td>B06</td><td>marcarPagada duplicado</td><td><span class="badge badge-low">BAJO</span></td><td>4481-4487</td><td>Código</td></tr>
+<tr><td>B07</td><td>prompt() nativo en togglePin</td><td><span class="badge badge-medium">MEDIO</span></td><td>6165</td><td>UX</td></tr>
+<tr><td>B08</td><td>prompt() nativo en activarLicencia</td><td><span class="badge badge-medium">MEDIO</span></td><td>5946</td><td>UX</td></tr>
+<tr><td>B09</td><td>user-scalable=no</td><td><span class="badge badge-low">BAJO</span></td><td>5</td><td>A11y</td></tr>
+<tr><td>B10</td><td>requireJson no valida body real</td><td><span class="badge badge-medium">MEDIO</span></td><td>_shared:89</td><td>Seguridad</td></tr>
 </table>
 </div>
 </section>
@@ -583,29 +603,21 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <div class="card">
 <div class="card-title">Estado actual</div>
 <table>
-<tr><th>Capa</th><th>Tests</th><th>Estado</th></tr>
-<tr><td>Backend _shared.js</td><td>69 tests</td><td class="green">✓</td></tr>
-<tr><td>Backend mp-webhook.js</td><td>31 tests</td><td class="green">✓</td></tr>
-<tr><td>Backend trial.js</td><td>22 tests</td><td class="green">✓</td></tr>
-<tr><td>Backend validate-license.js</td><td>18 tests</td><td class="green">✓</td></tr>
-<tr><td>Backend backup.js</td><td>17 tests</td><td class="green">✓</td></tr>
-<tr><td>Backend send-email.js</td><td>14 tests</td><td class="green">✓</td></tr>
-<tr><td>Backend sync.js</td><td>12 tests</td><td class="green">✓</td></tr>
-<tr><td>Backend send-notification.js</td><td>9 tests</td><td class="green">✓</td></tr>
-<tr><td>Backend MP endpoints (3)</td><td>17 tests</td><td class="green">✓</td></tr>
-<tr><td>Backend worker.js (router)</td><td>9 tests</td><td class="green">✓</td></tr>
+<tr><th>Capa</th><th>Cobertura</th><th>Estado</th></tr>
+<tr><td>Backend _shared.js</td><td>Tests con Vitest</td><td class="green">✓</td></tr>
+<tr><td>Backend functions (9)</td><td>Sin tests</td><td class="red">✗</td></tr>
 <tr><td>Frontend DB layer</td><td>Sin tests</td><td class="red">✗</td></tr>
 <tr><td>Frontend App logic</td><td>Sin tests</td><td class="red">✗</td></tr>
 <tr><td>E2E / Integration</td><td>Sin tests</td><td class="red">✗</td></tr>
-<tr><td>CI pipeline</td><td>Ejecuta 209 tests en push</td><td class="green">✓</td></tr>
+<tr><td>CI pipeline</td><td>Ejecuta tests en push</td><td class="green">✓</td></tr>
 </table>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> TEST-01: Cobertura backend 100% (209 tests)</div>
+<div class="finding-title"><span class="badge badge-high">ALTO</span> TEST-01: Cobertura de tests ~5%</div>
 <div class="finding-detail">
-<strong>Estado:</strong> <span class="green">RESUELTO</span> — Los 10 endpoints del backend tienen 209 tests cubriendo: autenticación, rate limiting, idempotencia, pagos, firmas HMAC/ECDSA, XSS, anti-phishing, y edge cases.<br>
-<strong>Bug encontrado y corregido:</strong> <code>getTs()</code> en trial.js no leía timestamps numéricos correctamente, rompiendo el anti-abuso de trials.<br>
-<strong>Pendiente:</strong> Tests para frontend (DB layer, App logic) y E2E con Playwright.
+<strong>Problema:</strong> Solo _shared.js tiene tests. Las 9 funciones backend restantes y todo el frontend carecen de tests automatizados.<br>
+<strong>Impacto:</strong> Cada deploy es un acto de fe. Bugs de regresión solo se detectan en producción.<br>
+<strong>Fix:</strong> Priorizar tests para: 1) mp-webhook.js (maneja dinero), 2) trial.js (auth), 3) DB layer (CRUD), 4) App.fmt/esc (utilidades).
 </div>
 </div>
 </section>
@@ -622,7 +634,7 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><td>R2 no disponible</td><td>Backup/sync falla con error descriptivo</td><td class="green">Correcto</td></tr>
 <tr><td>Brevo caído</td><td>OTP falla, se informa al usuario</td><td class="green">OK</td></tr>
 <tr><td>MP API caída</td><td>Webhook retorna 500, MP reintenta</td><td class="green">Correcto</td></tr>
-<tr><td>IndexedDB lleno</td><td>QuotaExceededError → toast informativo al usuario</td><td class="green">OK</td></tr>
+<tr><td>IndexedDB lleno</td><td>Sin manejo — falla silenciosamente</td><td class="red">Falta</td></tr>
 <tr><td>2 tabs simultáneos</td><td>BroadcastChannel sincroniza</td><td class="green">OK</td></tr>
 <tr><td>Import backup corrupto</td><td>_normalizeBackupData() sanitiza</td><td class="green">Robusto</td></tr>
 </table>
@@ -638,10 +650,10 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><th>Aspecto</th><th>Implementado</th><th>Score</th></tr>
 <tr><td>Structured JSON logging</td><td class="green">✓ en todos los endpoints</td><td>9/10</td></tr>
 <tr><td>Log levels (error/warn/info)</td><td class="green">✓</td><td>9/10</td></tr>
-<tr><td>Request tracing (request ID)</td><td class="green">✓ requestId() en _shared.js</td><td>7/10</td></tr>
+<tr><td>Request tracing (request ID)</td><td class="red">✗</td><td>5/10</td></tr>
 <tr><td>Analytics (Plausible)</td><td class="green">✓ eventos clave</td><td>8/10</td></tr>
 <tr><td>Error alerting</td><td>Email al owner en webhook fail</td><td>7/10</td></tr>
-<tr><td>Uptime monitoring</td><td class="green">✓ /health endpoint (KV check)</td><td>6/10</td></tr>
+<tr><td>Uptime monitoring</td><td class="red">✗</td><td>3/10</td></tr>
 </table>
 </div>
 </section>
@@ -652,9 +664,9 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <div class="card">
 <div class="card-title">Prioridades</div>
 <div style="font-size:12px;color:var(--text2);line-height:1.8;">
-<strong>1. Quick wins:</strong> <span class="green">COMPLETADOS</span> — XSS ×2, parseInt ×3, duplicado, user-scalable, prompt→modal, PIN SHA-256, branding WA, cuotas<br>
-<strong>2. Tests backend:</strong> <span class="green">COMPLETADO</span> — 209 tests cubriendo 10 endpoints + bug fix en trial.js<br>
-<strong>3. Pendiente:</strong> Tests frontend (DB layer, App logic), E2E con Playwright, modularizar monolito, uptime monitoring
+<strong>1. Quick wins (< 1 hora):</strong> Fix XSS ×2, parseInt ×3, duplicado, user-scalable<br>
+<strong>2. Medio plazo (1-2 semanas):</strong> Tests para mp-webhook + trial, modal PIN, fix cuotas<br>
+<strong>3. Largo plazo (1-3 meses):</strong> Modularizar frontend, agregar E2E tests, uptime monitoring
 </div>
 </div>
 </section>
@@ -671,7 +683,7 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><td>Error handling en todos los endpoints</td><td class="green">✓</td></tr>
 <tr><td>Rate limiting en todos los endpoints</td><td class="green">✓ fail-closed</td></tr>
 <tr><td>Backup/restore funcional</td><td class="green">✓</td></tr>
-<tr><td>Monitoring/alerting</td><td class="green">✓ /health endpoint + email owner en webhook fail</td></tr>
+<tr><td>Monitoring/alerting</td><td class="red">✗ sin uptime monitoring</td></tr>
 <tr><td>Staging environment</td><td class="green">✓ wrangler.staging.jsonc</td></tr>
 <tr><td>CI/CD pipeline</td><td class="green">✓ GitHub Actions</td></tr>
 <tr><td>Rollback plan</td><td class="green">✓ git revert + auto-deploy</td></tr>
@@ -711,9 +723,10 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 </table>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> UX-01: Flujo de suscripción Pro desconectado</div>
+<div class="finding-title"><span class="badge badge-medium">MEDIO</span> UX-01: Flujo de suscripción Pro desconectado</div>
 <div class="finding-detail">
-<strong>Fix:</strong> checkout-success.html ahora guarda el código en localStorage y agrega <code>?activate=CODE</code> al link "Abrir Parfum Track". La app detecta el parámetro al iniciar y muestra el código automáticamente con un toast.
+El usuario paga en MP, recibe email con código, tiene que volver a la app y pegarlo manualmente. No hay deep link ni auto-activación post-pago.<br>
+<strong>Fix:</strong> checkout-success.html debería intentar activar automáticamente si detecta el código en URL params.
 </div>
 </div>
 </section>
@@ -732,7 +745,7 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><td>Microinteracciones</td><td>7/10</td><td>Haptic feedback, toasts. Faltan animaciones de transición.</td></tr>
 <tr><td>Estados vacíos</td><td class="green">8/10</td><td>Iconos + mensajes descriptivos</td></tr>
 <tr><td>Loading states</td><td>6/10</td><td>Solo toast "Cargando…". Sin skeleton screens.</td></tr>
-<tr><td>Accesibilidad</td><td>7/10</td><td>user-scalable=no removido. Sin focus visible en algunos elementos.</td></tr>
+<tr><td>Accesibilidad</td><td>5/10</td><td>user-scalable=no, sin focus visible en algunos elementos</td></tr>
 </table>
 </div>
 </section>
@@ -897,8 +910,8 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <div style="font-size:12px;color:var(--text2);line-height:1.9;">
 Parfum Track es una PWA funcional y bien ejecutada para un nicho ultra-específico (revendedores de perfumes en LATAM). El producto resuelve un problema real con una UX excepcional (time-to-value de 10 segundos). La arquitectura backend es sólida: auth HMAC/ECDSA, rate limiting fail-closed, idempotencia en webhooks, structured logging.<br><br>
 <strong>Fortalezas principales:</strong> Offline-first real, cobro por WhatsApp (único), sin registro, UX mobile-first, paleta visual premium.<br>
-<strong>Debilidades principales:</strong> Monolito frontend (6K líneas), sin tests frontend, monetización débil (Free demasiado generoso).<br>
-<strong>Mejoras completadas:</strong> 2 XSS corregidos, 209 tests backend, parseInt→parseFloat, PIN hasheado, prompt→modal, trial bug fix.<br>
+<strong>Debilidades principales:</strong> Monolito frontend (6K líneas), tests insuficientes (~5% cobertura), 2 XSS activos, monetización débil (Free demasiado generoso).<br>
+<strong>Riesgo #1:</strong> Sin tests, cada deploy puede romper algo sin saberlo.<br>
 <strong>Oportunidad #1:</strong> Growth loops orgánicos vía WhatsApp (branding en mensajes de cobro).
 </div>
 </div>
@@ -911,15 +924,15 @@ Parfum Track es una PWA funcional y bien ejecutada para un nicho ultra-específi
 <div class="card-title">Priorización de mejoras</div>
 <table>
 <tr><th>Acción</th><th>Impacto</th><th>Esfuerzo</th><th>Prioridad</th></tr>
-<tr><td><s>Fix 2 XSS (WA preview + stat-mejor)</s></td><td class="green">Alto</td><td class="green">30 min</td><td><span class="badge badge-ok">HECHO</span></td></tr>
-<tr><td><s>parseInt → parseFloat (3 sitios)</s></td><td>Medio</td><td class="green">15 min</td><td><span class="badge badge-ok">HECHO</span></td></tr>
-<tr><td><s>Fix cuota 1 sin montoPagado</s></td><td>Medio</td><td class="green">10 min</td><td><span class="badge badge-ok">HECHO</span></td></tr>
-<tr><td><s>Eliminar duplicado marcarPagada</s></td><td>Bajo</td><td class="green">5 min</td><td><span class="badge badge-ok">HECHO</span></td></tr>
-<tr><td><s>Remover user-scalable=no</s></td><td>Bajo</td><td class="green">5 min</td><td><span class="badge badge-ok">HECHO</span></td></tr>
-<tr><td><s>prompt() → modal custom (2 sitios)</s></td><td>Medio</td><td>1 hora</td><td><span class="badge badge-ok">HECHO</span></td></tr>
-<tr><td><s>Fix redondeo cuotas</s></td><td>Medio</td><td class="green">30 min</td><td><span class="badge badge-ok">HECHO</span></td></tr>
-<tr><td><s>Tests para mp-webhook + trial</s> → 209 tests (10 endpoints)</td><td class="green">Alto</td><td>3 días</td><td><span class="badge badge-ok">HECHO</span></td></tr>
-<tr><td><s>Branding en mensajes WA</s></td><td class="green">Alto</td><td class="green">30 min</td><td><span class="badge badge-ok">HECHO</span></td></tr>
+<tr><td>Fix 2 XSS (WA preview + stat-mejor)</td><td class="green">Alto</td><td class="green">30 min</td><td><span class="badge badge-critical">P0</span></td></tr>
+<tr><td>parseInt → parseFloat (3 sitios)</td><td>Medio</td><td class="green">15 min</td><td><span class="badge badge-critical">P0</span></td></tr>
+<tr><td>Fix cuota 1 sin montoPagado</td><td>Medio</td><td class="green">10 min</td><td><span class="badge badge-critical">P0</span></td></tr>
+<tr><td>Eliminar duplicado marcarPagada</td><td>Bajo</td><td class="green">5 min</td><td><span class="badge badge-high">P1</span></td></tr>
+<tr><td>Remover user-scalable=no</td><td>Bajo</td><td class="green">5 min</td><td><span class="badge badge-high">P1</span></td></tr>
+<tr><td>prompt() → modal custom (2 sitios)</td><td>Medio</td><td>1 hora</td><td><span class="badge badge-high">P1</span></td></tr>
+<tr><td>Fix redondeo cuotas</td><td>Medio</td><td class="green">30 min</td><td><span class="badge badge-high">P1</span></td></tr>
+<tr><td>Tests para mp-webhook + trial</td><td class="green">Alto</td><td>3 días</td><td><span class="badge badge-medium">P2</span></td></tr>
+<tr><td>Branding en mensajes WA</td><td class="green">Alto</td><td class="green">30 min</td><td><span class="badge badge-high">P1</span></td></tr>
 <tr><td>OG image 1200x630</td><td>Medio</td><td>2 horas</td><td><span class="badge badge-medium">P2</span></td></tr>
 <tr><td>Testimonios reales</td><td>Medio</td><td>1 semana</td><td><span class="badge badge-medium">P2</span></td></tr>
 <tr><td>Modularizar frontend</td><td class="green">Alto</td><td class="red">2-4 sem</td><td><span class="badge badge-low">P3</span></td></tr>
@@ -933,31 +946,31 @@ Parfum Track es una PWA funcional y bien ejecutada para un nicho ultra-específi
 <h2><span class="phase-num">Fase 35 — Ejecutivo</span>Sprint Roadmap</h2>
 <div class="roadmap">
 <div class="roadmap-card">
-<div class="roadmap-title">24 horas ✓ COMPLETADO</div>
+<div class="roadmap-title">24 horas</div>
 <ul class="roadmap-items">
-<li><s>Fix 2 XSS (WA preview + stat-mejor)</s> ✓</li>
-<li><s>parseInt → parseFloat ×3</s> ✓</li>
-<li><s>Fix cuota 1 sin montoPagado</s> ✓</li>
-<li><s>Eliminar marcarPagada duplicado</s> ✓</li>
-<li><s>Remover user-scalable=no</s> ✓</li>
+<li>Fix 2 XSS (WA preview + stat-mejor)</li>
+<li>parseInt → parseFloat ×3</li>
+<li>Fix cuota 1 sin montoPagado</li>
+<li>Eliminar marcarPagada duplicado</li>
+<li>Remover user-scalable=no</li>
 </ul>
 </div>
 <div class="roadmap-card">
-<div class="roadmap-title">7 días ✓ COMPLETADO</div>
+<div class="roadmap-title">7 días</div>
 <ul class="roadmap-items">
-<li><s>prompt() → modal custom ×2</s> ✓</li>
-<li><s>Fix redondeo cuotas</s> ✓</li>
-<li><s>Branding en mensajes WA</s> ✓</li>
+<li>prompt() → modal custom ×2</li>
+<li>Fix redondeo cuotas</li>
+<li>Branding en mensajes WA</li>
 <li>OG image 1200×630</li>
-<li><s>Hashear PIN antes de guardar</s> ✓</li>
+<li>Hashear PIN antes de guardar</li>
 </ul>
 </div>
 <div class="roadmap-card">
-<div class="roadmap-title">30 días — 60% completado</div>
+<div class="roadmap-title">30 días</div>
 <ul class="roadmap-items">
-<li><s>Tests para mp-webhook.js</s> ✓ (31 tests)</li>
-<li><s>Tests para trial.js</s> ✓ (22 tests)</li>
-<li><s>Tests para DB layer</s> ✓ (+ 156 tests más en 8 endpoints)</li>
+<li>Tests para mp-webhook.js</li>
+<li>Tests para trial.js</li>
+<li>Tests para DB layer</li>
 <li>Uptime monitoring</li>
 <li>Testimonios reales</li>
 </ul>
@@ -1053,28 +1066,28 @@ Parfum Track es una PWA funcional y bien ejecutada para un nicho ultra-específi
 <div class="card">
 <div class="card-title">Tareas prioritarias — marcá las completadas</div>
 <div class="checklist">
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>Fix XSS en WA preview (línea ~3949)</s> ✓ PR#48</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>Fix XSS en stat-mejor (línea 3629)</s> ✓ PR#48</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>parseInt → parseFloat en savePerfume</s> ✓ PR#48</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>parseInt → parseFloat en guardarCaja</s> ✓ PR#48</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>parseInt → parseFloat en guardarGasto</s> ✓ PR#48</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>Fix cuota 1 sin montoPagado</s> ✓ PR#48</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>Fix redondeo cuotas</s> ✓ PR#48</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>Eliminar marcarPagada duplicado</s> ✓ PR#48</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>Remover user-scalable=no</s> ✓ PR#48</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>prompt() → modal en togglePin</s> ✓ PR#48</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>prompt() → modal en activarLicencia</s> ✓ PR#48</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>Hashear PIN con SHA-256</s> ✓ PR#48</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>Branding "Parfum Track" en mensajes WA</s> ✓ PR#48</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>Fix XSS en WA preview (línea ~3949)</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>Fix XSS en stat-mejor (línea 3629)</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>parseInt → parseFloat en savePerfume (4412-4413)</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>parseInt → parseFloat en guardarCaja (4934)</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>parseInt → parseFloat en guardarGasto (5003)</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>Fix cuota 1 sin montoPagado (3246)</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>Fix redondeo cuotas (3234)</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>Eliminar marcarPagada duplicado (4481-4487)</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>Remover user-scalable=no (línea 5)</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>prompt() → modal en togglePin (6165)</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>prompt() → modal en activarLicencia (5946)</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>Hashear PIN con SHA-256</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>Branding "Parfum Track" en mensajes WA</span></label>
 <label><input type="checkbox" onchange="updateProgress()"><span>Crear OG image 1200×630</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>Tests para mp-webhook.js</s> ✓ PR#49 (31 tests)</span></label>
-<label><input type="checkbox" checked disabled onchange="updateProgress()"><span><s>Tests para trial.js</s> ✓ PR#49 (22 tests)</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>Tests para mp-webhook.js</span></label>
+<label><input type="checkbox" onchange="updateProgress()"><span>Tests para trial.js</span></label>
 <label><input type="checkbox" onchange="updateProgress()"><span>Uptime monitoring</span></label>
 <label><input type="checkbox" onchange="updateProgress()"><span>Testimonios reales con foto</span></label>
 </div>
 <div style="margin-top:12px;">
-<div style="font-size:11px;color:var(--text4);margin-bottom:4px;">Progreso: <span id="progress-text">15/18</span></div>
-<div class="score-bar" style="height:8px;"><div class="score-fill fill-green" id="progress-bar" style="width:83%;transition:width .3s;"></div></div>
+<div style="font-size:11px;color:var(--text4);margin-bottom:4px;">Progreso: <span id="progress-text">0/18</span></div>
+<div class="score-bar" style="height:8px;"><div class="score-fill fill-gold" id="progress-bar" style="width:0%;transition:width .3s;"></div></div>
 </div>
 </div>
 </section>
@@ -1085,17 +1098,17 @@ Parfum Track es una PWA funcional y bien ejecutada para un nicho ultra-específi
 
 <div class="scores-grid">
 <div class="score-card"><div class="score-label">Arquitectura</div><div class="score-value">7</div><div class="score-bar"><div class="score-fill fill-gold" style="width:70%"></div></div></div>
-<div class="score-card"><div class="score-label">Frontend</div><div class="score-value">7</div><div class="score-bar"><div class="score-fill fill-gold" style="width:70%"></div></div></div>
+<div class="score-card"><div class="score-label">Frontend</div><div class="score-value">6</div><div class="score-bar"><div class="score-fill fill-warn" style="width:60%"></div></div></div>
 <div class="score-card"><div class="score-label">Backend</div><div class="score-value">9</div><div class="score-bar"><div class="score-fill fill-green" style="width:90%"></div></div></div>
 <div class="score-card"><div class="score-label">Base de Datos</div><div class="score-value">7</div><div class="score-bar"><div class="score-fill fill-gold" style="width:70%"></div></div></div>
 <div class="score-card"><div class="score-label">APIs</div><div class="score-value">9</div><div class="score-bar"><div class="score-fill fill-green" style="width:90%"></div></div></div>
 <div class="score-card"><div class="score-label">Calidad Código</div><div class="score-value">7</div><div class="score-bar"><div class="score-fill fill-gold" style="width:70%"></div></div></div>
 <div class="score-card"><div class="score-label">Escalabilidad</div><div class="score-value">8</div><div class="score-bar"><div class="score-fill fill-green" style="width:80%"></div></div></div>
 <div class="score-card"><div class="score-label">Performance</div><div class="score-value">8</div><div class="score-bar"><div class="score-fill fill-green" style="width:80%"></div></div></div>
-<div class="score-card"><div class="score-label">Deuda Técnica</div><div class="score-value">7</div><div class="score-bar"><div class="score-fill fill-gold" style="width:70%"></div></div></div>
-<div class="score-card"><div class="score-label">Seguridad OWASP</div><div class="score-value">9</div><div class="score-bar"><div class="score-fill fill-green" style="width:90%"></div></div></div>
+<div class="score-card"><div class="score-label">Deuda Técnica</div><div class="score-value">6</div><div class="score-bar"><div class="score-fill fill-warn" style="width:60%"></div></div></div>
+<div class="score-card"><div class="score-label">Seguridad OWASP</div><div class="score-value">7</div><div class="score-bar"><div class="score-fill fill-gold" style="width:70%"></div></div></div>
 <div class="score-card"><div class="score-label">Auth/Authz</div><div class="score-value">9</div><div class="score-bar"><div class="score-fill fill-green" style="width:90%"></div></div></div>
-<div class="score-card"><div class="score-label">Testing</div><div class="score-value">7</div><div class="score-bar"><div class="score-fill fill-gold" style="width:70%"></div></div></div>
+<div class="score-card"><div class="score-label">Testing</div><div class="score-value">3</div><div class="score-bar"><div class="score-fill fill-red" style="width:30%"></div></div></div>
 <div class="score-card"><div class="score-label">Estabilidad</div><div class="score-value">8</div><div class="score-bar"><div class="score-fill fill-green" style="width:80%"></div></div></div>
 <div class="score-card"><div class="score-label">Logs/Monitor</div><div class="score-value">7</div><div class="score-bar"><div class="score-fill fill-gold" style="width:70%"></div></div></div>
 <div class="score-card"><div class="score-label">Prod Readiness</div><div class="score-value">8</div><div class="score-bar"><div class="score-fill fill-green" style="width:80%"></div></div></div>
@@ -1128,9 +1141,9 @@ Parfum Track es una PWA funcional y bien ejecutada para un nicho ultra-específi
 </div>
 <div class="swot-card swot-w"><strong>Debilidades</strong>
 • Monolito frontend inmantenible<br>
-• <s>Tests casi inexistentes</s> → 209 tests ✓<br>
-• <s>2 XSS activos</s> → Corregidos ✓<br>
-• <s>parseInt pierde centavos</s> → parseFloat ✓<br>
+• Tests casi inexistentes (~5%)<br>
+• 2 XSS activos<br>
+• parseInt pierde centavos<br>
 • Free demasiado generoso<br>
 • Sin marketing activo
 </div>
@@ -1153,7 +1166,7 @@ Parfum Track es una PWA funcional y bien ejecutada para un nicho ultra-específi
 
 <!-- VEREDICTO BOX -->
 <div class="verdict-box">
-<div class="verdict-score">8.2<span style="font-size:20px;color:var(--text3);">/10</span></div>
+<div class="verdict-score">7.8<span style="font-size:20px;color:var(--text3);">/10</span></div>
 <div class="verdict-label">Score Global Ponderado</div>
 <div style="margin-top:8px;font-size:12px;color:var(--text3);">Promedio de 29 categorías · Pesos: Seguridad×1.5, Testing×1.3, PMF×1.2</div>
 </div>
@@ -1167,27 +1180,27 @@ Parfum Track es una PWA funcional y bien ejecutada para un nicho ultra-específi
 <table>
 <tr><th>#</th><th>Pregunta</th><th>Respuesta</th></tr>
 <tr><td>1</td><td>¿El producto resuelve un problema real?</td><td class="green">SÍ. Revendedores informales no tienen herramientas adaptadas.</td></tr>
-<tr><td>2</td><td>¿Está listo para producción?</td><td class="green">SÍ. XSS corregidos, 209 tests cubriendo 10 endpoints, bug de trial anchoring resuelto.</td></tr>
-<tr><td>3</td><td>¿Es seguro?</td><td class="green">SÍ. Backend excelente + XSS frontend corregidos + PIN hasheado + modales anti-clickjacking.</td></tr>
+<tr><td>2</td><td>¿Está listo para producción?</td><td class="warn">PARCIALMENTE. Funciona, pero tiene 2 XSS activos y tests insuficientes.</td></tr>
+<tr><td>3</td><td>¿Es seguro?</td><td class="green">MAYORMENTE SÍ. Backend excelente. Frontend tiene 2 XSS que se arreglan en 30 min.</td></tr>
 <tr><td>4</td><td>¿Escala?</td><td class="green">SÍ hasta ~5K usuarios. Después necesita ajustes menores (Durable Objects, modularización).</td></tr>
 <tr><td>5</td><td>¿Es mantenible?</td><td class="warn">PARCIALMENTE. Backend sí. Frontend necesita modularización urgente.</td></tr>
 <tr><td>6</td><td>¿La monetización funciona?</td><td class="warn">EN RIESGO. Free es demasiado generoso. Poca motivación para upgradar.</td></tr>
 <tr><td>7</td><td>¿Tiene ventaja competitiva?</td><td class="green">SÍ. Cobro WA + offline + nicho = moat real.</td></tr>
 <tr><td>8</td><td>¿Puede crecer orgánicamente?</td><td class="green">SÍ. Growth loops vía WA y comunidades de revendedores.</td></tr>
 <tr><td>9</td><td>¿Lo lanzarías?</td><td class="green">SÍ. Ya está lanzado y funcional. Con los fixes de 24h, está sólido.</td></tr>
-<tr><td>10</td><td>¿Probabilidad de éxito?</td><td><strong class="gold">83%</strong> — Bugs críticos resueltos, 209 tests, backend sólido. Depende de: marketing y monetización.</td></tr>
+<tr><td>10</td><td>¿Probabilidad de éxito?</td><td><strong class="gold">78%</strong> — Depende de: ejecutar marketing, ajustar monetización, y mantener velocidad de mejora.</td></tr>
 </table>
 </div>
 
 <div class="verdict-box" style="margin-top:24px;">
 <div style="font-size:18px;font-weight:700;color:var(--gold2);margin-bottom:8px;">VEREDICTO: LANZAR ✓</div>
 <div style="font-size:13px;color:var(--text2);max-width:600px;margin:0 auto;line-height:1.8;">
-Parfum Track es un producto sólido con un PMF real en un nicho desatendido. Los bugs críticos fueron resueltos (XSS, parseInt, prompt, cuotas, redondeo, PIN). 209 tests unitarios cubren los 10 endpoints backend. Se descubrió y corrigió un bug real en trial anchoring durante el testing. El principal riesgo ya no es técnico — es de ejecución: marketing activo y ajuste de monetización. Score actual: 8.2/10. Con OG image, testimonios y uptime monitoring: 8.8/10.
+Parfum Track es un producto sólido con un PMF real en un nicho desatendido. Los bugs activos son pocos y se corrigen en horas. La arquitectura backend es de nivel profesional. El principal riesgo no es técnico — es de ejecución: marketing, monetización, y velocidad de iteración. Con el plan de 24h ejecutado, el score sube a 8.2/10. Con el plan de 30 días, a 8.8/10.
 </div>
 </div>
 
 <div style="text-align:center;font-size:10px;color:var(--text4);padding:32px 0 16px;opacity:0.5;">
-Auditoría 360° SaaS v1 · Parfum Track · 29 de junio 2026 · 42 fases · 209 tests · parfumtrack@gmail.com
+Auditoría 360° SaaS v1 · Parfum Track · 29 de junio 2026 · 42 fases · parfumtrack@gmail.com
 </div>
 </section>
 
