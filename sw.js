@@ -63,6 +63,7 @@ self.addEventListener("fetch", (event) => {
       "/mp-subscription-status",
       "/mp-payment-status",
       "/force-update",
+      "/health",
     ].includes(url.pathname)
   )
     return;
