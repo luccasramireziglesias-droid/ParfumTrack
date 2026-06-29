@@ -5265,7 +5265,6 @@ const App = {
           const numCuotas = Number(venta.cuotasTotal) || 1;
           venta.formaPago = numCuotas > 1 ? 'cuotas' : 'contado';
           venta.numCuotas = numCuotas;
-          // Generate cuotas in the cuotas store if they don't exist
           if (numCuotas > 1 && venta.id) {
             const existingCuotas = data.cuotas.filter(c => c.ventaId === venta.id);
             if (existingCuotas.length === 0) {
