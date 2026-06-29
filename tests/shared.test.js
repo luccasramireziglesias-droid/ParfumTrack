@@ -10,6 +10,8 @@ import {
   isValidEmail,
   verifyToken,
   requireJson,
+  parseJsonBody,
+  requestId,
   hashIp,
 } from '../functions/_shared.js';
 
@@ -372,5 +374,61 @@ describe('hashIp', () => {
     const req = { headers: { get: () => null } };
     const hash = await hashIp(req);
     expect(hash).toMatch(/^[0-9a-f]{16}$/);
+  });
+});
+
+// ── parseJsonBody ───────────────────────────────────────────
+
+describe('parseJsonBody', () => {
+  it('parses valid JSON body', async () => {
+    const req = new Request('https://test.com', {
+      method: 'POST',
+      body: JSON.stringify({ key: 'value' }),
+    });
+    const result = await parseJsonBody(req);
+    expect(result.data).toEqual({ key: 'value' });
+    expect(result.error).toBeUndefined();
+  });
+
+  it('rejects body exceeding maxBytes', async () => {
+    const req = new Request('https://test.com', {
+      method: 'POST',
+      body: 'x'.repeat(100),
+    });
+    const result = await parseJsonBody(req, 50);
+    expect(result.error).toBe('Payload too large');
+    expect(result.data).toBeUndefined();
+  });
+
+  it('rejects invalid JSON', async () => {
+    const req = new Request('https://test.com', {
+      method: 'POST',
+      body: 'NOT-JSON{{{',
+    });
+    const result = await parseJsonBody(req);
+    expect(result.error).toBe('Invalid JSON');
+  });
+
+  it('handles empty body', async () => {
+    const req = new Request('https://test.com', {
+      method: 'POST',
+      body: '',
+    });
+    const result = await parseJsonBody(req);
+    expect(result.error).toBe('Invalid JSON');
+  });
+});
+
+// ── requestId ───────────────────────────────────────────────
+
+describe('requestId', () => {
+  it('returns 16-char hex string', () => {
+    const id = requestId();
+    expect(id).toMatch(/^[0-9a-f]{16}$/);
+  });
+
+  it('generates unique IDs', () => {
+    const ids = new Set(Array.from({ length: 50 }, () => requestId()));
+    expect(ids.size).toBe(50);
   });
 });

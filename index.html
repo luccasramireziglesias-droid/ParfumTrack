@@ -3175,7 +3175,15 @@ function tx(store, mode = 'readonly') {
 function reqP(req) {
   return new Promise((resolve, reject) => {
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    req.onerror = () => {
+      const err = req.error;
+      if (err?.name === 'QuotaExceededError') {
+        if (typeof App !== 'undefined' && App.toast) {
+          App.toast('Almacenamiento lleno. Eliminá datos o fotos para continuar.', 'storage', 5000);
+        }
+      }
+      reject(err);
+    };
   });
 }
 
@@ -3454,6 +3462,23 @@ const App = {
     this.renderAll();
     this.registerSW();
     this._initTabSync();
+    this._checkPendingLicense();
+  },
+
+  _checkPendingLicense() {
+    try {
+      const params = new URLSearchParams(location.search);
+      const code = params.get('activate') || localStorage.getItem('pt_pending_license');
+      if (code && /^PT-[A-Z0-9-]{6,}$/i.test(code)) {
+        localStorage.removeItem('pt_pending_license');
+        if (params.has('activate')) history.replaceState(null, '', location.pathname);
+        setTimeout(() => {
+          this.toast('Código de licencia detectado: ' + code, 'vpn_key');
+          const el = document.getElementById('license-code-input');
+          if (el) { el.value = code; }
+        }, 1500);
+      }
+    } catch (_) { /* ignore */ }
   },
 
   _tabChannel: null,
@@ -3871,7 +3896,7 @@ const App = {
     const alerts = [];
     this.perfumes.forEach(p => {
       const sold = salesByPerfume[p.nombre] || 0;
-      if (sold === 0) return;
+      if (sold <= 0) return;
       const monthsLeft = p.stock > 0 ? p.stock / sold : 0;
       if (p.stock === 0) {
         alerts.push({ perfume: p.nombre, stock: 0, sold, monthsLeft: 0, critical: true });
@@ -4289,21 +4314,26 @@ const App = {
       return;
     }
 
-    await DB.addVenta({
-      perfume,
-      precioVenta: pvFinal,
-      precioOriginal: precioVenta,
-      precioCompra,
-      cliente: cliente || 'Anónimo',
-      vendedor: vendedor || 'Anónimo',
-      proveedor: proveedor || '',
-      descuento,
-      nota,
-      fecha,
-      formaPago: this.formaPago,
-      numCuotas: this.formaPago === 'cuotas' ? numCuotas : 1,
-      perfumeId: perfumeId ? parseInt(perfumeId) : ''
-    });
+    try {
+      await DB.addVenta({
+        perfume,
+        precioVenta: pvFinal,
+        precioOriginal: precioVenta,
+        precioCompra,
+        cliente: cliente || 'Anónimo',
+        vendedor: vendedor || 'Anónimo',
+        proveedor: proveedor || '',
+        descuento,
+        nota,
+        fecha,
+        formaPago: this.formaPago,
+        numCuotas: this.formaPago === 'cuotas' ? numCuotas : 1,
+        perfumeId: perfumeId ? parseInt(perfumeId) : ''
+      });
+    } catch (e) {
+      this.toast('Error al guardar la venta. Intentá de nuevo.', 'error');
+      return;
+    }
 
     await this.loadData();
     this.track('sale_created', { method: this.formaPago });
@@ -4330,7 +4360,12 @@ const App = {
     const p = this.perfumes.find(x => x.id === id);
     if (!p) return;
     p.stock = Math.max(0, p.stock + delta);
-    await DB.updatePerfume(p);
+    try {
+      await DB.updatePerfume(p);
+    } catch (e) {
+      this.toast('Error al actualizar stock', 'error');
+      return;
+    }
     await this.loadData();
     this.renderStock();
     if (p.stock === 0 && delta < 0) this.haptic('warning');
@@ -4363,7 +4398,12 @@ const App = {
           const p = this.perfumes.find(x => x.id === id);
           if (p) {
             p.foto = dataUrl;
-            await DB.updatePerfume(p);
+            try {
+              await DB.updatePerfume(p);
+            } catch (e) {
+              App.toast('Error al guardar la foto', 'error');
+              return;
+            }
             await this.loadData();
             this.renderStock();
             this.toast('Foto actualizada', 'check_circle');
@@ -4436,7 +4476,12 @@ const App = {
       return;
     }
 
-    await DB.addPerfume({ nombre, precioCompra, precioVenta, stock, foto: this._pendingPerfumePhoto || '' });
+    try {
+      await DB.addPerfume({ nombre, precioCompra, precioVenta, stock, foto: this._pendingPerfumePhoto || '' });
+    } catch (e) {
+      this.toast('Error al guardar perfume', 'error');
+      return;
+    }
     this._pendingPerfumePhoto = '';
     await this.loadData();
     this.closeAddPerfume();
@@ -4484,7 +4529,12 @@ const App = {
       this.toast('El monto supera lo que resta', 'error');
       return;
     }
-    await DB.pagarCuota(id, monto);
+    try {
+      await DB.pagarCuota(id, monto);
+    } catch (e) {
+      this.toast('Error al registrar el pago', 'error');
+      return;
+    }
     this.cerrarPagoCuota();
     await this.loadData();
     this.renderCuotas();
@@ -4572,7 +4622,12 @@ const App = {
         proveedor: proveedor || '', descuento, nota, fecha,
         perfumeId: perfumeId ? parseInt(perfumeId) : ''
       });
-      await DB.updateVenta(v);
+      try {
+        await DB.updateVenta(v);
+      } catch (e) {
+        this.toast('Error al actualizar la venta', 'error');
+        return;
+      }
     }
 
     this._editingVentaId = null;
@@ -4584,7 +4639,12 @@ const App = {
 
   async deleteVenta(id) {
     if (!await this.appConfirm('¿Eliminar esta venta?', 'Eliminar', 'delete')) return;
-    await DB.deleteVenta(id);
+    try {
+      await DB.deleteVenta(id);
+    } catch (e) {
+      this.toast('Error al eliminar la venta', 'error');
+      return;
+    }
     await this.loadData();
     this.renderAll();
     this.renderAllVentas();
@@ -4772,14 +4832,19 @@ const App = {
       return;
     }
 
-    await DB.addPedido({
-      nombre,
-      cedula,
-      transporte,
-      direccion,
-      nota,
-      perfumes: this.pedidoPerfumes.map(pf => ({ id: pf.id, nombre: pf.nombre, precioVenta: pf.precioVenta, cantidad: pf.cantidad }))
-    });
+    try {
+      await DB.addPedido({
+        nombre,
+        cedula,
+        transporte,
+        direccion,
+        nota,
+        perfumes: this.pedidoPerfumes.map(pf => ({ id: pf.id, nombre: pf.nombre, precioVenta: pf.precioVenta, cantidad: pf.cantidad }))
+      });
+    } catch (e) {
+      this.toast('Error al guardar el pedido', 'error');
+      return;
+    }
 
     await this.loadData();
     this.toast('Pedido guardado', 'check_circle');
@@ -4789,7 +4854,12 @@ const App = {
   },
 
   async marcarPedidoEnviado(id) {
-    await DB.marcarEnviado(id);
+    try {
+      await DB.marcarEnviado(id);
+    } catch (e) {
+      this.toast('Error al actualizar el pedido', 'error');
+      return;
+    }
     await this.loadData();
     this.renderPedidos();
     this.updatePedidosBadge();
@@ -4798,7 +4868,12 @@ const App = {
   },
 
   async marcarPedidoPendiente(id) {
-    await DB.marcarPendiente(id);
+    try {
+      await DB.marcarPendiente(id);
+    } catch (e) {
+      this.toast('Error al actualizar el pedido', 'error');
+      return;
+    }
     await this.loadData();
     this.renderPedidos();
     this.updatePedidosBadge();
@@ -4851,7 +4926,12 @@ const App = {
         nombre, cedula, transporte, direccion, nota,
         perfumes: this.pedidoPerfumes.map(pf => ({ id: pf.id, nombre: pf.nombre, precioVenta: pf.precioVenta, cantidad: pf.cantidad }))
       });
-      await DB.updatePedido(p);
+      try {
+        await DB.updatePedido(p);
+      } catch (e) {
+        this.toast('Error al actualizar el pedido', 'error');
+        return;
+      }
     }
 
     this._editingPedidoId = null;
@@ -4863,7 +4943,12 @@ const App = {
 
   async deletePedido(id) {
     if (!await this.appConfirm('¿Eliminar este pedido?', 'Eliminar', 'delete')) return;
-    await DB.deletePedido(id);
+    try {
+      await DB.deletePedido(id);
+    } catch (e) {
+      this.toast('Error al eliminar el pedido', 'error');
+      return;
+    }
     await this.loadData();
     this.renderPedidos();
     this.updatePedidosBadge();
@@ -4950,7 +5035,12 @@ const App = {
     const desc = document.getElementById('caja-desc').value.trim();
     if (monto <= 0) { this.toast('Ingresá un monto', 'warning'); return; }
 
-    await DB.addCaja({ tipo: this.cajaTipo, monto, descripcion: desc || (this.cajaTipo === 'entrada' ? 'Entrada' : 'Salida') });
+    try {
+      await DB.addCaja({ tipo: this.cajaTipo, monto, descripcion: desc || (this.cajaTipo === 'entrada' ? 'Entrada' : 'Salida') });
+    } catch (e) {
+      this.toast('Error al registrar movimiento', 'error');
+      return;
+    }
     document.getElementById('caja-monto').value = '';
     document.getElementById('caja-desc').value = '';
     await this.loadData();
@@ -4962,7 +5052,12 @@ const App = {
 
   async deleteCaja(id) {
     if (!await this.appConfirm('¿Eliminar este movimiento?', 'Eliminar', 'delete')) return;
-    await DB.deleteCaja(id);
+    try {
+      await DB.deleteCaja(id);
+    } catch (e) {
+      this.toast('Error al eliminar el movimiento', 'error');
+      return;
+    }
     await this.loadData();
     this.renderCaja();
     this.toast('Movimiento eliminado', 'delete');
@@ -5019,7 +5114,12 @@ const App = {
     const desc = document.getElementById('gasto-desc').value.trim();
     if (monto <= 0) { this.toast('Ingresá un monto', 'warning'); return; }
 
-    await DB.addGasto({ categoria: this.gastoCat, monto, descripcion: desc || this.gastoCat });
+    try {
+      await DB.addGasto({ categoria: this.gastoCat, monto, descripcion: desc || this.gastoCat });
+    } catch (e) {
+      this.toast('Error al registrar gasto', 'error');
+      return;
+    }
     document.getElementById('gasto-monto').value = '';
     document.getElementById('gasto-desc').value = '';
     await this.loadData();
@@ -5031,7 +5131,12 @@ const App = {
 
   async deleteGasto(id) {
     if (!await this.appConfirm('¿Eliminar este gasto?', 'Eliminar', 'delete')) return;
-    await DB.deleteGasto(id);
+    try {
+      await DB.deleteGasto(id);
+    } catch (e) {
+      this.toast('Error al eliminar el gasto', 'error');
+      return;
+    }
     await this.loadData();
     this.renderGastos();
     this.toast('Gasto eliminado', 'delete');
@@ -5177,14 +5282,14 @@ const App = {
 
   async _restoreData(data) {
     const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
-    let total = 0;
+    let total = 0, skipped = 0;
     for (const store of stores) {
       await DB.clear(store);
     }
     for (const store of stores) {
       if (!Array.isArray(data[store])) continue;
       for (const item of data[store]) {
-        try { await DB.put(store, item); total++; } catch {}
+        try { await DB.put(store, item); total++; } catch { skipped++; }
       }
     }
     if (data.settings) {
@@ -5196,7 +5301,7 @@ const App = {
     this.loadMoneda();
     this.loadNombreNegocio();
     this.renderAll();
-    return total;
+    return { total, skipped };
   },
 
   async _handleImportFile(input) {
@@ -5219,8 +5324,8 @@ const App = {
         return;
       }
 
-      const total = await this._restoreData(data);
-      this.toast(`${total} registros importados`, 'check_circle');
+      const { total, skipped } = await this._restoreData(data);
+      this.toast(`${total} registros importados${skipped ? ` (${skipped} omitidos)` : ''}`, 'check_circle');
       this.haptic('success');
       this._notifyTabs();
     } catch (e) {
@@ -5462,15 +5567,21 @@ const App = {
     if (this._catalogoImages.length === 0) return;
 
     if (navigator.share && navigator.canShare) {
-      const files = await Promise.all(this._catalogoImages.map(async (dataUrl, i) => {
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        return new File([blob], `catalogo-${i + 1}.png`, { type: 'image/png' });
-      }));
-      const shareData = { files };
-      if (navigator.canShare(shareData)) {
-        navigator.share(shareData).catch(() => {});
-        this.toast('Catálogo enviado', 'share');
+      try {
+        const files = await Promise.all(this._catalogoImages.map(async (dataUrl, i) => {
+          const res = await fetch(dataUrl);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const blob = await res.blob();
+          return new File([blob], `catalogo-${i + 1}.png`, { type: 'image/png' });
+        }));
+        const shareData = { files };
+        if (navigator.canShare(shareData)) {
+          navigator.share(shareData).catch(() => {});
+          this.toast('Catálogo enviado', 'share');
+          return;
+        }
+      } catch {
+        this.toast('Error al preparar el catálogo', 'error');
         return;
       }
     }
@@ -5648,8 +5759,8 @@ const App = {
         return;
       }
       const data = this._normalizeBackupData(result.data || result);
-      const total = await this._restoreData(data);
-      this.toast(`${total} registros restaurados`, 'check_circle');
+      const { total, skipped } = await this._restoreData(data);
+      this.toast(`${total} registros restaurados${skipped ? ` (${skipped} omitidos)` : ''}`, 'check_circle');
       this.haptic('success');
       this._notifyTabs();
     } catch {
@@ -6099,8 +6210,8 @@ const App = {
         return;
       }
       const data = this._normalizeBackupData(result.data || result);
-      const total = await this._restoreData(data);
-      this.toast(`${total} registros restaurados`, 'check_circle');
+      const { total, skipped } = await this._restoreData(data);
+      this.toast(`${total} registros restaurados${skipped ? ` (${skipped} omitidos)` : ''}`, 'check_circle');
       this.haptic('success');
       this._notifyTabs();
     } catch {

@@ -17,7 +17,7 @@
 //   license:{code}                   → JSON licenseData
 // ══════════════════════════════════════════════════════════════
 
-import { log, isValidEmail } from './_shared.js';
+import { log, isValidEmail, requestId } from './_shared.js';
 import { sendEmail } from './_email-templates.js';
 
 // APP_URL se configura en Cloudflare Dashboard → Workers → Settings → Variables
@@ -30,6 +30,7 @@ export async function onRequestGet() {
 
 export async function onRequestPost(context) {
   const { request, env, ctx } = context;
+  const reqId = requestId();
 
   const url        = new URL(request.url);
   const xSig       = request.headers.get('x-signature');
@@ -37,7 +38,7 @@ export async function onRequestPost(context) {
 
   // 1. Verificar firma MP — fail closed: si el secreto no está configurado, rechazar siempre.
   if (!env.MP_WEBHOOK_SECRET) {
-    log('error', 'mp-webhook', 'MP_WEBHOOK_SECRET not configured');
+    log('error', 'mp-webhook', 'MP_WEBHOOK_SECRET not configured', { reqId });
     return jsonResp({ ok: false, error: 'server_misconfigured' }, 500);
   }
   if (!xSig) {
@@ -167,7 +168,9 @@ async function processEvent({ type, resourceId, env, idKey }) {
           subject: `⚠ Error en webhook MP — ${type}:${resourceId}`,
           textContent: `Error procesando pago.\nTipo: ${type}\nID: ${resourceId}\nError: ${e.message}\n\nRevisar Cloudflare Workers Logs para más detalles.`,
         }),
-      }).catch(() => {});
+      }).catch((err) => {
+        log('warn', 'mp-webhook', 'Failed to send error notification email', { error: err?.message });
+      });
     }
   }
 }

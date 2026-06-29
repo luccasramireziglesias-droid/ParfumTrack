@@ -13,7 +13,7 @@
 //   value: { clientName, expiresAt, maxUses, usedCount, createdAt, lastActivatedAt }
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, timingSafeEqual, delay, log, requireJson, hashIp } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, timingSafeEqual, delay, log, requireJson, parseJsonBody, hashIp } from './_shared.js';
 
 const DELAY_ON_INVALID = 2000;
 
@@ -33,11 +33,9 @@ export async function onRequestPost(context) {
   if (ctError) return json({ ok: false, valid: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
   let code;
-  try {
-    ({ code } = await request.json());
-  } catch {
-    return json({ ok: false, valid: false, error: "Bad request" }, 400, headers);
-  }
+  const { data: bodyData, error: parseError } = await parseJsonBody(request, 4096);
+  if (parseError) return json({ ok: false, valid: false, error: parseError === 'Payload too large' ? parseError : 'Bad request' }, parseError === 'Payload too large' ? 413 : 400, headers);
+  code = bodyData.code;
 
   if (!code || typeof code !== "string" || code.length > 64) {
     return json({ ok: false, valid: false, error: "Invalid code" }, 400, headers);
@@ -102,11 +100,16 @@ export async function onRequestPost(context) {
       const ttl = Math.floor((new Date(license.expiresAt).getTime() - Date.now()) / 1000) + 86400 * 30;
       if (ttl > 60) putOpts.expirationTtl = ttl;
     }
-    await env.PT_LICENSES.put(
-      `license:${normalizedCode}`,
-      JSON.stringify(license),
-      putOpts,
-    );
+    try {
+      await env.PT_LICENSES.put(
+        `license:${normalizedCode}`,
+        JSON.stringify(license),
+        putOpts,
+      );
+    } catch (e) {
+      log('error', 'validate-license', 'KV write failed', { error: e.message });
+      return json({ ok: false, valid: false, error: 'Storage error' }, 500, headers);
+    }
 
     log('info', 'validate-license', 'license activated', { code: normalizedCode.slice(0, 7) + '***', use: `${license.usedCount}/${license.maxUses ?? '∞'}` });
   } else {

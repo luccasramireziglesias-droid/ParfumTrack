@@ -26,7 +26,7 @@ export async function checkRateLimit(env, key, max, windowSecs) {
   let count = 0;
   try {
     const stored = await env.PT_LICENSES.get(windowKey);
-    count = stored ? parseInt(stored, 10) : 0;
+    count = stored ? (parseInt(stored, 10) || 0) : 0;
   } catch {
     return 'Rate limit check failed, please try again later';
   }
@@ -92,6 +92,21 @@ export function requireJson(request, maxBytes = 1_048_576) {
   const cl = request.headers.get('content-length');
   if (cl && parseInt(cl, 10) > maxBytes) return 'Payload too large';
   return null;
+}
+
+export async function parseJsonBody(request, maxBytes = 1_048_576) {
+  const text = await request.text();
+  if (text.length > maxBytes) return { error: 'Payload too large' };
+  try {
+    return { data: JSON.parse(text) };
+  } catch {
+    return { error: 'Invalid JSON' };
+  }
+}
+
+export function requestId() {
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 export function isValidEmail(email) {

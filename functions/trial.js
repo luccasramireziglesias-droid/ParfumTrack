@@ -26,7 +26,7 @@
 //   PT_LICENSES    — KV binding
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, sha256, delay, isValidEmail, log, requireJson } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, sha256, delay, isValidEmail, log, requireJson, parseJsonBody } from './_shared.js';
 
 const KV_TTL_SECS = 90 * 24 * 60 * 60;
 const OTP_TTL_SECS = 10 * 60;
@@ -45,12 +45,8 @@ export async function onRequestPost(context) {
   const ctError = requireJson(request, 4096);
   if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ ok: false, error: "Bad request" }, 400, headers);
-  }
+  const { data: body, error: parseError } = await parseJsonBody(request, 4096);
+  if (parseError) return json({ ok: false, error: parseError === 'Payload too large' ? parseError : 'Bad request' }, parseError === 'Payload too large' ? 413 : 400, headers);
 
   const step = body.step;
 
@@ -106,11 +102,16 @@ async function handleRegister(body, ip, env, headers) {
   otp = (otp % 1000000).toString().padStart(6, '0');
 
   // Store OTP
-  await env.PT_LICENSES.put(
-    `trial_otp:${emailHash}`,
-    JSON.stringify({ otp, attempts: 0, createdAt: Date.now() }),
-    { expirationTtl: OTP_TTL_SECS },
-  );
+  try {
+    await env.PT_LICENSES.put(
+      `trial_otp:${emailHash}`,
+      JSON.stringify({ otp, attempts: 0, createdAt: Date.now() }),
+      { expirationTtl: OTP_TTL_SECS },
+    );
+  } catch (e) {
+    log('error', 'trial', 'Failed to store OTP', { error: e?.message });
+    return json({ ok: false, error: 'Failed to send code. Try again.' }, 500, headers);
+  }
 
   // Await email send — non-blocking caused Worker to terminate before Brevo got the request
   let emailSent = true;
@@ -284,6 +285,7 @@ async function getTs(env, key) {
     // Support both plain string (legacy) and JSON { startAt }
     try {
       const parsed = JSON.parse(raw);
+      if (typeof parsed === 'number' && isFinite(parsed)) return parsed;
       return parsed.startAt || null;
     } catch {
       const n = parseInt(raw, 10);
