@@ -16,7 +16,7 @@ import { onRequestGet  as mpSubscriptionStatus }  from './functions/mp-subscript
 import { onRequestGet  as mpPaymentStatus }        from './functions/mp-payment-status.js';
 
 const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup', '/trial', '/sync', '/mp-create-preference', '/mp-webhook'];
-const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status', '/mp-payment-status'];
+const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status', '/mp-payment-status', '/health'];
 
 export default {
   async fetch(request, env, ctx) {
@@ -78,6 +78,21 @@ async function handleRequest(request, env, ctx) {
       if (path === '/mp-webhook')             return mpWebhookGet(context);
       if (path === '/mp-subscription-status') return mpSubscriptionStatus(context);
       if (path === '/mp-payment-status')      return mpPaymentStatus(context);
+
+      if (path === '/health') {
+        const checks = { kv: false, timestamp: Date.now() };
+        try {
+          if (env.PT_LICENSES) {
+            await env.PT_LICENSES.get('_health_ping');
+            checks.kv = true;
+          }
+        } catch { /* kv unreachable */ }
+        const ok = checks.kv;
+        return new Response(JSON.stringify({ ok, ...checks }), {
+          status: ok ? 200 : 503,
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        });
+      }
 
       if (path === '/force-update') {
         return new Response(

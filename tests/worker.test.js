@@ -85,4 +85,21 @@ describe('worker router', () => {
     expect(body.ok).toBe(false);
     expect(body.error).toBe('Internal server error');
   });
+
+  it('GET /health returns 200 when KV is available', async () => {
+    const kvEnv = { ...env, PT_LICENSES: { get: vi.fn(async () => null) } };
+    const resp = await worker.fetch(makeRequest('GET', '/health'), kvEnv, ctx);
+    expect(resp.status).toBe(200);
+    const body = await resp.json();
+    expect(body.ok).toBe(true);
+    expect(body.kv).toBe(true);
+  });
+
+  it('GET /health returns 503 when KV is missing', async () => {
+    const resp = await worker.fetch(makeRequest('GET', '/health'), env, ctx);
+    expect(resp.status).toBe(503);
+    const body = await resp.json();
+    expect(body.ok).toBe(false);
+    expect(body.kv).toBe(false);
+  });
 });

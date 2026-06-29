@@ -641,7 +641,7 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><td>Request tracing (request ID)</td><td class="green">✓ requestId() en _shared.js</td><td>7/10</td></tr>
 <tr><td>Analytics (Plausible)</td><td class="green">✓ eventos clave</td><td>8/10</td></tr>
 <tr><td>Error alerting</td><td>Email al owner en webhook fail</td><td>7/10</td></tr>
-<tr><td>Uptime monitoring</td><td class="red">✗</td><td>3/10</td></tr>
+<tr><td>Uptime monitoring</td><td class="green">✓ /health endpoint (KV check)</td><td>6/10</td></tr>
 </table>
 </div>
 </section>
@@ -671,7 +671,7 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><td>Error handling en todos los endpoints</td><td class="green">✓</td></tr>
 <tr><td>Rate limiting en todos los endpoints</td><td class="green">✓ fail-closed</td></tr>
 <tr><td>Backup/restore funcional</td><td class="green">✓</td></tr>
-<tr><td>Monitoring/alerting</td><td class="red">✗ sin uptime monitoring</td></tr>
+<tr><td>Monitoring/alerting</td><td class="green">✓ /health endpoint + email owner en webhook fail</td></tr>
 <tr><td>Staging environment</td><td class="green">✓ wrangler.staging.jsonc</td></tr>
 <tr><td>CI/CD pipeline</td><td class="green">✓ GitHub Actions</td></tr>
 <tr><td>Rollback plan</td><td class="green">✓ git revert + auto-deploy</td></tr>
