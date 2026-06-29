@@ -1113,6 +1113,106 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   margin-left: 6px;
 }
 
+.cuotas-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  background: var(--card);
+  border-radius: 14px;
+  padding: 4px;
+}
+.cuotas-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border: none;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--text3);
+  font: 600 13px 'DM Sans';
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cuotas-tab .ms { font-size: 17px; }
+.cuotas-tab.active {
+  background: var(--bg3);
+  color: var(--gold2);
+}
+
+.deudor-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.deudor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.deudor-name {
+  font: 700 16px 'DM Sans';
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.deudor-name .ms { font-size: 20px; color: var(--gold); }
+.deudor-amount {
+  font: 800 18px 'DM Sans';
+  color: var(--red);
+}
+.deudor-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.deudor-chip {
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+  background: rgba(255,255,255,0.04);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.deudor-chip .ms { font-size: 14px; }
+.deudor-chip.overdue { color: var(--red); background: rgba(224,112,112,0.1); }
+.deudor-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.deudor-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: 500 12px 'DM Sans';
+  color: var(--text2);
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
+}
+.deudor-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+.deudor-item-amount { color: var(--warn); font-weight: 600; }
+.deudor-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .wa-preview-label {
   font: 600 11px 'DM Sans';
   color: var(--text3);
@@ -2281,7 +2381,17 @@ input[type="date"].form-input {
         <span class="ms owed-icon">account_balance_wallet</span>
       </div>
 
+      <div class="cuotas-tabs">
+        <button class="cuotas-tab active" id="tab-cuotas" onclick="App.switchCuotasView('cuotas')">
+          <span class="ms">receipt_long</span>Por cuota
+        </button>
+        <button class="cuotas-tab" id="tab-deudores" onclick="App.switchCuotasView('deudores')">
+          <span class="ms">group</span>Por deudor
+        </button>
+      </div>
+
       <div id="cuotas-list"></div>
+      <div id="deudores-list" class="hidden"></div>
     </div>
   </div>
 
@@ -3665,6 +3775,73 @@ const App = {
         <div class="wa-bubble">
           <div class="wa-text">${waMsg.replace(/\n/g, '<br>').replace(/\*(.*?)\*/g, '<b>$1</b>')}</div>
           <div class="wa-meta">${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2,'0')} <span class="ms">done_all</span></div>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  _cuotasView: 'cuotas',
+
+  switchCuotasView(view) {
+    this._cuotasView = view;
+    document.getElementById('tab-cuotas').classList.toggle('active', view === 'cuotas');
+    document.getElementById('tab-deudores').classList.toggle('active', view === 'deudores');
+    document.getElementById('cuotas-list').classList.toggle('hidden', view !== 'cuotas');
+    document.getElementById('deudores-list').classList.toggle('hidden', view !== 'deudores');
+    if (view === 'deudores') this.renderDeudores();
+  },
+
+  renderDeudores() {
+    const pendientes = this.cuotasData.filter(c => !c.pagado);
+    const container = document.getElementById('deudores-list');
+
+    if (pendientes.length === 0) {
+      container.innerHTML = '<div class="empty-state"><span class="ms">check_circle</span><span>No hay deudores</span></div>';
+      return;
+    }
+
+    const byClient = {};
+    pendientes.forEach(c => {
+      const name = (c.cliente || 'Sin nombre').trim();
+      if (!byClient[name]) byClient[name] = { cuotas: [], total: 0, oldestDue: Infinity };
+      const resta = c.monto - (c.montoPagado || 0);
+      byClient[name].cuotas.push(c);
+      byClient[name].total += resta;
+      if (c.vence < byClient[name].oldestDue) byClient[name].oldestDue = c.vence;
+    });
+
+    const sorted = Object.entries(byClient).sort((a, b) => b[1].total - a[1].total);
+    const now = Date.now();
+
+    container.innerHTML = sorted.map(([name, data]) => {
+      const overdue = data.cuotas.filter(c => c.vence < now);
+      const items = data.cuotas.map(c => {
+        const resta = c.monto - (c.montoPagado || 0);
+        return `<div class="deudor-item">
+          <span class="deudor-item-name">${this.esc(c.perfume)} · Cuota ${c.numero}/${c.total}</span>
+          <span class="deudor-item-amount">${this.fmt(resta)}</span>
+        </div>`;
+      }).join('');
+
+      const cuotasList = data.cuotas.map(c => {
+        const r = c.monto - (c.montoPagado || 0);
+        return `${this.esc(c.perfume)} cuota ${c.numero}: ${this.fmt(r)}`;
+      }).join('\n');
+      const waMsg = `Hola ${this.esc(name)}! Te paso el resumen de tus cuotas pendientes:\n\n${cuotasList}\n\n*Total: ${this.fmt(data.total)}*\n\nGracias!`;
+
+      return `<div class="deudor-card">
+        <div class="deudor-header">
+          <div class="deudor-name"><span class="ms">person</span>${this.esc(name)}</div>
+          <div class="deudor-amount">${this.fmt(data.total)}</div>
+        </div>
+        <div class="deudor-meta">
+          <span class="deudor-chip"><span class="ms">receipt_long</span>${data.cuotas.length} cuota${data.cuotas.length > 1 ? 's' : ''}</span>
+          ${overdue.length > 0 ? `<span class="deudor-chip overdue"><span class="ms">warning</span>${overdue.length} vencida${overdue.length > 1 ? 's' : ''}</span>` : ''}
+          <span class="deudor-chip"><span class="ms">event</span>${this.fmtDate(data.oldestDue)}</span>
+        </div>
+        <div class="deudor-items">${items}</div>
+        <div class="deudor-actions">
+          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
         </div>
       </div>`;
     }).join('');
