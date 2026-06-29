@@ -4581,6 +4581,11 @@ const App = {
       if (!isNaN(d.getTime())) document.getElementById('venta-fecha').value = d.toISOString().split('T')[0];
     }
 
+    this.setFormaPago(v.formaPago || 'contado');
+    if (v.numCuotas > 1) {
+      document.getElementById('venta-num-cuotas').value = v.numCuotas;
+    }
+
     const saveBtn = document.querySelector('#screen-nueva-venta .btn-primary');
     if (saveBtn) {
       saveBtn.innerHTML = '<span class="ms">save</span>Actualizar venta';
@@ -4614,19 +4619,60 @@ const App = {
       return;
     }
 
+    const numCuotas = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
+    const newFormaPago = this.formaPago;
+
     const v = this.ventas.find(x => x.id === id);
     if (v) {
+      const oldFormaPago = v.formaPago || 'contado';
       Object.assign(v, {
         perfume, precioVenta: pvFinal, precioOriginal: precioVenta, precioCompra,
         cliente: cliente || 'Anónimo', vendedor: vendedor || 'Anónimo',
         proveedor: proveedor || '', descuento, nota, fecha,
-        perfumeId: perfumeId ? parseInt(perfumeId) : ''
+        perfumeId: perfumeId ? parseInt(perfumeId) : '',
+        formaPago: newFormaPago,
+        numCuotas: newFormaPago === 'cuotas' ? numCuotas : 1,
       });
       try {
         await DB.updateVenta(v);
       } catch (e) {
         this.toast('Error al actualizar la venta', 'error');
         return;
+      }
+
+      // Si cambió de contado a cuotas, generar cuotas
+      if (oldFormaPago !== 'cuotas' && newFormaPago === 'cuotas' && numCuotas > 1) {
+        const montoCuota = Math.round(pvFinal / numCuotas);
+        const lastCuota = pvFinal - montoCuota * (numCuotas - 1);
+        for (let i = 0; i < numCuotas; i++) {
+          const vence = new Date(fecha);
+          vence.setMonth(vence.getMonth() + i);
+          const isLast = i === numCuotas - 1;
+          const monto = isLast ? lastCuota : montoCuota;
+          try {
+            await DB.add('cuotas', {
+              ventaId: id,
+              perfume,
+              cliente: cliente || 'Anónimo',
+              numero: i + 1,
+              total: numCuotas,
+              monto,
+              montoTotal: pvFinal,
+              pagado: i === 0,
+              montoPagado: i === 0 ? monto : 0,
+              vence: vence.getTime(),
+            });
+          } catch { /* skip */ }
+        }
+      }
+      // Si cambió de cuotas a contado, borrar cuotas existentes
+      if (oldFormaPago === 'cuotas' && newFormaPago !== 'cuotas') {
+        const allCuotas = await DB.getAll('cuotas');
+        for (const c of allCuotas) {
+          if (c.ventaId === id) {
+            try { await DB.delete('cuotas', c.id); } catch { /* skip */ }
+          }
+        }
       }
     }
 
