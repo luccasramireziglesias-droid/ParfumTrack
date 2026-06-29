@@ -94,6 +94,21 @@ export function requireJson(request, maxBytes = 1_048_576) {
   return null;
 }
 
+export async function parseJsonBody(request, maxBytes = 1_048_576) {
+  const text = await request.text();
+  if (text.length > maxBytes) return { error: 'Payload too large' };
+  try {
+    return { data: JSON.parse(text) };
+  } catch {
+    return { error: 'Invalid JSON' };
+  }
+}
+
+export function requestId() {
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export function isValidEmail(email) {
   return (
     typeof email === 'string' &&

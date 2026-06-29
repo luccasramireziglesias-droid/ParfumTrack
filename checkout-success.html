@@ -132,7 +132,7 @@
         📱 Ingresalo en la app → Ajustes → Licencia<br>
         📂 Si no llegó, revisá la carpeta de spam
       </div>
-      <a href="/index.html" class="btn">Abrir Parfum Track →</a>
+      <a href="/index.html" class="btn" id="open-app-btn">Abrir Parfum Track →</a>
       <a href="https://wa.me/59894466577?text=Hola!%20Acabo%20de%20pagar%20el%20plan%20Básico%20Pro%20de%20Parfum%20Track%20🌸"
          target="_blank" rel="noopener" class="btn-secondary">
         📲 ¿Problema con el email? Escribinos
@@ -221,6 +221,13 @@
         if (resp.ok) {
           const data = await resp.json();
           if (data.ok && data.status === 'active') {
+            if (data.code) {
+              try {
+                localStorage.setItem('pt_pending_license', data.code);
+                const btn = document.getElementById('open-app-btn');
+                if (btn) btn.href = '/index.html?activate=' + encodeURIComponent(data.code);
+              } catch (_) { /* storage blocked */ }
+            }
             progressEl.style.width = '100%';
             setTimeout(showSuccess, 400);
             return;

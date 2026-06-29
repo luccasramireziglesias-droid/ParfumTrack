@@ -14,7 +14,7 @@
 //   "trial_expired"   — Trial vencido, invitación a activar
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, sha256, verifyToken, isValidEmail, log, requireJson, hashIp } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, sha256, verifyToken, isValidEmail, log, requireJson, parseJsonBody, hashIp } from './_shared.js';
 
 const TEMPLATES = {
   trial_welcome: (data) => ({
@@ -230,12 +230,8 @@ export async function onRequestPost(context) {
   const ctError = requireJson(request, 65536);
   if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ ok: false, error: "Bad request" }, 400, headers);
-  }
+  const { data: body, error: parseError } = await parseJsonBody(request, 65536);
+  if (parseError) return json({ ok: false, error: parseError === 'Payload too large' ? parseError : 'Bad request' }, parseError === 'Payload too large' ? 413 : 400, headers);
 
   // Auth: verificar token HMAC — obligatorio
   const { code: authCode, token: authToken } = body;

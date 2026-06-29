@@ -3175,7 +3175,15 @@ function tx(store, mode = 'readonly') {
 function reqP(req) {
   return new Promise((resolve, reject) => {
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    req.onerror = () => {
+      const err = req.error;
+      if (err?.name === 'QuotaExceededError') {
+        if (typeof App !== 'undefined' && App.toast) {
+          App.toast('Almacenamiento lleno. Eliminá datos o fotos para continuar.', 'storage', 5000);
+        }
+      }
+      reject(err);
+    };
   });
 }
 
@@ -3454,6 +3462,23 @@ const App = {
     this.renderAll();
     this.registerSW();
     this._initTabSync();
+    this._checkPendingLicense();
+  },
+
+  _checkPendingLicense() {
+    try {
+      const params = new URLSearchParams(location.search);
+      const code = params.get('activate') || localStorage.getItem('pt_pending_license');
+      if (code && /^PT-[A-Z0-9-]{6,}$/i.test(code)) {
+        localStorage.removeItem('pt_pending_license');
+        if (params.has('activate')) history.replaceState(null, '', location.pathname);
+        setTimeout(() => {
+          this.toast('Código de licencia detectado: ' + code, 'vpn_key');
+          const el = document.getElementById('license-code-input');
+          if (el) { el.value = code; }
+        }, 1500);
+      }
+    } catch (_) { /* ignore */ }
   },
 
   _tabChannel: null,

@@ -3,7 +3,7 @@
 // GET /mp-payment-status?paymentId=123456789&email=user@example.com
 // Devuelve si la licencia asociada a un pago ya fue activada.
 // Requiere email del pagador para autenticar (verificado contra Mercado Pago).
-// No devuelve el código de licencia — solo el estado (activo/pendiente).
+// Devuelve el código de licencia cuando el pago está activo y el email verificado.
 // ══════════════════════════════════════════════════════════════
 
 import { corsHeaders, json, checkRateLimit, isValidEmail, log, hashIp } from './_shared.js';
@@ -78,6 +78,7 @@ export async function onRequestGet(context) {
   return json({
     ok:        true,
     status:    'active',
+    code:      licenseCode,
     plan:      lic.plan,
     expiresAt: lic.expiresAt,
   }, 200, headers);

@@ -26,7 +26,7 @@
 //   PT_LICENSES    — KV binding
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, sha256, delay, isValidEmail, log, requireJson } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, sha256, delay, isValidEmail, log, requireJson, parseJsonBody } from './_shared.js';
 
 const KV_TTL_SECS = 90 * 24 * 60 * 60;
 const OTP_TTL_SECS = 10 * 60;
@@ -45,12 +45,8 @@ export async function onRequestPost(context) {
   const ctError = requireJson(request, 4096);
   if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ ok: false, error: "Bad request" }, 400, headers);
-  }
+  const { data: body, error: parseError } = await parseJsonBody(request, 4096);
+  if (parseError) return json({ ok: false, error: parseError === 'Payload too large' ? parseError : 'Bad request' }, parseError === 'Payload too large' ? 413 : 400, headers);
 
   const step = body.step;
 

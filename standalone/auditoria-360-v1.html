@@ -256,19 +256,15 @@ a{color:var(--gold)}
 </div>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-medium">MEDIO</span> FE-04: Redondeo de cuotas pierde dinero</div>
+<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> FE-04: Redondeo de cuotas pierde dinero</div>
 <div class="finding-detail">
-<strong>Línea:</strong> 3234<br>
-<strong>Causa:</strong> <code>Math.round(v.precioVenta / v.numCuotas)</code>. Una venta de $100 en 3 cuotas = 3 × $33 = $99. Se pierde $1.<br>
-<strong>Fix:</strong> Ajustar la última cuota: <code>montoTotal - (montoCuota * (n-1))</code>
+<strong>Fix:</strong> Última cuota ajustada con <code>montoTotal - (montoCuota * (n-1))</code> (PR #48).
 </div>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-medium">MEDIO</span> FE-05: Método duplicado marcarPagada</div>
+<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> FE-05: Método duplicado marcarPagada</div>
 <div class="finding-detail">
-<strong>Líneas:</strong> 4481-4487<br>
-<strong>Causa:</strong> <code>marcarPagada(id)</code> está definido 2 veces idénticas en App. La segunda sobreescribe la primera sin efecto.<br>
-<strong>Fix:</strong> Eliminar la duplicación.
+<strong>Fix:</strong> Duplicación eliminada (PR #48).
 </div>
 </div>
 <div class="finding">
@@ -286,11 +282,9 @@ a{color:var(--gold)}
 </div>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-low">BAJO</span> FE-08: Primera cuota marcada pagada sin monto</div>
+<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> FE-08: Primera cuota marcada pagada sin monto</div>
 <div class="finding-detail">
-<strong>Línea:</strong> 3246<br>
-<strong>Causa:</strong> <code>pagado: i === 0</code> pero no setea <code>montoPagado</code>. La cuota 1 aparece como "pagada" con $0 pagado.<br>
-<strong>Fix:</strong> Agregar <code>montoPagado: i === 0 ? montoCuota : 0</code>
+<strong>Fix:</strong> Agregado <code>montoPagado: i === 0 ? montoCuota : 0</code> (PR #48).
 </div>
 </div>
 </section>
@@ -299,11 +293,10 @@ a{color:var(--gold)}
 <section id="f04" class="phase-section">
 <h2><span class="phase-num">Fase 04 — Arquitectura</span>Auditoría Backend</h2>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-medium">MEDIO</span> BE-01: requireJson solo valida Content-Length header</div>
+<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> BE-01: requireJson solo valida Content-Length header</div>
 <div class="finding-detail">
-<strong>Archivo:</strong> _shared.js:89-94<br>
-<strong>Causa:</strong> Solo verifica el header <code>Content-Length</code> que el cliente puede falsear. El body real puede exceder el límite.<br>
-<strong>Fix:</strong> Leer el body con streaming y abortar si excede maxBytes. O confiar en el límite de Workers (100MB) y verificar post-parse.
+<strong>Archivo:</strong> _shared.js<br>
+<strong>Fix:</strong> Se agregó <code>parseJsonBody()</code> que lee el body real con <code>request.text()</code> y valida <code>text.length > maxBytes</code> antes de parsear. Migrado en 7 endpoints.
 </div>
 </div>
 <div class="finding">
@@ -338,7 +331,7 @@ Signature verification con timing-safe comparison, replay protection (5 min wind
 <tr><th>Store</th><th>Tipo</th><th>Índices</th><th>Notas</th></tr>
 <tr><td>perfumes</td><td>IndexedDB</td><td>nombre</td><td>Fotos como data URI (puede crecer mucho)</td></tr>
 <tr><td>ventas</td><td>IndexedDB</td><td>fecha</td><td>OK, bien modelado</td></tr>
-<tr><td>cuotas</td><td>IndexedDB</td><td>ventaId</td><td>Bug: primera cuota sin montoPagado</td></tr>
+<tr><td>cuotas</td><td>IndexedDB</td><td>ventaId</td><td>OK (montoPagado corregido)</td></tr>
 <tr><td>config</td><td>IndexedDB</td><td>key</td><td>Key-value store</td></tr>
 <tr><td>pedidos</td><td>IndexedDB</td><td>estado, fecha</td><td>OK</td></tr>
 <tr><td>caja</td><td>IndexedDB</td><td>fecha</td><td>OK (parseFloat)</td></tr>
@@ -398,11 +391,11 @@ Todos los endpoints devuelven <code>{ ok: boolean, error?: string, ...data }</co
 <tr><th>Métrica</th><th>Valor</th><th>Evaluación</th></tr>
 <tr><td>Líneas totales</td><td>~7.500</td><td>Aceptable para el scope</td></tr>
 <tr><td>Archivo más grande</td><td>index.html (6.189)</td><td class="red">Excesivo — refactorizar</td></tr>
-<tr><td>Funciones duplicadas</td><td>1 (marcarPagada)</td><td class="warn">Limpiar</td></tr>
+<tr><td>Funciones duplicadas</td><td>0</td><td class="green">Limpio</td></tr>
 <tr><td>Patrones consistentes</td><td>Sí</td><td class="green">Bueno</td></tr>
 <tr><td>Error handling backend</td><td>Completo</td><td class="green">Excelente</td></tr>
 <tr><td>Naming conventions</td><td>camelCase JS, consistente</td><td class="green">Bueno</td></tr>
-<tr><td>Tests automatizados</td><td>Solo _shared.js</td><td class="red">Insuficiente</td></tr>
+<tr><td>Tests automatizados</td><td>215 tests (10 endpoints + _shared.js)</td><td class="green">Bueno</td></tr>
 </table>
 </div>
 </section>
@@ -512,7 +505,7 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><td>Offline-first</td><td class="green">✓ Completo</td><td>Parcial o ninguno</td></tr>
 <tr><td>Time to value</td><td class="green">~10 seg</td><td>2-5 min</td></tr>
 <tr><td>Sin registro inicial</td><td class="green">✓</td><td>Casi ninguno</td></tr>
-<tr><td>Tests automatizados</td><td class="red">Mínimos</td><td>Básicos</td></tr>
+<tr><td>Tests automatizados</td><td class="green">215 tests (10 endpoints)</td><td>Básicos</td></tr>
 <tr><td>Modularidad</td><td class="red">Monolito</td><td>Componentes</td></tr>
 <tr><td>Cobro por WhatsApp</td><td class="green">✓ Único</td><td>No existe</td></tr>
 <tr><td>Multi-moneda</td><td class="green">✓</td><td>Raro</td></tr>
@@ -552,15 +545,13 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><td>License validation</td><td>ECDSA P-256 firma + HMAC token</td><td class="green">9/10</td></tr>
 <tr><td>Backup/Sync auth</td><td>HMAC-SHA256(code, secret) timing-safe</td><td class="green">9/10</td></tr>
 <tr><td>MP webhook verify</td><td>HMAC signature + replay protection + idempotency</td><td class="green">9/10</td></tr>
-<tr><td>PIN lock (local)</td><td>4 dígitos en localStorage (plain text)</td><td class="warn">5/10</td></tr>
+<tr><td>PIN lock (local)</td><td>4 dígitos hasheado SHA-256 en localStorage</td><td class="green">8/10</td></tr>
 </table>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-medium">MEDIO</span> AUTH-01: PIN almacenado en plain text</div>
+<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> AUTH-01: PIN almacenado en plain text</div>
 <div class="finding-detail">
-<strong>Línea:</strong> 6166 — <code>localStorage.setItem('pt_pin', pin)</code><br>
-<strong>Impacto:</strong> Cualquier script con acceso a localStorage puede leer el PIN. En un contexto PWA, el riesgo es bajo porque no hay extensiones de terceros, pero no es best practice.<br>
-<strong>Fix:</strong> Hashear el PIN con SHA-256 antes de guardar.
+<strong>Fix:</strong> PIN se hashea con SHA-256 antes de guardar en localStorage (PR #48). Verificación usa <code>_hashPin()</code> para comparar.
 </div>
 </div>
 </section>
@@ -581,7 +572,7 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><td>B07</td><td>prompt() nativo en togglePin</td><td><span class="badge badge-ok">RESUELTO</span></td><td>6165</td><td>UX</td></tr>
 <tr><td>B08</td><td>prompt() nativo en activarLicencia</td><td><span class="badge badge-ok">RESUELTO</span></td><td>5946</td><td>UX</td></tr>
 <tr><td>B09</td><td>user-scalable=no</td><td><span class="badge badge-ok">RESUELTO</span></td><td>5</td><td>A11y</td></tr>
-<tr><td>B10</td><td>requireJson no valida body real</td><td><span class="badge badge-medium">MEDIO</span></td><td>_shared:89</td><td>Seguridad</td></tr>
+<tr><td>B10</td><td>requireJson no valida body real</td><td><span class="badge badge-ok">RESUELTO</span></td><td>_shared.js</td><td>Seguridad</td></tr>
 </table>
 </div>
 </section>
@@ -631,7 +622,7 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><td>R2 no disponible</td><td>Backup/sync falla con error descriptivo</td><td class="green">Correcto</td></tr>
 <tr><td>Brevo caído</td><td>OTP falla, se informa al usuario</td><td class="green">OK</td></tr>
 <tr><td>MP API caída</td><td>Webhook retorna 500, MP reintenta</td><td class="green">Correcto</td></tr>
-<tr><td>IndexedDB lleno</td><td>Sin manejo — falla silenciosamente</td><td class="red">Falta</td></tr>
+<tr><td>IndexedDB lleno</td><td>QuotaExceededError → toast informativo al usuario</td><td class="green">OK</td></tr>
 <tr><td>2 tabs simultáneos</td><td>BroadcastChannel sincroniza</td><td class="green">OK</td></tr>
 <tr><td>Import backup corrupto</td><td>_normalizeBackupData() sanitiza</td><td class="green">Robusto</td></tr>
 </table>
@@ -647,7 +638,7 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 <tr><th>Aspecto</th><th>Implementado</th><th>Score</th></tr>
 <tr><td>Structured JSON logging</td><td class="green">✓ en todos los endpoints</td><td>9/10</td></tr>
 <tr><td>Log levels (error/warn/info)</td><td class="green">✓</td><td>9/10</td></tr>
-<tr><td>Request tracing (request ID)</td><td class="red">✗</td><td>5/10</td></tr>
+<tr><td>Request tracing (request ID)</td><td class="green">✓ requestId() en _shared.js</td><td>7/10</td></tr>
 <tr><td>Analytics (Plausible)</td><td class="green">✓ eventos clave</td><td>8/10</td></tr>
 <tr><td>Error alerting</td><td>Email al owner en webhook fail</td><td>7/10</td></tr>
 <tr><td>Uptime monitoring</td><td class="red">✗</td><td>3/10</td></tr>
@@ -720,10 +711,9 @@ Con 500+ ventas, renderizar toda la lista puede causar jank. Debounce ya impleme
 </table>
 </div>
 <div class="finding">
-<div class="finding-title"><span class="badge badge-medium">MEDIO</span> UX-01: Flujo de suscripción Pro desconectado</div>
+<div class="finding-title"><span class="badge badge-ok">RESUELTO</span> UX-01: Flujo de suscripción Pro desconectado</div>
 <div class="finding-detail">
-El usuario paga en MP, recibe email con código, tiene que volver a la app y pegarlo manualmente. No hay deep link ni auto-activación post-pago.<br>
-<strong>Fix:</strong> checkout-success.html debería intentar activar automáticamente si detecta el código en URL params.
+<strong>Fix:</strong> checkout-success.html ahora guarda el código en localStorage y agrega <code>?activate=CODE</code> al link "Abrir Parfum Track". La app detecta el parámetro al iniciar y muestra el código automáticamente con un toast.
 </div>
 </div>
 </section>

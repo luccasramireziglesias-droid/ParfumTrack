@@ -11,7 +11,7 @@
 //   binding: "PT_LICENSES" — reutilizado para rate limiting
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, verifyToken, log, requireJson, hashIp } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, log, requireJson, parseJsonBody, hashIp } from './_shared.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -28,11 +28,9 @@ export async function onRequestPost(context) {
   if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
   let subscriptionId, title, message, url, authCode, authToken;
-  try {
-    ({ subscriptionId, title, message, url, code: authCode, token: authToken } = await request.json());
-  } catch {
-    return json({ ok: false, error: "Bad request" }, 400, headers);
-  }
+  const { data: bodyData, error: parseError } = await parseJsonBody(request, 4096);
+  if (parseError) return json({ ok: false, error: parseError === 'Payload too large' ? parseError : 'Bad request' }, parseError === 'Payload too large' ? 413 : 400, headers);
+  ({ subscriptionId, title, message, url, code: authCode, token: authToken } = bodyData);
 
   if (!subscriptionId || !title || !message) {
     return json({ ok: false, error: "Missing fields" }, 400, headers);
