@@ -102,11 +102,16 @@ async function handleRegister(body, ip, env, headers) {
   otp = (otp % 1000000).toString().padStart(6, '0');
 
   // Store OTP
-  await env.PT_LICENSES.put(
-    `trial_otp:${emailHash}`,
-    JSON.stringify({ otp, attempts: 0, createdAt: Date.now() }),
-    { expirationTtl: OTP_TTL_SECS },
-  );
+  try {
+    await env.PT_LICENSES.put(
+      `trial_otp:${emailHash}`,
+      JSON.stringify({ otp, attempts: 0, createdAt: Date.now() }),
+      { expirationTtl: OTP_TTL_SECS },
+    );
+  } catch (e) {
+    log('error', 'trial', 'Failed to store OTP', { error: e?.message });
+    return json({ ok: false, error: 'Failed to send code. Try again.' }, 500, headers);
+  }
 
   // Await email send — non-blocking caused Worker to terminate before Brevo got the request
   let emailSent = true;

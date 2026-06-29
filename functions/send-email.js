@@ -254,13 +254,10 @@ export async function onRequestPost(context) {
   }
 
   // Rate limit by destination email: max 3 emails/24h per address
-  const emailKey = to
-    .toLowerCase()
-    .replace(/[^a-z0-9@._-]/g, "")
-    .slice(0, 100);
+  const emailKeyHash = await sha256(to.toLowerCase().trim());
   const emailLimitError = await checkRateLimit(
     env,
-    `rl_email_to_${emailKey}`,
+    `rl_email_to_${emailKeyHash}`,
     3,
     86400,
   );

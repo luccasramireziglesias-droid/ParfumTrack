@@ -3896,7 +3896,7 @@ const App = {
     const alerts = [];
     this.perfumes.forEach(p => {
       const sold = salesByPerfume[p.nombre] || 0;
-      if (sold === 0) return;
+      if (sold <= 0) return;
       const monthsLeft = p.stock > 0 ? p.stock / sold : 0;
       if (p.stock === 0) {
         alerts.push({ perfume: p.nombre, stock: 0, sold, monthsLeft: 0, critical: true });
@@ -5487,15 +5487,21 @@ const App = {
     if (this._catalogoImages.length === 0) return;
 
     if (navigator.share && navigator.canShare) {
-      const files = await Promise.all(this._catalogoImages.map(async (dataUrl, i) => {
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        return new File([blob], `catalogo-${i + 1}.png`, { type: 'image/png' });
-      }));
-      const shareData = { files };
-      if (navigator.canShare(shareData)) {
-        navigator.share(shareData).catch(() => {});
-        this.toast('Catálogo enviado', 'share');
+      try {
+        const files = await Promise.all(this._catalogoImages.map(async (dataUrl, i) => {
+          const res = await fetch(dataUrl);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const blob = await res.blob();
+          return new File([blob], `catalogo-${i + 1}.png`, { type: 'image/png' });
+        }));
+        const shareData = { files };
+        if (navigator.canShare(shareData)) {
+          navigator.share(shareData).catch(() => {});
+          this.toast('Catálogo enviado', 'share');
+          return;
+        }
+      } catch {
+        this.toast('Error al preparar el catálogo', 'error');
         return;
       }
     }

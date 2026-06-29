@@ -168,7 +168,9 @@ async function processEvent({ type, resourceId, env, idKey }) {
           subject: `⚠ Error en webhook MP — ${type}:${resourceId}`,
           textContent: `Error procesando pago.\nTipo: ${type}\nID: ${resourceId}\nError: ${e.message}\n\nRevisar Cloudflare Workers Logs para más detalles.`,
         }),
-      }).catch(() => {});
+      }).catch((err) => {
+        log('warn', 'mp-webhook', 'Failed to send error notification email', { error: err?.message });
+      });
     }
   }
 }

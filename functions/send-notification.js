@@ -11,7 +11,7 @@
 //   binding: "PT_LICENSES" — reutilizado para rate limiting
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, verifyToken, log, requireJson, parseJsonBody, hashIp } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, log, requireJson, parseJsonBody, hashIp, sha256 } from './_shared.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -48,10 +48,10 @@ export async function onRequestPost(context) {
   }
 
   // Rate limit by subscriptionId: max 20 notifications/day
-  const subId = subscriptionId.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 128);
+  const subIdHash = await sha256(subscriptionId);
   const subLimitError = await checkRateLimit(
     env,
-    `rl_notif_sub_${subId}`,
+    `rl_notif_sub_${subIdHash}`,
     20,
     86400,
   );
