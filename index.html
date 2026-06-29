@@ -869,6 +869,42 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .stock-badge.low { background: var(--warn); color: #1a1a2e; }
 .stock-badge.zero { background: var(--red); color: #fff; }
 
+.stock-alert-card {
+  background: rgba(224,176,96,0.08);
+  border: 1px solid rgba(224,176,96,0.15);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.stock-alert-card .ms { font-size: 18px; color: var(--warn); }
+.stock-alert-card.critical { background: rgba(224,112,112,0.08); border-color: rgba(224,112,112,0.15); }
+.stock-alert-card.critical .ms { color: var(--red); }
+.stock-alert-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.stock-alert-text {
+  font: 500 12px 'DM Sans';
+  color: var(--text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stock-alert-text strong { color: var(--text); font-weight: 600; }
+.stock-alert-velocity {
+  font: 600 11px 'DM Sans';
+  color: var(--text3);
+  white-space: nowrap;
+}
+#stock-alerts { margin-bottom: 12px; }
+
 .stock-info {
   padding: 11px 13px;
 }
@@ -2234,12 +2270,22 @@ input[type="date"].form-input {
         <span class="ms green">chevron_right</span>
       </div>
 
+      <div id="month-compare" class="hidden" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:14px;"></div>
+
       <div class="section-header">
         <span class="section-title">Ventas recientes</span>
         <span class="section-link" onclick="App.showScreen('ventas-all')">Ver todas</span>
       </div>
 
       <div id="ventas-recientes"></div>
+
+      <div id="dashboard-deudores" class="hidden" style="margin-top:16px;">
+        <div class="section-header">
+          <span class="section-title"><span class="ms gold">group</span>Quién te debe</span>
+          <span class="section-link" onclick="App.showScreen('cuotas');App.switchCuotasView('deudores')">Ver todos</span>
+        </div>
+        <div id="dashboard-deudores-list"></div>
+      </div>
     </div>
   </div>
 
@@ -2364,6 +2410,7 @@ input[type="date"].form-input {
         <span class="chip chip-warn" onclick="App.filterStockBy('bajo')">Bajo · <span id="chip-bajo">0</span></span>
       </div>
 
+      <div id="stock-alerts" class="hidden"></div>
       <div class="stock-grid" id="stock-grid"></div>
     </div>
   </div>
@@ -3020,12 +3067,17 @@ input[type="date"].form-input {
         <div id="catalogo-preview-imgs" style="display:flex;flex-direction:column;gap:12px;"></div>
       </div>
 
-      <div style="padding:16px;display:flex;gap:8px;">
-        <button class="btn-primary btn-full" onclick="App.previewCatalogo()" id="btn-catalogo-preview">
-          <span class="ms">visibility</span>Vista previa (<span id="catalogo-count">0</span>)
-        </button>
-        <button class="btn-primary btn-full" onclick="App.enviarCatalogo()" id="btn-catalogo-send" style="background:var(--green);display:none;">
-          <span class="ms">share</span>Enviar
+      <div style="padding:16px;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:8px;">
+          <button class="btn-primary btn-full" onclick="App.previewCatalogo()" id="btn-catalogo-preview">
+            <span class="ms">visibility</span>Vista previa (<span id="catalogo-count">0</span>)
+          </button>
+          <button class="btn-primary btn-full" onclick="App.enviarCatalogo()" id="btn-catalogo-send" style="background:var(--green);display:none;">
+            <span class="ms">share</span>Enviar
+          </button>
+        </div>
+        <button class="btn-whatsapp" onclick="App.enviarCatalogoTexto()" style="border-radius:12px;">
+          <span class="ms">chat</span>Enviar listado por WhatsApp
         </button>
       </div>
     </div>
@@ -3527,6 +3579,41 @@ const App = {
       badge.className = 'hero-badge';
     }
 
+    const compareEl = el('month-compare');
+    if (compareEl) {
+      if (prevVentas.length > 0 || thisMonth.length > 0) {
+        const prevTotal = prevVentas.reduce((s, v) => s + v.precioVenta, 0);
+        const prevMonthName = monthNames[prevMonth.getMonth()];
+        const diff = ganancia - prevGanancia;
+        const diffColor = diff >= 0 ? 'var(--green)' : 'var(--red)';
+        const diffIcon = diff >= 0 ? 'arrow_upward' : 'arrow_downward';
+        compareEl.classList.remove('hidden');
+        compareEl.innerHTML = `
+          <div style="font:600 12px 'DM Sans';color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+            <span class="ms" style="font-size:16px;color:var(--gold);">compare_arrows</span>Este mes vs ${prevMonthName}
+          </div>
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;text-align:center;padding:8px;background:rgba(255,255,255,0.03);border-radius:10px;">
+              <div style="font:500 10px 'DM Sans';color:var(--text4);text-transform:uppercase;margin-bottom:4px;">Ganancia</div>
+              <div style="font:700 15px 'DM Sans';color:var(--text);">${this.fmt(ganancia)}</div>
+              <div style="font:500 10px 'DM Sans';color:var(--text4);">vs ${this.fmt(prevGanancia)}</div>
+            </div>
+            <div style="flex:1;text-align:center;padding:8px;background:rgba(255,255,255,0.03);border-radius:10px;">
+              <div style="font:500 10px 'DM Sans';color:var(--text4);text-transform:uppercase;margin-bottom:4px;">Ventas</div>
+              <div style="font:700 15px 'DM Sans';color:var(--text);">${totalVentas}</div>
+              <div style="font:500 10px 'DM Sans';color:var(--text4);">vs ${prevVentas.length}</div>
+            </div>
+            <div style="flex:1;text-align:center;padding:8px;background:rgba(255,255,255,0.03);border-radius:10px;">
+              <div style="font:500 10px 'DM Sans';color:var(--text4);text-transform:uppercase;margin-bottom:4px;">Diferencia</div>
+              <div style="font:700 15px 'DM Sans';color:${diffColor};display:flex;align-items:center;justify-content:center;gap:2px;"><span class="ms" style="font-size:16px;">${diffIcon}</span>${this.fmt(Math.abs(diff))}</div>
+              <div style="font:500 10px 'DM Sans';color:${diffColor};">${diff >= 0 ? '+' : ''}${prevGanancia > 0 ? Math.round((diff / prevGanancia) * 100) : 0}%</div>
+            </div>
+          </div>`;
+      } else {
+        compareEl.classList.add('hidden');
+      }
+    }
+
     const pendientes = this.cuotasData.filter(c => !c.pagado);
     const totalCobrar = pendientes.reduce((s, c) => s + c.monto - (c.montoPagado || 0), 0);
     el('stat-cobrar').textContent = this.fmt(totalCobrar);
@@ -3617,6 +3704,41 @@ const App = {
         </div>
       </div>`;
     }).join('');
+
+    this._renderDashboardDeudores();
+  },
+
+  _renderDashboardDeudores() {
+    const section = document.getElementById('dashboard-deudores');
+    const list = document.getElementById('dashboard-deudores-list');
+    if (!section || !list) return;
+
+    const pendientes = this.cuotasData.filter(c => !c.pagado);
+    if (pendientes.length === 0) {
+      section.classList.add('hidden');
+      return;
+    }
+
+    const byClient = {};
+    pendientes.forEach(c => {
+      const name = (c.cliente || 'Sin nombre').trim();
+      if (!byClient[name]) byClient[name] = 0;
+      byClient[name] += c.monto - (c.montoPagado || 0);
+    });
+
+    const sorted = Object.entries(byClient).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    section.classList.remove('hidden');
+    list.innerHTML = sorted.map(([name, total]) => {
+      const waMsg = `Hola ${name}! Te recuerdo que tenés un saldo pendiente de *${this.fmt(total)}*. Avisame cuando puedas pagar!`;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
+          <span class="ms" style="color:var(--gold);font-size:18px;">person</span>
+          <span style="font:500 13px 'DM Sans';color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.esc(name)}</span>
+        </div>
+        <span style="font:700 14px 'DM Sans';color:var(--red);margin:0 10px;white-space:nowrap;">${this.fmt(total)}</span>
+        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/'/g, "\\'")}')"><span class="ms" style="font-size:16px;">chat</span></button>
+      </div>`;
+    }).join('');
   },
 
   renderAllVentas() {
@@ -3686,6 +3808,8 @@ const App = {
     if (chipSin) chipSin.textContent = sinStock;
     if (chipBajo) chipBajo.textContent = bajoStock;
 
+    this._renderStockAlerts();
+
     if (items.length === 0) {
       grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span class="ms">inventory_2</span><span>No hay perfumes</span></div>';
       return;
@@ -3708,6 +3832,55 @@ const App = {
             </div>
           </div>
         </div>
+      </div>`;
+    }).join('');
+  },
+
+  _renderStockAlerts() {
+    const container = document.getElementById('stock-alerts');
+    if (!container) return;
+
+    const now = Date.now();
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+    const salesLast30 = this.ventas.filter(v => now - v.fecha < thirtyDays);
+
+    const salesByPerfume = {};
+    salesLast30.forEach(v => {
+      const name = (v.perfume || '').trim();
+      if (name) salesByPerfume[name] = (salesByPerfume[name] || 0) + 1;
+    });
+
+    const alerts = [];
+    this.perfumes.forEach(p => {
+      const sold = salesByPerfume[p.nombre] || 0;
+      if (sold === 0) return;
+      const monthsLeft = p.stock > 0 ? p.stock / sold : 0;
+      if (p.stock === 0) {
+        alerts.push({ perfume: p.nombre, stock: 0, sold, monthsLeft: 0, critical: true });
+      } else if (monthsLeft <= 1) {
+        alerts.push({ perfume: p.nombre, stock: p.stock, sold, monthsLeft, critical: false });
+      }
+    });
+
+    if (alerts.length === 0) {
+      container.classList.add('hidden');
+      return;
+    }
+
+    alerts.sort((a, b) => a.monthsLeft - b.monthsLeft);
+    container.classList.remove('hidden');
+    container.innerHTML = alerts.map(a => {
+      const cls = a.critical ? 'critical' : '';
+      const icon = a.critical ? 'error' : 'trending_down';
+      const msg = a.critical
+        ? `<strong>${this.esc(a.perfume)}</strong> sin stock — vendés ${a.sold}/mes`
+        : `<strong>${this.esc(a.perfume)}</strong> quedan ${a.stock} — vendés ${a.sold}/mes`;
+      return `<div class="stock-alert-card ${cls}">
+        <div class="stock-alert-left">
+          <span class="ms">${icon}</span>
+          <span class="stock-alert-text">${msg}</span>
+        </div>
+        <span class="stock-alert-velocity">${a.critical ? 'Reponer' : `~${Math.round(a.monthsLeft * 30)}d`}</span>
       </div>`;
     }).join('');
   },
@@ -5290,6 +5463,23 @@ const App = {
       a.click();
     });
     this.toast(`${this._catalogoImages.length} imagen${this._catalogoImages.length > 1 ? 'es' : ''} descargada${this._catalogoImages.length > 1 ? 's' : ''}`, 'download');
+  },
+
+  enviarCatalogoTexto() {
+    const selected = this.perfumes
+      .filter(p => this._catalogoSelected.has(p.id))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    if (selected.length === 0) {
+      this.toast('Seleccioná al menos un perfume', 'warning');
+      return;
+    }
+    const negocio = localStorage.getItem('pt_negocio') || 'Parfum Track';
+    const lines = selected.map(p => {
+      const stock = p.stock > 0 ? `(${p.stock} disponible${p.stock > 1 ? 's' : ''})` : '(agotado)';
+      return `• ${p.nombre} — ${this.fmt(p.precioVenta)} ${stock}`;
+    });
+    const msg = `*${negocio} — Catálogo actualizado*\n\n${lines.join('\n')}\n\n_${selected.length} perfumes · ${new Date().toLocaleDateString('es-AR')}_`;
+    this.cobrarWhatsApp(msg);
   },
 
   _renderCatalogoPage(items, pageNum, totalPages) {
