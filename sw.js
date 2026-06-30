@@ -1,7 +1,7 @@
-// Parfum Track — Service Worker v11
-// v11: fix cuota buttons + migrate string IDs
+// Parfum Track — Service Worker v12
+// v12: fix hero-amount clipping (Cormorant Garamond descenders)
 
-const CACHE_NAME = "parfumtrack-v11";
+const CACHE_NAME = "parfumtrack-v12";
 const STATIC_ASSETS = [
   "/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",
   "/favicon.ico", "/favicon.svg", "/favicon-32.png",
