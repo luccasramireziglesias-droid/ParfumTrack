@@ -28,7 +28,7 @@ PWA de gestión de ventas para revendedores de perfumes en LATAM (Argentina, Uru
 - **Backend:** 10 Cloudflare Worker functions (`worker.js` como router)
 - **Storage:** KV namespace `PT_LICENSES` (trial, rate limit, licencias), R2 bucket `parfumtrack-backups`
 - **Datos usuario:** IndexedDB/localStorage (local, NO en servidores)
-- **CDN lazy-load:** Chart.js 4.4.0, jsPDF 2.5.1, XLSX 0.18.5 (jsPDF/XLSX sin SRI hashes — F-24 pendiente)
+- **CDN lazy-load:** Chart.js 4.4.0, jsPDF 2.5.1, XLSX 0.18.5 (SRI sha384 implementado en `_loadScript()` — F-24 resuelto)
 - **Service Worker:** v14 (`sw.js`), precachea `STATIC_ASSETS` en `install`
 - **CI/CD:** GitHub Actions → `npm run build` + `npm test` → auto-deploy on push to main
 
@@ -116,7 +116,7 @@ ParfumTrack/
 - HMAC auth para backup/sync
 - ECDSA para validación de licencias
 - List-Unsubscribe en todos los emails
-- SRI hashes: ninguno implementado todavía. jsPDF/XLSX se cargan dinámicamente sin `integrity` (F-24 pendiente)
+- SRI sha384 en jsPDF 2.5.1 y XLSX 0.18.5 (cargados con `integrity` + `crossOrigin` en `_loadScript()`)
 
 ## BRANDING
 
@@ -147,7 +147,6 @@ Reportes en `standalone/auditoria-*.html`
 ### 7 días
 - Imagen OG profesional 1200x630 para sharing en redes (LP-M02)
 - 12 ads Meta/IG (plan detallado existe en plans/)
-- Agregar SRI hashes a jsPDF/XLSX cargados dinámicamente (F-24) — bloqueado en este entorno por falta de acceso de red a cdnjs.cloudflare.com para calcular el hash real
 - Testimonios reales con foto/nombre
 
 ### 30 días

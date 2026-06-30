@@ -5436,9 +5436,19 @@ const App = {
 
   async _loadScript(url) {
     if (document.querySelector(`script[src="${url}"]`)) return;
+    const SRI_HASHES = {
+      'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js':
+        'sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk',
+      'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js':
+        'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw',
+    };
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
       s.src = url;
+      if (SRI_HASHES[url]) {
+        s.integrity = SRI_HASHES[url];
+        s.crossOrigin = 'anonymous';
+      }
       s.onload = resolve;
       s.onerror = () => reject(new Error('No se pudo cargar: ' + url));
       document.head.appendChild(s);

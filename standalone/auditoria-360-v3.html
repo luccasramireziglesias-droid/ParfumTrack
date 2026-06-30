@@ -100,9 +100,9 @@ body{font-family:var(--font-b);color:var(--text);background:var(--bg);line-heigh
     <span class="badge badge-green">0 Críticos</span>
     <span class="badge badge-green">0 Altos</span>
     <span class="badge badge-green">0 Medios abiertos</span>
-    <span class="badge badge-gold">2 Bajos abiertos</span>
+    <span class="badge badge-gold">1 Bajo abierto</span>
   </div>
-  <p style="color:var(--text3);font-size:.78rem;margin-top:10px;">Actualización 30/06/2026 (mismo día): F-02 corregido como falso positivo, F-23/F-26/F-27/F-28 y los 2 hallazgos nuevos resueltos. Ver sección "Correcciones verificadas esta sesión" al final.</p>
+  <p style="color:var(--text3);font-size:.78rem;margin-top:10px;">Actualización 30/06/2026 (mismo día): F-02 corregido como falso positivo, F-23/F-24/F-26/F-27/F-28 y los 2 hallazgos nuevos resueltos. Ver sección "Correcciones verificadas esta sesión" al final.</p>
 </div>
 
 <div class="container">
@@ -131,6 +131,7 @@ body{font-family:var(--font-b);color:var(--text);background:var(--bg);line-heigh
     <div class="delta-row"><span class="delta-label">v9 — Análisis más profundo (28/06/2026)</span><span class="delta-val" style="color:var(--gold)">77/100 · -2, mayor profundidad de análisis, no regresión</span></div>
     <div class="delta-row"><span class="delta-label">360 v3 — Post-modularización + fix de bug real + test suite (30/06/2026)</span><span class="delta-val" style="color:var(--green)">79/100 · +2 vs v9</span></div>
     <div class="delta-row"><span class="delta-label">360 v3 — Cierre de F-02/F-23/F-26/F-27/F-28 mismo día (30/06/2026)</span><span class="delta-val" style="color:var(--green)">81/100 · +2 mismo día</span></div>
+    <div class="delta-row"><span class="delta-label">360 v3 — F-24 (SRI hashes jsPDF/XLSX) resuelto (30/06/2026)</span><span class="delta-val" style="color:var(--green)">82/100 · +1 mismo día</span></div>
   </div>
 </div>
 
@@ -156,8 +157,8 @@ body{font-family:var(--font-b);color:var(--text);background:var(--bg);line-heigh
   <div class="scores-grid">
     <div class="score-card score-green">
       <div class="score-label">Técnico</div>
-      <div class="score-num">86</div>
-      <div class="score-bar"><div class="score-bar-fill" style="width:86%;background:var(--green)"></div></div>
+      <div class="score-num">88</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:88%;background:var(--green)"></div></div>
     </div>
     <div class="score-card score-gold">
       <div class="score-label">UX</div>
@@ -180,11 +181,11 @@ body{font-family:var(--font-b);color:var(--text);background:var(--bg);line-heigh
       <div class="score-bar"><div class="score-bar-fill" style="width:79%;background:var(--gold)"></div></div>
     </div>
   </div>
-  <p style="color:var(--text2);font-size:.82rem;text-align:center;margin-top:-8px;margin-bottom:8px;">UX, Ventas y Negocio sin cambio vs v9 (sin re-evaluación esta sesión — requieren datos reales de usuarios, no más código). Técnico sube por el cierre de F-26/F-27/F-28/F-02 y los 2 hallazgos nuevos; Escalabilidad sube por el lazy-load de fotos (F-23) + precache del SW (F-28).</p>
+  <p style="color:var(--text2);font-size:.82rem;text-align:center;margin-top:-8px;margin-bottom:8px;">UX, Ventas y Negocio sin cambio vs v9 (sin re-evaluación esta sesión — requieren datos reales de usuarios, no más código). Técnico sube por el cierre de F-24/F-26/F-27/F-28/F-02 y los 2 hallazgos nuevos; Escalabilidad sube por el lazy-load de fotos (F-23) + precache del SW (F-28).</p>
 
   <div class="metrics-row">
-    <div class="metric"><div class="m-num" style="color:var(--gold)">81</div><div class="m-label">Score Total</div></div>
-    <div class="metric"><div class="m-num">+2</div><div class="m-label">vs primera versión (79)</div></div>
+    <div class="metric"><div class="m-num" style="color:var(--gold)">82</div><div class="m-label">Score Total</div></div>
+    <div class="metric"><div class="m-num">+3</div><div class="m-label">vs primera versión (79)</div></div>
     <div class="metric"><div class="m-num">218</div><div class="m-label">Tests Vitest</div></div>
     <div class="metric"><div class="m-num">7</div><div class="m-label">Tests E2E Playwright</div></div>
     <div class="metric"><div class="m-num">1</div><div class="m-label">Bug real fix + regresión</div></div>
@@ -197,13 +198,8 @@ body{font-family:var(--font-b);color:var(--text);background:var(--bg);line-heigh
   <div class="card-grid">
     <div class="card">
       <span class="sev sev-low">BAJO</span>
-      <h3>F-24: SRI faltante en scripts CDN cargados dinámicamente</h3>
-      <p><code>_loadScript()</code> (<code>src/app/10-data-management.js</code>) carga jsPDF 2.5.1 y XLSX 0.18.5 desde cdnjs sin atributo <code>integrity</code>. Bloqueado en este entorno: sin acceso de red a <code>cdnjs.cloudflare.com</code> (403 vía proxy del sandbox) para descargar el archivo real y calcular el hash SHA-384 — poner un hash inventado rompería la carga del script (el navegador la rechaza si no coincide), peor que el estado actual.</p>
-    </div>
-    <div class="card">
-      <span class="sev sev-low">BAJO</span>
       <h3>F-03: Content-Length spoofeable — mitigado en la práctica</h3>
-      <p><code>requireJson()</code> chequea el header <code>Content-Length</code>, que es spoofeable. Pero <code>parseJsonBody()</code> revalida la longitud real del body recibido (<code>text.length</code>), no solo el header — el guard del header es solo fail-fast, la protección real ya existe. Degradado de ALTO (v9) a BAJO tras esta lectura directa del código.</p>
+      <p><code>requireJson()</code> chequea el header <code>Content-Length</code>, que es spoofeable. Pero <code>parseJsonBody()</code> revalida la longitud real del body recibido (<code>text.length</code>), no solo el header — el guard del header es solo fail-fast, la protección real ya existe. Degradado de ALTO (v9) a BAJO tras esta lectura directa del código. No bloqueante.</p>
     </div>
   </div>
 </div>
@@ -219,6 +215,7 @@ body{font-family:var(--font-b);color:var(--text);background:var(--bg);line-heigh
     <div class="resolved-item"><span class="check">✓</span> F-23 resuelto: fotos del stock grid ahora cargan vía <code>IntersectionObserver</code> (<code>_lazyLoadStockPhotos()</code>) — el data URI ya no se embebe en el HTML inicial, solo <code>data-photo-id</code> hasta que el ítem entra al viewport. Verificado en Chromium real: imagen carga al estar visible, no carga si está fuera de pantalla.</div>
     <div class="resolved-item"><span class="check">✓</span> CLAUDE.md desincronizado: corregido (línea de <code>index.html</code> generado, SW v14, tabla de auditorías actualizada con v9 y 360 v3)</div>
     <div class="resolved-item"><span class="check">✓</span> <code>_renderDashboardDeudores()</code> ahora vacía <code>list.innerHTML</code> al ocultar la sección, no solo agrega <code>.hidden</code></div>
+    <div class="resolved-item"><span class="check">✓</span> F-24 resuelto: <code>_loadScript()</code> ahora incluye un mapa <code>SRI_HASHES</code> con los hashes <code>sha384</code> de jsPDF 2.5.1 y XLSX 0.18.5 calculados desde el paquete npm canónico — el <code>&lt;script&gt;</code> se crea con <code>s.integrity</code> + <code>s.crossOrigin = 'anonymous'</code> cuando la URL tiene hash conocido. Previene ataques supply-chain si cdnjs es comprometido.</div>
   </div>
 </div>
 
@@ -244,14 +241,15 @@ body{font-family:var(--font-b);color:var(--text);background:var(--bg);line-heigh
     <div class="plan-card">
       <h3>24 horas</h3>
       <ul>
-        <li>✓ hecho — F-02, F-23, F-26, F-27, F-28 y los 2 hallazgos nuevos, todos cerrados el mismo día</li>
+        <li>✓ hecho — F-02, F-23, F-24, F-26, F-27, F-28 y los 2 hallazgos nuevos, todos cerrados el mismo día</li>
         <li>✓ hecho — CLAUDE.md actualizado</li>
       </ul>
     </div>
     <div class="plan-card">
       <h3>7 días</h3>
       <ul>
-        <li>Agregar SRI a jsPDF/XLSX (F-24) — requiere acceso de red a cdnjs.cloudflare.com (bloqueado en este entorno) o el hash provisto por el usuario</li>
+        <li>Testimonios reales con foto/nombre — impacto directo en Ventas/Negocio</li>
+        <li>Imagen OG 1200×630 para sharing social</li>
       </ul>
     </div>
     <div class="plan-card">
@@ -281,7 +279,7 @@ body{font-family:var(--font-b);color:var(--text);background:var(--bg);line-heigh
     <br><br>
     El score sube de 77 a 81 — modesto y honesto: Producto, UX, Ventas y Negocio no se re-evaluaron porque no hubo cambios ahí esta sesión. El riesgo de ejecución señalado en v9 (monetización, retención, "un solo dev con un monolito no puede iterar rápido") sigue siendo el factor dominante para el éxito comercial — la modularización + el cierre de deuda técnica de hoy reducen directamente la última parte de ese riesgo.
     <br><br>
-    Quedan 2 hallazgos BAJO abiertos (F-03, mitigado en la práctica; F-24, SRI bloqueado por falta de acceso de red en este entorno), ninguno bloqueante. F-02/F-23/F-26/F-27/F-28 y los 2 hallazgos nuevos se cerraron el mismo día de entrega de este reporte.
+    Queda 1 hallazgo BAJO abierto (F-03, mitigado en la práctica — el check de <code>Content-Length</code> es fail-fast, la revalidación real existe en <code>parseJsonBody()</code>), no bloqueante. F-02/F-23/F-24/F-26/F-27/F-28 y los 2 hallazgos nuevos se cerraron el mismo día de entrega de este reporte.
   </p>
 </div>
 
@@ -299,7 +297,7 @@ body{font-family:var(--font-b);color:var(--text);background:var(--bg);line-heigh
     </div>
     <div class="card">
       <h3>Qué falta para subir el score real por encima de 90</h3>
-      <p>La deuda técnica/código ya está cerrada (F-02/F-23/F-26/F-27/F-28 resueltos, F-24 bloqueado solo por acceso de red, no por esfuerzo). Lo que queda para superar 90 NO es alcanzable con más código ni más auditorías: requiere contenido real (video demo, testimonios con foto/nombre), validación empírica con usuarios pagos (retención, LTV, CAC reales), y datos de uso en producción que hoy no existen. UX/Ventas/Negocio están topeados en 78-82 hasta que haya evidencia real de mercado, no supuestos.</p>
+      <p>La deuda técnica/código está cerrada (F-02/F-23/F-24/F-26/F-27/F-28 resueltos, 0 hallazgos Crítico/Alto/Medio, solo F-03 BAJO mitigado). Lo que queda para superar 90 NO es alcanzable con más código ni más auditorías: requiere contenido real (video demo, testimonios con foto/nombre), validación empírica con usuarios pagos (retención, LTV, CAC reales), y datos de uso en producción que hoy no existen. UX/Ventas/Negocio están topeados en 78-82 hasta que haya evidencia real de mercado, no supuestos.</p>
     </div>
   </div>
 </div>
@@ -307,8 +305,8 @@ body{font-family:var(--font-b);color:var(--text);background:var(--bg);line-heigh
 </div><!-- container -->
 
 <div style="text-align:center;padding:40px 20px;color:var(--text3);font-size:.8rem">
-  Auditoría 360° v3 — ParfumTrack — Score: 81/100 — 30/06/2026<br>
-  Evolución: v8(79) → v9(77) → 360 v3(79→81 mismo día) · F-25 (God object) resuelto · 1 bug real de producción encontrado y corregido con regresión cubierta · F-02/F-23/F-26/F-27/F-28 cerrados
+  Auditoría 360° v3 — ParfumTrack — Score: 82/100 — 30/06/2026<br>
+  Evolución: v8(79) → v9(77) → 360 v3(79→82 mismo día) · F-25 (God object) resuelto · 1 bug real de producción encontrado y corregido con regresión cubierta · F-02/F-23/F-24/F-26/F-27/F-28 cerrados · 0 hallazgos C/A/M abiertos
 </div>
 
 </body>
