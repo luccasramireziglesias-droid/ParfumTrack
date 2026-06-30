@@ -1,7 +1,7 @@
-// Parfum Track — Service Worker v12
-// v12: fix hero-amount clipping (Cormorant Garamond descenders)
+// Parfum Track — Service Worker v13
+// v13: fix hero-card flexbox shrink bug (real root cause of hero-amount clipping)
 
-const CACHE_NAME = "parfumtrack-v12";
+const CACHE_NAME = "parfumtrack-v13";
 const STATIC_ASSETS = [
   "/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",
   "/favicon.ico", "/favicon.svg", "/favicon-32.png",
