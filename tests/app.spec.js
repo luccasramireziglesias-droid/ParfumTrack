@@ -100,11 +100,9 @@ test.describe('ParfumTrack — 5 tests de verificación', () => {
     const countBefore = await page.locator('#ventas-all-list .venta-card').count();
     expect(countBefore).toBeGreaterThanOrEqual(1);
 
-    // Auto-aceptar confirm
-    page.on('dialog', d => d.accept());
-
-    // Borrar primera venta
+    // Borrar primera venta (appConfirm es un modal custom, no un dialog nativo)
     await page.locator('#ventas-all-list .venta-action-btn').filter({ hasText: 'delete' }).first().click();
+    await page.locator('#confirm-ok').click();
     await page.waitForTimeout(1000);
 
     const countAfter = await page.locator('#ventas-all-list .venta-card').count();
