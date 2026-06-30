@@ -3781,6 +3781,7 @@ const App = {
     const pendientes = this.cuotasData.filter(c => !c.pagado);
     if (pendientes.length === 0) {
       section.classList.add('hidden');
+      list.innerHTML = '';
       return;
     }
 
@@ -3843,9 +3844,10 @@ const App = {
 
     grid.innerHTML = items.map(p => {
       const badgeClass = p.stock === 0 ? 'zero' : p.stock <= 3 ? 'low' : 'high';
+      const hasFoto = p.foto && /^data:image\//.test(p.foto);
       return `<div class="stock-card">
-        <div class="stock-photo" onclick="App.changeStockPhoto(${p.id})" style="cursor:pointer" title="Tocar para ${p.foto ? 'cambiar' : 'agregar'} foto">
-          ${p.foto && /^data:image\//.test(p.foto) ? `<img src="${this.esc(p.foto)}" alt="">` : `<span class="ms stock-photo-label" style="font-size:28px;">photo_camera</span>`}
+        <div class="stock-photo" ${hasFoto ? `data-photo-id="${p.id}"` : ''} onclick="App.changeStockPhoto(${p.id})" style="cursor:pointer" title="Tocar para ${p.foto ? 'cambiar' : 'agregar'} foto">
+          <span class="ms stock-photo-label" style="font-size:28px;">photo_camera</span>
           <span class="stock-badge ${badgeClass}">${p.stock}</span>
         </div>
         <div class="stock-info">
@@ -3860,6 +3862,31 @@ const App = {
         </div>
       </div>`;
     }).join('');
+    this._lazyLoadStockPhotos();
+  },
+
+  _lazyLoadStockPhotos() {
+    if (this._stockPhotoObserver) this._stockPhotoObserver.disconnect();
+    const targets = document.querySelectorAll('.stock-photo[data-photo-id]');
+    if (!targets.length) return;
+    this._stockPhotoObserver = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const id = Number(el.dataset.photoId);
+        const p = this.perfumes.find(x => x.id === id);
+        if (p && p.foto && /^data:image\//.test(p.foto)) {
+          const img = document.createElement('img');
+          img.alt = '';
+          img.src = p.foto;
+          el.querySelector('.stock-photo-label')?.remove();
+          el.insertBefore(img, el.firstChild);
+        }
+        el.removeAttribute('data-photo-id');
+        obs.unobserve(el);
+      });
+    }, { rootMargin: '200px' });
+    targets.forEach(el => this._stockPhotoObserver.observe(el));
   },
 
   _renderStockAlerts() {

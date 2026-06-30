@@ -138,7 +138,7 @@ ParfumTrack/
 | App v7 | 95/100 | 0 hallazgos abiertos |
 | Landing v1 | 91+/100 | Plan 24h completado |
 | App v9 (completa) | 77/100 | Re-auditoría post-refactor, hallazgos abiertos |
-| App 360 v3 | 79/100 | F-26/F-27/F-28 resueltos en esta sesión, F-24 (SRI jsPDF/XLSX) pendiente por bloqueo de red |
+| App 360 v3 | 81/100 | F-02 (falso positivo)/F-23/F-26/F-27/F-28 resueltos en esta sesión, F-24 (SRI jsPDF/XLSX) pendiente por bloqueo de red |
 
 Reportes en `standalone/auditoria-*.html`
 
