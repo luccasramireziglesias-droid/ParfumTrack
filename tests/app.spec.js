@@ -206,4 +206,49 @@ test.describe('ParfumTrack — 5 tests de verificación', () => {
     expect(result.cuotaMontoType).toBe('number');
   });
 
+  // TEST 6: las 14 pantallas renderizan sin errores JS (post-modularización de index.html)
+  test('6. Las 14 pantallas cargan sin errores JS con datos sembrados', async ({ page }) => {
+    const SCREENS = [
+      'inicio', 'nueva-venta', 'stock', 'cuotas', 'stats', 'mas',
+      'caja', 'gastos', 'pedidos', 'nuevo-pedido', 'pedido-detalle',
+      'ventas-all', 'cuenta', 'catalogo',
+    ];
+
+    // Sembrar datos no triviales (varias ventas, perfumes, cuotas, pedidos, caja, gastos)
+    // para evitar que estados vacíos enmascaren bugs de layout, como ya pasó antes.
+    await page.evaluate(async () => {
+      for (let i = 0; i < 8; i++) {
+        await DB.addVenta({
+          perfume: 'Perfume Smoke ' + i, precioVenta: 5000 + i * 100, precioCompra: 3000,
+          cliente: 'Cliente ' + i, vendedor: 'Test', proveedor: '', descuento: 0,
+          nota: '', fecha: Date.now() - i * 86400000, formaPago: i % 2 ? 'cuotas' : 'contado',
+          numCuotas: i % 2 ? 3 : 1, perfumeId: '',
+        });
+      }
+      await DB.addCaja({ tipo: 'entrada', monto: 10000, descripcion: 'Smoke', fecha: Date.now() });
+      await DB.addGasto({ categoria: 'transporte', monto: 500, descripcion: 'Smoke', fecha: Date.now() });
+      await App.loadData();
+      App.renderAll();
+    });
+
+    const errors = [];
+    page.on('pageerror', err => errors.push(err.message));
+
+    for (const id of SCREENS) {
+      await page.evaluate((screenId) => App.showScreen(screenId), id);
+      await page.waitForFunction(
+        (screenId) => document.getElementById('screen-' + screenId)?.classList.contains('active'),
+        id,
+        { timeout: 5000 },
+      );
+      const screenEl = page.locator('#screen-' + id);
+      await expect(screenEl).toBeVisible();
+    }
+
+    const realErrors = errors.filter(e =>
+      !e.includes('service') && !e.includes('SW') && !e.includes('font') && !e.includes('Failed to fetch')
+    );
+    expect(realErrors).toHaveLength(0);
+  });
+
 });
