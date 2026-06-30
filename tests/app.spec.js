@@ -249,4 +249,29 @@ test.describe('ParfumTrack — 5 tests de verificación', () => {
     expect(realErrors).toHaveLength(0);
   });
 
+  // TEST 7: Borrar todos los datos limpia "Quién te debe" del dashboard
+  test('7. Borrar todos los datos oculta la sección Quién te debe', async ({ page }) => {
+    await page.evaluate(async () => {
+      await DB.addVenta({
+        perfume: 'Test Cuotas', precioVenta: 6000, precioCompra: 3000,
+        cliente: 'Deudor Test', vendedor: 'Test', proveedor: '', descuento: 0,
+        nota: '', fecha: Date.now(), formaPago: 'cuotas', numCuotas: 3, perfumeId: '',
+      });
+      await App.loadData();
+      App.renderAll();
+    });
+
+    await expect(page.locator('#dashboard-deudores')).not.toHaveClass(/hidden/);
+
+    // clearData() espera la confirmación del modal custom (no dialog nativo)
+    page.evaluate(() => { App.clearData(); });
+    await page.waitForSelector('#modal-confirm:not(.hidden)', { timeout: 5000 });
+    await page.locator('#confirm-ok').click();
+    await page.waitForTimeout(500);
+
+    await expect(page.locator('#dashboard-deudores')).toHaveClass(/hidden/);
+    const cuotasLength = await page.evaluate(() => App.cuotasData.length);
+    expect(cuotasLength).toBe(0);
+  });
+
 });
