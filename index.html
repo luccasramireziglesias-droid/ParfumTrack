@@ -238,7 +238,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
   font-size: clamp(36px, 10vw, 47px);
-  line-height: 1;
+  line-height: 1.15;
   color: var(--gold2);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2649,7 +2649,7 @@ input[type="date"].form-input {
         </div>
       </div>
 
-      <div class="hero-card" style="padding:14px 18px;">
+      <div class="hero-card" style="padding:14px 18px 20px;">
         <div class="hero-label">Balance del día</div>
         <div class="hero-amount" id="caja-balance" style="font-size:36px;">$0</div>
       </div>
@@ -2693,7 +2693,7 @@ input[type="date"].form-input {
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
 
-      <div class="hero-card" style="padding:14px 18px;margin-bottom:12px;">
+      <div class="hero-card" style="padding:14px 18px 20px;margin-bottom:12px;">
         <div class="hero-label">Total gastos · este mes</div>
         <div class="hero-amount danger" id="gastos-total" style="font-size:36px;color:var(--red);">$0</div>
       </div>
@@ -5222,8 +5222,8 @@ const App = {
     const catIcons = { transporte: 'local_shipping', embalaje: 'inventory', publicidad: 'campaign', envio_compra: 'local_shipping', otro: 'more_horiz' };
     const catLabels = { transporte: 'Transporte', embalaje: 'Embalaje', publicidad: 'Publicidad', envio_compra: 'Envío de compra', otro: 'Otro' };
     container.innerHTML = recientes.map(g => {
-      const desc = g.descripcion || catLabels[g.categoria] || g.categoria || 'Sin descripción';
       const catLabel = catLabels[g.categoria] || g.categoria || 'otro';
+      const desc = g.descripcion || (g.categoria !== 'otro' ? catLabel : null) || '—';
       return `
       <div class="venta-card" style="margin-bottom:8px;">
         <div class="venta-top">
