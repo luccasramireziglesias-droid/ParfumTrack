@@ -1,0 +1,104 @@
+<div id="screen-cuenta" class="screen">
+    <div class="screen-scroll">
+      <div class="sub-header">
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
+        <span class="sub-title">Mi cuenta</span>
+        <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
+      </div>
+
+      <!-- Plan actual + código de licencia (siempre visible) -->
+      <div class="cuenta-card" id="cuenta-plan-section">
+        <span class="ms" style="font-size:48px;color:var(--gold2);" id="cuenta-plan-icon">lock_open</span>
+        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:8px 0 4px;" id="cuenta-plan-title">Plan Free</h3>
+        <p style="color:var(--text3);font-size:13px;line-height:1.5;margin-bottom:16px;" id="cuenta-plan-desc">Ventas, stock, cuotas, cobros WA, offline. Gratis para siempre.</p>
+
+        <div id="cuenta-license-section" style="width:100%;">
+          <div class="metrics-label">CÓDIGO DE LICENCIA</div>
+          <input type="text" class="form-input" id="cuenta-license-code" placeholder="PT-XXXXXX-YYYYYY" style="width:100%;text-transform:uppercase;margin-bottom:8px;box-sizing:border-box;">
+          <button class="btn-primary btn-full" onclick="App.activarLicenciaInput()" style="margin-bottom:8px;">
+            <span class="ms">key</span>Activar código
+          </button>
+          <p style="color:var(--text4);font-size:11px;margin:0 0 16px;">Si ya tenés un código, ingresalo acá para desbloquear Pro.</p>
+        </div>
+
+        <div class="metrics-label">PLANES</div>
+        <div class="plan-cards">
+          <div class="plan-card" id="plan-card-free">
+            <div class="plan-name">Free</div>
+            <div class="plan-price">$0</div>
+            <div class="plan-desc">Ventas, stock, cuotas, cobros WA, offline</div>
+            <div class="plan-badge active" id="plan-badge-free">Plan actual</div>
+          </div>
+          <div class="plan-card pro" id="plan-card-pro">
+            <div class="plan-name">Básico Pro</div>
+            <div class="plan-price">$9.99<span style="font-size:12px;color:var(--text3);">/mes</span></div>
+            <div class="plan-desc">Estadísticas, catálogo WA, ranking, PDF/Excel, push</div>
+            <button class="btn-primary btn-full" id="plan-btn-suscribir" onclick="App.suscribirPro('monthly')" style="margin-top:8px;">
+              <span class="ms">star</span>Suscribirse
+            </button>
+            <div style="text-align:center;margin-top:6px;" id="plan-annual-option">
+              <span style="color:var(--text4);font-size:11px;cursor:pointer;" onclick="App.suscribirPro('annual')">o $7.99/mes anual ($95.88/año)</span>
+            </div>
+            <div class="plan-badge active hidden" id="plan-badge-pro">Plan actual</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cuenta / Sync (registro opcional para nube) -->
+      <div id="cuenta-no-login" class="cuenta-card">
+        <span class="ms" style="font-size:48px;color:var(--gold2);">cloud</span>
+        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:8px 0 4px;">Sincronización en la nube</h3>
+        <p style="color:var(--text3);font-size:13px;line-height:1.5;margin-bottom:16px;">Opcional. Creá una cuenta para sincronizar tus datos entre dispositivos.</p>
+        <div class="form-group" style="width:100%;">
+          <input type="email" class="form-input" id="cuenta-email" placeholder="Tu email…">
+        </div>
+        <button class="btn-primary btn-full" onclick="App.registrarCuenta()">
+          <span class="ms">mail</span>Enviar código de verificación
+        </button>
+      </div>
+
+      <div id="cuenta-otp" class="cuenta-card hidden">
+        <span class="ms" style="font-size:48px;color:var(--gold2);">verified</span>
+        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:8px 0 4px;">Verificar email</h3>
+        <p style="color:var(--text3);font-size:13px;margin-bottom:16px;">Ingresá el código de 6 dígitos que te enviamos.</p>
+        <div class="form-group" style="width:100%;">
+          <input type="text" class="form-input" id="cuenta-otp-input" placeholder="000000" maxlength="6" style="text-align:center;font-size:24px;letter-spacing:8px;">
+        </div>
+        <button class="btn-primary btn-full" onclick="App.verificarOTP()">
+          <span class="ms">check_circle</span>Verificar
+        </button>
+      </div>
+
+      <div id="cuenta-logged" class="cuenta-card hidden">
+        <span class="ms" style="font-size:48px;color:var(--green);">check_circle</span>
+        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:8px 0 4px;">Cuenta vinculada</h3>
+        <p style="color:var(--text2);font-size:14px;" id="cuenta-email-display"></p>
+
+        <div class="mas-section" style="width:100%;margin:12px 0;">
+          <div class="mas-item" onclick="App.syncToCloud()">
+            <span class="ms gold">cloud_upload</span>
+            <span>Sincronizar datos</span>
+            <span class="ms muted chevron">chevron_right</span>
+          </div>
+          <div class="mas-item" onclick="App.syncFromCloud()">
+            <span class="ms gold">cloud_download</span>
+            <span>Cargar desde la nube</span>
+            <span class="ms muted chevron">chevron_right</span>
+          </div>
+        </div>
+
+        <div id="cuenta-logged-license" style="width:100%;margin-top:12px;">
+          <div class="metrics-label">CÓDIGO DE LICENCIA</div>
+          <input type="text" class="form-input" id="cuenta-logged-license-code" placeholder="PT-XXXXXX-YYYYYY" style="width:100%;text-transform:uppercase;margin-bottom:8px;box-sizing:border-box;">
+          <button class="btn-primary btn-full" onclick="App.activarLicenciaLoggedInput()" style="margin-bottom:8px;">
+            <span class="ms">key</span>Activar código
+          </button>
+          <p style="color:var(--text4);font-size:11px;margin:0 0 12px;">Si ya tenés un código, ingresalo acá.</p>
+        </div>
+
+        <button class="btn-outline-gold" onclick="App.cerrarSesion()" style="width:100%;">
+          <span class="ms">logout</span>Cerrar sesión
+        </button>
+      </div>
+    </div>
+  </div>

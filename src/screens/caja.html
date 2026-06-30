@@ -1,0 +1,53 @@
+<div id="screen-caja" class="screen">
+    <div class="screen-scroll">
+      <div class="sub-header">
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
+        <span class="sub-title">Caja diaria</span>
+        <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
+      </div>
+
+      <div class="stat-pair">
+        <div class="stat-card">
+          <div class="stat-header"><span class="ms green">arrow_downward</span><span>Entradas</span></div>
+          <div class="stat-value green" id="caja-entradas">$0</div>
+        </div>
+        <div class="stat-card stat-card--danger">
+          <div class="stat-header"><span class="ms danger">arrow_upward</span><span>Salidas</span></div>
+          <div class="stat-value danger" id="caja-salidas">$0</div>
+        </div>
+      </div>
+
+      <div class="hero-card" style="padding:14px 18px 20px;">
+        <div class="hero-label">Balance del día</div>
+        <div class="hero-amount" id="caja-balance" style="font-size:36px;">$0</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">TIPO</label>
+        <div class="segmented" id="caja-tipo-seg">
+          <div class="seg-option active" onclick="App.setCajaTipo('entrada')">Entrada</div>
+          <div class="seg-option" onclick="App.setCajaTipo('salida')">Salida</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">MONTO</label>
+          <input type="number" class="form-input" id="caja-monto" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">DESCRIPCIÓN</label>
+          <input type="text" class="form-input" id="caja-desc" placeholder="Concepto…">
+        </div>
+      </div>
+
+      <button class="btn-primary btn-full" onclick="App.guardarCaja()">
+        <span class="ms">add_circle</span>Registrar movimiento
+      </button>
+
+      <div class="section-header" style="margin-top:4px;">
+        <span class="section-title">Movimientos de hoy</span>
+      </div>
+      <div id="caja-list"></div>
+    </div>
+  </div>

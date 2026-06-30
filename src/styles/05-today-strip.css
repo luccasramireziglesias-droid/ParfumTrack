@@ -1,0 +1,23 @@
+/* ====== TODAY STRIP ====== */
+.today-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(112,201,160,0.1);
+  border: 1px solid rgba(112,201,160,0.18);
+  border-radius: 14px;
+  padding: 11px 15px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.today-strip:active { background: rgba(112,201,160,0.18); }
+
+.today-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font: 500 13px 'DM Sans';
+  color: #c8c5dc;
+}
+.today-left .ms { font-size: 18px; }
+

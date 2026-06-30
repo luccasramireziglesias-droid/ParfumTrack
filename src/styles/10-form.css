@@ -1,0 +1,89 @@
+/* ====== FORM ====== */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.form-label {
+  font: 600 11px 'DM Sans';
+  color: var(--text3);
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+}
+
+.muted-label {
+  color: var(--text5);
+  font-weight: 500;
+}
+
+.form-input {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  padding: 13px 14px;
+  font: 600 15px 'DM Sans';
+  color: var(--text);
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus {
+  border-color: rgba(201,168,76,0.4);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
+}
+.form-input::placeholder {
+  color: var(--text4);
+  font-weight: 500;
+}
+
+.form-row {
+  display: flex;
+  gap: 11px;
+}
+.form-row .form-group { flex: 1; }
+
+.select-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg3);
+  border: 1px solid rgba(201,168,76,0.25);
+  border-radius: var(--radius-input);
+  padding: 13px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.select-field:active { background: var(--card); }
+
+.select-value {
+  font: 600 15px 'DM Sans';
+  color: var(--text);
+}
+
+.segmented {
+  display: flex;
+  gap: 5px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  padding: 5px;
+}
+
+.seg-option {
+  flex: 1;
+  text-align: center;
+  padding: 9px;
+  border-radius: 9px;
+  color: var(--text3);
+  font: 600 13px 'DM Sans';
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.seg-option.active {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #1a1a2e;
+  font-weight: 700;
+}
+

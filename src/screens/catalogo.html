@@ -1,0 +1,32 @@
+<div id="screen-catalogo" class="screen">
+    <div class="screen-scroll">
+      <div class="sub-header">
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
+        <span class="sub-title">Catálogo WhatsApp</span>
+        <div class="back-btn" onclick="App.toggleSelectAllCatalogo()"><span class="ms">select_all</span></div>
+      </div>
+
+      <p style="color:var(--text3);font-size:13px;padding:0 16px 8px;margin:0;">Seleccioná los perfumes para el catálogo:</p>
+
+      <div id="catalogo-list" style="padding:0 16px;"></div>
+
+      <div id="catalogo-preview" class="hidden" style="padding:16px;">
+        <div class="metrics-label">VISTA PREVIA</div>
+        <div id="catalogo-preview-imgs" style="display:flex;flex-direction:column;gap:12px;"></div>
+      </div>
+
+      <div style="padding:16px;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:8px;">
+          <button class="btn-primary btn-full" onclick="App.previewCatalogo()" id="btn-catalogo-preview">
+            <span class="ms">visibility</span>Vista previa (<span id="catalogo-count">0</span>)
+          </button>
+          <button class="btn-primary btn-full" onclick="App.enviarCatalogo()" id="btn-catalogo-send" style="background:var(--green);display:none;">
+            <span class="ms">share</span>Enviar
+          </button>
+        </div>
+        <button class="btn-whatsapp" onclick="App.enviarCatalogoTexto()" style="border-radius:12px;">
+          <span class="ms">chat</span>Enviar listado por WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>

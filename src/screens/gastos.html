@@ -1,0 +1,44 @@
+<div id="screen-gastos" class="screen">
+    <div class="screen-scroll">
+      <div class="sub-header">
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
+        <span class="sub-title">Gastos del negocio</span>
+        <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
+      </div>
+
+      <div class="hero-card" style="padding:14px 18px 20px;margin-bottom:12px;">
+        <div class="hero-label">Total gastos · este mes</div>
+        <div class="hero-amount danger" id="gastos-total" style="font-size:36px;color:var(--red);">$0</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">CATEGORÍA</label>
+        <div class="segmented" id="gasto-cat-seg" style="flex-wrap:wrap;">
+          <div class="seg-option active" onclick="App.setGastoCat('transporte')">Transporte</div>
+          <div class="seg-option" onclick="App.setGastoCat('embalaje')">Embalaje</div>
+          <div class="seg-option" onclick="App.setGastoCat('publicidad')">Publicidad</div>
+          <div class="seg-option" onclick="App.setGastoCat('otro')">Otro</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">MONTO</label>
+          <input type="number" class="form-input" id="gasto-monto" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">DESCRIPCIÓN</label>
+          <input type="text" class="form-input" id="gasto-desc" placeholder="Detalle…">
+        </div>
+      </div>
+
+      <button class="btn-primary btn-full" onclick="App.guardarGasto()">
+        <span class="ms">add_circle</span>Registrar gasto
+      </button>
+
+      <div class="section-header" style="margin-top:4px;">
+        <span class="section-title">Gastos recientes</span>
+      </div>
+      <div id="gastos-list"></div>
+    </div>
+  </div>

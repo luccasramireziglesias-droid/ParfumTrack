@@ -1,0 +1,129 @@
+/* ====== VENTA CARD ====== */
+.venta-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 14px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.venta-card:active { background: var(--bg3); }
+
+.venta-card.faded { opacity: 0.55; }
+
+.venta-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.venta-num {
+  font: 600 11px 'DM Sans';
+  color: var(--text5);
+}
+
+.venta-nombre {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+
+.venta-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tag {
+  font: 600 11px 'DM Sans';
+  color: var(--text2);
+  background: rgba(255,255,255,0.05);
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+
+.tag-ok {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font: 600 11px 'DM Sans';
+  color: var(--green);
+  background: rgba(112,201,160,0.12);
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+.tag-ok .ms { font-size: 12px; }
+
+.tag-cuotas {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font: 600 11px 'DM Sans';
+  color: var(--warn);
+  background: rgba(224,176,96,0.12);
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+
+.venta-date {
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+}
+
+.venta-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.05);
+}
+
+.venta-bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.venta-precio-label {
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+}
+
+.venta-precio-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: clamp(18px, 5vw, 22px);
+  color: var(--text);
+}
+
+.venta-ganancia-value {
+  font: 700 16px 'DM Sans';
+  color: var(--green);
+}
+
+.venta-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.venta-action-btn {
+  font-size: 18px;
+  color: var(--text4);
+  background: rgba(255,255,255,0.05);
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  cursor: pointer;
+  border: none;
+  font-family: 'Material Symbols Rounded';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.venta-action-btn:active { background: rgba(255,255,255,0.12); }
+

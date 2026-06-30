@@ -1,0 +1,100 @@
+<div id="screen-nueva-venta" class="screen">
+    <div class="screen-scroll">
+      <div class="sub-header">
+        <div class="back-btn" onclick="App.showScreen('inicio')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
+        <span class="sub-title">Nueva venta</span>
+        <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
+      </div>
+
+      <div class="live-profit">
+        <div class="live-profit-header">
+          <span class="live-profit-label">Ganancia estimada</span>
+          <span class="live-profit-badge"><span class="ms">bolt</span>en vivo</span>
+        </div>
+        <div class="live-profit-amount" id="live-ganancia">+$0</div>
+        <div class="live-profit-detail">
+          <span>Venta <span class="text-primary" id="live-venta">$0</span></span>
+          <span>Compra <span class="text-primary" id="live-compra">$0</span></span>
+          <span>Margen <span class="gold" id="live-margen">0%</span></span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">PERFUME</label>
+        <div class="select-field" onclick="App.openPerfumeSelector()">
+          <span class="ms gold">local_mall</span>
+          <span class="select-value" id="venta-perfume-display">Elegir perfume…</span>
+          <span class="ms muted" style="margin-left:auto;">expand_more</span>
+        </div>
+        <input type="hidden" id="venta-perfume-id">
+        <input type="hidden" id="venta-perfume-nombre">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">PRECIO VENTA</label>
+          <input type="number" class="form-input" id="venta-precio" placeholder="0" oninput="App.calcLiveProfit()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">PRECIO COMPRA</label>
+          <input type="number" class="form-input" id="venta-compra" placeholder="0" oninput="App.calcLiveProfit()">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">PROVEEDOR</label>
+        <input type="text" class="form-input" id="venta-proveedor" placeholder="Nombre del proveedor…" autocomplete="off">
+        <div class="autocomplete-list hidden" id="ac-proveedor"></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">CLIENTE</label>
+          <input type="text" class="form-input" id="venta-cliente" placeholder="Nombre…" autocomplete="off">
+          <div class="autocomplete-list hidden" id="ac-cliente"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">VENDEDOR</label>
+          <input type="text" class="form-input" id="venta-vendedor" placeholder="Nombre…" value="Luccas" autocomplete="off">
+          <div class="autocomplete-list hidden" id="ac-vendedor"></div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">DESCUENTO %</label>
+          <input type="number" class="form-input" id="venta-descuento" placeholder="0" min="0" max="100" oninput="App.calcLiveProfit()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">FECHA</label>
+          <input type="date" class="form-input" id="venta-fecha">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">FORMA DE PAGO</label>
+        <div class="segmented" id="seg-forma-pago">
+          <div class="seg-option active" onclick="App.setFormaPago('contado')">Contado</div>
+          <div class="seg-option" onclick="App.setFormaPago('cuotas')">Cuotas</div>
+        </div>
+      </div>
+
+      <div class="form-group hidden" id="cuotas-config">
+        <label class="form-label">NÚMERO DE CUOTAS</label>
+        <div class="form-row">
+          <input type="number" class="form-input" id="venta-num-cuotas" value="2" min="2" max="12" placeholder="2">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">NOTA <span class="muted-label">(opcional)</span></label>
+        <input type="text" class="form-input" id="venta-nota" placeholder="Entrega el viernes…">
+      </div>
+
+      <div class="save-bar">
+        <button class="btn-primary btn-full" onclick="App.guardarVenta()">
+          <span class="ms">save</span>Guardar venta
+        </button>
+      </div>
+    </div>
+  </div>

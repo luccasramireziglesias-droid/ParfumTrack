@@ -1,0 +1,122 @@
+<div id="screen-mas" class="screen">
+    <div class="screen-scroll">
+      <span class="page-title">Más</span>
+
+      <div class="mas-section" style="margin-bottom:10px;">
+        <div class="mas-item" onclick="App.showScreen('cuenta')">
+          <span class="ms gold">account_circle</span>
+          <span style="flex-shrink:0;">Mi cuenta</span>
+          <span id="mas-cuenta-status" style="font-size:11px;color:var(--text4);margin-left:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:50%;text-align:right;"></span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+      </div>
+
+      <div class="mas-section">
+        <div class="mas-item" onclick="App.showScreen('pedidos')">
+          <span class="ms gold">package_2</span>
+          <span>Pedidos</span>
+          <span class="nav-badge-inline" id="mas-pedidos-badge" style="display:none;">0</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.showScreen('cuotas')">
+          <span class="ms gold">calendar_month</span>
+          <span>Cuotas pendientes</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.showScreen('caja')">
+          <span class="ms gold">account_balance</span>
+          <span>Caja diaria</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.showScreen('gastos')">
+          <span class="ms gold">payments</span>
+          <span>Gastos del negocio</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.showScreen('stock')">
+          <span class="ms gold">inventory_2</span>
+          <span>Gestionar stock</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.exportData()">
+          <span class="ms gold">download</span>
+          <span>Exportar datos (JSON)</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.importData()">
+          <span class="ms gold">upload</span>
+          <span>Importar datos (JSON)</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <input type="file" id="import-file-input" accept=".json,application/json" style="display:none" onchange="App._handleImportFile(this)">
+        <div class="mas-item" onclick="App.exportPDF()">
+          <span class="ms gold">picture_as_pdf</span>
+          <span>Exportar reporte PDF</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.exportExcel()">
+          <span class="ms gold">table_chart</span>
+          <span>Exportar Excel</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.compartirCatalogo()">
+          <span class="ms gold">share</span>
+          <span>Catálogo WhatsApp</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.backupToCloud()">
+          <span class="ms gold">cloud_upload</span>
+          <span>Backup en la nube</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.restoreFromCloud()">
+          <span class="ms gold">cloud_download</span>
+          <span>Restaurar backup</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" style="cursor:default;">
+          <span class="ms gold">storefront</span>
+          <span style="flex-shrink:0;">Mi negocio</span>
+          <input type="text" id="input-negocio" class="form-input" placeholder="Nombre del negocio" oninput="App.setNombreNegocio(this.value)" style="flex:1;text-align:right;background:transparent;border:none;color:var(--text);font-size:13px;padding:4px 8px;min-width:0;">
+        </div>
+        <div class="mas-item" style="cursor:default;">
+          <span class="ms gold">lock</span>
+          <span style="flex:1">PIN de seguridad</span>
+          <label style="position:relative;width:44px;min-width:44px;height:24px;display:inline-block;flex-shrink:0;">
+            <input type="checkbox" id="toggle-pin" onchange="App.togglePin(this.checked)" style="opacity:0;width:0;height:0;position:absolute;">
+            <span style="position:absolute;cursor:pointer;inset:0;background:var(--card2);border:1px solid var(--border);border-radius:999px;transition:.3s;"></span>
+            <span id="toggle-pin-knob" style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:var(--text4);border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.3);"></span>
+          </label>
+        </div>
+        <div class="mas-item" style="cursor:default;">
+          <span class="ms gold">paid</span>
+          <span style="flex:1">Moneda</span>
+          <select id="sel-moneda" onchange="App.setMoneda(this.value)" style="background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;font-family:'DM Sans';outline:none;">
+            <option value="$">$ (Peso/Dólar)</option>
+            <option value="UYU">UYU (Uruguay)</option>
+            <option value="ARS">ARS (Argentina)</option>
+            <option value="COP">COP (Colombia)</option>
+            <option value="MXN">MXN (México)</option>
+            <option value="€">€ (Euro)</option>
+            <option value="R$">R$ (Real)</option>
+          </select>
+        </div>
+        <div class="mas-item" onclick="App.showTutorial()">
+          <span class="ms gold">school</span>
+          <span>Ver tutorial</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.clearData()">
+          <span class="ms danger">delete_forever</span>
+          <span>Borrar todos los datos</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+      </div>
+
+      <div class="mas-footer">
+        <div class="logo-drop small"></div>
+        <span class="mas-app-name">Parfum Track</span>
+        <span class="mas-version">v2.8</span>
+      </div>
+    </div>
+  </div>

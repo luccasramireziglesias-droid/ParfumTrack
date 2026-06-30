@@ -1,0 +1,61 @@
+<div id="screen-stats" class="screen">
+    <div class="screen-scroll">
+      <div class="stats-header">
+        <span class="page-title">Estadísticas</span>
+        <div class="month-picker" id="stats-month-label">Junio 2026 <span class="ms">expand_more</span></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Ganancia vs Gastos</span>
+          <div class="chart-legend">
+            <span class="legend-item"><span class="legend-dot green-bg"></span>Ganancia</span>
+            <span class="legend-item"><span class="legend-dot red-bg"></span>Gastos</span>
+          </div>
+        </div>
+        <div class="chart-area">
+          <div class="chart-y-axis">
+            <span id="cy5">$10k</span><span id="cy4">$8k</span><span id="cy3">$6k</span><span id="cy2">$4k</span><span id="cy1">$2k</span><span>$0</span>
+          </div>
+          <div class="chart-bars">
+            <div class="bar-group">
+              <div class="bar bar-green" id="bar-ganancia" style="height:10%"></div>
+              <span class="bar-label" id="bar-label-g">—</span>
+            </div>
+            <div class="bar-group">
+              <div class="bar bar-red" id="bar-gastos" style="height:3%"></div>
+              <span class="bar-label" style="color:transparent;">.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="metrics-label">MÉTRICAS AVANZADAS</div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-header"><span class="ms gold">confirmation_number</span>Ticket prom.</div>
+          <div class="metric-value" id="m-ticket">$0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header"><span class="ms green">percent</span>Margen prom.</div>
+          <div class="metric-value green" id="m-margen">0%</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header"><span class="ms gold">credit_card</span>En cuotas</div>
+          <div class="metric-value" id="m-cuotas">0</div>
+          <div class="metric-sub" id="m-cuotas-pct">0% del total</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header"><span class="ms gold">calendar_today</span>Mejor día</div>
+          <div class="metric-value" id="m-mejor-dia">—</div>
+        </div>
+      </div>
+
+      <div class="metrics-label">RANKING PERFUMES</div>
+      <div id="ranking-perfumes" class="ranking-list"></div>
+
+      <div class="metrics-label">RANKING VENDEDORES</div>
+      <div id="ranking-vendedores" class="ranking-list"></div>
+    </div>
+  </div>

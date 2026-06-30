@@ -5,6 +5,7 @@
   "description": "PWA de gestión de ventas para revendedores de perfumes",
   "main": "worker.js",
   "scripts": {
+    "build": "node scripts/build.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
