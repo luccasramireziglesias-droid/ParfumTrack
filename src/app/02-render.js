@@ -121,6 +121,7 @@
     const recientes = this.ventas.slice(0, 3);
     if (recientes.length === 0) {
       container.innerHTML = '<div class="empty-state"><span class="ms">receipt_long</span><span>No hay ventas registradas</span></div>';
+      this._renderDashboardDeudores();
       return;
     }
 
