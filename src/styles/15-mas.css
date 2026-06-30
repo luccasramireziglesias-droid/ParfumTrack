@@ -1,0 +1,50 @@
+/* ====== MÁS ====== */
+.mas-section {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  flex-shrink: 0;
+}
+
+.mas-item {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 2.5vw, 14px);
+  padding: clamp(10px, 2.2vh, 16px) 18px;
+  font: 500 clamp(13px, 2vw, 15px) 'DM Sans';
+  color: var(--text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.mas-item:active { background: rgba(255,255,255,0.04); }
+.mas-item:last-child { border-bottom: none; }
+.mas-item .ms { font-size: clamp(18px, 3vw, 22px); }
+.mas-item .chevron { margin-left: auto; font-size: 18px; }
+@media (max-height: 700px) {
+  .mas-item { padding: 8px 14px; font-size: 13px; gap: 10px; }
+  .mas-item .ms { font-size: 18px; }
+}
+
+.mas-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 32px 0;
+}
+
+.mas-app-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text3);
+}
+
+.mas-version {
+  font: 500 12px 'DM Sans';
+  color: var(--text5);
+}
+

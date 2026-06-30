@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Parfum Track</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,300,0,0&display=swap" rel="stylesheet">
+<script defer data-domain="parfumtrack.luccasramireziglesias.workers.dev" src="https://plausible.io/js/script.js"></script>
+<style>/*PT:CSS*/</style>
+</head>
+<body>
+
+<!-- ====== LOCK SCREEN ====== -->
+<div id="lock-screen" class="hidden" style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;">
+  <div class="logo-drop" style="width:48px;height:48px;margin-bottom:8px;"></div>
+  <div style="font:600 16px 'DM Sans';color:var(--text2);">Ingresá tu PIN</div>
+  <div id="pin-dots" style="display:flex;gap:12px;">
+    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+  </div>
+  <div id="pin-error" style="font-size:12px;color:var(--red);height:16px;"></div>
+  <div style="display:grid;grid-template-columns:repeat(3,64px);gap:10px;">
+    <button class="pin-key" onclick="App.pinInput(1)">1</button>
+    <button class="pin-key" onclick="App.pinInput(2)">2</button>
+    <button class="pin-key" onclick="App.pinInput(3)">3</button>
+    <button class="pin-key" onclick="App.pinInput(4)">4</button>
+    <button class="pin-key" onclick="App.pinInput(5)">5</button>
+    <button class="pin-key" onclick="App.pinInput(6)">6</button>
+    <button class="pin-key" onclick="App.pinInput(7)">7</button>
+    <button class="pin-key" onclick="App.pinInput(8)">8</button>
+    <button class="pin-key" onclick="App.pinInput(9)">9</button>
+    <div></div>
+    <button class="pin-key" onclick="App.pinInput(0)">0</button>
+    <button class="pin-key" onclick="App.pinDelete()" style="font-size:20px;"><span class="ms">backspace</span></button>
+  </div>
+</div>
+
+<!-- ====== ONBOARDING ====== -->
+<div id="onboarding" class="hidden" style="position:fixed;inset:0;z-index:9998;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;">
+  <div class="logo-drop" style="width:64px;height:64px;margin-bottom:20px;"></div>
+  <h1 style="font:700 28px 'Cormorant Garamond';color:var(--gold2);margin-bottom:8px;">Bienvenido a Parfum Track</h1>
+  <p style="color:var(--text3);font-size:14px;line-height:1.6;max-width:320px;margin-bottom:32px;">
+    Registrá tus ventas en segundos, controlá tu stock y sabé exactamente cuánto ganás. Todo offline, desde tu celular.
+  </p>
+  <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:280px;margin-bottom:32px;">
+    <div style="display:flex;align-items:center;gap:12px;text-align:left;">
+      <span class="ms gold" style="font-size:28px;">bolt</span>
+      <span style="font-size:13px;color:var(--text2);">Vendé y registrá en 10 segundos</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;text-align:left;">
+      <span class="ms gold" style="font-size:28px;">monitoring</span>
+      <span style="font-size:13px;color:var(--text2);">Ganancia real automática</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;text-align:left;">
+      <span class="ms gold" style="font-size:28px;">wifi_off</span>
+      <span style="font-size:13px;color:var(--text2);">Funciona sin internet</span>
+    </div>
+  </div>
+  <button class="btn-primary btn-full" style="max-width:280px;" onclick="App.dismissOnboarding()">
+    <span class="ms">rocket_launch</span>Empezar
+  </button>
+</div>
+
+<div id="app">
+  <!-- ====== TOAST ====== -->
+  <div id="toast" class="toast hidden"></div>
+
+  <div class="screens-container">
+  <!-- ====== SCREEN: INICIO ====== -->
+  <!--PT:SCREEN:inicio-->
+
+  <!-- ====== SCREEN: NUEVA VENTA ====== -->
+  <!--PT:SCREEN:nueva-venta-->
+
+  <!-- ====== SCREEN: STOCK ====== -->
+  <!--PT:SCREEN:stock-->
+
+  <!-- ====== SCREEN: CUOTAS ====== -->
+  <!--PT:SCREEN:cuotas-->
+
+  <!-- ====== SCREEN: ESTADÍSTICAS ====== -->
+  <!--PT:SCREEN:stats-->
+
+  <!-- ====== SCREEN: MÁS ====== -->
+  <!--PT:SCREEN:mas-->
+
+  <!-- ====== SCREEN: CAJA ====== -->
+  <!--PT:SCREEN:caja-->
+
+  <!-- ====== SCREEN: GASTOS ====== -->
+  <!--PT:SCREEN:gastos-->
+
+  <!-- ====== SCREEN: PEDIDOS ====== -->
+  <!--PT:SCREEN:pedidos-->
+
+  <!-- ====== SCREEN: NUEVO PEDIDO ====== -->
+  <!--PT:SCREEN:nuevo-pedido-->
+
+  <!-- ====== SCREEN: DETALLE PEDIDO ====== -->
+  <!--PT:SCREEN:pedido-detalle-->
+
+  <!-- ====== MODAL: SELECTOR DE PERFUME PARA PEDIDO ====== -->
+  <div id="modal-pedido-perfume" class="modal-overlay hidden" onclick="App.closePedidoPerfumeSelector()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Agregar perfume</span>
+        <div class="back-btn" onclick="App.closePedidoPerfumeSelector()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
+      </div>
+      <div class="search-bar modal-search">
+        <span class="ms muted">search</span>
+        <input type="text" id="modal-pedido-perfume-search" placeholder="Buscar…" oninput="App.filterPedidoPerfumeModal()">
+      </div>
+      <div class="modal-list" id="modal-pedido-perfume-list"></div>
+    </div>
+  </div>
+
+  <!-- ====== MODAL: REGISTRAR PAGO DE CUOTA ====== -->
+  <div id="modal-pago-cuota" class="modal-overlay hidden" onclick="App.cerrarPagoCuota()">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-height:auto;gap:16px;">
+      <div class="modal-header">
+        <span class="modal-title">Registrar pago</span>
+        <div class="back-btn" onclick="App.cerrarPagoCuota()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
+      </div>
+      <div class="pago-cuota-info">
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Perfume</span>
+          <span class="pago-cuota-value" id="pago-cuota-perfume"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Cliente</span>
+          <span class="pago-cuota-value" id="pago-cuota-cliente"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Cuota</span>
+          <span class="pago-cuota-value" id="pago-cuota-numero"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Monto cuota</span>
+          <span class="pago-cuota-value gold" id="pago-cuota-monto"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">MONTO QUE PAGA</label>
+        <input type="number" class="form-input" id="pago-cuota-input" placeholder="0" min="0" step="0.01" inputmode="decimal">
+      </div>
+      <button class="btn gold-btn" onclick="App.confirmarPagoCuota()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
+        <span class="ms">check_circle</span> Registrar pago
+      </button>
+    </div>
+  </div>
+
+  <!-- ====== MODAL: INPUT CUSTOM (PIN, etc.) ====== -->
+  <div id="modal-prompt" class="modal-overlay hidden" onclick="App._promptReject&&App._promptReject()">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width:340px;gap:16px;text-align:center;">
+      <span class="ms" style="font-size:40px;color:var(--gold2);">lock</span>
+      <div id="prompt-msg" style="font-size:15px;line-height:1.5;color:var(--text);"></div>
+      <input type="text" id="prompt-input" inputmode="numeric" maxlength="4" pattern="\d{4}" autocomplete="off" style="width:100%;padding:14px;border-radius:var(--radius-input);border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:24px;text-align:center;letter-spacing:12px;font-weight:700;">
+      <div id="prompt-error" style="font-size:12px;color:var(--red);min-height:18px;"></div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-outline-gold" style="flex:1;padding:12px;" onclick="App._promptReject&&App._promptReject()">Cancelar</button>
+        <button class="btn gold-btn" style="flex:1;padding:12px;" onclick="App._promptResolve&&App._promptResolve()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== MODAL: CONFIRMACIÓN CUSTOM ====== -->
+  <div id="modal-confirm" class="modal-overlay hidden" onclick="App._confirmReject&&App._confirmReject()">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width:340px;gap:16px;text-align:center;">
+      <span class="ms" id="confirm-icon" style="font-size:40px;color:var(--warn);">warning</span>
+      <div id="confirm-msg" style="font-size:15px;line-height:1.5;color:var(--text);"></div>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button class="btn-outline-gold" id="confirm-cancel" style="flex:1;padding:12px;" onclick="App._confirmReject&&App._confirmReject()">Cancelar</button>
+        <button class="btn gold-btn" id="confirm-ok" style="flex:1;padding:12px;" onclick="App._confirmResolve&&App._confirmResolve()"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SCREEN: VER TODAS LAS VENTAS ====== -->
+  <!--PT:SCREEN:ventas-all-->
+
+  <!-- ====== MODAL: SELECTOR DE PERFUME ====== -->
+  <div id="modal-overlay" class="modal-overlay hidden" onclick="App.closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Elegir perfume</span>
+        <div class="back-btn" onclick="App.closeModal()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
+      </div>
+      <div class="search-bar modal-search">
+        <span class="ms muted">search</span>
+        <input type="text" id="modal-perfume-search" placeholder="Buscar…" oninput="App.filterPerfumeModal()">
+      </div>
+      <div class="modal-list" id="modal-perfume-list"></div>
+    </div>
+  </div>
+
+  <!-- ====== MODAL: AGREGAR PERFUME ====== -->
+  <div id="modal-add-perfume" class="modal-overlay hidden" onclick="App.closeAddPerfume()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Agregar perfume</span>
+        <div class="back-btn" onclick="App.closeAddPerfume()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">NOMBRE</label>
+        <input type="text" class="form-input" id="add-perfume-nombre" placeholder="Nombre del perfume…">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">PRECIO COMPRA</label>
+          <input type="number" class="form-input" id="add-perfume-compra" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">PRECIO VENTA</label>
+          <input type="number" class="form-input" id="add-perfume-venta" placeholder="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">STOCK INICIAL</label>
+        <input type="number" class="form-input" id="add-perfume-stock" placeholder="0" value="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">FOTO</label>
+        <div class="photo-upload-area" id="add-perfume-photo-area" onclick="document.getElementById('add-perfume-foto-input').click()">
+          <input type="file" id="add-perfume-foto-input" accept="image/*" style="display:none" onchange="App.handlePerfumePhoto(this)">
+          <div id="add-perfume-photo-preview" class="photo-preview-empty">
+            <span class="ms" style="font-size:32px;">add_a_photo</span>
+            <span>Tocar para agregar foto</span>
+          </div>
+        </div>
+      </div>
+      <div class="save-bar" style="padding:12px 0 0;">
+        <button class="btn-primary btn-full" onclick="App.savePerfume()">
+          <span class="ms">save</span>Guardar perfume
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SCREEN: CUENTA ====== -->
+  <!--PT:SCREEN:cuenta-->
+
+  <!-- ====== SCREEN: CATÁLOGO WA ====== -->
+  <!--PT:SCREEN:catalogo-->
+
+  </div><!-- /screens-container -->
+
+  <!-- ====== BOTTOM NAV ====== -->
+  <nav class="bottom-nav" role="tablist" aria-label="Navegación principal">
+    <div class="nav-item active" onclick="App.showScreen('inicio')" data-tab="inicio" role="tab" aria-label="Ventas" tabindex="0">
+      <span class="ms" style="font-variation-settings:'FILL' 1;">account_balance_wallet</span>
+      <span class="nav-label">Ventas</span>
+    </div>
+    <div class="nav-item" onclick="App.showScreen('cuotas')" data-tab="cuotas" role="tab" aria-label="Cuotas" tabindex="0">
+      <span class="ms">calendar_month</span>
+      <span class="nav-label">Cuotas</span>
+      <span class="nav-badge" id="nav-cuotas-badge">0</span>
+    </div>
+    <div class="nav-fab" onclick="App.showScreen('nueva-venta')" role="button" aria-label="Nueva venta" tabindex="0">
+      <div class="fab-circle"><span class="ms">add</span></div>
+    </div>
+    <div class="nav-item" onclick="App.showScreen('stats')" data-tab="stats" role="tab" aria-label="Gráficos" tabindex="0">
+      <span class="ms">monitoring</span>
+      <span class="nav-label">Gráficos</span>
+    </div>
+    <div class="nav-item" onclick="App.showScreen('mas')" data-tab="mas" role="tab" aria-label="Más opciones" tabindex="0">
+      <span class="ms">more_horiz</span>
+      <span class="nav-label">Más</span>
+    </div>
+  </nav>
+</div>
+<script>
+const DB_NAME = 'ParfumTrackDB';
+const DB_VERSION = 3;
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    if (db) return resolve(db);
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('perfumes')) {
+        const s = d.createObjectStore('perfumes', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('nombre', 'nombre', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('ventas')) {
+        const s = d.createObjectStore('ventas', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('fecha', 'fecha', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('cuotas')) {
+        const s = d.createObjectStore('cuotas', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('ventaId', 'ventaId', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('config')) {
+        d.createObjectStore('config', { keyPath: 'key' });
+      }
+      if (!d.objectStoreNames.contains('pedidos')) {
+        const s = d.createObjectStore('pedidos', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('estado', 'estado', { unique: false });
+        s.createIndex('fecha', 'fecha', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('caja')) {
+        const s = d.createObjectStore('caja', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('fecha', 'fecha', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('gastos')) {
+        const s = d.createObjectStore('gastos', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('fecha', 'fecha', { unique: false });
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+function tx(store, mode = 'readonly') {
+  return db.transaction(store, mode).objectStore(store);
+}
+
+function reqP(req) {
+  return new Promise((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => {
+      const err = req.error;
+      if (err?.name === 'QuotaExceededError') {
+        if (typeof App !== 'undefined' && App.toast) {
+          App.toast('Almacenamiento lleno. Eliminá datos o fotos para continuar.', 'storage', 5000);
+        }
+      }
+      reject(err);
+    };
+  });
+}
+
+const DB = {/*PT:DB*/};
+const App = {/*PT:APP*/};
+
+document.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>

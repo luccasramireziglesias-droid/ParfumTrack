@@ -1,0 +1,22 @@
+<div id="screen-stock" class="screen">
+    <div class="screen-scroll">
+      <div class="stock-header">
+        <span class="page-title">Stock</span>
+        <button class="btn-sm-gold" onclick="App.openAddPerfume()"><span class="ms">add</span>Agregar</button>
+      </div>
+
+      <div class="search-bar">
+        <span class="ms muted">search</span>
+        <input type="text" id="stock-search" placeholder="Buscar perfume…" oninput="App.filterStock()">
+      </div>
+
+      <div class="filter-chips">
+        <span class="chip active" onclick="App.filterStockBy('todos')">Todos</span>
+        <span class="chip chip-red" onclick="App.filterStockBy('sin')">Sin stock · <span id="chip-sin">0</span></span>
+        <span class="chip chip-warn" onclick="App.filterStockBy('bajo')">Bajo · <span id="chip-bajo">0</span></span>
+      </div>
+
+      <div id="stock-alerts" class="hidden"></div>
+      <div class="stock-grid" id="stock-grid"></div>
+    </div>
+  </div>

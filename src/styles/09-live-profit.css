@@ -1,0 +1,48 @@
+/* ====== LIVE PROFIT ====== */
+.live-profit {
+  background: linear-gradient(135deg, rgba(112,201,160,0.16), rgba(112,201,160,0.04));
+  border: 1px solid rgba(112,201,160,0.28);
+  border-radius: 18px;
+  padding: 15px 18px;
+}
+
+.live-profit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.live-profit-label {
+  font: 500 11px 'DM Sans';
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9fc9b4;
+}
+
+.live-profit-badge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font: 600 11px 'DM Sans';
+  color: var(--green);
+}
+.live-profit-badge .ms { font-size: 13px; }
+
+.live-profit-amount {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: clamp(32px, 9vw, 42px);
+  line-height: 1.05;
+  color: var(--green);
+  margin-top: 2px;
+}
+
+.live-profit-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 6px;
+  font: 500 12px 'DM Sans';
+  color: var(--text3);
+}
+

@@ -1,0 +1,25 @@
+<div id="screen-cuotas" class="screen">
+    <div class="screen-scroll">
+      <span class="page-title">Cuotas pendientes</span>
+
+      <div class="owed-banner" id="cuotas-banner">
+        <div>
+          <div class="owed-label">Total adeudado</div>
+          <div class="owed-amount" id="cuotas-total">$0</div>
+        </div>
+        <span class="ms owed-icon">account_balance_wallet</span>
+      </div>
+
+      <div class="cuotas-tabs">
+        <button class="cuotas-tab active" id="tab-cuotas" onclick="App.switchCuotasView('cuotas')">
+          <span class="ms">receipt_long</span>Por cuota
+        </button>
+        <button class="cuotas-tab" id="tab-deudores" onclick="App.switchCuotasView('deudores')">
+          <span class="ms">group</span>Por deudor
+        </button>
+      </div>
+
+      <div id="cuotas-list"></div>
+      <div id="deudores-list" class="hidden"></div>
+    </div>
+  </div>

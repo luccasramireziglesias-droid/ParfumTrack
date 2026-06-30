@@ -1,0 +1,455 @@
+/* ====== PEDIDOS ====== */
+.pedido-section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 11px 'DM Sans';
+  color: var(--text3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.pedido-section-label .ms { font-size: 16px; }
+
+.btn-outline-gold {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold2);
+  border-radius: 12px;
+  padding: 12px;
+  font: 600 14px 'DM Sans';
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s;
+}
+.btn-outline-gold:active { background: rgba(201,168,76,0.1); }
+.btn-outline-gold .ms { font-size: 18px; }
+
+.pedido-perfumes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pedido-perfume-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.pedido-perfume-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pedido-perfume-name {
+  font: 600 14px 'DM Sans';
+  color: var(--text);
+}
+
+.pedido-perfume-qty {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+}
+
+.pedido-perfume-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pedido-qty-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: 'Material Symbols Rounded';
+  font-size: 16px;
+  line-height: 1;
+}
+
+.pedido-qty-btn.minus {
+  background: rgba(255,255,255,0.06);
+  color: var(--text3);
+}
+
+.pedido-qty-btn.plus {
+  background: rgba(201,168,76,0.12);
+  color: var(--gold2);
+}
+
+.pedido-qty-display {
+  font: 700 15px 'DM Sans';
+  color: var(--text);
+  min-width: 24px;
+  text-align: center;
+}
+
+.pedido-remove-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(224,112,112,0.12);
+  color: var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: 'Material Symbols Rounded';
+  font-size: 16px;
+  line-height: 1;
+  margin-left: 4px;
+}
+
+.pedido-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.pedido-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.pedido-card-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 19px;
+  color: var(--text);
+}
+
+.pedido-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.pedido-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 500 12px 'DM Sans';
+  color: var(--text3);
+}
+.pedido-meta-row .ms { font-size: 15px; color: var(--text4); }
+.pedido-meta-row span:last-child { color: var(--text2); font-weight: 600; }
+
+.pedido-status-badge {
+  font: 600 11px 'DM Sans';
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.pedido-status-badge.pendiente {
+  color: var(--warn);
+  background: rgba(224,176,96,0.12);
+}
+
+.pedido-status-badge.enviado {
+  color: var(--green);
+  background: rgba(112,201,160,0.12);
+}
+
+.pedido-productos-label {
+  font: 600 11px 'DM Sans';
+  color: var(--text3);
+  letter-spacing: 0.04em;
+}
+
+.pedido-productos-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pedido-producto-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font: 600 12px 'DM Sans';
+  color: var(--text2);
+  background: rgba(255,255,255,0.05);
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.pedido-producto-chip .qty {
+  color: var(--gold2);
+  font-weight: 700;
+}
+
+.pedido-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-enviar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #1a1a2e;
+  border-radius: 11px;
+  padding: 11px;
+  font: 700 13px 'DM Sans';
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn-enviar:active { opacity: 0.85; transform: scale(0.98); }
+.btn-enviar .ms { font-size: 18px; }
+
+.btn-revertir {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text3);
+  border-radius: 11px;
+  padding: 11px;
+  font: 600 13px 'DM Sans';
+  cursor: pointer;
+}
+.btn-revertir .ms { font-size: 18px; }
+
+.btn-delete-pedido {
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(224,112,112,0.1);
+  border: 1px solid rgba(224,112,112,0.2);
+  border-radius: 11px;
+  color: var(--red);
+  transition: opacity 0.15s;
+  cursor: pointer;
+}
+.btn-delete-pedido:active { opacity: 0.6; }
+.btn-delete-pedido .ms { font-size: 18px; }
+
+.nav-badge-inline {
+  font: 700 10px 'DM Sans';
+  color: #fff;
+  background: var(--gold);
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  margin-left: auto;
+  margin-right: 4px;
+}
+
+.pedido-date {
+  font: 500 11px 'DM Sans';
+  color: var(--text4);
+}
+
+.pedido-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.pedido-card-nombre {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+
+.pedido-card-fecha {
+  font: 500 12px 'DM Sans';
+  color: var(--text3);
+  margin-top: 3px;
+}
+
+.pedido-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pedido-perfume-price {
+  font: 600 12px 'DM Sans';
+  color: var(--gold2);
+}
+
+.pedido-perfume-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.detalle-label {
+  font: 500 12px 'DM Sans';
+  color: var(--text3);
+  min-width: 90px;
+}
+
+.detalle-value {
+  font: 600 14px 'DM Sans';
+  color: var(--text);
+}
+
+.autocomplete-list {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-top: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.ac-item {
+  padding: 10px 14px;
+  font: 500 14px 'DM Sans';
+  color: var(--text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:active { background: var(--bg3); }
+
+input[type="date"].form-input {
+  color-scheme: dark;
+}
+
+
+@media (display-mode: standalone) {
+  .header-bar { padding-top: max(4px, env(safe-area-inset-top)); }
+  .bottom-nav { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+}
+
+/* Detalle pedido */
+.detalle-envio-card {
+  background: linear-gradient(135deg, #1d1d36, #181a2d);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detalle-envio-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.detalle-envio-row .ms {
+  font-size: 18px;
+  color: var(--gold2);
+  flex-shrink: 0;
+}
+.detalle-envio-label {
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.detalle-envio-value {
+  font: 600 15px 'DM Sans';
+  color: var(--text);
+}
+
+/* Rankings */
+.ranking-list { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+.ranking-item {
+  display:flex; align-items:center; gap:10px;
+  background:var(--card); border-radius:var(--radius-card);
+  padding:10px 14px; font-size:13px;
+}
+.ranking-pos {
+  font:700 14px 'DM Sans'; color:var(--gold2);
+  min-width:22px; text-align:center;
+}
+.ranking-name { flex:1; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ranking-count { color:var(--text3); font-size:12px; }
+.ranking-amount { color:var(--green); font-weight:600; }
+
+/* Cuenta */
+.cuenta-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: clamp(20px, 4vh, 32px) 20px;
+}
+.plan-cards { display: flex; flex-direction: column; gap: 10px; }
+.plan-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 16px;
+}
+.plan-card.pro { border-color: var(--gold); }
+.plan-name { font: 700 16px 'Cormorant Garamond'; color: var(--gold2); }
+.plan-price { font: 700 clamp(22px, 7vw, 28px) 'DM Sans'; color: var(--text); margin: 4px 0; }
+.plan-desc { font-size: 12px; color: var(--text3); line-height: 1.4; }
+.plan-badge {
+  display: inline-block; font-size: 11px; padding: 4px 12px;
+  border-radius: var(--radius-pill); margin-top: 8px;
+  background: var(--gold-dim); color: var(--gold2);
+}
+.plan-badge.active { background: var(--green); color: #1a1a2e; }
+
+/* PIN Lock */
+.pin-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--text4);
+  transition: all 0.15s;
+}
+.pin-dot.filled {
+  background: var(--gold2);
+  border-color: var(--gold2);
+}
+.pin-key {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font: 600 22px 'DM Sans';
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.pin-key:active { background: var(--gold-dim); }

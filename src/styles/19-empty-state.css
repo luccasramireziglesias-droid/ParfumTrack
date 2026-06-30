@@ -1,0 +1,12 @@
+/* ====== EMPTY STATE ====== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 0;
+  color: var(--text3);
+}
+.empty-state .ms { font-size: 40px; color: var(--text5); }
+.empty-state span { font: 500 14px 'DM Sans'; }
+

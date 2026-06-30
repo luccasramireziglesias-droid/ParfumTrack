@@ -1,0 +1,71 @@
+<div id="screen-inicio" class="screen active">
+    <div class="screen-scroll">
+      <div class="header-bar">
+        <div class="logo-group">
+          <div class="logo-drop"></div>
+          <span class="logo-text">Parfum Track</span>
+        </div>
+        <div class="header-actions">
+          <div class="profile-chip" id="plan-chip" onclick="App.showScreen('cuenta')"><span class="ms" id="plan-chip-icon">person</span><span id="plan-chip-label">Free</span></div>
+        </div>
+      </div>
+
+      <div class="hero-card" style="padding-bottom:20px;">
+        <div class="hero-glow"></div>
+        <div class="hero-label">Ganancia · <span id="hero-month"></span></div>
+        <div class="hero-row">
+          <div class="hero-amount" id="hero-ganancia">$0</div>
+          <div class="hero-badge" id="hero-trend"><span class="ms">trending_up</span>+0%</div>
+        </div>
+        <div class="hero-sub" id="hero-ventas-count">0 ventas registradas</div>
+      </div>
+
+      <div class="stat-pair">
+        <div class="stat-card">
+          <div class="stat-header"><span class="ms">receipt_long</span><span>Ventas</span></div>
+          <div class="stat-value" id="stat-ventas">0</div>
+        </div>
+        <div class="stat-card stat-card--danger">
+          <div class="stat-header"><span class="ms danger">schedule</span><span>Por cobrar</span></div>
+          <div class="stat-value danger" id="stat-cobrar">$0</div>
+          <div class="stat-sub" id="stat-deudas">0 deudas activas</div>
+        </div>
+      </div>
+
+      <div class="stat-pair">
+        <div class="stat-card-sm">
+          <div class="stat-header-sm"><span class="ms gold">star</span>Mejor vendedor</div>
+          <div class="stat-value-sm" id="stat-mejor">— <span class="green">$0</span></div>
+        </div>
+        <div class="stat-card-sm">
+          <div class="stat-header-sm"><span class="ms gold">confirmation_number</span>Ticket prom.</div>
+          <div class="stat-value-sm" id="stat-ticket">$0</div>
+        </div>
+      </div>
+
+      <div class="today-strip" id="today-strip">
+        <div class="today-left">
+          <span class="ms green">today</span>
+          <span>Hoy <span class="green bold" id="today-amount">$0</span> · <span id="today-count">0</span> venta</span>
+        </div>
+        <span class="ms green">chevron_right</span>
+      </div>
+
+      <div id="month-compare" class="hidden" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:14px;"></div>
+
+      <div class="section-header">
+        <span class="section-title">Ventas recientes</span>
+        <span class="section-link" onclick="App.showScreen('ventas-all')">Ver todas</span>
+      </div>
+
+      <div id="ventas-recientes"></div>
+
+      <div id="dashboard-deudores" class="hidden" style="margin-top:16px;">
+        <div class="section-header">
+          <span class="section-title"><span class="ms gold">group</span>Quién te debe</span>
+          <span class="section-link" onclick="App.showScreen('cuotas');App.switchCuotasView('deudores')">Ver todos</span>
+        </div>
+        <div id="dashboard-deudores-list"></div>
+      </div>
+    </div>
+  </div>

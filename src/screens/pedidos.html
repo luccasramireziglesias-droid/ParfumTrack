@@ -1,0 +1,15 @@
+<div id="screen-pedidos" class="screen">
+    <div class="screen-scroll">
+      <div class="stock-header">
+        <span class="page-title">Pedidos</span>
+        <button class="btn-sm-gold" onclick="App.showScreen('nuevo-pedido')"><span class="ms">add</span>Nuevo</button>
+      </div>
+
+      <div class="segmented" id="pedidos-filter">
+        <div class="seg-option active" onclick="App.filterPedidos('pendiente')">Pendientes · <span id="pedidos-count-pend">0</span></div>
+        <div class="seg-option" onclick="App.filterPedidos('enviado')">Enviados · <span id="pedidos-count-env">0</span></div>
+      </div>
+
+      <div id="pedidos-list"></div>
+    </div>
+  </div>

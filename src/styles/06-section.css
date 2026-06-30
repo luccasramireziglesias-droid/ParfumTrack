@@ -1,0 +1,23 @@
+/* ====== SECTION ====== */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 19px;
+  color: var(--text);
+}
+
+.section-link {
+  font: 600 12px 'DM Sans';
+  color: var(--gold2);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.section-link:active { opacity: 0.6; }
+
