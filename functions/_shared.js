@@ -86,11 +86,9 @@ export async function hashIp(request) {
   return Array.from(new Uint8Array(buf)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export function requireJson(request, maxBytes = 1_048_576) {
+export function requireJson(request) {
   const ct = request.headers.get('content-type') || '';
   if (!ct.includes('application/json')) return 'Content-Type must be application/json';
-  const cl = request.headers.get('content-length');
-  if (cl && parseInt(cl, 10) > maxBytes) return 'Payload too large';
   return null;
 }
 
