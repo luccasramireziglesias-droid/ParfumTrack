@@ -28,17 +28,12 @@
     if (p.stock === 0 && delta < 0) this.haptic('warning');
   },
 
-  changeStockPhoto(id) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = () => {
-      const file = input.files?.[0];
-      if (!file) return;
+  _processPhoto(file) {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
         const img = new Image();
-        img.onload = async () => {
+        img.onload = () => {
           const MAX = 400;
           let w = img.width, h = img.height;
           if (w > MAX || h > MAX) {
@@ -52,23 +47,37 @@
           if (dataUrl.startsWith('data:image/png')) {
             dataUrl = c.toDataURL('image/jpeg', 0.7);
           }
-          const p = this.perfumes.find(x => x.id === id);
-          if (p) {
-            p.foto = dataUrl;
-            try {
-              await DB.updatePerfume(p);
-            } catch (e) {
-              App.toast('Error al guardar la foto', 'error');
-              return;
-            }
-            await this.loadData();
-            this.renderStock();
-            this.toast('Foto actualizada', 'check_circle');
-          }
+          resolve(dataUrl);
         };
+        img.onerror = reject;
         img.src = reader.result;
       };
+      reader.onerror = reject;
       reader.readAsDataURL(file);
+    });
+  },
+
+  changeStockPhoto(id) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const dataUrl = await this._processPhoto(file);
+      const p = this.perfumes.find(x => x.id === id);
+      if (p) {
+        p.foto = dataUrl;
+        try {
+          await DB.updatePerfume(p);
+        } catch (e) {
+          App.toast('Error al guardar la foto', 'error');
+          return;
+        }
+        await this.loadData();
+        this.renderStock();
+        this.toast('Foto actualizada', 'check_circle');
+      }
     };
     input.click();
   },
@@ -92,34 +101,14 @@
     document.getElementById('modal-add-perfume').classList.add('hidden');
   },
 
-  handlePerfumePhoto(input) {
+  async handlePerfumePhoto(input) {
     const file = input.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const MAX = 400;
-        let w = img.width, h = img.height;
-        if (w > MAX || h > MAX) {
-          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-          else { w = Math.round(w * MAX / h); h = MAX; }
-        }
-        const c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        c.getContext('2d').drawImage(img, 0, 0, w, h);
-        let dataUrl = c.toDataURL('image/webp', 0.7);
-        if (dataUrl.startsWith('data:image/png')) {
-          dataUrl = c.toDataURL('image/jpeg', 0.7);
-        }
-        this._pendingPerfumePhoto = dataUrl;
-        const preview = document.getElementById('add-perfume-photo-preview');
-        preview.className = '';
-        preview.innerHTML = `<img class="photo-preview-img" src="${dataUrl}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
+    const dataUrl = await this._processPhoto(file);
+    this._pendingPerfumePhoto = dataUrl;
+    const preview = document.getElementById('add-perfume-photo-preview');
+    preview.className = '';
+    preview.innerHTML = `<img class="photo-preview-img" src="${dataUrl}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
   },
 
   async savePerfume() {

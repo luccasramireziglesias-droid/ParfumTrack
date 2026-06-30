@@ -3705,15 +3705,23 @@ const App = {
       return;
     }
 
-    container.innerHTML = recientes.map((v, i) => {
-      const num = this.ventas.length - this.ventas.indexOf(v);
-      const gan = v.precioVenta - v.precioCompra;
-      const fecha = this.fmtDate(v.fecha);
-      const esCuotas = v.formaPago === 'cuotas';
-      const faded = i > 0 ? ' faded' : '';
+    container.innerHTML = recientes.map((v, i) =>
+      i > 0
+        ? this._renderVentaCard(v, { compact: true, className: ' faded', style: 'margin-top:8px;' })
+        : this._renderVentaCard(v)
+    ).join('');
 
-      if (i > 0) {
-        return `<div class="venta-card${faded}" style="margin-top:8px;">
+    this._renderDashboardDeudores();
+  },
+
+  _renderVentaCard(v, { compact = false, className = '', style = '' } = {}) {
+    const num = this.ventas.length - this.ventas.indexOf(v);
+    const fecha = this.fmtDate(v.fecha);
+    const cls = `venta-card${className}`;
+    const styleAttr = style ? ` style="${style}"` : '';
+
+    if (compact) {
+      return `<div class="${cls}"${styleAttr}>
           <div class="venta-top">
             <div>
               <div style="display:flex;align-items:center;gap:7px;">
@@ -3724,9 +3732,11 @@ const App = {
             <span class="venta-date">${fecha}</span>
           </div>
         </div>`;
-      }
+    }
 
-      return `<div class="venta-card">
+    const gan = v.precioVenta - v.precioCompra;
+    const esCuotas = v.formaPago === 'cuotas';
+    return `<div class="${cls}"${styleAttr}>
         <div class="venta-top">
           <div>
             <div style="display:flex;align-items:center;gap:7px;">
@@ -3761,9 +3771,6 @@ const App = {
           </div>
         </div>
       </div>`;
-    }).join('');
-
-    this._renderDashboardDeudores();
   },
 
   _renderDashboardDeudores() {
@@ -3806,48 +3813,9 @@ const App = {
       return;
     }
 
-    container.innerHTML = this.ventas.map((v) => {
-      const num = this.ventas.length - this.ventas.indexOf(v);
-      const gan = v.precioVenta - v.precioCompra;
-      const fecha = this.fmtDate(v.fecha);
-      const esCuotas = v.formaPago === 'cuotas';
-
-      return `<div class="venta-card" style="margin-bottom:8px;">
-        <div class="venta-top">
-          <div>
-            <div style="display:flex;align-items:center;gap:7px;">
-              <span class="venta-num">#${num}</span>
-              <span class="venta-nombre">${this.esc(v.perfume)}</span>
-            </div>
-            <div class="venta-tags">
-              <span class="tag">${this.esc(v.vendedor || '—')}</span>
-              ${v.proveedor ? `<span class="tag">${this.esc(v.proveedor)}</span>` : ''}
-              ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${v.descuento}%</span>` : ''}
-              ${esCuotas
-                ? `<span class="tag-cuotas">En cuotas</span>`
-                : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
-              }
-            </div>
-          </div>
-          <span class="venta-date">${fecha}</span>
-        </div>
-        <div class="venta-divider"></div>
-        <div class="venta-bottom">
-          <div>
-            <div class="venta-precio-label">Precio venta</div>
-            <div class="venta-precio-value">${this.fmt(v.precioVenta)}</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">${this.fmtSigned(gan)}</div>
-          </div>
-          <div class="venta-actions">
-            <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
-            <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})">delete</button>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
+    container.innerHTML = this.ventas.map((v) =>
+      this._renderVentaCard(v, { style: 'margin-bottom:8px;' })
+    ).join('');
   },
 
   renderStock() {
@@ -4386,17 +4354,12 @@ const App = {
     if (p.stock === 0 && delta < 0) this.haptic('warning');
   },
 
-  changeStockPhoto(id) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = () => {
-      const file = input.files?.[0];
-      if (!file) return;
+  _processPhoto(file) {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
         const img = new Image();
-        img.onload = async () => {
+        img.onload = () => {
           const MAX = 400;
           let w = img.width, h = img.height;
           if (w > MAX || h > MAX) {
@@ -4410,23 +4373,37 @@ const App = {
           if (dataUrl.startsWith('data:image/png')) {
             dataUrl = c.toDataURL('image/jpeg', 0.7);
           }
-          const p = this.perfumes.find(x => x.id === id);
-          if (p) {
-            p.foto = dataUrl;
-            try {
-              await DB.updatePerfume(p);
-            } catch (e) {
-              App.toast('Error al guardar la foto', 'error');
-              return;
-            }
-            await this.loadData();
-            this.renderStock();
-            this.toast('Foto actualizada', 'check_circle');
-          }
+          resolve(dataUrl);
         };
+        img.onerror = reject;
         img.src = reader.result;
       };
+      reader.onerror = reject;
       reader.readAsDataURL(file);
+    });
+  },
+
+  changeStockPhoto(id) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const dataUrl = await this._processPhoto(file);
+      const p = this.perfumes.find(x => x.id === id);
+      if (p) {
+        p.foto = dataUrl;
+        try {
+          await DB.updatePerfume(p);
+        } catch (e) {
+          App.toast('Error al guardar la foto', 'error');
+          return;
+        }
+        await this.loadData();
+        this.renderStock();
+        this.toast('Foto actualizada', 'check_circle');
+      }
     };
     input.click();
   },
@@ -4450,34 +4427,14 @@ const App = {
     document.getElementById('modal-add-perfume').classList.add('hidden');
   },
 
-  handlePerfumePhoto(input) {
+  async handlePerfumePhoto(input) {
     const file = input.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const MAX = 400;
-        let w = img.width, h = img.height;
-        if (w > MAX || h > MAX) {
-          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-          else { w = Math.round(w * MAX / h); h = MAX; }
-        }
-        const c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        c.getContext('2d').drawImage(img, 0, 0, w, h);
-        let dataUrl = c.toDataURL('image/webp', 0.7);
-        if (dataUrl.startsWith('data:image/png')) {
-          dataUrl = c.toDataURL('image/jpeg', 0.7);
-        }
-        this._pendingPerfumePhoto = dataUrl;
-        const preview = document.getElementById('add-perfume-photo-preview');
-        preview.className = '';
-        preview.innerHTML = `<img class="photo-preview-img" src="${dataUrl}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
+    const dataUrl = await this._processPhoto(file);
+    this._pendingPerfumePhoto = dataUrl;
+    const preview = document.getElementById('add-perfume-photo-preview');
+    preview.className = '';
+    preview.innerHTML = `<img class="photo-preview-img" src="${dataUrl}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
   },
 
   async savePerfume() {

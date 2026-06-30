@@ -125,15 +125,23 @@
       return;
     }
 
-    container.innerHTML = recientes.map((v, i) => {
-      const num = this.ventas.length - this.ventas.indexOf(v);
-      const gan = v.precioVenta - v.precioCompra;
-      const fecha = this.fmtDate(v.fecha);
-      const esCuotas = v.formaPago === 'cuotas';
-      const faded = i > 0 ? ' faded' : '';
+    container.innerHTML = recientes.map((v, i) =>
+      i > 0
+        ? this._renderVentaCard(v, { compact: true, className: ' faded', style: 'margin-top:8px;' })
+        : this._renderVentaCard(v)
+    ).join('');
 
-      if (i > 0) {
-        return `<div class="venta-card${faded}" style="margin-top:8px;">
+    this._renderDashboardDeudores();
+  },
+
+  _renderVentaCard(v, { compact = false, className = '', style = '' } = {}) {
+    const num = this.ventas.length - this.ventas.indexOf(v);
+    const fecha = this.fmtDate(v.fecha);
+    const cls = `venta-card${className}`;
+    const styleAttr = style ? ` style="${style}"` : '';
+
+    if (compact) {
+      return `<div class="${cls}"${styleAttr}>
           <div class="venta-top">
             <div>
               <div style="display:flex;align-items:center;gap:7px;">
@@ -144,9 +152,11 @@
             <span class="venta-date">${fecha}</span>
           </div>
         </div>`;
-      }
+    }
 
-      return `<div class="venta-card">
+    const gan = v.precioVenta - v.precioCompra;
+    const esCuotas = v.formaPago === 'cuotas';
+    return `<div class="${cls}"${styleAttr}>
         <div class="venta-top">
           <div>
             <div style="display:flex;align-items:center;gap:7px;">
@@ -181,9 +191,6 @@
           </div>
         </div>
       </div>`;
-    }).join('');
-
-    this._renderDashboardDeudores();
   },
 
   _renderDashboardDeudores() {
@@ -226,48 +233,9 @@
       return;
     }
 
-    container.innerHTML = this.ventas.map((v) => {
-      const num = this.ventas.length - this.ventas.indexOf(v);
-      const gan = v.precioVenta - v.precioCompra;
-      const fecha = this.fmtDate(v.fecha);
-      const esCuotas = v.formaPago === 'cuotas';
-
-      return `<div class="venta-card" style="margin-bottom:8px;">
-        <div class="venta-top">
-          <div>
-            <div style="display:flex;align-items:center;gap:7px;">
-              <span class="venta-num">#${num}</span>
-              <span class="venta-nombre">${this.esc(v.perfume)}</span>
-            </div>
-            <div class="venta-tags">
-              <span class="tag">${this.esc(v.vendedor || '—')}</span>
-              ${v.proveedor ? `<span class="tag">${this.esc(v.proveedor)}</span>` : ''}
-              ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${v.descuento}%</span>` : ''}
-              ${esCuotas
-                ? `<span class="tag-cuotas">En cuotas</span>`
-                : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
-              }
-            </div>
-          </div>
-          <span class="venta-date">${fecha}</span>
-        </div>
-        <div class="venta-divider"></div>
-        <div class="venta-bottom">
-          <div>
-            <div class="venta-precio-label">Precio venta</div>
-            <div class="venta-precio-value">${this.fmt(v.precioVenta)}</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">${this.fmtSigned(gan)}</div>
-          </div>
-          <div class="venta-actions">
-            <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
-            <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})">delete</button>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
+    container.innerHTML = this.ventas.map((v) =>
+      this._renderVentaCard(v, { style: 'margin-bottom:8px;' })
+    ).join('');
   },
 
   renderStock() {

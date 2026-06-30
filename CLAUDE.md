@@ -1,4 +1,4 @@
-# PARFUMTRACK — PROJECT MASTER MEMORY v1.0 (22/06/2026)
+# PARFUMTRACK — PROJECT MASTER MEMORY v1.1 (30/06/2026)
 
 ## REGLAS INQUEBRANTABLES
 
@@ -24,13 +24,13 @@ PWA de gestión de ventas para revendedores de perfumes en LATAM (Argentina, Uru
 
 ## STACK TÉCNICO
 
-- **Frontend:** HTML+CSS+JS vanilla (monolito `index.html` ~19.5K líneas). Sin framework, sin build step.
+- **Frontend:** HTML+CSS+JS vanilla. `index.html` (~6.4K líneas) se genera con `node scripts/build.js` a partir de los módulos fuente en `src/` (sin ES modules — sigue siendo un único `<script>` clásico inline para no romper los `onclick="App.metodo()"`). Editar siempre en `src/`, nunca `index.html` a mano.
 - **Backend:** 10 Cloudflare Worker functions (`worker.js` como router)
 - **Storage:** KV namespace `PT_LICENSES` (trial, rate limit, licencias), R2 bucket `parfumtrack-backups`
 - **Datos usuario:** IndexedDB/localStorage (local, NO en servidores)
-- **CDN lazy-load:** Chart.js 4.4.0, jsPDF 2.5.1, XLSX 0.18.5 (con SRI hashes)
-- **Service Worker:** v10 (`sw.js`)
-- **CI/CD:** GitHub Actions → auto-deploy on push to main
+- **CDN lazy-load:** Chart.js 4.4.0, jsPDF 2.5.1, XLSX 0.18.5 (jsPDF/XLSX sin SRI hashes — F-24 pendiente)
+- **Service Worker:** v14 (`sw.js`), precachea `STATIC_ASSETS` en `install`
+- **CI/CD:** GitHub Actions → `npm run build` + `npm test` → auto-deploy on push to main
 
 ### Servicios externos
 
@@ -53,10 +53,12 @@ PWA de gestión de ventas para revendedores de perfumes en LATAM (Argentina, Uru
 
 ```
 ParfumTrack/
-├── index.html              ← App principal monolítica (19,479 líneas)
+├── index.html              ← Generado por scripts/build.js (NO editar a mano, ~6.400 líneas)
+├── src/                    ← Fuente modular de index.html (styles/, screens/, app/, db.js)
+├── scripts/build.js        ← Reconstruye index.html desde src/
 ├── landing.html            ← Landing page de marketing (2,218 líneas)
-├── worker.js               ← Router entry point Workers (66 líneas)
-├── sw.js                   ← Service Worker v10 (132 líneas)
+├── worker.js               ← Router entry point Workers (142 líneas)
+├── sw.js                   ← Service Worker v14 (133 líneas)
 ├── manifest.json           ← PWA manifest con shortcuts + screenshots
 ├── wrangler.jsonc          ← Config Cloudflare Workers
 ├── _headers                ← Security headers (CSP, HSTS, etc.)
@@ -114,7 +116,7 @@ ParfumTrack/
 - HMAC auth para backup/sync
 - ECDSA para validación de licencias
 - List-Unsubscribe en todos los emails
-- SRI hashes para CDN resources
+- SRI hashes: ninguno implementado todavía. jsPDF/XLSX se cargan dinámicamente sin `integrity` (F-24 pendiente)
 
 ## BRANDING
 
@@ -135,6 +137,8 @@ ParfumTrack/
 | App v6 | 95/100 | Objetivo alcanzado |
 | App v7 | 95/100 | 0 hallazgos abiertos |
 | Landing v1 | 91+/100 | Plan 24h completado |
+| App v9 (completa) | 77/100 | Re-auditoría post-refactor, hallazgos abiertos |
+| App 360 v3 | 79/100 | F-26/F-27/F-28 resueltos en esta sesión, F-24 (SRI jsPDF/XLSX) pendiente por bloqueo de red |
 
 Reportes en `standalone/auditoria-*.html`
 
@@ -143,17 +147,21 @@ Reportes en `standalone/auditoria-*.html`
 ### 7 días
 - Imagen OG profesional 1200x630 para sharing en redes (LP-M02)
 - 12 ads Meta/IG (plan detallado existe en plans/)
-- Verificar SRI hashes en producción
+- Agregar SRI hashes a jsPDF/XLSX cargados dinámicamente (F-24) — bloqueado en este entorno por falta de acceso de red a cdnjs.cloudflare.com para calcular el hash real
 - Testimonios reales con foto/nombre
 
 ### 30 días
 - Video demo 15-30 segundos
-- Tests automatizados (Vitest + Miniflare)
 - Review schema para testimonios
 - A/B test headlines
 
 ### 90 días
-- Refactor monolito index.html → módulos
 - Landing localizada por país (AR/UY/CO/MX)
 - Blog SEO long-tail
 - Plan Pro (multi-perfil, backup auto, sync)
+
+## HECHO RECIENTEMENTE (no en roadmap original)
+
+- Refactor monolito `index.html` → módulos en `src/` con build script (`scripts/build.js`)
+- Tests automatizados: 218 tests Vitest + 7 tests E2E Playwright, corren en CI antes del deploy
+- DRY: `_renderVentaCard()` (dashboard + lista de ventas) y `_processPhoto()` (foto de stock + alta de perfume) compartidos
