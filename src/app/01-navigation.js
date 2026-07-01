@@ -42,6 +42,19 @@
 
   closeDemoModal() {
     document.getElementById('modal-demo')?.classList.add('hidden');
-    const video = document.getElementById('modal-demo')?.querySelector('video');
+    const video = document.getElementById('demo-video');
     if (video) video.pause();
+    if (document.fullscreenElement) document.exitFullscreen();
+  },
+
+  videoFullscreen() {
+    const video = document.getElementById('demo-video');
+    if (!video) return;
+    if (video.requestFullscreen) {
+      video.requestFullscreen().catch(() => {
+        if (video.webkitRequestFullscreen) {
+          video.webkitRequestFullscreen();
+        }
+      });
+    }
   },

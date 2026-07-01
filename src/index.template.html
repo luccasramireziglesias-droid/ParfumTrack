@@ -249,11 +249,15 @@
   <div id="modal-demo" class="modal-overlay hidden" onclick="App.closeDemoModal()" style="background:rgba(0,0,0,0.95);">
     <div class="modal-content" onclick="event.stopPropagation()" style="max-width:540px;border:none;background:transparent;padding:0;">
       <div style="position:relative;width:100%;">
-        <video width="100%" height="auto" controls autoplay style="border-radius:12px;max-height:85vh;object-fit:contain;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(0,0,0,0.4);gap:8px;margin-bottom:8px;">
+          <span style="color:var(--text2);font-size:14px;flex:1;">Demo: Registra ventas en 10 segundos</span>
+          <button onclick="App.videoFullscreen()" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;transition:background 0.2s;display:flex;align-items:center;gap:6px;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'"><span class="ms" style="font-size:16px;">fullscreen</span><span>Pantalla completa</span></button>
+          <button onclick="App.closeDemoModal()" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:16px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'"><span class="ms">close</span></button>
+        </div>
+        <video id="demo-video" width="100%" height="auto" controls autoplay style="border-radius:12px;max-height:85vh;object-fit:contain;background:black;">
           <source src="/demo.mp4" type="video/mp4">
           Tu navegador no soporta videos HTML5.
         </video>
-        <button class="back-btn" onclick="App.closeDemoModal()" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.6);border:none;z-index:10;" role="button" aria-label="Cerrar"><span class="ms">close</span></button>
       </div>
     </div>
   </div>
