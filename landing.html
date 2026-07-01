@@ -344,6 +344,71 @@ body {
 .hfc-sub { color: var(--green); font-size: 10px; font-weight: 600; }
 
 /* ═══════════════════════════════════
+   VIDEO DEMO
+═══════════════════════════════════ */
+.demo-section {
+  padding: 64px 24px;
+  background: var(--bg2);
+  text-align: center;
+}
+.demo-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.demo-subtitle {
+  font-size: 15px;
+  color: var(--text2);
+  margin-bottom: 28px;
+}
+.demo-btn {
+  display: inline-block;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #000;
+  font-weight: 700;
+  border-radius: var(--radius3);
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+.demo-btn:hover { transform: scale(1.05); box-shadow: 0 8px 32px rgba(201,168,76,0.4); }
+
+.video-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.video-modal.active { display: flex; }
+.video-modal video {
+  max-width: 100%;
+  max-height: 90vh;
+  border-radius: 12px;
+}
+.video-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.2);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 24px;
+  color: white;
+  transition: all 0.3s;
+}
+.video-close:hover { background: rgba(255,255,255,0.4); }
+
+/* ═══════════════════════════════════
    TRUST BAR
 ═══════════════════════════════════ */
 .trust-bar {
@@ -1406,6 +1471,25 @@ body.annual-mode [data-annual] { display: block; }
     </div>
   </div>
 </section>
+
+<!-- ══════════════════════════════════
+     VIDEO DEMO
+══════════════════════════════════ -->
+<section class="demo-section">
+  <div class="container-narrow">
+    <div class="demo-title">Mirá cómo funciona en 25 segundos</div>
+    <p class="demo-subtitle">Registrá ventas, cobrá por WhatsApp y seguí tus ganancias en tiempo real</p>
+    <button class="demo-btn" onclick="document.getElementById('videoModal').classList.add('active')">▶ Ver demo</button>
+  </div>
+</section>
+
+<div id="videoModal" class="video-modal">
+  <button class="video-close" onclick="document.getElementById('videoModal').classList.remove('active')">&times;</button>
+  <video controls width="100%" style="max-width: 540px;">
+    <source src="/demo.mp4" type="video/mp4">
+    Tu navegador no soporta videos HTML5.
+  </video>
+</div>
 
 <!-- ══════════════════════════════════
      TRUST BAR

@@ -245,6 +245,19 @@
     </div>
   </div>
 
+  <!-- ====== MODAL: DEMO VIDEO ====== -->
+  <div id="modal-demo" class="modal-overlay hidden" onclick="App.closeDemoModal()" style="background:rgba(0,0,0,0.95);">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width:540px;border:none;background:transparent;padding:0;">
+      <div style="position:relative;width:100%;">
+        <video width="100%" height="auto" controls autoplay style="border-radius:12px;max-height:85vh;object-fit:contain;">
+          <source src="/demo.mp4" type="video/mp4">
+          Tu navegador no soporta videos HTML5.
+        </video>
+        <button class="back-btn" onclick="App.closeDemoModal()" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.6);border:none;z-index:10;" role="button" aria-label="Cerrar"><span class="ms">close</span></button>
+      </div>
+    </div>
+  </div>
+
   <!-- ====== SCREEN: CUENTA ====== -->
   <!--PT:SCREEN:cuenta-->
 

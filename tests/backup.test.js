@@ -180,16 +180,13 @@ describe('backup', () => {
       expect(resp.status).toBe(429);
     });
 
-    it('rejects oversized payload', async () => {
+    it('rejects payload with actual body exceeding limit', async () => {
       const env = makeEnv();
+      const bigData = 'x'.repeat(5_242_881);
       const request = new Request('https://test.com/backup', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': '10000000',
-          'CF-Connecting-IP': '1.2.3.4',
-        },
-        body: JSON.stringify({ code: 'X', token: 'a'.repeat(64), data: {} }),
+        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+        body: bigData,
       });
       const resp = await onRequestPost({ request, env });
       expect(resp.status).toBe(413);

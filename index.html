@@ -148,6 +148,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   align-items: center;
   justify-content: space-between;
   padding: 8px 0;
+  padding-top: max(8px, env(safe-area-inset-top));
 }
 
 .logo-group {
@@ -1597,7 +1598,8 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .modal-content {
   background: var(--bg);
   border-radius: 24px 24px 0 0;
-  padding: 20px 16px;
+  padding: 20px 16px 20px 16px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
   width: 100%;
   max-width: 430px;
   max-height: 70vh;
@@ -2224,6 +2226,7 @@ input[type="date"].form-input {
           <span class="logo-text">Parfum Track</span>
         </div>
         <div class="header-actions">
+          <button class="demo-btn-header" onclick="App.showDemoModal()" title="Ver demo de 25 seg"><span class="ms">play_circle</span></button>
           <div class="profile-chip" id="plan-chip" onclick="App.showScreen('cuenta')"><span class="ms" id="plan-chip-icon">person</span><span id="plan-chip-label">Free</span></div>
         </div>
       </div>
@@ -2956,6 +2959,19 @@ input[type="date"].form-input {
     </div>
   </div>
 
+  <!-- ====== MODAL: DEMO VIDEO ====== -->
+  <div id="modal-demo" class="modal-overlay hidden" onclick="App.closeDemoModal()" style="background:rgba(0,0,0,0.95);">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width:540px;border:none;background:transparent;padding:0;">
+      <div style="position:relative;width:100%;">
+        <video width="100%" height="auto" controls autoplay style="border-radius:12px;max-height:85vh;object-fit:contain;">
+          <source src="/demo.mp4" type="video/mp4">
+          Tu navegador no soporta videos HTML5.
+        </video>
+        <button class="back-btn" onclick="App.closeDemoModal()" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.6);border:none;z-index:10;" role="button" aria-label="Cerrar"><span class="ms">close</span></button>
+      </div>
+    </div>
+  </div>
+
   <!-- ====== SCREEN: CUENTA ====== -->
   <div id="screen-cuenta" class="screen">
     <div class="screen-scroll">
@@ -3580,6 +3596,16 @@ const App = {
     if (name === 'cuenta') this.updateCuentaScreen();
   },
 
+  showDemoModal() {
+    document.getElementById('modal-demo')?.classList.remove('hidden');
+  },
+
+  closeDemoModal() {
+    document.getElementById('modal-demo')?.classList.add('hidden');
+    const video = document.getElementById('modal-demo')?.querySelector('video');
+    if (video) video.pause();
+  },
+
   // ====== RENDER ======
 
   _debounceTimers: {},
@@ -3705,15 +3731,23 @@ const App = {
       return;
     }
 
-    container.innerHTML = recientes.map((v, i) => {
-      const num = this.ventas.length - this.ventas.indexOf(v);
-      const gan = v.precioVenta - v.precioCompra;
-      const fecha = this.fmtDate(v.fecha);
-      const esCuotas = v.formaPago === 'cuotas';
-      const faded = i > 0 ? ' faded' : '';
+    container.innerHTML = recientes.map((v, i) =>
+      i > 0
+        ? this._renderVentaCard(v, { compact: true, className: ' faded', style: 'margin-top:8px;' })
+        : this._renderVentaCard(v)
+    ).join('');
 
-      if (i > 0) {
-        return `<div class="venta-card${faded}" style="margin-top:8px;">
+    this._renderDashboardDeudores();
+  },
+
+  _renderVentaCard(v, { compact = false, className = '', style = '' } = {}) {
+    const num = this.ventas.length - this.ventas.indexOf(v);
+    const fecha = this.fmtDate(v.fecha);
+    const cls = `venta-card${className}`;
+    const styleAttr = style ? ` style="${style}"` : '';
+
+    if (compact) {
+      return `<div class="${cls}"${styleAttr}>
           <div class="venta-top">
             <div>
               <div style="display:flex;align-items:center;gap:7px;">
@@ -3724,9 +3758,11 @@ const App = {
             <span class="venta-date">${fecha}</span>
           </div>
         </div>`;
-      }
+    }
 
-      return `<div class="venta-card">
+    const gan = v.precioVenta - v.precioCompra;
+    const esCuotas = v.formaPago === 'cuotas';
+    return `<div class="${cls}"${styleAttr}>
         <div class="venta-top">
           <div>
             <div style="display:flex;align-items:center;gap:7px;">
@@ -3761,9 +3797,6 @@ const App = {
           </div>
         </div>
       </div>`;
-    }).join('');
-
-    this._renderDashboardDeudores();
   },
 
   _renderDashboardDeudores() {
@@ -3774,6 +3807,7 @@ const App = {
     const pendientes = this.cuotasData.filter(c => !c.pagado);
     if (pendientes.length === 0) {
       section.classList.add('hidden');
+      list.innerHTML = '';
       return;
     }
 
@@ -3806,48 +3840,9 @@ const App = {
       return;
     }
 
-    container.innerHTML = this.ventas.map((v) => {
-      const num = this.ventas.length - this.ventas.indexOf(v);
-      const gan = v.precioVenta - v.precioCompra;
-      const fecha = this.fmtDate(v.fecha);
-      const esCuotas = v.formaPago === 'cuotas';
-
-      return `<div class="venta-card" style="margin-bottom:8px;">
-        <div class="venta-top">
-          <div>
-            <div style="display:flex;align-items:center;gap:7px;">
-              <span class="venta-num">#${num}</span>
-              <span class="venta-nombre">${this.esc(v.perfume)}</span>
-            </div>
-            <div class="venta-tags">
-              <span class="tag">${this.esc(v.vendedor || '—')}</span>
-              ${v.proveedor ? `<span class="tag">${this.esc(v.proveedor)}</span>` : ''}
-              ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${v.descuento}%</span>` : ''}
-              ${esCuotas
-                ? `<span class="tag-cuotas">En cuotas</span>`
-                : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
-              }
-            </div>
-          </div>
-          <span class="venta-date">${fecha}</span>
-        </div>
-        <div class="venta-divider"></div>
-        <div class="venta-bottom">
-          <div>
-            <div class="venta-precio-label">Precio venta</div>
-            <div class="venta-precio-value">${this.fmt(v.precioVenta)}</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">${this.fmtSigned(gan)}</div>
-          </div>
-          <div class="venta-actions">
-            <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
-            <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})">delete</button>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
+    container.innerHTML = this.ventas.map((v) =>
+      this._renderVentaCard(v, { style: 'margin-bottom:8px;' })
+    ).join('');
   },
 
   renderStock() {
@@ -3875,9 +3870,10 @@ const App = {
 
     grid.innerHTML = items.map(p => {
       const badgeClass = p.stock === 0 ? 'zero' : p.stock <= 3 ? 'low' : 'high';
+      const hasFoto = p.foto && /^data:image\//.test(p.foto);
       return `<div class="stock-card">
-        <div class="stock-photo" onclick="App.changeStockPhoto(${p.id})" style="cursor:pointer" title="Tocar para ${p.foto ? 'cambiar' : 'agregar'} foto">
-          ${p.foto && /^data:image\//.test(p.foto) ? `<img src="${this.esc(p.foto)}" alt="">` : `<span class="ms stock-photo-label" style="font-size:28px;">photo_camera</span>`}
+        <div class="stock-photo" ${hasFoto ? `data-photo-id="${p.id}"` : ''} onclick="App.changeStockPhoto(${p.id})" style="cursor:pointer" title="Tocar para ${p.foto ? 'cambiar' : 'agregar'} foto">
+          <span class="ms stock-photo-label" style="font-size:28px;">photo_camera</span>
           <span class="stock-badge ${badgeClass}">${p.stock}</span>
         </div>
         <div class="stock-info">
@@ -3892,6 +3888,31 @@ const App = {
         </div>
       </div>`;
     }).join('');
+    this._lazyLoadStockPhotos();
+  },
+
+  _lazyLoadStockPhotos() {
+    if (this._stockPhotoObserver) this._stockPhotoObserver.disconnect();
+    const targets = document.querySelectorAll('.stock-photo[data-photo-id]');
+    if (!targets.length) return;
+    this._stockPhotoObserver = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const id = Number(el.dataset.photoId);
+        const p = this.perfumes.find(x => x.id === id);
+        if (p && p.foto && /^data:image\//.test(p.foto)) {
+          const img = document.createElement('img');
+          img.alt = '';
+          img.src = p.foto;
+          el.querySelector('.stock-photo-label')?.remove();
+          el.insertBefore(img, el.firstChild);
+        }
+        el.removeAttribute('data-photo-id');
+        obs.unobserve(el);
+      });
+    }, { rootMargin: '200px' });
+    targets.forEach(el => this._stockPhotoObserver.observe(el));
   },
 
   _renderStockAlerts() {
@@ -4386,17 +4407,12 @@ const App = {
     if (p.stock === 0 && delta < 0) this.haptic('warning');
   },
 
-  changeStockPhoto(id) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = () => {
-      const file = input.files?.[0];
-      if (!file) return;
+  _processPhoto(file) {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
         const img = new Image();
-        img.onload = async () => {
+        img.onload = () => {
           const MAX = 400;
           let w = img.width, h = img.height;
           if (w > MAX || h > MAX) {
@@ -4410,23 +4426,37 @@ const App = {
           if (dataUrl.startsWith('data:image/png')) {
             dataUrl = c.toDataURL('image/jpeg', 0.7);
           }
-          const p = this.perfumes.find(x => x.id === id);
-          if (p) {
-            p.foto = dataUrl;
-            try {
-              await DB.updatePerfume(p);
-            } catch (e) {
-              App.toast('Error al guardar la foto', 'error');
-              return;
-            }
-            await this.loadData();
-            this.renderStock();
-            this.toast('Foto actualizada', 'check_circle');
-          }
+          resolve(dataUrl);
         };
+        img.onerror = reject;
         img.src = reader.result;
       };
+      reader.onerror = reject;
       reader.readAsDataURL(file);
+    });
+  },
+
+  changeStockPhoto(id) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const dataUrl = await this._processPhoto(file);
+      const p = this.perfumes.find(x => x.id === id);
+      if (p) {
+        p.foto = dataUrl;
+        try {
+          await DB.updatePerfume(p);
+        } catch (e) {
+          App.toast('Error al guardar la foto', 'error');
+          return;
+        }
+        await this.loadData();
+        this.renderStock();
+        this.toast('Foto actualizada', 'check_circle');
+      }
     };
     input.click();
   },
@@ -4450,34 +4480,14 @@ const App = {
     document.getElementById('modal-add-perfume').classList.add('hidden');
   },
 
-  handlePerfumePhoto(input) {
+  async handlePerfumePhoto(input) {
     const file = input.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const MAX = 400;
-        let w = img.width, h = img.height;
-        if (w > MAX || h > MAX) {
-          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-          else { w = Math.round(w * MAX / h); h = MAX; }
-        }
-        const c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        c.getContext('2d').drawImage(img, 0, 0, w, h);
-        let dataUrl = c.toDataURL('image/webp', 0.7);
-        if (dataUrl.startsWith('data:image/png')) {
-          dataUrl = c.toDataURL('image/jpeg', 0.7);
-        }
-        this._pendingPerfumePhoto = dataUrl;
-        const preview = document.getElementById('add-perfume-photo-preview');
-        preview.className = '';
-        preview.innerHTML = `<img class="photo-preview-img" src="${dataUrl}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
+    const dataUrl = await this._processPhoto(file);
+    this._pendingPerfumePhoto = dataUrl;
+    const preview = document.getElementById('add-perfume-photo-preview');
+    preview.className = '';
+    preview.innerHTML = `<img class="photo-preview-img" src="${dataUrl}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
   },
 
   async savePerfume() {
@@ -5452,9 +5462,19 @@ const App = {
 
   async _loadScript(url) {
     if (document.querySelector(`script[src="${url}"]`)) return;
+    const SRI_HASHES = {
+      'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js':
+        'sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk',
+      'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js':
+        'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw',
+    };
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
       s.src = url;
+      if (SRI_HASHES[url]) {
+        s.integrity = SRI_HASHES[url];
+        s.crossOrigin = 'anonymous';
+      }
       s.onload = resolve;
       s.onerror = () => reject(new Error('No se pudo cargar: ' + url));
       document.head.appendChild(s);

@@ -1,7 +1,7 @@
-// Parfum Track — Service Worker v13
-// v13: fix hero-card flexbox shrink bug (real root cause of hero-amount clipping)
+// Parfum Track — Service Worker v14
+// v14: precachear STATIC_ASSETS en install (antes solo se declaraban sin usarse)
 
-const CACHE_NAME = "parfumtrack-v13";
+const CACHE_NAME = "parfumtrack-v14";
 const STATIC_ASSETS = [
   "/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",
   "/favicon.ico", "/favicon.svg", "/favicon-32.png",
@@ -16,7 +16,12 @@ const STATIC_ASSETS = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(self.skipWaiting());
+  event.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(STATIC_ASSETS))
+      .then(() => self.skipWaiting()),
+  );
 });
 
 self.addEventListener("activate", (event) => {

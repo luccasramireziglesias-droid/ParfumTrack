@@ -106,15 +106,11 @@ describe('trial', () => {
       expect(resp.status).toBe(415);
     });
 
-    it('rejects oversized payloads', async () => {
+    it('rejects payload with actual body exceeding limit', async () => {
       const request = new Request('https://test.com/trial', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': '10000',
-          'CF-Connecting-IP': '1.2.3.4',
-        },
-        body: JSON.stringify({ step: 'register' }),
+        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+        body: 'x'.repeat(4097),
       });
       const resp = await onRequestPost({ request, env: makeEnv() });
       expect(resp.status).toBe(413);
