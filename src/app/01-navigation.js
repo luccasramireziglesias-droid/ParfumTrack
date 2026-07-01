@@ -44,21 +44,38 @@
     document.getElementById('modal-demo')?.classList.add('hidden');
     const video = document.getElementById('demo-video');
     if (video) video.pause();
-    if (document.fullscreenElement) document.exitFullscreen();
+
+    // Exit fullscreen across all browser variants
+    if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
+      const exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
+      if (exitFullscreen) exitFullscreen.call(document);
+    }
   },
 
   videoFullscreen() {
     const video = document.getElementById('demo-video');
-    if (!video) return;
+    if (!video) {
+      console.error('[fullscreen] Video element not found');
+      return;
+    }
 
     const requestFullscreen = video.requestFullscreen ||
                               video.webkitRequestFullscreen ||
                               video.mozRequestFullScreen ||
                               video.msRequestFullscreen;
 
-    if (requestFullscreen) {
-      requestFullscreen.call(video).catch(err => {
-        console.warn('Fullscreen denied:', err);
-      });
+    if (!requestFullscreen) {
+      console.warn('[fullscreen] API not supported');
+      return;
     }
+
+    console.log('[fullscreen] Requesting fullscreen...');
+    requestFullscreen.call(video)
+      .then(() => console.log('[fullscreen] ✓ Entered fullscreen'))
+      .catch(err => {
+        console.error('[fullscreen] Error:', err.name, err.message);
+        if (err.name === 'NotSupportedError') alert('Tu navegador no soporta pantalla completa');
+        else if (err.name === 'SecurityError') alert('La pantalla completa fue rechazada por razones de seguridad');
+        else alert('No se pudo activar pantalla completa: ' + err.message);
+      });
   },
