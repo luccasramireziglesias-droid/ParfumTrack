@@ -3613,7 +3613,6 @@ const App = {
     const content = document.getElementById('modal-demo-content');
     const video = document.getElementById('demo-video');
     const controls = document.getElementById('demo-controls');
-    const expandBtn = document.getElementById('demo-expand-btn');
 
     // Reset to normal size if expanded
     if (content && content.classList.contains('expanded')) {
@@ -3625,15 +3624,22 @@ const App = {
       content.style.padding = '0';
       content.style.gap = '0';
       content.style.display = 'block';
+      content.style.justifyContent = '';
+      content.style.alignItems = '';
       if (video) {
         video.style.maxHeight = '85vh';
         video.style.height = 'auto';
+        video.style.width = '100%';
         video.style.flex = 'none';
         video.style.borderRadius = '12px';
         video.style.margin = '0';
       }
-      if (controls) controls.style.display = 'flex';
-      if (expandBtn) expandBtn.innerHTML = '<span class="ms" style="font-size:16px;">fullscreen</span><span>Pantalla completa</span>';
+      if (controls) {
+        controls.style.visibility = 'visible';
+        controls.style.display = 'flex';
+        controls.style.height = 'auto';
+        controls.style.overflow = 'visible';
+      }
     }
 
     modal?.classList.add('hidden');
@@ -3645,7 +3651,6 @@ const App = {
     const content = document.getElementById('modal-demo-content');
     const video = document.getElementById('demo-video');
     const controls = document.getElementById('demo-controls');
-    const expandBtn = document.getElementById('demo-expand-btn');
 
     if (!modal || !content || !video) return;
 
@@ -3656,34 +3661,45 @@ const App = {
       content.style.maxWidth = '540px';
       content.style.width = 'auto';
       content.style.maxHeight = 'auto';
+      content.style.height = 'auto';
       content.style.padding = '0';
       content.style.gap = '0';
+      content.style.display = 'block';
       video.style.maxHeight = '85vh';
+      video.style.height = 'auto';
+      video.style.flex = 'none';
       video.style.margin = '0';
+      video.style.borderRadius = '12px';
       if (controls) {
+        controls.style.visibility = 'visible';
         controls.style.display = 'flex';
         controls.style.marginBottom = '8px';
       }
-      expandBtn.innerHTML = '<span class="ms" style="font-size:16px;">fullscreen</span><span>Pantalla completa</span>';
     } else {
-      // Expand to fullscreen
+      // Expand to fullscreen - video covers entire screen
       content.classList.add('expanded');
-      content.style.maxWidth = '100vw';
-      content.style.width = '100%';
-      content.style.maxHeight = '100vh';
+      content.style.maxWidth = 'none';
+      content.style.width = '100vw';
+      content.style.maxHeight = 'none';
       content.style.height = '100vh';
       content.style.padding = '0';
       content.style.gap = '0';
       content.style.display = 'flex';
       content.style.flexDirection = 'column';
+      content.style.justifyContent = 'center';
+      content.style.alignItems = 'stretch';
       video.style.maxHeight = 'none';
       video.style.height = '100%';
+      video.style.width = '100%';
       video.style.flex = '1';
       video.style.borderRadius = '0';
+      video.style.margin = '0';
       if (controls) {
+        controls.style.visibility = 'hidden';
         controls.style.display = 'none';
+        controls.style.height = '0';
+        controls.style.overflow = 'hidden';
       }
-      expandBtn.innerHTML = '<span class="ms" style="font-size:16px;">fullscreen_exit</span><span>Salir</span>';
     }
   },
 
