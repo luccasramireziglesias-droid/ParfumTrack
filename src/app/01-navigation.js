@@ -41,41 +41,50 @@
   },
 
   closeDemoModal() {
-    document.getElementById('modal-demo')?.classList.add('hidden');
+    const modal = document.getElementById('modal-demo');
+    const content = document.getElementById('modal-demo-content');
     const video = document.getElementById('demo-video');
-    if (video) video.pause();
+    const expandBtn = document.getElementById('demo-expand-btn');
 
-    // Exit fullscreen across all browser variants
-    if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
-      const exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
-      if (exitFullscreen) exitFullscreen.call(document);
+    // Reset to normal size if expanded
+    if (content && content.classList.contains('expanded')) {
+      content.classList.remove('expanded');
+      content.style.maxWidth = '540px';
+      content.style.width = 'auto';
+      content.style.maxHeight = 'auto';
+      if (video) video.style.maxHeight = '85vh';
+      if (expandBtn) expandBtn.innerHTML = '<span class="ms" style="font-size:16px;">fullscreen</span><span>Pantalla completa</span>';
     }
+
+    modal?.classList.add('hidden');
+    if (video) video.pause();
   },
 
-  videoFullscreen() {
+  expandDemoVideo() {
+    const modal = document.getElementById('modal-demo');
+    const content = document.getElementById('modal-demo-content');
     const video = document.getElementById('demo-video');
-    if (!video) {
-      console.error('[fullscreen] Video element not found');
-      return;
+    const controls = document.getElementById('demo-controls');
+    const expandBtn = document.getElementById('demo-expand-btn');
+
+    if (!modal || !content || !video) return;
+
+    // Toggle expansion state
+    if (content.classList.contains('expanded')) {
+      // Return to normal size
+      content.classList.remove('expanded');
+      content.style.maxWidth = '540px';
+      content.style.width = 'auto';
+      content.style.maxHeight = 'auto';
+      video.style.maxHeight = '85vh';
+      expandBtn.innerHTML = '<span class="ms" style="font-size:16px;">fullscreen</span><span>Pantalla completa</span>';
+    } else {
+      // Expand to fullscreen
+      content.classList.add('expanded');
+      content.style.maxWidth = '100vw';
+      content.style.width = '100%';
+      content.style.maxHeight = '100vh';
+      video.style.maxHeight = 'calc(100vh - 60px)';
+      expandBtn.innerHTML = '<span class="ms" style="font-size:16px;">fullscreen_exit</span><span>Salir</span>';
     }
-
-    const requestFullscreen = video.requestFullscreen ||
-                              video.webkitRequestFullscreen ||
-                              video.mozRequestFullScreen ||
-                              video.msRequestFullscreen;
-
-    if (!requestFullscreen) {
-      console.warn('[fullscreen] API not supported');
-      return;
-    }
-
-    console.log('[fullscreen] Requesting fullscreen...');
-    requestFullscreen.call(video)
-      .then(() => console.log('[fullscreen] ✓ Entered fullscreen'))
-      .catch(err => {
-        console.error('[fullscreen] Error:', err.name, err.message);
-        if (err.name === 'NotSupportedError') alert('Tu navegador no soporta pantalla completa');
-        else if (err.name === 'SecurityError') alert('La pantalla completa fue rechazada por razones de seguridad');
-        else alert('No se pudo activar pantalla completa: ' + err.message);
-      });
   },

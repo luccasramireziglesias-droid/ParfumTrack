@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 describe('Demo modal fullscreen functionality', () => {
-  it('should have fullscreen button with proper event handlers', () => {
+  it('should have expand button with proper event handlers', () => {
     // Read the built HTML
     const htmlPath = path.resolve('/home/user/ParfumTrack/index.html');
     const html = fs.readFileSync(htmlPath, 'utf-8');
@@ -11,37 +11,31 @@ describe('Demo modal fullscreen functionality', () => {
     // Verify HTML structure
     expect(html).toContain('id="modal-demo"');
     expect(html).toContain('id="demo-video"');
-    expect(html).toContain('onclick="event.stopPropagation(); event.preventDefault(); App.videoFullscreen();"');
-    expect(html).toContain('allowfullscreen');
-    expect(html).toContain('webkitallowfullscreen');
-    expect(html).toContain('mozallowfullscreen');
+    expect(html).toContain('id="modal-demo-content"');
+    expect(html).toContain('App.expandDemoVideo()');
+    expect(html).toContain('Pantalla completa');
 
     console.log('✓ HTML structure is correct');
   });
 
-  it('should have videoFullscreen method with proper error handling', () => {
+  it('should have expandDemoVideo method for modal expansion', () => {
     const htmlPath = path.resolve('/home/user/ParfumTrack/index.html');
     const html = fs.readFileSync(htmlPath, 'utf-8');
 
-    // Extract the videoFullscreen method
-    const methodMatch = html.match(/videoFullscreen\(\)\s*\{[\s\S]*?\n\s*\},/);
+    // Extract the expandDemoVideo method
+    const methodMatch = html.match(/expandDemoVideo\(\)\s*\{[\s\S]*?\n\s*\},/);
     expect(methodMatch).toBeTruthy();
 
     const methodCode = methodMatch[0];
 
-    // Verify error handling
-    expect(methodCode).toContain('console.error');
-    expect(methodCode).toContain('[fullscreen]');
-    expect(methodCode).toContain('requestFullscreen');
-    expect(methodCode).toContain('webkitRequestFullscreen');
-    expect(methodCode).toContain('mozRequestFullScreen');
-    expect(methodCode).toContain('msRequestFullscreen');
-    expect(methodCode).toContain('.catch(err');
-    expect(methodCode).toContain('err.name');
-    expect(methodCode).toContain('SecurityError');
-    expect(methodCode).toContain('NotSupportedError');
+    // Verify it handles modal expansion
+    expect(methodCode).toContain('classList');
+    expect(methodCode).toContain('expanded');
+    expect(methodCode).toContain('100vh');
+    expect(methodCode).toContain('100vw');
+    expect(methodCode).toContain('style');
 
-    console.log('✓ videoFullscreen method has proper error handling');
+    console.log('✓ expandDemoVideo method properly expands modal');
   });
 
   it('should have demo modal with correct event propagation', () => {
@@ -62,8 +56,8 @@ describe('Demo modal fullscreen functionality', () => {
     expect(modalCode).toContain('demo-video');
 
     // Verify buttons
-    expect(modalCode).toMatch(/onclick="event\.stopPropagation\(\);\s*event\.preventDefault\(\);\s*App\.videoFullscreen\(\);"/);
-    expect(modalCode).toMatch(/onclick="App\.closeDemoModal\(\)"/);
+    expect(modalCode).toContain('onclick="event.stopPropagation(); event.preventDefault(); App.expandDemoVideo();"');
+    expect(modalCode).toContain('onclick="event.stopPropagation(); App.closeDemoModal();"');
 
     console.log('✓ Modal structure and event handlers are correct');
   });
@@ -72,20 +66,20 @@ describe('Demo modal fullscreen functionality', () => {
     const htmlPath = path.resolve('/home/user/ParfumTrack/index.html');
     const html = fs.readFileSync(htmlPath, 'utf-8');
 
-    // Count the fullscreen buttons (should be at least 2 - landing and app)
+    // Count the fullscreen buttons (should be at least 1 in app)
     const fullscreenMatches = html.match(/Pantalla completa/g);
     expect(fullscreenMatches && fullscreenMatches.length >= 1).toBe(true);
 
-    console.log(`✓ Found ${fullscreenMatches?.length || 0} fullscreen button(s)`);
+    console.log(`✓ Found ${fullscreenMatches?.length || 0} expand button(s)`);
 
-    // Verify the button has all required onclick parts
-    const fullscreenButtonMatch = html.match(/onclick="event\.stopPropagation\(\);\s*event\.preventDefault\(\);\s*App\.videoFullscreen\(\);"/);
-    expect(fullscreenButtonMatch).toBeTruthy();
+    // Verify the button calls expandDemoVideo
+    const expandButtonMatch = html.match(/App\.expandDemoVideo\(\)/);
+    expect(expandButtonMatch).toBeTruthy();
 
-    console.log('✓ Fullscreen button has complete onclick handler');
+    console.log('✓ Expand button has correct onclick handler');
   });
 
-  it('should verify method is callable and defined', () => {
+  it('should verify expand method is callable and defined', () => {
     const htmlPath = path.resolve('/home/user/ParfumTrack/index.html');
     const html = fs.readFileSync(htmlPath, 'utf-8');
 
@@ -95,21 +89,21 @@ describe('Demo modal fullscreen functionality', () => {
 
     const scriptContent = scriptMatch[1];
 
-    // Verify videoFullscreen is defined
-    expect(scriptContent).toContain('videoFullscreen()');
+    // Verify expandDemoVideo is defined
+    expect(scriptContent).toContain('expandDemoVideo()');
 
     // Verify it's part of the App object
-    expect(scriptContent).toMatch(/videoFullscreen\s*\(\s*\)\s*\{/);
+    expect(scriptContent).toMatch(/expandDemoVideo\s*\(\s*\)\s*\{/);
 
-    // Verify the method handles the video element properly
-    expect(scriptContent).toContain('document.getElementById(\'demo-video\')');
-    expect(scriptContent).toContain('.then(');
-    expect(scriptContent).toContain('.catch(');
+    // Verify the method handles modal expansion
+    expect(scriptContent).toContain('document.getElementById(\'modal-demo-content\')');
+    expect(scriptContent).toContain('classList');
+    expect(scriptContent).toContain('expanded');
 
-    console.log('✓ videoFullscreen method is properly defined with promise handling');
+    console.log('✓ expandDemoVideo method is properly defined with modal handling');
   });
 
-  it('should have closeDemoModal method that exits fullscreen', () => {
+  it('should have closeDemoModal method that resets modal state', () => {
     const htmlPath = path.resolve('/home/user/ParfumTrack/index.html');
     const html = fs.readFileSync(htmlPath, 'utf-8');
 
@@ -123,12 +117,12 @@ describe('Demo modal fullscreen functionality', () => {
 
     const closeCode = closeMatch[0];
 
-    // Verify it handles fullscreen exit
-    expect(closeCode).toContain('exitFullscreen');
-    expect(closeCode).toContain('document.fullscreenElement');
-    expect(closeCode).toContain('webkitFullscreenElement');
-    expect(closeCode).toContain('mozFullScreenElement');
+    // Verify it resets modal state
+    expect(closeCode).toContain('modal');
+    expect(closeCode).toContain('hidden');
+    expect(closeCode).toContain('pause');
+    expect(closeCode).toContain('classList');
 
-    console.log('✓ closeDemoModal method properly exits fullscreen');
+    console.log('✓ closeDemoModal method properly resets modal state');
   });
 });
