@@ -254,7 +254,7 @@
           <button onclick="App.videoFullscreen()" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;transition:background 0.2s;display:flex;align-items:center;gap:6px;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'"><span class="ms" style="font-size:16px;">fullscreen</span><span>Pantalla completa</span></button>
           <button onclick="App.closeDemoModal()" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:16px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'"><span class="ms">close</span></button>
         </div>
-        <video id="demo-video" width="100%" height="auto" controls autoplay style="border-radius:12px;max-height:85vh;object-fit:contain;background:black;">
+        <video id="demo-video" width="100%" height="auto" controls autoplay allowfullscreen webkitallowfullscreen mozallowfullscreen style="border-radius:12px;max-height:85vh;object-fit:contain;background:black;display:block;">
           <source src="/demo.mp4" type="video/mp4">
           Tu navegador no soporta videos HTML5.
         </video>

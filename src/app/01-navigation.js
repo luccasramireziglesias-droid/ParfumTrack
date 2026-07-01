@@ -50,11 +50,15 @@
   videoFullscreen() {
     const video = document.getElementById('demo-video');
     if (!video) return;
-    if (video.requestFullscreen) {
-      video.requestFullscreen().catch(() => {
-        if (video.webkitRequestFullscreen) {
-          video.webkitRequestFullscreen();
-        }
+
+    const requestFullscreen = video.requestFullscreen ||
+                              video.webkitRequestFullscreen ||
+                              video.mozRequestFullScreen ||
+                              video.msRequestFullscreen;
+
+    if (requestFullscreen) {
+      requestFullscreen.call(video).catch(err => {
+        console.warn('Fullscreen denied:', err);
       });
     }
   },
