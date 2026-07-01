@@ -44,6 +44,7 @@
     const modal = document.getElementById('modal-demo');
     const content = document.getElementById('modal-demo-content');
     const video = document.getElementById('demo-video');
+    const controls = document.getElementById('demo-controls');
     const expandBtn = document.getElementById('demo-expand-btn');
 
     // Reset to normal size if expanded
@@ -52,7 +53,18 @@
       content.style.maxWidth = '540px';
       content.style.width = 'auto';
       content.style.maxHeight = 'auto';
-      if (video) video.style.maxHeight = '85vh';
+      content.style.height = 'auto';
+      content.style.padding = '0';
+      content.style.gap = '0';
+      content.style.display = 'block';
+      if (video) {
+        video.style.maxHeight = '85vh';
+        video.style.height = 'auto';
+        video.style.flex = 'none';
+        video.style.borderRadius = '12px';
+        video.style.margin = '0';
+      }
+      if (controls) controls.style.display = 'flex';
       if (expandBtn) expandBtn.innerHTML = '<span class="ms" style="font-size:16px;">fullscreen</span><span>Pantalla completa</span>';
     }
 
@@ -76,7 +88,14 @@
       content.style.maxWidth = '540px';
       content.style.width = 'auto';
       content.style.maxHeight = 'auto';
+      content.style.padding = '0';
+      content.style.gap = '0';
       video.style.maxHeight = '85vh';
+      video.style.margin = '0';
+      if (controls) {
+        controls.style.display = 'flex';
+        controls.style.marginBottom = '8px';
+      }
       expandBtn.innerHTML = '<span class="ms" style="font-size:16px;">fullscreen</span><span>Pantalla completa</span>';
     } else {
       // Expand to fullscreen
@@ -84,7 +103,18 @@
       content.style.maxWidth = '100vw';
       content.style.width = '100%';
       content.style.maxHeight = '100vh';
-      video.style.maxHeight = 'calc(100vh - 60px)';
+      content.style.height = '100vh';
+      content.style.padding = '0';
+      content.style.gap = '0';
+      content.style.display = 'flex';
+      content.style.flexDirection = 'column';
+      video.style.maxHeight = 'none';
+      video.style.height = '100%';
+      video.style.flex = '1';
+      video.style.borderRadius = '0';
+      if (controls) {
+        controls.style.display = 'none';
+      }
       expandBtn.innerHTML = '<span class="ms" style="font-size:16px;">fullscreen_exit</span><span>Salir</span>';
     }
   },
