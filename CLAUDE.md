@@ -139,8 +139,9 @@ ParfumTrack/
 | Landing v1 | 91+/100 | Plan 24h completado |
 | App v9 (completa) | 77/100 | Re-auditoría post-refactor, hallazgos abiertos |
 | App 360 v3 | 81/100 | F-02 (falso positivo)/F-23/F-26/F-27/F-28 resueltos en esta sesión, F-24 (SRI jsPDF/XLSX) pendiente por bloqueo de red |
+| App 360 v4 | 81/100 | Todos los fixes aplicados: F-24 SRI verificado+funcional, fullscreen modal 100vh/100vw, licencia owner generada, modularización estable (223 tests pass) |
 
-Reportes en `standalone/auditoria-*.html`
+Reportes en `standalone/auditoria-*.html` (actualizado: `auditoria-360-v4.html`)
 
 ## PENDIENTES / ROADMAP
 
@@ -161,6 +162,10 @@ Reportes en `standalone/auditoria-*.html`
 
 ## HECHO RECIENTEMENTE (no en roadmap original)
 
-- Refactor monolito `index.html` → módulos en `src/` con build script (`scripts/build.js`)
-- Tests automatizados: 218 tests Vitest + 7 tests E2E Playwright, corren en CI antes del deploy
+- Refactor monolito `index.html` → módulos en `src/` con build script (`scripts/build.js`) — COMPLETADO
+- Tests automatizados: 223 tests Vitest (antes 218), corren en CI antes del deploy
 - DRY: `_renderVentaCard()` (dashboard + lista de ventas) y `_processPhoto()` (foto de stock + alta de perfume) compartidos
+- Fullscreen demo modal: expandir video a 100vh/100vw, ocultar controles, mantener evento stopPropagation
+- Auditoría 360° completa: 81/100 score, 30 findings analizados, remediation roadmap incluido
+- Script automatizado para generar licencias propietarias en KV (owner license: PT-YINYD4-2ML61A7T)
+- SRI verification: SHA-384 hashes en jsPDF 2.5.1 y XLSX 0.18.5 implementados y testeados
