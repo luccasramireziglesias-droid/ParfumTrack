@@ -2224,6 +2224,7 @@ input[type="date"].form-input {
           <span class="logo-text">Parfum Track</span>
         </div>
         <div class="header-actions">
+          <button class="demo-btn-header" onclick="App.showDemoModal()" title="Ver demo de 25 seg"><span class="ms">play_circle</span></button>
           <div class="profile-chip" id="plan-chip" onclick="App.showScreen('cuenta')"><span class="ms" id="plan-chip-icon">person</span><span id="plan-chip-label">Free</span></div>
         </div>
       </div>
@@ -2956,6 +2957,19 @@ input[type="date"].form-input {
     </div>
   </div>
 
+  <!-- ====== MODAL: DEMO VIDEO ====== -->
+  <div id="modal-demo" class="modal-overlay hidden" onclick="App.closeDemoModal()" style="background:rgba(0,0,0,0.95);">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width:540px;border:none;background:transparent;padding:0;">
+      <div style="position:relative;width:100%;">
+        <video width="100%" height="auto" controls autoplay style="border-radius:12px;max-height:85vh;object-fit:contain;">
+          <source src="/demo.mp4" type="video/mp4">
+          Tu navegador no soporta videos HTML5.
+        </video>
+        <button class="back-btn" onclick="App.closeDemoModal()" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.6);border:none;z-index:10;" role="button" aria-label="Cerrar"><span class="ms">close</span></button>
+      </div>
+    </div>
+  </div>
+
   <!-- ====== SCREEN: CUENTA ====== -->
   <div id="screen-cuenta" class="screen">
     <div class="screen-scroll">
@@ -3578,6 +3592,16 @@ const App = {
     if (name === 'caja') this.renderCaja();
     if (name === 'gastos') this.renderGastos();
     if (name === 'cuenta') this.updateCuentaScreen();
+  },
+
+  showDemoModal() {
+    document.getElementById('modal-demo')?.classList.remove('hidden');
+  },
+
+  closeDemoModal() {
+    document.getElementById('modal-demo')?.classList.add('hidden');
+    const video = document.getElementById('modal-demo')?.querySelector('video');
+    if (video) video.pause();
   },
 
   // ====== RENDER ======

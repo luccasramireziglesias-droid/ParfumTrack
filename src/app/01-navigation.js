@@ -35,3 +35,13 @@
     if (name === 'gastos') this.renderGastos();
     if (name === 'cuenta') this.updateCuentaScreen();
   },
+
+  showDemoModal() {
+    document.getElementById('modal-demo')?.classList.remove('hidden');
+  },
+
+  closeDemoModal() {
+    document.getElementById('modal-demo')?.classList.add('hidden');
+    const video = document.getElementById('modal-demo')?.querySelector('video');
+    if (video) video.pause();
+  },
