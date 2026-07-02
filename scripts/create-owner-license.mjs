@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 /**
  * Script to create an owner license in KV
- * Usage: node scripts/create-owner-license.mjs
+ * Usage: node scripts/create-owner-license.mjs [--remote]
+ *   (omit --remote for local dev, add --remote for production)
  */
 
 import { execSync } from 'child_process';
+
+const isRemote = process.argv.includes('--remote');
 
 // Generate a unique license code
 function generateLicenseCode() {
@@ -40,9 +43,12 @@ console.log(`👤 Owner: ${licenseData.clientName}\n`);
 console.log('📤 Attempting to insert into KV...\n');
 
 try {
-  // Use wrangler kv key put to insert the license (use --remote flag for production, omit for local dev)
-  const command = `npx wrangler kv key put "${kvKey}" '${kvValue}' --namespace-id=412577285b984e42a7e230dfabcd0a27`;
+  // Use wrangler kv key put to insert the license
+  const remoteFlag = isRemote ? ' --remote' : '';
+  const location = isRemote ? 'REMOTE KV (production)' : 'LOCAL KV (dev)';
+  const command = `npx wrangler kv key put "${kvKey}" '${kvValue}' --namespace-id=412577285b984e42a7e230dfabcd0a27${remoteFlag}`;
 
+  console.log(`📍 Target: ${location}`);
   console.log(`Running: ${command}\n`);
 
   const output = execSync(command, {
@@ -56,7 +62,7 @@ try {
   console.log(`Your License Code: ${code}`);
   console.log('==================================\n');
   console.log('Next steps:');
-  console.log('1. Open ParfumTrack app');
+  console.log('1. Open ParfumTrack app' + (isRemote ? ' (https://parfumtrack.luccasramireziglesias.workers.dev)' : ' (http://localhost:8787)'));
   console.log('2. Go to "Mi Cuenta" (Account)');
   console.log(`3. Paste the code: ${code}`);
   console.log('4. Click "Activar código" (Activate Code)\n');
@@ -66,8 +72,15 @@ try {
   console.error('❌ Error creating license:\n');
   console.error(error.message);
   console.error('\n⚠️  Make sure you have:');
-  console.error('   1. Cloudflare account authenticated');
-  console.error('   2. Wrangler installed (npm i -g wrangler)');
-  console.error('   3. Access to the PT_LICENSES namespace\n');
+  if (isRemote) {
+    console.error('   1. Cloudflare account authenticated: run "wrangler login" first');
+    console.error('   2. Wrangler installed (npm i -g wrangler)');
+    console.error('   3. Access to the PT_LICENSES namespace');
+  } else {
+    console.error('   1. Wrangler installed (npm i -g wrangler)');
+    console.error('   2. Running with: node scripts/create-owner-license.mjs');
+    console.error('   3. For production (--remote flag), run: wrangler login');
+  }
+  console.error('');
   process.exit(1);
 }
