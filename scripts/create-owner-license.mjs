@@ -40,7 +40,7 @@ console.log(`👤 Owner: ${licenseData.clientName}\n`);
 console.log('📤 Attempting to insert into KV...\n');
 
 try {
-  // Use wrangler kv key put to insert the license
+  // Use wrangler kv key put to insert the license (use --remote flag for production, omit for local dev)
   const command = `npx wrangler kv key put "${kvKey}" '${kvValue}' --namespace-id=412577285b984e42a7e230dfabcd0a27`;
 
   console.log(`Running: ${command}\n`);
