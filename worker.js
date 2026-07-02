@@ -14,8 +14,9 @@ import { onRequestPost as mpCreatePreference }    from './functions/mp-create-pr
 import { onRequestPost as mpWebhookPost, onRequestGet as mpWebhookGet } from './functions/mp-webhook.js';
 import { onRequestGet  as mpSubscriptionStatus }  from './functions/mp-subscription-status.js';
 import { onRequestGet  as mpPaymentStatus }        from './functions/mp-payment-status.js';
+import { onRequestPost as generateOwnerLicense }   from './functions/generate-owner-license.js';
 
-const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup', '/trial', '/sync', '/mp-create-preference', '/mp-webhook'];
+const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup', '/trial', '/sync', '/mp-create-preference', '/mp-webhook', '/generate-owner-license'];
 const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status', '/mp-payment-status', '/health'];
 
 export default {
@@ -69,6 +70,7 @@ async function handleRequest(request, env, ctx) {
       if (path === '/sync')                   return syncPost(context);
       if (path === '/mp-create-preference')   return mpCreatePreference(context);
       if (path === '/mp-webhook')              return mpWebhookPost(context);
+      if (path === '/generate-owner-license') return generateOwnerLicense(context);
 
     }
 
