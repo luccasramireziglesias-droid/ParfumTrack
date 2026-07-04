@@ -72,8 +72,12 @@
       const montoCuota = Math.round(v.precioVenta / v.numCuotas);
       const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
       for (let i = 0; i < v.numCuotas; i++) {
+        // BUG #10 FIX: Usar fecha segura para suma de meses (evita problemas fin de mes)
         const vence = new Date();
-        vence.setMonth(vence.getMonth() + i);
+        const targetMonth = vence.getMonth() + i;
+        const targetYear = vence.getFullYear() + Math.floor(targetMonth / 12);
+        vence.setFullYear(targetYear, targetMonth % 12, 1);
+        vence.setDate(Math.min(new Date(targetYear, targetMonth % 12 + 1, 0).getDate(), new Date().getDate()));
         const isLast = i === v.numCuotas - 1;
         const monto = isLast ? lastCuota : montoCuota;
         await this.add('cuotas', {

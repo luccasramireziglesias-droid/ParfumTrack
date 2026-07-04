@@ -74,7 +74,8 @@
         perfume, precioVenta: pvFinal, precioOriginal: precioVenta, precioCompra,
         cliente: cliente || 'Anónimo', vendedor: vendedor || 'Anónimo',
         proveedor: proveedor || '', descuento, nota, fecha,
-        perfumeId: perfumeId ? parseInt(perfumeId) : '',
+        // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío
+        perfumeId: perfumeId ? parseInt(perfumeId, 10) : null,
         formaPago: newFormaPago,
         numCuotas: newFormaPago === 'cuotas' ? numCuotas : 1,
       });

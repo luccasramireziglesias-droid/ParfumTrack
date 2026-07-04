@@ -191,7 +191,8 @@
         fecha,
         formaPago: this.formaPago,
         numCuotas: this.formaPago === 'cuotas' ? numCuotas : 1,
-        perfumeId: perfumeId ? parseInt(perfumeId) : ''
+        // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío
+        perfumeId: perfumeId ? parseInt(perfumeId, 10) : null
       });
     } catch (e) {
       this.toast('Error al guardar la venta. Intentá de nuevo.', 'error');
