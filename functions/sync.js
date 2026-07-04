@@ -14,7 +14,7 @@
 //   LICENSE_SERVER_SECRET — secreto HMAC (compartido con /backup)
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, verifyToken, sha256, log, requireJson, parseJsonBody, hashIp } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, verifyTokenWithExpiry, sha256, log, requireJson, parseJsonBody, hashIp } from './_shared.js';
 
 const CORS_OPTS = { methods: 'GET, POST, OPTIONS', allowHeaders: 'Content-Type, X-PT-Code, X-PT-Token' };
 
@@ -51,8 +51,11 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: "Invalid code format" }, 400, headers);
   }
 
-  const authErr = await verifyToken(code, token, env);
-  if (authErr) return json({ ok: false, error: authErr }, 401, headers);
+  // Use new token validation with expiry check (15 minutes max age)
+  const tokenResult = await verifyTokenWithExpiry(code, token, env, 900);
+  if (!tokenResult.valid) return json({ ok: false, error: tokenResult.error }, 401, headers);
+
+  log('info', 'sync', 'Token validated (POST)', { code: code.slice(0, 7) + '***', nonce: tokenResult.nonce.slice(0, 8) + '***' });
 
   // Rate limit: 120 saves per hour per code (auto-sync needs higher limit than /backup)
   const codeErr = await checkRateLimit(env, `rl_sync_code_${code}`, 120, 3600);
@@ -119,8 +122,8 @@ export async function onRequestGet(context) {
     return json({ ok: false, error: "Invalid code format" }, 400, headers);
   }
 
-  const authErr = await verifyToken(code, token, env);
-  if (authErr) return json({ ok: false, error: authErr }, 401, headers);
+  const tokenResult = await verifyTokenWithExpiry(code, token, env, 900);
+  if (!tokenResult.valid) return json({ ok: false, error: tokenResult.error }, 401, headers);
 
   if (!env.PT_BACKUP) {
     return json({ ok: false, error: "Storage not configured" }, 500, headers);
