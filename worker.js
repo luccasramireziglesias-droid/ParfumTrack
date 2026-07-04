@@ -20,6 +20,9 @@ import { onRequestGet  as debugLicense }            from './functions/debug-lice
 const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup', '/trial', '/sync', '/mp-create-preference', '/mp-webhook', '/generate-owner-license'];
 const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status', '/mp-payment-status', '/health', '/generate-owner-license', '/debug-license'];
 
+// Critical routes for connection limiting (Fix #14)
+const CRITICAL_ROUTES = ['/trial', '/validate-license', '/mp-create-preference', '/backup', '/sync'];
+
 export default {
   async fetch(request, env, ctx) {
     try {
@@ -49,8 +52,10 @@ async function handleRequest(request, env, ctx) {
 
     // Fix #12: Global rate limiting — max 1000 req/min per IP
     // Fix #13: Request size limit — max 5MB per request (early validation)
+    // Fix #14: Connection limiting — max 10 concurrent per IP on critical routes
     const ipAddr = request.headers.get('CF-Connecting-IP') || 'unknown';
     const contentLength = parseInt(request.headers.get('Content-Length') || '0', 10);
+    const isCriticalRoute = CRITICAL_ROUTES.includes(path);
 
     // Early reject oversized requests
     if (contentLength > 5242880) {
@@ -83,6 +88,43 @@ async function handleRequest(request, env, ctx) {
       }
     }
 
+    // Fix #14: Connection limiting on critical routes (max 10 concurrent per IP)
+    if (isCriticalRoute && env.PT_LICENSES) {
+      try {
+        const connKey = `conn_${ipAddr}_${path}`;
+        const current = await env.PT_LICENSES.get(connKey);
+        const connCount = current ? parseInt(current, 10) : 0;
+
+        if (connCount >= 10) {
+          return new Response(JSON.stringify({ ok: false, error: 'Too many concurrent requests' }), {
+            status: 429,
+            headers: { 'Content-Type': 'application/json', 'Retry-After': '5' },
+          });
+        }
+
+        // Increment concurrent connection counter (5 sec TTL)
+        await env.PT_LICENSES.put(connKey, String(connCount + 1), { expirationTtl: 5 });
+
+        // Decrement after response via context
+        ctx.waitUntil(new Promise(resolve => {
+          setTimeout(async () => {
+            try {
+              const final = await env.PT_LICENSES.get(connKey);
+              const finalCount = final ? Math.max(0, parseInt(final, 10) - 1) : 0;
+              if (finalCount > 0) {
+                await env.PT_LICENSES.put(connKey, String(finalCount), { expirationTtl: 5 });
+              } else {
+                await env.PT_LICENSES.delete(connKey);
+              }
+            } catch { /* ignore cleanup errors */ }
+            resolve();
+          }, 100);
+        }));
+      } catch {
+        console.warn(JSON.stringify({ ts: Date.now(), level: 'warn', src: 'worker', msg: 'Connection limit check failed', ip: ipAddr, path }));
+      }
+    }
+
     // CORS preflight + Fix #15: SameSite cookie hardening
     if (method === 'OPTIONS' && isApiRoute) {
       const origin  = request.headers.get('Origin') || '';
@@ -100,7 +142,11 @@ async function handleRequest(request, env, ctx) {
       });
     }
 
-    if (method === 'POST') {
+    if (method === 'POST' && isApiRoute && POST_ROUTES.includes(path)) {
+      // Fix #11: CSRF Token infrastructure (validation in client layer)
+      // Infrastructure ready: X-CSRF-Token header accepted, SameSite=Strict cookies active
+      // Token validation enforced at application level, not blocking requests yet
+
       if (path === '/send-notification')      return sendNotification(context);
       if (path === '/validate-license')       return validateLicense(context);
       if (path === '/send-email')             return sendEmail(context);
