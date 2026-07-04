@@ -18,7 +18,7 @@
 // Rate limit: 10 requests/hora por IP, 4 backups/día por código
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, verifyToken, verifyTokenWithExpiry, log, requireJson, parseJsonBody, hashIp } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, verifyTokenWithExpiry, log, requireJson, parseJsonBody, hashIp, validateCsrfToken } from './_shared.js';
 
 const CORS_OPTS = { methods: 'GET, POST, OPTIONS', allowHeaders: 'Content-Type, X-PT-Code, X-PT-Token' };
 
@@ -34,6 +34,9 @@ export async function onRequestPost(context) {
 
   const ctError = requireJson(request, 5_242_880);
   if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
+
+  const csrfError = validateCsrfToken(request, { optional: true });
+  if (csrfError) return json({ ok: false, error: 'CSRF validation failed' }, 403, headers);
 
   const { data: body, error: parseError } = await parseJsonBody(request, 5_242_880);
   if (parseError) return json({ ok: false, error: parseError === 'Payload too large' ? parseError : 'Bad request' }, parseError === 'Payload too large' ? 413 : 400, headers);
