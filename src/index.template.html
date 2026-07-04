@@ -45,6 +45,38 @@
   </div>
 </div>
 
+<!-- ====== CONSENT MODAL ====== -->
+<div id="consent-modal" style="position:fixed;inset:0;z-index:9997;background:rgba(15,15,26,0.8);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--bg2);border:1px solid var(--gold);border-radius:12px;padding:28px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;">
+    <h2 style="font:600 18px 'DM Sans';color:var(--gold2);margin-bottom:16px;">Aceptar Términos & Privacidad</h2>
+    <p style="font-size:13px;color:var(--text3);line-height:1.6;margin-bottom:20px;">Para usar Parfum Track, necesitamos que aceptes nuestros términos, política de privacidad y uso de cookies.</p>
+
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;">
+        <input type="checkbox" id="consent-terms" style="margin-top:3px;cursor:pointer;">
+        <span style="color:var(--text2);">Acepto los <a href="/terminos.html" target="_blank" style="color:var(--gold);text-decoration:none;border-bottom:1px solid var(--gold);">Términos de Servicio</a></span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;">
+        <input type="checkbox" id="consent-privacy" style="margin-top:3px;cursor:pointer;">
+        <span style="color:var(--text2);">Acepto la <a href="/privacidad.html" target="_blank" style="color:var(--gold);text-decoration:none;border-bottom:1px solid var(--gold);">Política de Privacidad</a></span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;">
+        <input type="checkbox" id="consent-cookies" style="margin-top:3px;cursor:pointer;">
+        <span style="color:var(--text2);">Autorizo el uso de cookies para análisis y mejora del servicio</span>
+      </label>
+    </div>
+
+    <div id="consent-error" style="font-size:12px;color:var(--red);margin-bottom:16px;height:16px;"></div>
+
+    <button class="btn-primary btn-full" onclick="App.acceptConsent()" style="margin-bottom:10px;">
+      <span class="ms">check</span>Aceptar
+    </button>
+    <button onclick="App.rejectConsent()" style="background:none;border:1px solid var(--gold);color:var(--gold);padding:10px 16px;border-radius:6px;font-size:13px;cursor:pointer;width:100%;">
+      Rechazar
+    </button>
+  </div>
+</div>
+
 <!-- ====== ONBOARDING ====== -->
 <div id="onboarding" class="hidden" style="position:fixed;inset:0;z-index:9998;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;">
   <div class="logo-drop" style="width:64px;height:64px;margin-bottom:20px;"></div>

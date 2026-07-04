@@ -23,7 +23,7 @@
     this.loadNombreNegocio();
     this.loadAccount();
     this.checkPinOnStart();
-    this.checkOnboarding();
+    this.checkConsent();
     this.renderAll();
     this.registerSW();
     this._initTabSync();
