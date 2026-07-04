@@ -3338,7 +3338,14 @@ const DB = {
     if (c) {
       const prevPagado = c.montoPagado || 0;
       const totalPagado = prevPagado + montoPagado;
-      c.montoPagado = Math.min(totalPagado, c.monto);
+
+      // BUG #4 FIX: Validar que no se pague más que el monto de la cuota
+      if (totalPagado > c.monto) {
+        const exceso = totalPagado - c.monto;
+        throw new Error(`Sobrepago de ${exceso.toFixed(2)}: solo resta ${(c.monto - prevPagado).toFixed(2)} para esta cuota`);
+      }
+
+      c.montoPagado = totalPagado;
       c.pagado = c.montoPagado >= c.monto;
       c.fechaPago = Date.now();
       if (!c.pagos) c.pagos = [];
@@ -3759,7 +3766,8 @@ const App = {
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
 
-    const ganancia = thisMonth.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
+    // BUG #6 FIX: Usar precioOriginal (antes de descuento) para ganancia bruta
+    const ganancia = thisMonth.reduce((s, v) => s + ((v.precioOriginal || v.precioVenta) - v.precioCompra), 0);
     const totalVentas = thisMonth.length;
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 
@@ -3882,7 +3890,8 @@ const App = {
         </div>`;
     }
 
-    const gan = v.precioVenta - v.precioCompra;
+    // BUG #6 FIX: Usar precioOriginal para ganancia bruta
+    const gan = (v.precioOriginal || v.precioVenta) - v.precioCompra;
     const esCuotas = v.formaPago === 'cuotas';
     return `<div class="${cls}"${styleAttr}>
         <div class="venta-top">
@@ -4241,7 +4250,8 @@ const App = {
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
 
-    const ganancia = thisMonth.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
+    // BUG #6 FIX: Usar precioOriginal (antes de descuento) para ganancia bruta
+    const ganancia = thisMonth.reduce((s, v) => s + ((v.precioOriginal || v.precioVenta) - v.precioCompra), 0);
     const gastos = thisMonth.reduce((s, v) => s + v.precioCompra, 0);
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 

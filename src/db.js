@@ -126,7 +126,14 @@
     if (c) {
       const prevPagado = c.montoPagado || 0;
       const totalPagado = prevPagado + montoPagado;
-      c.montoPagado = Math.min(totalPagado, c.monto);
+
+      // BUG #4 FIX: Validar que no se pague más que el monto de la cuota
+      if (totalPagado > c.monto) {
+        const exceso = totalPagado - c.monto;
+        throw new Error(`Sobrepago de ${exceso.toFixed(2)}: solo resta ${(c.monto - prevPagado).toFixed(2)} para esta cuota`);
+      }
+
+      c.montoPagado = totalPagado;
       c.pagado = c.montoPagado >= c.monto;
       c.fechaPago = Date.now();
       if (!c.pagos) c.pagos = [];
