@@ -1,7 +1,9 @@
-// Parfum Track — Service Worker v15
-// v15: Mejorar estrategia de caché para HTML — validar siempre en servidor primero
+// Parfum Track — Service Worker v16
+// v16: Versionado automático + invalidación inteligente de cache
+// Cada versión tiene su propio cache, automáticamente limpia versiones antiguas
 
-const CACHE_NAME = "parfumtrack-v15";
+const APP_VERSION = "1.1.0";
+const CACHE_NAME = `parfumtrack-v${APP_VERSION}`;
 const STATIC_ASSETS = [
   "/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",
   "/favicon.ico", "/favicon.svg", "/favicon-32.png",
@@ -26,10 +28,18 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
-      .then(() => self.clients.claim()),
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((k) => {
+          // Eliminar caches de versiones antiguas (que no sean la actual)
+          if (k.startsWith("parfumtrack-v") && k !== CACHE_NAME) {
+            console.log(`🗑️ Limpiando cache antiguo: ${k}`);
+            return caches.delete(k);
+          }
+          return Promise.resolve();
+        })
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
@@ -73,8 +83,8 @@ self.addEventListener("fetch", (event) => {
   )
     return;
 
-  // HTML (navegación) — Network First con timeout de 5s
-  // v15: Mayor timeout para conexiones lentas en móviles + validación con headers
+  // HTML (navegación) — Network First con timeout de 5s + fallback a cache
+  // v16: Invalidación automática de cache por versión
   if (event.request.mode === "navigate") {
     event.respondWith(
       Promise.race([
@@ -88,6 +98,19 @@ self.addEventListener("fetch", (event) => {
         }),
         new Promise((_, reject) => setTimeout(reject, 5000)),
       ]).catch(() => caches.match("/").then((r) => r || caches.match("/index.html"))),
+    );
+    return;
+  }
+
+  // /version endpoint — siempre frescos del servidor (Network First)
+  if (url.pathname === "/version") {
+    event.respondWith(
+      fetch(event.request).catch(() =>
+        new Response(JSON.stringify({ error: "offline" }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      )
     );
     return;
   }

@@ -29,6 +29,7 @@
     this._initTabSync();
     this._checkPendingLicense();
     this._initEventDelegation();
+    this._initAutoUpdate();
     await this._initDOMContentLoaded();
   },
 
