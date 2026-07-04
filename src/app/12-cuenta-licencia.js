@@ -124,8 +124,7 @@
         signal: AbortSignal.timeout(30000),
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ step: 'register', email, deviceId: this._getDeviceId() }),
-        signal: AbortSignal.timeout(30000)
+        body: JSON.stringify({ step: 'register', email, deviceId: this._getDeviceId() })
       });
       const data = await res.json();
       if (data.sent) {

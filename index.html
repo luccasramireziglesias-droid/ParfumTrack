@@ -3973,15 +3973,6 @@ const App = {
         <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${btoa(waMsg)}"><span class="ms" style="font-size:16px;">chat</span></button>
       </div>`;
     }).join('');
-
-    // Agregar listeners a botones de WhatsApp
-    list.querySelectorAll('.btn-whatsapp').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const msg = atob(btn.dataset.msg);
-        this.cobrarWhatsApp(msg);
-      });
-    });
   },
 
   renderAllVentas() {
@@ -6381,8 +6372,7 @@ const App = {
         signal: AbortSignal.timeout(30000),
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ step: 'register', email, deviceId: this._getDeviceId() }),
-        signal: AbortSignal.timeout(30000)
+        body: JSON.stringify({ step: 'register', email, deviceId: this._getDeviceId() })
       });
       const data = await res.json();
       if (data.sent) {

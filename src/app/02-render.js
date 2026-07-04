@@ -228,15 +228,6 @@
         <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${btoa(waMsg)}"><span class="ms" style="font-size:16px;">chat</span></button>
       </div>`;
     }).join('');
-
-    // Agregar listeners a botones de WhatsApp
-    list.querySelectorAll('.btn-whatsapp').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const msg = atob(btn.dataset.msg);
-        this.cobrarWhatsApp(msg);
-      });
-    });
   },
 
   renderAllVentas() {
