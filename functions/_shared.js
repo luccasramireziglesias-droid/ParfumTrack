@@ -74,9 +74,64 @@ export function delay(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
 
+// Sanitize sensitive data before logging
+function sanitizeData(data) {
+  if (!data || typeof data !== 'object') return data;
+
+  const sanitized = JSON.parse(JSON.stringify(data));
+  const sensitiveKeys = ['email', 'otp', 'password', 'token', 'code', 'secret', 'ip'];
+
+  const sanitizeValue = (value, key) => {
+    const keyLower = String(key).toLowerCase();
+
+    // Email: show only domain
+    if (keyLower === 'email' && typeof value === 'string') {
+      const [local, domain] = value.split('@');
+      return domain ? `***@${domain}` : '***';
+    }
+
+    // OTP: show only length
+    if (keyLower === 'otp' && typeof value === 'string') {
+      return `OTP[${value.length}]`;
+    }
+
+    // License codes: show first 7 chars + asterisks
+    if ((keyLower === 'code' || keyLower === 'license') && typeof value === 'string' && value.length > 7) {
+      return value.substring(0, 7) + '***';
+    }
+
+    // Tokens: show only length
+    if (keyLower === 'token' && typeof value === 'string' && value.length > 20) {
+      return `Token[${value.length}]`;
+    }
+
+    // Passwords/Secrets: never log
+    if ((keyLower === 'password' || keyLower === 'secret') && typeof value === 'string') {
+      return '[REDACTED]';
+    }
+
+    return value;
+  };
+
+  const traverse = (obj) => {
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+          traverse(obj[key]);
+        } else {
+          obj[key] = sanitizeValue(obj[key], key);
+        }
+      }
+    }
+  };
+
+  traverse(sanitized);
+  return sanitized;
+}
+
 export function log(level, source, message, data) {
   const entry = { ts: Date.now(), level, src: source, msg: message };
-  if (data) entry.data = data;
+  if (data) entry.data = sanitizeData(data);
   console[level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log'](JSON.stringify(entry));
 }
 
