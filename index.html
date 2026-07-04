@@ -7093,6 +7093,22 @@ const App = {
 };
 
 document.addEventListener('DOMContentLoaded', () => App.init());
+
+// v15: Forzar actualización del Service Worker en cada carga
+// Detectar cambios en index.html e invalidar caché
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.ready.then(reg => {
+    // Verificar actualizaciones cada 10 segundos (desarrollador puede cambiar backend)
+    setInterval(() => {
+      reg.update().catch(() => {});
+    }, 10000);
+  });
+
+  // En caso de actualización, recargar la página
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
 </script>
 </body>
 </html>

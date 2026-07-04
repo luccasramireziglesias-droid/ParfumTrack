@@ -1,7 +1,7 @@
-// Parfum Track — Service Worker v14
-// v14: precachear STATIC_ASSETS en install (antes solo se declaraban sin usarse)
+// Parfum Track — Service Worker v15
+// v15: Mejorar estrategia de caché para HTML — validar siempre en servidor primero
 
-const CACHE_NAME = "parfumtrack-v14";
+const CACHE_NAME = "parfumtrack-v15";
 const STATIC_ASSETS = [
   "/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",
   "/favicon.ico", "/favicon.svg", "/favicon-32.png",
@@ -73,16 +73,20 @@ self.addEventListener("fetch", (event) => {
   )
     return;
 
-  // HTML (navegación) — Network First con timeout de 3s
+  // HTML (navegación) — Network First con timeout de 5s
+  // v15: Mayor timeout para conexiones lentas en móviles + validación con headers
   if (event.request.mode === "navigate") {
     event.respondWith(
       Promise.race([
-        fetch(event.request).then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        fetch(event.request, { cache: "no-store" }).then((response) => {
+          // Solo cachear si es 200 OK (no 304, no errores)
+          if (response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
           return response;
         }),
-        new Promise((_, reject) => setTimeout(reject, 3000)),
+        new Promise((_, reject) => setTimeout(reject, 5000)),
       ]).catch(() => caches.match("/").then((r) => r || caches.match("/index.html"))),
     );
     return;
