@@ -2,6 +2,27 @@
 
   // ====== NUEVA VENTA ======
 
+  _checkVendedorRestriction() {
+    const input = document.getElementById('venta-vendedor');
+    const badge = document.getElementById('vendedor-pro-badge');
+    const group = document.getElementById('vendedor-group');
+
+    if (!this.isPro()) {
+      // Free tier: deshabilitar vendedor
+      input.disabled = true;
+      input.value = 'Luccas';
+      badge.style.display = 'inline-block';
+      group.style.opacity = '0.6';
+      group.title = 'Feature disponible en plan Pro';
+    } else {
+      // Pro: habilitar vendedor
+      input.disabled = false;
+      badge.style.display = 'none';
+      group.style.opacity = '1';
+      group.title = '';
+    }
+  },
+
   resetVentaForm() {
     document.getElementById('venta-perfume-id').value = '';
     document.getElementById('venta-perfume-nombre').value = '';
@@ -17,6 +38,7 @@
     this.setFormaPago('contado');
     this.calcLiveProfit();
     this.setupAutocomplete();
+    this._checkVendedorRestriction();
     this._editingVentaId = null;
     const saveBtn = document.querySelector('#screen-nueva-venta .btn-primary');
     if (saveBtn) {
@@ -145,7 +167,7 @@
     const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
     const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
-    const vendedor = document.getElementById('venta-vendedor').value;
+    let vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
     const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
@@ -155,6 +177,11 @@
     const perfumeId = document.getElementById('venta-perfume-id').value;
     const numCuotas = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
     const pvFinal = descuento > 0 ? Math.round(precioVenta * (1 - descuento / 100)) : precioVenta;
+
+    // P-01 FIX: Multi-vendedor solo para Pro
+    if (!this.isPro()) {
+      vendedor = 'Luccas';
+    }
 
     if (!perfume || perfume === 'Elegir perfume…') {
       this.toast('Elegí un perfume', 'warning');

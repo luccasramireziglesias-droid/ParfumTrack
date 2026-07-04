@@ -39,6 +39,7 @@
     if (title) title.textContent = 'Editar venta';
 
     this.calcLiveProfit();
+    this._checkVendedorRestriction();
   },
 
   async updateVenta() {
@@ -49,7 +50,7 @@
     const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
     const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
-    const vendedor = document.getElementById('venta-vendedor').value;
+    let vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
     const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
@@ -58,6 +59,11 @@
     const nota = document.getElementById('venta-nota').value;
     const perfumeId = document.getElementById('venta-perfume-id').value;
     const pvFinal = descuento > 0 ? Math.round(precioVenta * (1 - descuento / 100)) : precioVenta;
+
+    // P-01 FIX: Multi-vendedor solo para Pro
+    if (!this.isPro()) {
+      vendedor = 'Luccas';
+    }
 
     if (!perfume || perfume === 'Elegir perfume…') {
       this.toast('Elegí un perfume', 'warning');
