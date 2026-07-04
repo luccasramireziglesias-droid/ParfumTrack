@@ -663,6 +663,9 @@
       let data = result.encryptedData ? await ENCRYPTION.decryptData(result.encryptedData, code) : (result.data || result);
       data = this._normalizeBackupData(data);
       const { total, skipped } = await this._restoreData(data);
+      // BUG FIX: Reload data in memory and re-render dashboard
+      await this.loadData();
+      this.renderAll();
       this.toast(`${total} registros restaurados${skipped ? ` (${skipped} omitidos)` : ''}`, 'check_circle');
       this.haptic('success');
       this._notifyTabs();
