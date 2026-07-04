@@ -168,7 +168,7 @@
             <div class="venta-tags">
               <span class="tag">${this.esc(v.vendedor || '—')}</span>
               ${v.proveedor ? `<span class="tag">${this.esc(v.proveedor)}</span>` : ''}
-              ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${v.descuento}%</span>` : ''}
+              ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${Math.round(v.descuento || 0)}%</span>` : ''}
               ${esCuotas
                 ? `<span class="tag-cuotas">En cuotas</span>`
                 : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`

@@ -69,29 +69,35 @@
         throw new Error('Maximum 12 installments allowed');
       }
 
-      const montoCuota = Math.round(v.precioVenta / v.numCuotas);
-      const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
-      for (let i = 0; i < v.numCuotas; i++) {
-        // BUG #10 FIX: Usar fecha segura para suma de meses (evita problemas fin de mes)
-        const vence = new Date();
-        const targetMonth = vence.getMonth() + i;
-        const targetYear = vence.getFullYear() + Math.floor(targetMonth / 12);
-        vence.setFullYear(targetYear, targetMonth % 12, 1);
-        vence.setDate(Math.min(new Date(targetYear, targetMonth % 12 + 1, 0).getDate(), new Date().getDate()));
-        const isLast = i === v.numCuotas - 1;
-        const monto = isLast ? lastCuota : montoCuota;
-        await this.add('cuotas', {
-          ventaId: id,
-          perfume: v.perfume,
-          cliente: v.cliente,
-          numero: i + 1,
-          total: v.numCuotas,
-          monto,
-          montoTotal: v.precioVenta,
-          pagado: i === 0,
-          montoPagado: i === 0 ? monto : 0,
-          vence: vence.getTime()
-        });
+      try {
+        const montoCuota = Math.round(v.precioVenta / v.numCuotas);
+        const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
+        for (let i = 0; i < v.numCuotas; i++) {
+          // BUG #10 FIX: Usar fecha segura para suma de meses (evita problemas fin de mes)
+          const vence = new Date();
+          const targetMonth = vence.getMonth() + i;
+          const targetYear = vence.getFullYear() + Math.floor(targetMonth / 12);
+          vence.setFullYear(targetYear, targetMonth % 12, 1);
+          vence.setDate(Math.min(new Date(targetYear, targetMonth % 12 + 1, 0).getDate(), new Date().getDate()));
+          const isLast = i === v.numCuotas - 1;
+          const monto = isLast ? lastCuota : montoCuota;
+          await this.add('cuotas', {
+            ventaId: id,
+            perfume: v.perfume,
+            cliente: v.cliente,
+            numero: i + 1,
+            total: v.numCuotas,
+            monto,
+            montoTotal: v.precioVenta,
+            pagado: i === 0,
+            montoPagado: i === 0 ? monto : 0,
+            vence: vence.getTime()
+          });
+        }
+      } catch (e) {
+        // BUG #14 FIX: Si falla creación de cuotas, loguear y propagar error
+        console.error('Failed to create installments:', e.message);
+        throw new Error('Failed to create installments: ' + e.message);
       }
     }
     return id;

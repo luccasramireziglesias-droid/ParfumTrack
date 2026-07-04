@@ -3281,29 +3281,35 @@ const DB = {
         throw new Error('Maximum 12 installments allowed');
       }
 
-      const montoCuota = Math.round(v.precioVenta / v.numCuotas);
-      const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
-      for (let i = 0; i < v.numCuotas; i++) {
-        // BUG #10 FIX: Usar fecha segura para suma de meses (evita problemas fin de mes)
-        const vence = new Date();
-        const targetMonth = vence.getMonth() + i;
-        const targetYear = vence.getFullYear() + Math.floor(targetMonth / 12);
-        vence.setFullYear(targetYear, targetMonth % 12, 1);
-        vence.setDate(Math.min(new Date(targetYear, targetMonth % 12 + 1, 0).getDate(), new Date().getDate()));
-        const isLast = i === v.numCuotas - 1;
-        const monto = isLast ? lastCuota : montoCuota;
-        await this.add('cuotas', {
-          ventaId: id,
-          perfume: v.perfume,
-          cliente: v.cliente,
-          numero: i + 1,
-          total: v.numCuotas,
-          monto,
-          montoTotal: v.precioVenta,
-          pagado: i === 0,
-          montoPagado: i === 0 ? monto : 0,
-          vence: vence.getTime()
-        });
+      try {
+        const montoCuota = Math.round(v.precioVenta / v.numCuotas);
+        const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
+        for (let i = 0; i < v.numCuotas; i++) {
+          // BUG #10 FIX: Usar fecha segura para suma de meses (evita problemas fin de mes)
+          const vence = new Date();
+          const targetMonth = vence.getMonth() + i;
+          const targetYear = vence.getFullYear() + Math.floor(targetMonth / 12);
+          vence.setFullYear(targetYear, targetMonth % 12, 1);
+          vence.setDate(Math.min(new Date(targetYear, targetMonth % 12 + 1, 0).getDate(), new Date().getDate()));
+          const isLast = i === v.numCuotas - 1;
+          const monto = isLast ? lastCuota : montoCuota;
+          await this.add('cuotas', {
+            ventaId: id,
+            perfume: v.perfume,
+            cliente: v.cliente,
+            numero: i + 1,
+            total: v.numCuotas,
+            monto,
+            montoTotal: v.precioVenta,
+            pagado: i === 0,
+            montoPagado: i === 0 ? monto : 0,
+            vence: vence.getTime()
+          });
+        }
+      } catch (e) {
+        // BUG #14 FIX: Si falla creación de cuotas, loguear y propagar error
+        console.error('Failed to create installments:', e.message);
+        throw new Error('Failed to create installments: ' + e.message);
       }
     }
     return id;
@@ -3907,7 +3913,7 @@ const App = {
             <div class="venta-tags">
               <span class="tag">${this.esc(v.vendedor || '—')}</span>
               ${v.proveedor ? `<span class="tag">${this.esc(v.proveedor)}</span>` : ''}
-              ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${v.descuento}%</span>` : ''}
+              ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${Math.round(v.descuento || 0)}%</span>` : ''}
               ${esCuotas
                 ? `<span class="tag-cuotas">En cuotas</span>`
                 : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
@@ -4571,6 +4577,11 @@ const App = {
   async adjustStock(id, delta) {
     const p = this.perfumes.find(x => x.id === id);
     if (!p) return;
+    // BUG #16 FIX: Validar delta razonable para ajustes de stock
+    if (Math.abs(delta) > 1000) {
+      this.toast('Ajuste demasiado grande (máx ±1000)', 'warning');
+      return;
+    }
     p.stock = Math.max(0, p.stock + delta);
     try {
       await DB.updatePerfume(p);
@@ -6365,10 +6376,13 @@ const App = {
     }
     this.toast('Enviando código…', 'hourglass_top');
     try {
+      // BUG #17 FIX: Agregar timeout a fetch calls (30s)
       const res = await fetch('/trial', {
+        signal: AbortSignal.timeout(30000),
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ step: 'register', email, deviceId: this._getDeviceId() })
+        body: JSON.stringify({ step: 'register', email, deviceId: this._getDeviceId() }),
+        signal: AbortSignal.timeout(30000)
       });
       const data = await res.json();
       if (data.sent) {
@@ -6393,6 +6407,7 @@ const App = {
     this.toast('Verificando…', 'hourglass_top');
     try {
       const res = await fetch('/trial', {
+        signal: AbortSignal.timeout(30000),
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ step: 'verify', email: this._pendingEmail, otp, deviceId: this._getDeviceId() })

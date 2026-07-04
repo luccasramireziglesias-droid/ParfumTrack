@@ -119,10 +119,13 @@
     }
     this.toast('Enviando código…', 'hourglass_top');
     try {
+      // BUG #17 FIX: Agregar timeout a fetch calls (30s)
       const res = await fetch('/trial', {
+        signal: AbortSignal.timeout(30000),
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ step: 'register', email, deviceId: this._getDeviceId() })
+        body: JSON.stringify({ step: 'register', email, deviceId: this._getDeviceId() }),
+        signal: AbortSignal.timeout(30000)
       });
       const data = await res.json();
       if (data.sent) {
@@ -147,6 +150,7 @@
     this.toast('Verificando…', 'hourglass_top');
     try {
       const res = await fetch('/trial', {
+        signal: AbortSignal.timeout(30000),
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ step: 'verify', email: this._pendingEmail, otp, deviceId: this._getDeviceId() })
