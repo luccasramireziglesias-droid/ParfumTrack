@@ -3456,6 +3456,7 @@ const DB = {
       await this.addVenta(v);
     }
   }
+
 };
 // ====== ENCRYPTION LAYER (Phase 5: F-31 to F-35) ======
 
@@ -3789,6 +3790,7 @@ const App = {
     this.loadMoneda();
     this.loadNombreNegocio();
     this.loadAccount();
+    await this._initializeEncryption();
     this._initCsrfToken();
     this.checkPinOnStart();
     this.checkOnboarding();

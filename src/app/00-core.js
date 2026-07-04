@@ -22,6 +22,7 @@
     this.loadMoneda();
     this.loadNombreNegocio();
     this.loadAccount();
+    await this._initializeEncryption();
     this._initCsrfToken();
     this.checkPinOnStart();
     this.checkOnboarding();
