@@ -49,6 +49,24 @@ export async function onRequestPost(context) {
     return json({ ok: false, valid: false, error: "Server misconfigured" }, 500, headers);
   }
 
+  // Per-code rate limiting: max 3 failed attempts per hour (prevent enumeration)
+  const now = Math.floor(Date.now() / 1000);
+  const codeWindow = Math.floor(now / 3600); // 1-hour window
+  const codeWindowKey = `rl_lic_code_${normalizedCode}_${codeWindow}`;
+  let codeAttempts = 0;
+  try {
+    const stored = await env.PT_LICENSES.get(codeWindowKey);
+    codeAttempts = stored ? (parseInt(stored, 10) || 0) : 0;
+  } catch {
+    log('warn', 'validate-license', 'Failed to check per-code rate limit', { code: normalizedCode.slice(0, 7) + '***' });
+  }
+
+  if (codeAttempts >= 3) {
+    await delay(DELAY_ON_INVALID);
+    log('warn', 'validate-license', 'Per-code rate limit exceeded (enumeration prevention)', { code: normalizedCode.slice(0, 7) + '***', attempts: codeAttempts });
+    return json({ ok: true, valid: false, error: "Too many failed attempts for this code" }, 200, headers);
+  }
+
   const ownerCode = (env.LICENSE_OWNER_CODE || "").trim().toUpperCase();
   const isOwner = ownerCode.length > 0 && timingSafeEqual(normalizedCode, ownerCode);
 
@@ -61,6 +79,12 @@ export async function onRequestPost(context) {
 
     const licenseRaw = await env.PT_LICENSES.get(`license:${normalizedCode}`);
     if (!licenseRaw) {
+      // Increment failed attempt counter
+      try {
+        await env.PT_LICENSES.put(codeWindowKey, String(codeAttempts + 1), { expirationTtl: 3600 });
+      } catch {
+        log('warn', 'validate-license', 'Failed to increment per-code rate limit counter', { code: normalizedCode.slice(0, 7) + '***' });
+      }
       await delay(DELAY_ON_INVALID);
       return json({ ok: true, valid: false }, 200, headers);
     }
