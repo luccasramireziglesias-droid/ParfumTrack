@@ -3,13 +3,10 @@
   // ====== NAVIGATION ======
 
   showScreen(name) {
-    console.log('🔄 showScreen called with:', name);
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const el = document.getElementById('screen-' + name);
-    console.log('Found screen element:', el);
     if (el) el.classList.add('active');
     this.currentScreen = name;
-    console.log('✓ currentScreen set to:', this.currentScreen);
 
     document.querySelectorAll('.nav-item').forEach(n => {
       const tab = n.dataset.tab;
