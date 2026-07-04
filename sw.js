@@ -103,11 +103,38 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// OneSignal push: cargar SDK solo cuando llega una notificación
+// OneSignal push: cargar SDK con SRI verification
+const ONESIGNAL_SDK_URL = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js";
+// SHA-384 hash of OneSignalSDK.sw.js v16 (verified 2026-07-02)
+const ONESIGNAL_SDK_HASH = "sha384-KKvOBCVZhz7e2J/K3KBuqEy8mHwZvCWc9oOFsCe+8yZqwAaVNMQXGGmRFdDy0I7e";
+
 self.addEventListener("push", (event) => {
   try {
-    importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
+    // Load OneSignal SDK with SRI verification
+    event.waitUntil(
+      fetch(ONESIGNAL_SDK_URL, {
+        integrity: ONESIGNAL_SDK_HASH,
+        crossOrigin: "anonymous"
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("OneSignal SDK fetch failed");
+        return response.text();
+      })
+      .then(code => {
+        // Execute SDK code in worker context
+        eval(code);
+      })
+      .catch(e => {
+        // Fallback: show notification without OneSignal
+        const data = event.data ? event.data.json() : {};
+        return self.registration.showNotification(data.title || "Parfum Track", {
+          body: data.body || "",
+          icon: "/icon-192.png",
+        });
+      })
+    );
   } catch (e) {
+    // Fallback notification
     const data = event.data ? event.data.json() : {};
     event.waitUntil(
       self.registration.showNotification(data.title || "Parfum Track", {
