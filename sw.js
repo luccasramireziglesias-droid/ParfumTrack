@@ -121,8 +121,11 @@ self.addEventListener("push", (event) => {
         return response.text();
       })
       .then(code => {
-        // Execute SDK code in worker context
-        eval(code);
+        // BUG #15 FIX: Usar Blob URL en lugar de eval() para mejor seguridad
+        const blob = new Blob([code], { type: 'application/javascript' });
+        const blobUrl = URL.createObjectURL(blob);
+        importScripts(blobUrl);
+        URL.revokeObjectURL(blobUrl);
       })
       .catch(e => {
         // Fallback: show notification without OneSignal
