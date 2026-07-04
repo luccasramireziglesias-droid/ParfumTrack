@@ -603,10 +603,13 @@
     };
 
     try {
+      // F-32: Encrypt backup before uploading (client-side)
+      const encryptedData = await ENCRYPTION.encryptData(JSON.stringify(data), code);
+
       const res = await fetch('/backup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, token, data })
+        body: JSON.stringify({ code, token, encryptedData })
       });
       const result = await res.json();
       if (result.ok) {
@@ -639,7 +642,10 @@
         this.toast(result.error || 'No se encontró backup', 'error');
         return;
       }
-      const data = this._normalizeBackupData(result.data || result);
+
+      // F-32: Decrypt backup after downloading (client-side)
+      let data = result.encryptedData ? await ENCRYPTION.decryptData(result.encryptedData, code) : (result.data || result);
+      data = this._normalizeBackupData(data);
       const { total, skipped } = await this._restoreData(data);
       this.toast(`${total} registros restaurados${skipped ? ` (${skipped} omitidos)` : ''}`, 'check_circle');
       this.haptic('success');

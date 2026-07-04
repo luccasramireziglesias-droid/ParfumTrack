@@ -201,6 +201,8 @@
         this._account = this._account || {};
         this._account.license = code;
         this._account.licenseData = data;
+        // F-35: Store license code for ENCRYPTION key derivation
+        localStorage.setItem('pt_license_code', code);
         this.saveAccount();
         this.toast('Licencia activada', 'check_circle');
         this.haptic('success');

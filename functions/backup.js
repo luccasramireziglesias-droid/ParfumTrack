@@ -38,8 +38,9 @@ export async function onRequestPost(context) {
   const { data: body, error: parseError } = await parseJsonBody(request, 5_242_880);
   if (parseError) return json({ ok: false, error: parseError === 'Payload too large' ? parseError : 'Bad request' }, parseError === 'Payload too large' ? 413 : 400, headers);
 
-  const { code, token, data } = body;
-  if (!code || !token || !data) {
+  const { code, token, data, encryptedData } = body;
+  // F-32: Accept both data (legacy) and encryptedData (Phase 5)
+  if (!code || !token || (!data && !encryptedData)) {
     return json({ ok: false, error: 'Missing fields' }, 400, headers);
   }
 
@@ -64,7 +65,9 @@ export async function onRequestPost(context) {
   }
 
   const savedAt = new Date().toISOString();
-  const payload = JSON.stringify({ data, savedAt });
+  // F-32: Store encrypted blob as-is, server never sees plaintext
+  const backupContent = encryptedData || data;
+  const payload = JSON.stringify({ encryptedData: encryptedData || null, data: data || null, savedAt });
 
   // Limit payload size to 5 MB
   if (payload.length > 5 * 1024 * 1024) {
@@ -80,7 +83,7 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Storage write failed' }, 500, headers);
   }
 
-  log('info', 'backup', 'saved', { code: normalized.slice(0, 7) + '***', sizeKB: (payload.length / 1024).toFixed(1) });
+  log('info', 'backup', 'saved', { code: normalized.slice(0, 7) + '***', sizeKB: (payload.length / 1024).toFixed(1), encrypted: !!encryptedData });
   return json({ ok: true, savedAt }, 200, headers);
 }
 
@@ -135,9 +138,10 @@ export async function onRequestGet(context) {
     return json({ ok: false, error: 'Backup data corrupted' }, 500, headers);
   }
 
-  const { data, savedAt } = parsed;
-  log('info', 'backup', 'restored', { code: normalized.slice(0, 7) + '***', savedAt });
-  return json({ ok: true, data, savedAt }, 200, headers);
+  // F-32: Return encrypted data as-is, client handles decryption
+  const { encryptedData, data, savedAt } = parsed;
+  log('info', 'backup', 'restored', { code: normalized.slice(0, 7) + '***', savedAt, encrypted: !!encryptedData });
+  return json({ ok: true, encryptedData: encryptedData || null, data: data || null, savedAt }, 200, headers);
 }
 
 export async function onRequestOptions(context) {
