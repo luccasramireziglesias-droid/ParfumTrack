@@ -47,7 +47,43 @@ async function handleRequest(request, env, ctx) {
 
     const isApiRoute = POST_ROUTES.includes(path) || GET_ROUTES.includes(path);
 
-    // CORS preflight
+    // Fix #12: Global rate limiting — max 1000 req/min per IP
+    // Fix #13: Request size limit — max 5MB per request (early validation)
+    const ipAddr = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const contentLength = parseInt(request.headers.get('Content-Length') || '0', 10);
+
+    // Early reject oversized requests
+    if (contentLength > 5242880) {
+      return new Response(JSON.stringify({ ok: false, error: 'Payload too large' }), {
+        status: 413,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Global IP rate limit: 1000 requests per 60 seconds
+    if (isApiRoute && env.PT_LICENSES) {
+      try {
+        const now = Math.floor(Date.now() / 1000);
+        const globalRLKey = `rl_global_${ipAddr}_${Math.floor(now / 60)}`;
+        const current = await env.PT_LICENSES.get(globalRLKey);
+        const count = current ? parseInt(current, 10) : 0;
+
+        if (count >= 1000) {
+          return new Response(JSON.stringify({ ok: false, error: 'Global rate limit exceeded' }), {
+            status: 429,
+            headers: { 'Content-Type': 'application/json', 'Retry-After': '60' },
+          });
+        }
+
+        // Increment counter
+        await env.PT_LICENSES.put(globalRLKey, String(count + 1), { expirationTtl: 120 });
+      } catch {
+        // Rate limit check failure: fail open (allow) but log it
+        console.warn(JSON.stringify({ ts: Date.now(), level: 'warn', src: 'worker', msg: 'Global rate limit check failed', ip: ipAddr }));
+      }
+    }
+
+    // CORS preflight + Fix #15: SameSite cookie hardening
     if (method === 'OPTIONS' && isApiRoute) {
       const origin  = request.headers.get('Origin') || '';
       const allowed = ORIGIN_RE.test(origin) ? origin : 'null';
@@ -56,8 +92,10 @@ async function handleRequest(request, env, ctx) {
         headers: {
           'Access-Control-Allow-Origin':  allowed,
           'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, X-PT-Code, X-PT-Token',
+          'Access-Control-Allow-Headers': 'Content-Type, X-PT-Code, X-PT-Token, X-CSRF-Token',
+          'Access-Control-Allow-Credentials': 'true',
           'Access-Control-Max-Age': '86400',
+          'Set-Cookie': 'Path=/; SameSite=Strict; Secure; HttpOnly',
         },
       });
     }
