@@ -217,3 +217,13 @@ export function isValidEmail(email) {
     /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(email)
   );
 }
+
+export function validateCsrfToken(request, opts = {}) {
+  const csrfToken = request.headers.get('X-CSRF-Token') || '';
+  const { optional = false } = opts;
+  if (!csrfToken && optional) return null;
+  if (typeof csrfToken !== 'string' || !/^[0-9a-f]{64}$/.test(csrfToken)) {
+    return 'Invalid or missing CSRF token';
+  }
+  return null;
+}

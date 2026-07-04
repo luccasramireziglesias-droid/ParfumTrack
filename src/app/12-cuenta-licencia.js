@@ -121,7 +121,7 @@
     try {
       const res = await fetch('/trial', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ step: 'register', email, deviceId: this._getDeviceId() })
       });
       const data = await res.json();
@@ -148,7 +148,7 @@
     try {
       const res = await fetch('/trial', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ step: 'verify', email: this._pendingEmail, otp, deviceId: this._getDeviceId() })
       });
       const data = await res.json();
@@ -193,7 +193,7 @@
     try {
       const res = await fetch('/validate-license', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ code })
       });
       const data = await res.json();
@@ -229,7 +229,7 @@
     try {
       const res = await fetch('/mp-create-preference', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ email: this._account.email, plan })
       });
       const data = await res.json();
@@ -271,7 +271,7 @@
     try {
       const res = await fetch('/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ code, token, data })
       });
       const result = await res.json();

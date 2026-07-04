@@ -22,12 +22,42 @@
     this.loadMoneda();
     this.loadNombreNegocio();
     this.loadAccount();
+    this._initCsrfToken();
     this.checkPinOnStart();
     this.checkOnboarding();
     this.renderAll();
     this.registerSW();
     this._initTabSync();
     this._checkPendingLicense();
+  },
+
+  async _initCsrfToken() {
+    const existing = localStorage.getItem('pt_csrf_token');
+    if (existing) return;
+    const token = await this._generateCsrfToken();
+    localStorage.setItem('pt_csrf_token', token);
+  },
+
+  async _generateCsrfToken() {
+    const randomBytes = crypto.getRandomValues(new Uint8Array(32));
+    const buf = await crypto.subtle.digest('SHA-256', randomBytes);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  },
+
+  async _rotateCsrfToken() {
+    const newToken = await this._generateCsrfToken();
+    localStorage.setItem('pt_csrf_token', newToken);
+    return newToken;
+  },
+
+  _getCsrfToken() {
+    return localStorage.getItem('pt_csrf_token') || '';
+  },
+
+  _getCsrfHeaders() {
+    return {
+      'X-CSRF-Token': this._getCsrfToken()
+    };
   },
 
   _checkPendingLicense() {

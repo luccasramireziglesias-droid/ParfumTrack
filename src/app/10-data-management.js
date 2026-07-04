@@ -616,7 +616,7 @@
 
       const res = await fetch('/backup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ code, token, encryptedData })
       });
       const result = await res.json();
