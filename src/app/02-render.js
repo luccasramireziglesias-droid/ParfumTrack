@@ -216,15 +216,25 @@
     section.classList.remove('hidden');
     list.innerHTML = sorted.map(([name, total]) => {
       const waMsg = `Hola ${name}! Te recuerdo que tenés un saldo pendiente de *${this.fmt(total)}*. Avisame cuando puedas pagar!`;
+      // BUG #2 FIX: Usar data attribute en lugar de onclick inline
       return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:6px;">
         <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
           <span class="ms" style="color:var(--gold);font-size:18px;">person</span>
           <span style="font:500 13px 'DM Sans';color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.esc(name)}</span>
         </div>
         <span style="font:700 14px 'DM Sans';color:var(--red);margin:0 10px;white-space:nowrap;">${this.fmt(total)}</span>
-        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms" style="font-size:16px;">chat</span></button>
+        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${btoa(waMsg)}"><span class="ms" style="font-size:16px;">chat</span></button>
       </div>`;
     }).join('');
+
+    // Agregar listeners a botones de WhatsApp
+    list.querySelectorAll('.btn-whatsapp').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const msg = atob(btn.dataset.msg);
+        this.cobrarWhatsApp(msg);
+      });
+    });
   },
 
   renderAllVentas() {
@@ -414,8 +424,8 @@
         </div>
         <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
-          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar por WhatsApp</button>
-          <button class="btn-pay" onclick="App.abrirPagoCuota(${JSON.stringify(proxima.id)})"><span class="ms">add_card</span></button>
+          <button class="btn-whatsapp" data-msg="${btoa(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
+          <button class="btn-pay" data-cuota-id="${proxima.id}"><span class="ms">add_card</span></button>
         </div>
         <div class="wa-preview-label">VISTA PREVIA DEL MENSAJE</div>
         <div class="wa-bubble">
@@ -487,7 +497,7 @@
         </div>
         <div class="deudor-items">${items}</div>
         <div class="deudor-actions">
-          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
+          <button class="btn-whatsapp" data-msg="${btoa(waMsg)}"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
         </div>
       </div>`;
     }).join('');

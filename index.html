@@ -3487,6 +3487,26 @@ const App = {
     this.registerSW();
     this._initTabSync();
     this._checkPendingLicense();
+    this._initEventDelegation();
+  },
+
+  _initEventDelegation() {
+    // BUG #2 FIX: Event delegation para botones WhatsApp y Pago (evita XSS)
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-whatsapp[data-msg]');
+      if (btn) {
+        e.preventDefault();
+        const msg = atob(btn.dataset.msg);
+        this.cobrarWhatsApp(msg);
+      }
+
+      const payBtn = e.target.closest('.btn-pay[data-cuota-id]');
+      if (payBtn) {
+        e.preventDefault();
+        const cuotaId = JSON.parse(payBtn.dataset.cuotaId);
+        this.abrirPagoCuota(cuotaId);
+      }
+    });
   },
 
   _checkPendingLicense() {
@@ -3919,15 +3939,25 @@ const App = {
     section.classList.remove('hidden');
     list.innerHTML = sorted.map(([name, total]) => {
       const waMsg = `Hola ${name}! Te recuerdo que tenés un saldo pendiente de *${this.fmt(total)}*. Avisame cuando puedas pagar!`;
+      // BUG #2 FIX: Usar data attribute en lugar de onclick inline
       return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:6px;">
         <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
           <span class="ms" style="color:var(--gold);font-size:18px;">person</span>
           <span style="font:500 13px 'DM Sans';color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.esc(name)}</span>
         </div>
         <span style="font:700 14px 'DM Sans';color:var(--red);margin:0 10px;white-space:nowrap;">${this.fmt(total)}</span>
-        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms" style="font-size:16px;">chat</span></button>
+        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${btoa(waMsg)}"><span class="ms" style="font-size:16px;">chat</span></button>
       </div>`;
     }).join('');
+
+    // Agregar listeners a botones de WhatsApp
+    list.querySelectorAll('.btn-whatsapp').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const msg = atob(btn.dataset.msg);
+        this.cobrarWhatsApp(msg);
+      });
+    });
   },
 
   renderAllVentas() {
@@ -4117,8 +4147,8 @@ const App = {
         </div>
         <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
-          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar por WhatsApp</button>
-          <button class="btn-pay" onclick="App.abrirPagoCuota(${JSON.stringify(proxima.id)})"><span class="ms">add_card</span></button>
+          <button class="btn-whatsapp" data-msg="${btoa(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
+          <button class="btn-pay" data-cuota-id="${proxima.id}"><span class="ms">add_card</span></button>
         </div>
         <div class="wa-preview-label">VISTA PREVIA DEL MENSAJE</div>
         <div class="wa-bubble">
@@ -4190,7 +4220,7 @@ const App = {
         </div>
         <div class="deudor-items">${items}</div>
         <div class="deudor-actions">
-          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
+          <button class="btn-whatsapp" data-msg="${btoa(waMsg)}"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
         </div>
       </div>`;
     }).join('');
@@ -4365,10 +4395,26 @@ const App = {
     const filtered = val ? values.filter(v => v.toLowerCase().includes(val)) : values.slice(0, 5);
 
     if (filtered.length === 0) { listEl.classList.add('hidden'); return; }
+
+    // BUG #1 FIX: Usar addEventListener en lugar de onclick inline para evitar XSS
     listEl.innerHTML = filtered.map(v => {
-      const safe = this.esc(v).replace(/'/g, '&#39;');
-      return `<div class="ac-item" onmousedown="document.getElementById('${inputId}').value='${safe}';document.getElementById('${listId}').classList.add('hidden');App.calcLiveProfit()">${this.esc(v)}</div>`;
+      return `<div class="ac-item" data-value="${this.esc(v)}">${this.esc(v)}</div>`;
     }).join('');
+
+    // Agregar listeners a cada item
+    listEl.querySelectorAll('.ac-item').forEach(item => {
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const input = document.getElementById(inputId);
+        const list = document.getElementById(listId);
+        if (input && list) {
+          input.value = item.dataset.value;
+          list.classList.add('hidden');
+          this.calcLiveProfit();
+        }
+      });
+    });
+
     listEl.classList.remove('hidden');
   },
 

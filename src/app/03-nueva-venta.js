@@ -66,10 +66,26 @@
     const filtered = val ? values.filter(v => v.toLowerCase().includes(val)) : values.slice(0, 5);
 
     if (filtered.length === 0) { listEl.classList.add('hidden'); return; }
+
+    // BUG #1 FIX: Usar addEventListener en lugar de onclick inline para evitar XSS
     listEl.innerHTML = filtered.map(v => {
-      const safe = this.esc(v).replace(/'/g, '&#39;');
-      return `<div class="ac-item" onmousedown="document.getElementById('${inputId}').value='${safe}';document.getElementById('${listId}').classList.add('hidden');App.calcLiveProfit()">${this.esc(v)}</div>`;
+      return `<div class="ac-item" data-value="${this.esc(v)}">${this.esc(v)}</div>`;
     }).join('');
+
+    // Agregar listeners a cada item
+    listEl.querySelectorAll('.ac-item').forEach(item => {
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const input = document.getElementById(inputId);
+        const list = document.getElementById(listId);
+        if (input && list) {
+          input.value = item.dataset.value;
+          list.classList.add('hidden');
+          this.calcLiveProfit();
+        }
+      });
+    });
+
     listEl.classList.remove('hidden');
   },
 

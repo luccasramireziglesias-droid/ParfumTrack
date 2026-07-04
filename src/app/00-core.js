@@ -28,6 +28,26 @@
     this.registerSW();
     this._initTabSync();
     this._checkPendingLicense();
+    this._initEventDelegation();
+  },
+
+  _initEventDelegation() {
+    // BUG #2 FIX: Event delegation para botones WhatsApp y Pago (evita XSS)
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-whatsapp[data-msg]');
+      if (btn) {
+        e.preventDefault();
+        const msg = atob(btn.dataset.msg);
+        this.cobrarWhatsApp(msg);
+      }
+
+      const payBtn = e.target.closest('.btn-pay[data-cuota-id]');
+      if (payBtn) {
+        e.preventDefault();
+        const cuotaId = JSON.parse(payBtn.dataset.cuotaId);
+        this.abrirPagoCuota(cuotaId);
+      }
+    });
   },
 
   _checkPendingLicense() {
