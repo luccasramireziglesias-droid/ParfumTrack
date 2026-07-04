@@ -101,11 +101,15 @@ async function handleRegister(body, ip, env, headers) {
   } while (otp >= 4294000000);
   otp = (otp % 1000000).toString().padStart(6, '0');
 
-  // Store OTP
+  // Generate challenge nonce to prevent brute-force OTP attacks
+  const nonceBytes = crypto.getRandomValues(new Uint8Array(16));
+  const nonce = Array.from(nonceBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+
+  // Store OTP with nonce
   try {
     await env.PT_LICENSES.put(
       `trial_otp:${emailHash}`,
-      JSON.stringify({ otp, attempts: 0, createdAt: Date.now() }),
+      JSON.stringify({ otp, nonce, attempts: 0, createdAt: Date.now() }),
       { expirationTtl: OTP_TTL_SECS },
     );
   } catch (e) {
@@ -125,13 +129,13 @@ async function handleRegister(body, ip, env, headers) {
   }
 
   log('info', 'trial', 'OTP sent');
-  return json({ ok: true, sent: true }, 200, headers);
+  return json({ ok: true, sent: true, challenge: nonce }, 200, headers);
 }
 
 // ── Step 2: Verify OTP + anchor trial ────────────────────────
 
 async function handleVerify(body, ip, env, headers) {
-  const { email, otp, deviceId } = body;
+  const { email, otp, deviceId, challenge } = body;
 
   if (
     !email ||
@@ -139,7 +143,10 @@ async function handleVerify(body, ip, env, headers) {
     !isValidEmail(email) ||
     !otp ||
     typeof otp !== "string" ||
-    !/^\d{6}$/.test(otp)
+    !/^\d{6}$/.test(otp) ||
+    !challenge ||
+    typeof challenge !== "string" ||
+    !/^[0-9a-f]{32}$/.test(challenge)
   ) {
     return json({ ok: false, error: "Datos inválidos" }, 400, headers);
   }
@@ -174,6 +181,22 @@ async function handleVerify(body, ip, env, headers) {
     otpData = JSON.parse(otpRaw);
   } catch {
     return json({ ok: false, error: "Error interno" }, 500, headers);
+  }
+
+  // Validate challenge nonce (prevents replay and token reuse)
+  if (otpData.nonce !== challenge) {
+    otpData.attempts = (otpData.attempts || 0) + 1;
+    await env.PT_LICENSES.put(
+      `trial_otp:${emailHash}`,
+      JSON.stringify(otpData),
+      { expirationTtl: OTP_TTL_SECS },
+    );
+    await delay(DELAY_MS);
+    return json(
+      { ok: false, error: "Código inválido", attemptsLeft: 5 - otpData.attempts },
+      400,
+      headers,
+    );
   }
 
   // Too many failed attempts

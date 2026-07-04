@@ -176,12 +176,14 @@ describe('trial', () => {
       const body = await resp.json();
       expect(body.ok).toBe(true);
       expect(body.sent).toBe(true);
+      expect(body.challenge).toMatch(/^[0-9a-f]{32}$/);
 
       // Should have stored OTP in KV
       const otpPut = env.PT_LICENSES.put.mock.calls.find(c => c[0].startsWith('trial_otp:'));
       expect(otpPut).toBeDefined();
       const otpData = JSON.parse(otpPut[1]);
       expect(otpData.otp).toMatch(/^\d{6}$/);
+      expect(otpData.nonce).toMatch(/^[0-9a-f]{32}$/);
       expect(otpData.attempts).toBe(0);
 
       // Should have called Brevo
@@ -232,7 +234,7 @@ describe('trial', () => {
 
   describe('verify', () => {
     it('rejects missing OTP', async () => {
-      const ctx = makeContext({ step: 'verify', email: 'test@example.com' });
+      const ctx = makeContext({ step: 'verify', email: 'test@example.com', challenge: 'a'.repeat(32) });
       const resp = await onRequestPost(ctx);
       expect(resp.status).toBe(400);
       const body = await resp.json();
@@ -240,9 +242,17 @@ describe('trial', () => {
     });
 
     it('rejects non-6-digit OTP', async () => {
-      const ctx = makeContext({ step: 'verify', email: 'test@example.com', otp: '123' });
+      const ctx = makeContext({ step: 'verify', email: 'test@example.com', otp: '123', challenge: 'a'.repeat(32) });
       const resp = await onRequestPost(ctx);
       expect(resp.status).toBe(400);
+    });
+
+    it('rejects missing or invalid challenge', async () => {
+      const ctx = makeContext({ step: 'verify', email: 'test@example.com', otp: '123456' });
+      const resp = await onRequestPost(ctx);
+      expect(resp.status).toBe(400);
+      const body = await resp.json();
+      expect(body.error).toContain('inválidos');
     });
 
     it('rejects expired OTP', async () => {
@@ -250,7 +260,7 @@ describe('trial', () => {
       // OTP not found (expired)
       kv.get.mockResolvedValue(null);
       const env = makeEnv({ PT_LICENSES: kv });
-      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '123456' }), env };
+      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '123456', challenge: 'a'.repeat(32) }), env };
       const resp = await onRequestPost(ctx);
       expect(resp.status).toBe(400);
       const body = await resp.json();
@@ -259,14 +269,15 @@ describe('trial', () => {
 
     it('rejects wrong OTP and increments attempts', async () => {
       const kv = mockKV();
-      const otpData = { otp: '654321', attempts: 0, createdAt: Date.now() };
+      const nonce = 'a'.repeat(32);
+      const otpData = { otp: '654321', nonce, attempts: 0, createdAt: Date.now() };
       // Return OTP data for the otp key, null for everything else
       kv.get.mockImplementation(async (key) => {
         if (key.startsWith('trial_otp:')) return JSON.stringify(otpData);
         return null;
       });
       const env = makeEnv({ PT_LICENSES: kv });
-      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '111111' }), env };
+      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '111111', challenge: nonce }), env };
       const resp = await onRequestPost(ctx);
       expect(resp.status).toBe(400);
       const body = await resp.json();
@@ -282,13 +293,14 @@ describe('trial', () => {
 
     it('blocks after 5 failed attempts', async () => {
       const kv = mockKV();
-      const otpData = { otp: '654321', attempts: 5, createdAt: Date.now() };
+      const nonce = 'a'.repeat(32);
+      const otpData = { otp: '654321', nonce, attempts: 5, createdAt: Date.now() };
       kv.get.mockImplementation(async (key) => {
         if (key.startsWith('trial_otp:')) return JSON.stringify(otpData);
         return null;
       });
       const env = makeEnv({ PT_LICENSES: kv });
-      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '654321' }), env };
+      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '654321', challenge: nonce }), env };
       const resp = await onRequestPost(ctx);
       expect(resp.status).toBe(400);
       const body = await resp.json();
@@ -297,13 +309,14 @@ describe('trial', () => {
 
     it('accepts correct OTP and returns trial data', async () => {
       const kv = mockKV();
-      const otpData = { otp: '123456', attempts: 0, createdAt: Date.now() };
+      const nonce = 'a'.repeat(32);
+      const otpData = { otp: '123456', nonce, attempts: 0, createdAt: Date.now() };
       kv.get.mockImplementation(async (key) => {
         if (key.startsWith('trial_otp:')) return JSON.stringify(otpData);
         return null;
       });
       const env = makeEnv({ PT_LICENSES: kv });
-      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '123456', deviceId: 'dev1' }), env };
+      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '123456', challenge: nonce, deviceId: 'dev1' }), env };
       const resp = await onRequestPost(ctx);
       expect(resp.status).toBe(200);
       const body = await resp.json();
@@ -325,15 +338,16 @@ describe('trial', () => {
 
     it('uses earliest known start across anchors', async () => {
       const kv = mockKV();
+      const nonce = 'a'.repeat(32);
       const oldTimestamp = Date.now() - 5 * 24 * 60 * 60 * 1000; // 5 days ago
-      const otpData = { otp: '123456', attempts: 0, createdAt: Date.now() };
+      const otpData = { otp: '123456', nonce, attempts: 0, createdAt: Date.now() };
       kv.get.mockImplementation(async (key) => {
         if (key.startsWith('trial_otp:')) return JSON.stringify(otpData);
         if (key.startsWith('trial_email:')) return String(oldTimestamp);
         return null;
       });
       const env = makeEnv({ PT_LICENSES: kv });
-      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '123456' }), env };
+      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '123456', challenge: nonce }), env };
       const resp = await onRequestPost(ctx);
       const body = await resp.json();
       expect(body.startAt).toBe(oldTimestamp);
@@ -341,13 +355,14 @@ describe('trial', () => {
 
     it('returns no syncToken when LICENSE_SERVER_SECRET is missing', async () => {
       const kv = mockKV();
-      const otpData = { otp: '123456', attempts: 0, createdAt: Date.now() };
+      const nonce = 'a'.repeat(32);
+      const otpData = { otp: '123456', nonce, attempts: 0, createdAt: Date.now() };
       kv.get.mockImplementation(async (key) => {
         if (key.startsWith('trial_otp:')) return JSON.stringify(otpData);
         return null;
       });
       const env = makeEnv({ PT_LICENSES: kv, LICENSE_SERVER_SECRET: undefined });
-      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '123456' }), env };
+      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '123456', challenge: nonce }), env };
       const resp = await onRequestPost(ctx);
       const body = await resp.json();
       expect(body.syncCode).toBeNull();
@@ -361,11 +376,29 @@ describe('trial', () => {
         return null;
       });
       const env = makeEnv({ PT_LICENSES: kv });
-      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '123456' }), env };
+      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '123456', challenge: 'a'.repeat(32) }), env };
       const resp = await onRequestPost(ctx);
       expect(resp.status).toBe(500);
       const body = await resp.json();
       expect(body.error).toBe('Error interno');
+    });
+
+    it('rejects when challenge nonce does not match', async () => {
+      const kv = mockKV();
+      const storedNonce = 'a'.repeat(32);
+      const wrongNonce = 'b'.repeat(32);
+      const otpData = { otp: '123456', nonce: storedNonce, attempts: 0, createdAt: Date.now() };
+      kv.get.mockImplementation(async (key) => {
+        if (key.startsWith('trial_otp:')) return JSON.stringify(otpData);
+        return null;
+      });
+      const env = makeEnv({ PT_LICENSES: kv });
+      const ctx = { request: makeRequest({ step: 'verify', email: 'test@example.com', otp: '123456', challenge: wrongNonce }), env };
+      const resp = await onRequestPost(ctx);
+      expect(resp.status).toBe(400);
+      const body = await resp.json();
+      expect(body.error).toBe('Código inválido');
+      expect(body.attemptsLeft).toBe(4);
     });
   });
 });
