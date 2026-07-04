@@ -37,15 +37,27 @@
       const btn = e.target.closest('.btn-whatsapp[data-msg]');
       if (btn) {
         e.preventDefault();
-        const msg = atob(btn.dataset.msg);
-        this.cobrarWhatsApp(msg);
+        try {
+          // BUG #B-02 FIX: Validar base64 encoding antes de decodificar
+          const msg = atob(btn.dataset.msg);
+          this.cobrarWhatsApp(msg);
+        } catch (err) {
+          console.error('Error decodificando mensaje WhatsApp:', err);
+          this.toast('Error al procesar mensaje', 'error');
+        }
       }
 
       const payBtn = e.target.closest('.btn-pay[data-cuota-id]');
       if (payBtn) {
         e.preventDefault();
-        const cuotaId = JSON.parse(payBtn.dataset.cuotaId);
-        this.abrirPagoCuota(cuotaId);
+        try {
+          // BUG #B-01 FIX: Validar JSON parsing de cuota ID
+          const cuotaId = JSON.parse(payBtn.dataset.cuotaId);
+          this.abrirPagoCuota(cuotaId);
+        } catch (err) {
+          console.error('Error parseando cuota ID:', err);
+          this.toast('Error al abrir pago de cuota', 'error');
+        }
       }
     });
   },
