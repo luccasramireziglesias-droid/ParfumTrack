@@ -33,10 +33,18 @@ for (const file of fs.readdirSync(screensDir)) {
 const db = fs.readFileSync(path.join(SRC, 'db.js'), 'utf8');
 html = html.replace('/*PT:DB*/', () => db);
 
-const app = readOrdered(path.join(SRC, 'app')).join('');
+const encryption = fs.readFileSync(path.join(SRC, 'app', '15-encryption.js'), 'utf8');
+html = html.replace('/*PT:ENCRYPTION*/', () => encryption);
+
+// Read all app files EXCEPT 15-encryption.js
+const appFiles = fs.readdirSync(path.join(SRC, 'app'))
+  .filter(f => !f.startsWith('.') && f !== '15-encryption.js')
+  .sort()
+  .map(f => fs.readFileSync(path.join(SRC, 'app', f), 'utf8'));
+const app = appFiles.join('');
 html = html.replace('/*PT:APP*/', () => app);
 
-if (/PT:(CSS|DB|APP)|PT:SCREEN:/.test(html)) {
+if (/PT:(CSS|DB|APP|ENCRYPTION)|PT:SCREEN:/.test(html)) {
   throw new Error('build.js: unresolved placeholder remains in generated output');
 }
 
