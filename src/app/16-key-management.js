@@ -1,7 +1,6 @@
 // ====== KEY MANAGEMENT (Phase 5: F-33 + F-34) ======
 
 // F-34: PIN-protected master key management
-Object.assign(App, {
   async _setupEncryptionWithPIN() {
     if (!this._account?.license) return false;
 
@@ -75,11 +74,10 @@ Object.assign(App, {
     // Setup PIN protection if enabled
     await this._setupEncryptionWithPIN();
   },
-});
 
-// F-33: Initialize rotation check on app load
-document.addEventListener('DOMContentLoaded', () => {
-  if (App && App._account) {
-    App._checkAndRotateKeyIfNeeded().catch(() => {});
-  }
-});
+  // F-33: Initialize rotation check on app load
+  async _initDOMContentLoaded() {
+    if (App && App._account) {
+      await App._checkAndRotateKeyIfNeeded().catch(() => {});
+    }
+  },
