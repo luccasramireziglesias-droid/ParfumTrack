@@ -24,10 +24,18 @@ function mockR2(store = {}) {
 }
 
 async function generateToken(code, secret) {
+  // Generate token in new format: timestamp:nonce:signature
+  const nonceBytes = crypto.getRandomValues(new Uint8Array(16));
+  const nonce = Array.from(nonceBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  const timestamp = Math.floor(Date.now() / 1000);
+  const tokenPayload = `${code}:${timestamp}:${nonce}`;
+
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(code));
-  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(tokenPayload));
+  const signature = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+  return `${timestamp}:${nonce}:${signature}`;
 }
 
 function makeEnv(overrides = {}) {

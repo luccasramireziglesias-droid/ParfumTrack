@@ -142,6 +142,16 @@ export async function onRequestPost(context) {
 
   const encoder = new TextEncoder();
 
+  // Generate unique nonce for this token (prevents replay attacks)
+  const nonceBytes = crypto.getRandomValues(new Uint8Array(16));
+  const nonce = Array.from(nonceBytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  // Token with timestamp + nonce (format: "timestamp:nonce:signature")
+  const timestamp = Math.floor(Date.now() / 1000);
+  const tokenPayload = `${normalizedCode}:${timestamp}:${nonce}`;
+
   // HMAC-SHA256 token (for backup.js authentication — server-side only)
   const hmacKey = await crypto.subtle.importKey(
     "raw",
@@ -153,11 +163,14 @@ export async function onRequestPost(context) {
   const hmacBytes = await crypto.subtle.sign(
     "HMAC",
     hmacKey,
-    encoder.encode(normalizedCode),
+    encoder.encode(tokenPayload),
   );
-  const token = Array.from(new Uint8Array(hmacBytes))
+  const signature = Array.from(new Uint8Array(hmacBytes))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+
+  // Final token format: timestamp:nonce:signature
+  const token = `${timestamp}:${nonce}:${signature}`;
 
   // ECDSA P-256 signature (for client-side verification via embedded public key)
   const signingKeyRaw = env.LICENSE_SIGNING_PRIVATE_KEY;

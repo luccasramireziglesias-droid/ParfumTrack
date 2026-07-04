@@ -18,7 +18,7 @@
 // Rate limit: 10 requests/hora por IP, 4 backups/día por código
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, verifyToken, log, requireJson, parseJsonBody, hashIp } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, verifyToken, verifyTokenWithExpiry, log, requireJson, parseJsonBody, hashIp } from './_shared.js';
 
 const CORS_OPTS = { methods: 'GET, POST, OPTIONS', allowHeaders: 'Content-Type, X-PT-Code, X-PT-Token' };
 
@@ -51,8 +51,8 @@ export async function onRequestPost(context) {
   if (!/^[A-Z0-9_-]{1,64}$/.test(normalized)) {
     return json({ ok: false, error: 'Invalid code format' }, 400, headers);
   }
-  const authError = await verifyToken(normalized, token, env);
-  if (authError) return json({ ok: false, error: authError }, 401, headers);
+  const tokenResult = await verifyTokenWithExpiry(normalized, token, env, 900);
+  if (!tokenResult.valid) return json({ ok: false, error: tokenResult.error }, 401, headers);
 
   // Rate limit by code (4 saves per day)
   const codeLimitError = await checkRateLimit(env, `rl_code_${normalized}`, 4, 86400);
@@ -109,8 +109,8 @@ export async function onRequestGet(context) {
   if (!/^[A-Z0-9_-]{1,64}$/.test(normalized)) {
     return json({ ok: false, error: 'Invalid code format' }, 400, headers);
   }
-  const authError = await verifyToken(normalized, token, env);
-  if (authError) return json({ ok: false, error: authError }, 401, headers);
+  const tokenResult = await verifyTokenWithExpiry(normalized, token, env, 900);
+  if (!tokenResult.valid) return json({ ok: false, error: tokenResult.error }, 401, headers);
 
   if (!env.PT_BACKUP) {
     return json({ ok: false, error: 'Storage not configured' }, 500, headers);

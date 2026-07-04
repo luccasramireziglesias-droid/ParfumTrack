@@ -165,7 +165,8 @@ describe('validate-license', () => {
       const body = await resp.json();
       expect(body.ok).toBe(true);
       expect(body.valid).toBe(true);
-      expect(body.token).toMatch(/^[0-9a-f]{64}$/);
+      // New token format: timestamp:nonce:signature
+      expect(body.token).toMatch(/^\d+:[0-9a-f]{32}:[0-9a-f]{64}$/);
       expect(body.sig).toBeTruthy();
     });
 

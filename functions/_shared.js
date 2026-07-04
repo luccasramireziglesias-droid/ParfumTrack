@@ -65,6 +65,54 @@ export async function verifyToken(code, token, env) {
   return diff === 0 ? null : 'Invalid token';
 }
 
+// New: Verify token with timestamp + nonce (prevent replay attacks)
+// Token format: "timestamp:nonce:signature"
+export async function verifyTokenWithExpiry(code, token, env, maxAgeSecs = 900) {
+  const secret = env.LICENSE_SERVER_SECRET;
+  if (!secret) return { valid: false, error: 'Server misconfigured' };
+
+  if (typeof code !== 'string' || code.length > 128) return { valid: false, error: 'Invalid code' };
+  if (typeof token !== 'string') return { valid: false, error: 'Invalid token' };
+
+  // Parse token: timestamp:nonce:signature
+  const parts = token.split(':');
+  if (parts.length !== 3) return { valid: false, error: 'Invalid token format' };
+
+  const [timestampStr, nonce, signature] = parts;
+  const timestamp = parseInt(timestampStr, 10);
+
+  if (!Number.isFinite(timestamp) || !/^[0-9a-f]{32}$/.test(nonce) || !/^[0-9a-f]{64}$/.test(signature)) {
+    return { valid: false, error: 'Invalid token format' };
+  }
+
+  // Validate timestamp is within acceptable window (default 15 minutes)
+  const now = Math.floor(Date.now() / 1000);
+  const age = now - timestamp;
+  if (age < 0 || age > maxAgeSecs) {
+    return { valid: false, error: 'Token expired or from future' };
+  }
+
+  // Verify signature: HMAC-SHA256(secret, code:timestamp:nonce)
+  const tokenPayload = `${code}:${timestamp}:${nonce}`;
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(tokenPayload));
+  const expected = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+  // Timing-safe comparison
+  let diff = 0;
+  const maxLen = Math.max(expected.length, signature.length);
+  const a = expected.padEnd(maxLen, '\0');
+  const b = signature.padEnd(maxLen, '\0');
+  for (let i = 0; i < maxLen; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+
+  if (diff !== 0) {
+    return { valid: false, error: 'Invalid signature' };
+  }
+
+  return { valid: true, nonce, timestamp };
+}
+
 export async function sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
