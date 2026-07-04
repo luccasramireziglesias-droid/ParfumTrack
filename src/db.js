@@ -225,6 +225,38 @@
     return this.delete('gastos', id);
   },
 
+  async getVentasByPerfume(perfumeId) {
+    await openDB();
+    const index = tx('ventas', 'readonly').index('perfumeId');
+    return reqP(index.getAll(perfumeId));
+  },
+
+  async getVentasByCliente(cliente) {
+    await openDB();
+    const index = tx('ventas', 'readonly').index('cliente');
+    return reqP(index.getAll(cliente));
+  },
+
+  async getCuotasSinPagar() {
+    await openDB();
+    const index = tx('cuotas', 'readonly').index('pagado');
+    return reqP(index.getAll(false));
+  },
+
+  async getCuotasPorVencer(diasAdelante = 30) {
+    await openDB();
+    const ahora = Date.now();
+    const fecha = ahora + (diasAdelante * 86400000);
+    const cuotas = await this.getAll('cuotas');
+    return cuotas.filter(c => c.vence && c.vence <= fecha && !c.pagado);
+  },
+
+  async getCajaByTipo(tipo) {
+    await openDB();
+    const index = tx('caja', 'readonly').index('tipo');
+    return reqP(index.getAll(tipo));
+  },
+
   async seedDemo() {
     const perfumes = await this.getPerfumes();
     if (perfumes.length > 0) return;

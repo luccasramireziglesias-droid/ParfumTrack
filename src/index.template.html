@@ -345,10 +345,14 @@ function openDB() {
       if (!d.objectStoreNames.contains('ventas')) {
         const s = d.createObjectStore('ventas', { keyPath: 'id', autoIncrement: true });
         s.createIndex('fecha', 'fecha', { unique: false });
+        s.createIndex('perfumeId', 'perfumeId', { unique: false });
+        s.createIndex('cliente', 'cliente', { unique: false });
       }
       if (!d.objectStoreNames.contains('cuotas')) {
         const s = d.createObjectStore('cuotas', { keyPath: 'id', autoIncrement: true });
         s.createIndex('ventaId', 'ventaId', { unique: false });
+        s.createIndex('pagado', 'pagado', { unique: false });
+        s.createIndex('vence', 'vence', { unique: false });
       }
       if (!d.objectStoreNames.contains('config')) {
         d.createObjectStore('config', { keyPath: 'key' });
@@ -361,6 +365,7 @@ function openDB() {
       if (!d.objectStoreNames.contains('caja')) {
         const s = d.createObjectStore('caja', { keyPath: 'id', autoIncrement: true });
         s.createIndex('fecha', 'fecha', { unique: false });
+        s.createIndex('tipo', 'tipo', { unique: false });
       }
       if (!d.objectStoreNames.contains('gastos')) {
         const s = d.createObjectStore('gastos', { keyPath: 'id', autoIncrement: true });
