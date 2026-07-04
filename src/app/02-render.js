@@ -3,6 +3,9 @@
   // ====== RENDER ======
 
   _debounceTimers: {},
+  _dashboardMonth: null,
+  _dashboardYear: null,
+
   debounce(key, fn, ms = 100) {
     clearTimeout(this._debounceTimers[key]);
     this._debounceTimers[key] = setTimeout(fn, ms);
@@ -19,16 +22,43 @@
     });
   },
 
+  changeDashboardMonth(offset) {
+    const now = new Date();
+    if (!this._dashboardMonth) this._dashboardMonth = now.getMonth();
+    if (!this._dashboardYear) this._dashboardYear = now.getFullYear();
+
+    this._dashboardMonth += offset;
+    if (this._dashboardMonth > 11) {
+      this._dashboardMonth = 0;
+      this._dashboardYear += 1;
+    } else if (this._dashboardMonth < 0) {
+      this._dashboardMonth = 11;
+      this._dashboardYear -= 1;
+    }
+
+    this.renderDashboard();
+  },
+
+  resetDashboardMonth() {
+    this._dashboardMonth = null;
+    this._dashboardYear = null;
+    this.renderDashboard();
+  },
+
   renderDashboard() {
     const now = new Date();
     const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     const el = (id) => document.getElementById(id);
 
-    el('hero-month').textContent = monthNames[now.getMonth()] + ' ' + now.getFullYear();
+    // Usar mes seleccionado o mes actual
+    const displayMonth = this._dashboardMonth ?? now.getMonth();
+    const displayYear = this._dashboardYear ?? now.getFullYear();
+
+    el('hero-month').textContent = monthNames[displayMonth] + ' ' + displayYear;
 
     const thisMonth = this.ventas.filter(v => {
       const d = new Date(v.fecha);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      return d.getMonth() === displayMonth && d.getFullYear() === displayYear;
     });
 
     // BUG #6 FIX: Usar precioOriginal (antes de descuento) para ganancia bruta
@@ -40,7 +70,9 @@
     el('hero-ventas-count').textContent = totalVentas + ' ventas registradas';
     el('stat-ventas').textContent = totalVentas;
 
-    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonthNum = displayMonth === 0 ? 11 : displayMonth - 1;
+    const prevMonthYear = displayMonth === 0 ? displayYear - 1 : displayYear;
+    const prevMonth = new Date(prevMonthYear, prevMonthNum, 1);
     const prevVentas = this.ventas.filter(v => {
       const d = new Date(v.fecha);
       return d.getMonth() === prevMonth.getMonth() && d.getFullYear() === prevMonth.getFullYear();
