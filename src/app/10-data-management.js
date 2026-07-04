@@ -583,6 +583,14 @@
       this.toast('Activá una licencia primero', 'warning');
       return;
     }
+
+    // F-34: Verify encryption is unlocked if PIN protection enabled
+    if (localStorage.getItem('pt_master_key_encrypted')) {
+      if (!await this._ensureEncryptionUnlocked()) {
+        return;
+      }
+    }
+
     if (!await this.appConfirm('¿Subir backup a la nube? Esto reemplazará tu backup anterior.', 'Subir', 'cloud_upload')) return;
     this.toast('Subiendo backup…', 'cloud_upload');
 
@@ -630,6 +638,14 @@
       this.toast('Activá una licencia primero', 'warning');
       return;
     }
+
+    // F-34: Verify encryption is unlocked if PIN protection enabled
+    if (localStorage.getItem('pt_master_key_encrypted')) {
+      if (!await this._ensureEncryptionUnlocked()) {
+        return;
+      }
+    }
+
     if (!await this.appConfirm('¿Restaurar datos desde la nube? Esto reemplazará tus datos actuales.', 'Restaurar', 'cloud_download')) return;
 
     this.toast('Descargando backup…', 'cloud_download');
