@@ -66,6 +66,14 @@
       </label>
     </div>
 
+    <div style="border-top:1px solid var(--border);padding-top:16px;margin-bottom:16px;">
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;">
+        <input type="checkbox" id="consent-marketing" style="margin-top:3px;cursor:pointer;" checked>
+        <span style="color:var(--text3);">✓ Opcional: Recibir emails sobre nuevas features y promociones</span>
+      </label>
+      <p style="font-size:12px;color:var(--text3);margin-top:12px;line-height:1.4;">Si cargarás datos de tus clientes, también revisá nuestro <a href="/dpa.html" target="_blank" style="color:var(--gold);text-decoration:underline;">Acuerdo de Procesamiento de Datos (DPA)</a>.</p>
+    </div>
+
     <div id="consent-error" style="font-size:12px;color:var(--red);margin-bottom:16px;height:16px;"></div>
 
     <button class="btn-primary btn-full" onclick="App.acceptConsent()" style="margin-bottom:10px;">

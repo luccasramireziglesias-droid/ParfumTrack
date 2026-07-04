@@ -15,6 +15,7 @@
     const terms = document.getElementById('consent-terms').checked;
     const privacy = document.getElementById('consent-privacy').checked;
     const cookies = document.getElementById('consent-cookies').checked;
+    const marketing = document.getElementById('consent-marketing').checked;
 
     if (!terms || !privacy || !cookies) {
       document.getElementById('consent-error').textContent = 'Debes aceptar todos los términos para continuar';
@@ -23,6 +24,7 @@
 
     localStorage.setItem('pt_consent_accepted', '1');
     localStorage.setItem('pt_consent_date', new Date().toISOString());
+    localStorage.setItem('pt_consent_marketing', marketing ? '1' : '0');
     document.getElementById('consent-modal').style.display = 'none';
     this.checkOnboarding();
   },
