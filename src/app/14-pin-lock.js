@@ -82,4 +82,4 @@
       knob.parentElement.querySelector('span:nth-child(2)').style.background = 'var(--card2)';
       this.toast('PIN desactivado', 'lock_open');
     }
-  }
+  },
