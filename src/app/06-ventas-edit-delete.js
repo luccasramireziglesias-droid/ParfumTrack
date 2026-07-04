@@ -53,7 +53,8 @@
     const proveedor = document.getElementById('venta-proveedor').value;
     const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
-    const fecha = fechaStr ? new Date(fechaStr + 'T12:00:00').getTime() : Date.now();
+    // BUG #5 FIX: Usar 'Z' para UTC en lugar de hora local
+    const fecha = fechaStr ? new Date(fechaStr + 'T00:00:00Z').getTime() : Date.now();
     const nota = document.getElementById('venta-nota').value;
     const perfumeId = document.getElementById('venta-perfume-id').value;
     const pvFinal = descuento > 0 ? Math.round(precioVenta * (1 - descuento / 100)) : precioVenta;

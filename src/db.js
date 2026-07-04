@@ -64,6 +64,11 @@
       }
     }
     if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
+      // BUG #12 FIX: Limitar número de cuotas a máximo 12
+      if (v.numCuotas > 12) {
+        throw new Error('Maximum 12 installments allowed');
+      }
+
       const montoCuota = Math.round(v.precioVenta / v.numCuotas);
       const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
       for (let i = 0; i < v.numCuotas; i++) {

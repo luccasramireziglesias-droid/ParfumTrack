@@ -149,7 +149,8 @@
     const proveedor = document.getElementById('venta-proveedor').value;
     const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
-    const fecha = fechaStr ? new Date(fechaStr + 'T12:00:00').getTime() : Date.now();
+    // BUG #5 FIX: Usar 'Z' para UTC en lugar de hora local para evitar discrepancias de zona horaria
+    const fecha = fechaStr ? new Date(fechaStr + 'T00:00:00Z').getTime() : Date.now();
     const nota = document.getElementById('venta-nota').value;
     const perfumeId = document.getElementById('venta-perfume-id').value;
     const numCuotas = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
@@ -161,6 +162,18 @@
     }
     if (precioVenta <= 0) {
       this.toast('Ingresá el precio de venta', 'warning');
+      return;
+    }
+
+    // BUG #8 FIX: Validar descuento entre 0 y 100
+    if (descuento < 0 || descuento > 100) {
+      this.toast('Descuento debe estar entre 0 y 100%', 'warning');
+      return;
+    }
+
+    // BUG #11 FIX: Validar número de cuotas entre 1 y 12
+    if (numCuotas < 1 || numCuotas > 12) {
+      this.toast('Cuotas debe estar entre 1 y 12', 'warning');
       return;
     }
 
