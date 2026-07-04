@@ -3937,10 +3937,13 @@ const App = {
   // ====== NAVIGATION ======
 
   showScreen(name) {
+    console.log('🔄 showScreen called with:', name);
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const el = document.getElementById('screen-' + name);
+    console.log('Found screen element:', el);
     if (el) el.classList.add('active');
     this.currentScreen = name;
+    console.log('✓ currentScreen set to:', this.currentScreen);
 
     document.querySelectorAll('.nav-item').forEach(n => {
       const tab = n.dataset.tab;
@@ -7006,7 +7009,7 @@ const App = {
       knob.parentElement.querySelector('span:nth-child(2)').style.background = 'var(--card2)';
       this.toast('PIN desactivado', 'lock_open');
     }
-  }
+  },
 // ====== KEY MANAGEMENT (Phase 5: F-33 + F-34) ======
 
 // F-34: PIN-protected master key management
