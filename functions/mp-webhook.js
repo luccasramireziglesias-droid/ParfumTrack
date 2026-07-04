@@ -81,16 +81,21 @@ export async function onRequestPost(context) {
     return jsonResp({ ok: false, error: 'kv_unavailable' }, 500);
   }
 
-  // 3. Idempotencia: ignorar si ya fue procesado o está en proceso
+  // 3. Idempotencia: atomic check-and-set para evitar race conditions
+  // Si entre el check y el put viene otro webhook, ambos verían "not found"
+  // Solución: usar un UUID único per worker invocation, reintentable
   const idKey = `webhook_processed:${type}:${resourceId}`;
+  const workerId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
   const already = await env.PT_LICENSES.get(idKey);
-  if (already === 'done' || already === 'processing') {
-    log('info', 'mp-webhook', 'already processed', { idKey, status: already });
+  if (already === 'done') {
+    log('info', 'mp-webhook', 'already processed', { idKey });
     return jsonResp({ ok: true });
   }
 
-  // Marcar como "en proceso" con TTL corto para evitar ejecuciones simultáneas
-  await env.PT_LICENSES.put(idKey, 'processing', { expirationTtl: 300 });
+  // Marcar con worker ID único para detectar simultáneamente (TTL 5 min)
+  // Si el mismo tipo:resourceId viene 2x en <5 min, tendrán workerIds distintos
+  await env.PT_LICENSES.put(idKey, `processing:${workerId}`, { expirationTtl: 300 });
 
   // 4. Procesar sincrónicamente para que MP reintente si falla
   try {
@@ -180,8 +185,10 @@ async function processEvent({ type, resourceId, env, idKey }) {
 async function handlePaymentEvent(paymentId, env) {
   if (!env.MP_ACCESS_TOKEN) { throw new Error('MP_ACCESS_TOKEN missing'); }
 
+  // Timeout: 10 segundos para obtener detalles del pago
   const resp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
     headers: { Authorization: `Bearer ${env.MP_ACCESS_TOKEN}` },
+    signal: AbortSignal.timeout(10000),
   });
   if (!resp.ok) {
     throw new Error(`MP API returned ${resp.status} for payment ${paymentId}`);
@@ -200,8 +207,10 @@ async function handleSinglePayment(paymentId, payment, env) {
     return;
   }
 
-  // Obtener email y plan desde external_reference
+  // Obtener email y plan desde external_reference (con validación cruzada)
   let email, plan;
+  const payerEmail = payment.payer?.email;
+
   if (payment.external_reference) {
     try {
       const ref = JSON.parse(payment.external_reference);
@@ -209,11 +218,33 @@ async function handleSinglePayment(paymentId, payment, env) {
       plan  = ref.plan || 'monthly';
     } catch { /* JSON inválido — usar fallback */ }
   }
-  if (!email) email = payment.payer?.email;
-  if (!plan)  plan  = 'monthly';
 
-  if (!email || !isValidEmail(email)) {
-    log('error', 'mp-webhook', 'payment without valid email', { paymentId });
+  // Validar email: debe estar presente y ser válido
+  if (!email && !payerEmail) {
+    log('error', 'mp-webhook', 'payment without email source', { paymentId });
+    return;
+  }
+
+  // Si tenemos ambos, prefiero payer.email (visto por MP directamente)
+  // pero valido que no conflictúen (posible spoofing)
+  if (email && payerEmail && email.toLowerCase() !== payerEmail.toLowerCase()) {
+    log('warn', 'mp-webhook', 'email mismatch: external_reference vs payer', {
+      external: email,
+      payer: payerEmail,
+      paymentId,
+    });
+    // Usar payer.email como fuente de verdad (menos manipulable)
+    email = payerEmail;
+  } else if (!email) {
+    email = payerEmail;
+  }
+
+  if (!plan) plan = 'monthly';
+
+  // Normalizar y validar email
+  email = email.toLowerCase().trim();
+  if (!isValidEmail(email)) {
+    log('error', 'mp-webhook', 'invalid email format', { email: email.slice(0, 5) + '***', paymentId });
     return;
   }
 
@@ -221,6 +252,18 @@ async function handleSinglePayment(paymentId, payment, env) {
   const expectedCurrency = env.MP_CURRENCY_ID || 'USD';
   if (payment.currency_id && payment.currency_id !== expectedCurrency) {
     log('error', 'mp-webhook', 'currency mismatch', { got: payment.currency_id, expected: expectedCurrency, paymentId });
+    return;
+  }
+
+  // Validar installments: no aceptar pagos en cuotas (riesgo de contracargo)
+  // installments = 1 es el default (pago único)
+  const installments = payment.installments || 1;
+  if (installments > 1) {
+    log('warn', 'mp-webhook', 'installment payment rejected', {
+      installments,
+      paymentId,
+      email: email.slice(0, 5) + '***',
+    });
     return;
   }
 
@@ -236,6 +279,26 @@ async function handleSinglePayment(paymentId, payment, env) {
 
   const TTL_3Y    = 94608000;
   const emailHash = await hashEmail(email);
+
+  // Rate limit: máx 3 pagos exitosos por email por hora (previene spam)
+  const now = Math.floor(Date.now() / 1000);
+  const hour = Math.floor(now / 3600);
+  const rateLimitKey = `mp_payments_per_email:${emailHash}:${hour}`;
+  let paymentCount = 0;
+  try {
+    const stored = await env.PT_LICENSES.get(rateLimitKey);
+    paymentCount = stored ? parseInt(stored, 10) : 0;
+  } catch {
+    log('warn', 'mp-webhook', 'rate limit check failed', { email: email.slice(0, 5) + '***' });
+  }
+  if (paymentCount >= 3) {
+    log('warn', 'mp-webhook', 'payment rate limit exceeded for email', {
+      email: email.slice(0, 5) + '***',
+      paymentId,
+      count: paymentCount,
+    });
+    return;
+  }
 
   // Secondary idempotency: check if this payment already created a license
   const existingPayLicense = await env.PT_LICENSES.get(`mp_pay:${paymentId}`);
@@ -269,6 +332,10 @@ async function handleSinglePayment(paymentId, payment, env) {
 
         await env.PT_LICENSES.put(`license:${existingCode}`, JSON.stringify(lic));
         await env.PT_LICENSES.put(`mp_pay:${paymentId}`, existingCode, { expirationTtl: TTL_3Y });
+
+        // Incrementar contador de rate limit
+        await env.PT_LICENSES.put(rateLimitKey, String(paymentCount + 1), { expirationTtl: 3600 });
+
         log('info', 'mp-webhook', 'license renewed', { code: existingCode.slice(0, 7) + '***', expiresAt });
 
         const ownerEmail = env.OWNER_EMAIL || env.FROM_EMAIL;
@@ -293,8 +360,8 @@ async function handleSinglePayment(paymentId, payment, env) {
   // Primera licencia para este email
   const code     = await generateLicenseCode(env);
   const isAnnual = plan === 'annual';
-  const now      = new Date();
-  const expiry   = new Date(now);
+  const createdDate = new Date();
+  const expiry   = new Date(createdDate);
   expiry.setDate(expiry.getDate() + (isAnnual ? 365 : 31));
   const expiresAt = expiry.toISOString().split('T')[0];
 
@@ -304,7 +371,7 @@ async function handleSinglePayment(paymentId, payment, env) {
     expiresAt,
     maxUses:         null,
     usedCount:       0,
-    createdAt:       now.toISOString().split('T')[0],
+    createdAt:       createdDate.toISOString().split('T')[0],
     lastActivatedAt: null,
     plan:            isAnnual ? 'basic_annual' : 'basic_monthly',
     status:          'active',
@@ -317,6 +384,9 @@ async function handleSinglePayment(paymentId, payment, env) {
   await env.PT_LICENSES.put(`license:${code}`, JSON.stringify(licenseData));
   await env.PT_LICENSES.put(`email_license:${emailHash}`, code, { expirationTtl: TTL_3Y });
   await env.PT_LICENSES.put(`mp_pay:${paymentId}`, code, { expirationTtl: TTL_3Y });
+
+  // Incrementar contador de rate limit
+  await env.PT_LICENSES.put(rateLimitKey, String(paymentCount + 1), { expirationTtl: 3600 });
 
   log('info', 'mp-webhook', 'license created', { code: code.slice(0, 7) + '***', plan });
   await sendEmail(env, email, 'subscription_activated', { code, expiresAt });

@@ -304,7 +304,7 @@ describe('mp-webhook', () => {
       await onRequestPost(ctx);
 
       const processingCall = kv.put.mock.calls.find(
-        c => c[0] === 'webhook_processed:payment:99999' && c[1] === 'processing',
+        c => c[0] === 'webhook_processed:payment:99999' && c[1]?.startsWith('processing:'),
       );
       expect(processingCall).toBeDefined();
       expect(processingCall[2]).toEqual({ expirationTtl: 300 });
