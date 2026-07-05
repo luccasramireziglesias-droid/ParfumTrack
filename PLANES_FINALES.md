@@ -19,9 +19,9 @@
 ✅ Offline 100% (DIFERENCIADOR)
 ✅ Sincronización básica
 
-⏱️ LIMITACIONES INTENCIONALES (FRICTION):
-⏱️ Stock: Máx 10 perfumes
-⏱️ Cuotas: Máx 5 pendientes
+⏱️ LIMITACIONES INTENCIONALES (FRICTION - PERO USABLE):
+⏱️ Stock: Máx 30 perfumes (revendedor pequeño promedio: 15-20)
+⏱️ Cuotas: Máx 10 pendientes (usuario con 5-6 clientes regulares)
 ⏱️ Dashboard: Solo números (SIN gráficos)
 ⏱️ Período visible: Última semana
 
@@ -39,28 +39,37 @@
 **Por qué atrapa:**
 - Ganancia automática = RESUELVE problema central
 - Offline = DIFERENCIADOR contra competencia
-- 10 perfumes = Suficiente para validar ("Sí, esto funciona")
+- 30 perfumes + 10 cuotas = Usable para revendedor independiente pequeño
 - Gratis = Cero barrera
 
 **Por qué fuerza upgrade (NO se quedan):**
 ```
 Timeline usuario típico:
-Día 1-3:    "Wow, ganancia automática funciona"
-Día 7:      "Tengo 12 perfumes, límite de 10..."
-Semana 2:   "Mis 3 clientes principales me deben cuota"
-Semana 3:   "Necesito ver evolución, estoy creciendo"
-Semana 4:   "Quiero catálogo WA, vender mejor"
 
-PAIN POINT CLARO EN SEMANA 2:
-- Stock limit: "Mi venta más rentable no está en la app"
-- Cuotas limit: "No puedo registrar a todos los clientes"
-- Sin gráficos: "¿Estoy creciendo o decayendo?"
-- Sin WA catálogo: "Clientes me piden fotos, tengo que enviar manual"
+SMALL REVENDEDOR (permanece en Free):
+├─ Stock: 15-20 perfumes (dentro del límite)
+├─ Cuotas: 4-6 regulares (dentro del límite)
+├─ Puede vivir en Free indefinidamente si no crece
+└─ OKAY - Es usuario pequeño, demo válida
 
-DECISION: "Necesito Básico Pro"
+CRECEDOR (fuerza upgrade):
+Semana 1-4:  "Wow, ganancia automática funciona"
+Semana 6:    "Tengo 32 perfumes, límite de 30 alcanzado"
+Semana 8:    "Tengo 12 clientes regulares, límite 10"
+Semana 10:   "Necesito ver evolución, estoy creciendo"
+Semana 12:   "Quiero catálogo WA, vender mejor"
+
+PAIN POINT CLARO EN SEMANA 6-8:
+- Stock limit: "Mi mejor venta (perfume XYZ) no está"
+- Cuotas limit: "No puedo trackear 2 clientes nuevos"
+- Sin gráficos: "¿Crecí o bajé este mes?"
+- Sin WA catálogo: "Perdí venta porque clientes querían fotos"
+
+DECISION: "Necesito Básico Pro para crecer"
 ```
 
-**Conversion expectativa:** 40-50% Free → Básico Pro en 4 semanas
+**Conversión esperada:** 25-35% Free → Básico Pro cuando crecen (6-8 semanas)
+**Retención en Free:** 65-75% de usuarios pequeños se quedan en Free felices (demo válida para su segment)
 
 ---
 
@@ -127,13 +136,14 @@ Costo: "Es GRATIS comparado con beneficio"
 
 **En cuotas:**
 ```
-Antes (Free, máx 5 cuotas):
+Antes (Free, máx 10 cuotas):
 - Tiene 8 clientes regulares
-- Puede trackear 5, otros 3 "se le olvidan"
-- Pierde: $2.000/mes en cobros olvidados
+- Puede trackear 8 sin problema
+- Pero si crece a 12, pierde 2 de vista
+- Pierde: $500-1.000/mes en cobros olvidados
 
 Después (Básico Pro):
-- Trackea 8 cuotas sin limite
+- Trackea cuotas sin limite
 - Recordatorios automáticos WA
 - Recupera: $1.800/mes
 ROI: $1.800/mes ÷ $8/mes = 225x
@@ -247,8 +257,8 @@ Ganancia auto     ✅        ✅            ✅
 Offline           ✅        ✅            ✅
 
 SCALE
-Stock             10        ∞             ∞
-Cuotas            5         ∞             ∞
+Stock             30        ∞             ∞
+Cuotas            10        ∞             ∞
 Usuarios          1         1             50+
 Período           1 semana  ∞             12 meses
 
@@ -322,7 +332,7 @@ Psychology:
 Es no-brainer.
 ```
 
-**Transition:** 40-50% Free → Básico Pro en 4 semanas
+**Transition:** 25-35% Free → Básico Pro en 6-8 semanas (límites más altos = tiempo más largo para trigger)
 
 ---
 
@@ -374,25 +384,27 @@ MONTH 6: 1.500 usuarios
 └─ MRR: 750×$7.99 + 150×$150 = $28.492
 
 MONTH 12: 3.500 usuarios
-├─ Free: 1.050 (30%) - demo only
-├─ Básico Pro: 2.100 (60%) - core market
+├─ Free: 1.225 (35%) - demo + usable para pequeños
+├─ Básico Pro: 1.925 (55%) - converted from Free (slower timeline)
 ├─ Enterprise: 350 (10%) - grown teams
-└─ MRR: 2.100×$7.99 + 350×$150 = $69.690
+└─ MRR: 1.925×$7.99 + 350×$150 = $67.868
 
 YEAR 2: 8.000 usuarios (matured)
-├─ Free: 2.000 (25%) - new users
-├─ Básico Pro: 5.200 (65%) - stable
+├─ Free: 2.240 (28%) - new users + retained small sellers
+├─ Básico Pro: 4.960 (62%) - core market
 ├─ Enterprise: 800 (10%) - large teams
-└─ MRR: 5.200×$7.99 + 800×$150 = $161.588
+└─ MRR: 4.960×$7.99 + 800×$150 = $159.584
 └─ ANNUAL: ~$1.9M
 ```
 
 **Comparativa:**
-| | Old (Broken) | New (Optimized) |
+| | Old (Broken) | New (Optimized v3) |
 |---|---|---|
-| Month 12 MRR | $800 | $69.690 |
-| Month 24 MRR | $1.200 | $161.588 |
-| Monetization rate | 20% | 75% |
+| Month 12 MRR | $800 | $67.868 |
+| Month 24 MRR | $1.200 | $159.584 |
+| Monetization rate | 20% | 70% |
+| Free retention | 100% | 65-75% |
+| Conversion timeline | Fast (friction too high) | Gradual (sustainable growth) |
 
 ---
 
@@ -437,7 +449,7 @@ LTV:CAC ratio: 1.118:1 ✅ Excellent
 
 ```
 1. Code changes:
-   ├─ Límites en Free (10 stock, 5 cuotas)
+   ├─ Límites en Free (30 stock, 10 cuotas)
    ├─ Feature gating Básico Pro
    ├─ Catálogo WA unlock en Básico Pro
    └─ Dashboard límites (1 semana vs ∞)
@@ -518,16 +530,16 @@ MRR = ~$600-800/year
 
 ### NEW SOLUTION
 ```
-Free = Demo with clear limits → Friction forces 40-50% upgrade
+Free = Demo with clear limits → Friction forces 25-35% upgrade (más usable, trigger más tarde)
 Básico Pro = IRRESISTIBLE ($8 for $1k value) → Must-have
 Enterprise = Only for real teams → Strategic upgrade
-MRR = ~$70k/year (month 6), ~$160k/year (month 12)
-Monetization = 75% of users eventually pay
+MRR = ~$51k/year (month 12), ~$127k/year (month 24) [revised: lower conv, but higher retention]
+Monetization = 65-70% of users eventually pay
 ```
 
 ### CRITICAL DECISIONS
 1. ✅ **NO Plus plan** → Direct Free → Básico Pro jump
-2. ✅ **Límites intencionales en Free** → 10 stock, 5 cuotas, sin gráficos
+2. ✅ **Límites intencionales en Free** → 30 stock, 10 cuotas, sin gráficos
 3. ✅ **Básico Pro irresistible** → $7.99 (no $9.99), catálogo WA unlock
 4. ✅ **Enterprise real** → Solo para 5+ usuarios, features BI/API/team
 
