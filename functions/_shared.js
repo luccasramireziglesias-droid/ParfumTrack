@@ -119,6 +119,51 @@ export async function checkIPRateLimit(env, request, endpoint, maxPerWindow = 10
   return null;
 }
 
+// PH3-03: Adaptive throttling — rechaza progresivamente IPs que muestran patrones de ataque
+export async function getAdaptiveThrottle(env, request, endpoint) {
+  if (!env.PT_LICENSES) return 0;
+
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+  if (ip === 'unknown') return 0;
+
+  const statusKey = `attack_status:${endpoint}:${ip}`;
+  let attackScore = 0;
+
+  try {
+    const stored = await env.PT_LICENSES.get(statusKey);
+    if (stored) {
+      attackScore = parseInt(stored, 10) || 0;
+    }
+  } catch {
+    return 0;
+  }
+
+  // Exponential backoff: score 0-2 = no delay, 3-5 = 100ms, 6-10 = 500ms, 11+ = 1000ms+
+  if (attackScore >= 11) return 1000;
+  if (attackScore >= 6) return 500;
+  if (attackScore >= 3) return 100;
+  return 0;
+}
+
+// Increment attack score when blocking a request (used internally by rate limiters)
+export async function recordBlockedRequest(env, request, endpoint) {
+  if (!env.PT_LICENSES) return;
+
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+  if (ip === 'unknown') return;
+
+  const statusKey = `attack_status:${endpoint}:${ip}`;
+
+  try {
+    const stored = await env.PT_LICENSES.get(statusKey);
+    let attackScore = stored ? (parseInt(stored, 10) || 0) : 0;
+    attackScore = Math.min(attackScore + 1, 20); // Cap at 20
+    await env.PT_LICENSES.put(statusKey, String(attackScore), { expirationTtl: 3600 });
+  } catch {
+    // Silently fail: non-critical
+  }
+}
+
 export function timingSafeEqual(a, b) {
   const len = Math.max(a.length, b.length);
   const paddedA = a.padEnd(len, '\0');
