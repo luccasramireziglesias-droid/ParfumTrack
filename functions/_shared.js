@@ -192,6 +192,41 @@ export function validateDoubleSubmitCSRF(request, body) {
   return { valid: true };
 }
 
+// PH3-05: Referer/Origin validation — rechazar requests de origins no-whitelisted
+export function validateOrigin(request, allowedOrigins = []) {
+  // Obtener Origin (preferido) o Referer header
+  const origin = request.headers.get('origin') || request.headers.get('referer');
+
+  if (!origin) {
+    // Sin origin/referer: rechazar (podría ser CSRF o mal-formado)
+    return { valid: false, error: 'missing_origin' };
+  }
+
+  // Extraer origin de referer si es necesario (URL completa vs solo origin)
+  let checkOrigin = origin;
+  if (origin.includes('/')) {
+    try {
+      checkOrigin = new URL(origin).origin;
+    } catch {
+      return { valid: false, error: 'invalid_origin_format' };
+    }
+  }
+
+  // Verificar si origin está en whitelist
+  const isAllowed = allowedOrigins.some(allowed => {
+    if (allowed instanceof RegExp) {
+      return allowed.test(checkOrigin);
+    }
+    return checkOrigin === allowed;
+  });
+
+  if (!isAllowed) {
+    return { valid: false, error: 'origin_not_allowed', origin: checkOrigin };
+  }
+
+  return { valid: true };
+}
+
 export function timingSafeEqual(a, b) {
   const len = Math.max(a.length, b.length);
   const paddedA = a.padEnd(len, '\0');
