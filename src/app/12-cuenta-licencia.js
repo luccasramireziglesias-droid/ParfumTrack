@@ -265,7 +265,6 @@
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
         negocio: localStorage.getItem('pt_negocio'),
-        pin: localStorage.getItem('pt_pin'),
       }
     };
     try {

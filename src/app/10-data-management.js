@@ -15,7 +15,6 @@
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
         negocio: localStorage.getItem('pt_negocio'),
-        pin: localStorage.getItem('pt_pin'),
       },
       exportDate: new Date().toISOString()
     };
@@ -166,7 +165,6 @@
     if (data.settings) {
       if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
       if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
-      if (data.settings.pin) localStorage.setItem('pt_pin', data.settings.pin);
     }
     await this.loadData();
     this.loadMoneda();
@@ -606,7 +604,6 @@
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
         negocio: localStorage.getItem('pt_negocio'),
-        pin: localStorage.getItem('pt_pin'),
       }
     };
 
