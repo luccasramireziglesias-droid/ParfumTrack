@@ -224,6 +224,13 @@ async function handlePaymentEvent(paymentId, env) {
   }
 
   const payment = await resp.json();
+
+  const validation = validatePaymentResponse(payment);
+  if (!validation.valid) {
+    log('warn', 'mp-webhook', 'invalid payment response', { paymentId, error: validation.error });
+    throw new Error(`Invalid payment response: ${validation.error}`);
+  }
+
   log('info', 'mp-webhook', 'payment status', { paymentId, status: payment.status });
   await handleSinglePayment(paymentId, payment, env);
 }
@@ -448,6 +455,39 @@ async function handleSinglePayment(paymentId, payment, env) {
 }
 
 // ── Utilidades ────────────────────────────────────────────────────
+
+function validatePaymentResponse(payment) {
+  if (!payment || typeof payment !== 'object') {
+    return { valid: false, error: 'invalid_payment_object' };
+  }
+
+  if (typeof payment.status !== 'string') {
+    return { valid: false, error: 'missing_status_field' };
+  }
+
+  if (!payment.id && !payment.paymentId) {
+    return { valid: false, error: 'missing_id_fields' };
+  }
+
+  if (payment.status === 'approved') {
+    const hasPayer = payment.payer && typeof payment.payer === 'object' && typeof payment.payer.email === 'string';
+    const hasExtRef = payment.external_reference && typeof payment.external_reference === 'string';
+
+    if (!hasPayer && !hasExtRef) {
+      return { valid: false, error: 'missing_email_source' };
+    }
+
+    if (typeof payment.transaction_amount !== 'number' && typeof payment.transaction_amount !== 'string') {
+      return { valid: false, error: 'missing_transaction_amount' };
+    }
+
+    if (typeof payment.currency_id !== 'string') {
+      return { valid: false, error: 'missing_currency_id' };
+    }
+  }
+
+  return { valid: true };
+}
 
 async function generateLicenseCode(env) {
   const toHex = arr => Array.from(arr).map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
