@@ -215,12 +215,25 @@ async function handleSinglePayment(paymentId, payment, env) {
   // case-insensitive (USER@example.com vs user@example.com) y whitespace
   if (payerEmail) payerEmail = payerEmail.toLowerCase().trim();
 
+  // MP-PH-02: Validate external_reference JSON structure
   if (payment.external_reference) {
     try {
       const ref = JSON.parse(payment.external_reference);
-      email = ref.email?.toLowerCase().trim();
-      plan  = ref.plan || 'monthly';
-    } catch { /* JSON inválido — usar fallback */ }
+      // Validar estructura: email es string, plan es string opcional
+      if (typeof ref === 'object' && ref !== null && typeof ref.email === 'string') {
+        email = ref.email.toLowerCase().trim();
+        plan  = ref.plan || 'monthly';
+        // Validar plan está en lista whitelist
+        if (!['monthly', 'annual', 'basic_monthly', 'basic_annual'].includes(plan)) {
+          log('warn', 'mp-webhook', 'invalid plan in external_reference', { plan, paymentId });
+          plan = 'monthly';
+        }
+      } else {
+        log('warn', 'mp-webhook', 'invalid external_reference structure', { paymentId });
+      }
+    } catch (e) {
+      log('warn', 'mp-webhook', 'malformed JSON in external_reference', { paymentId });
+    }
   }
 
   // Validar email: debe estar presente y ser válido
