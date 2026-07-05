@@ -164,6 +164,34 @@ export async function recordBlockedRequest(env, request, endpoint) {
   }
 }
 
+// PH3-04: Double-submit CSRF validation — token en body + header deben coincidir
+export function validateDoubleSubmitCSRF(request, body) {
+  // CSRF token debe estar en dos lugares:
+  // 1. En el body (POST data): csrf_token
+  // 2. En header: X-CSRF-Token
+
+  const headerToken = request.headers.get('x-csrf-token');
+  const bodyToken = body?.csrf_token;
+
+  // Ambos son requeridos
+  if (!headerToken || !bodyToken) {
+    return { valid: false, error: 'missing_csrf_token' };
+  }
+
+  // Tokens deben ser hexadecimales de 64 chars (SHA-256) — validar formato primero
+  const csrfRegex = /^[0-9a-f]{64}$/;
+  if (!csrfRegex.test(headerToken) || !csrfRegex.test(bodyToken)) {
+    return { valid: false, error: 'invalid_token_format' };
+  }
+
+  // Deben coincidir (timing-safe)
+  if (!timingSafeEqual(headerToken, bodyToken)) {
+    return { valid: false, error: 'csrf_token_mismatch' };
+  }
+
+  return { valid: true };
+}
+
 export function timingSafeEqual(a, b) {
   const len = Math.max(a.length, b.length);
   const paddedA = a.padEnd(len, '\0');
