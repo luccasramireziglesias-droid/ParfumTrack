@@ -9,7 +9,7 @@ vi.mock('../functions/sync.js', () => ({ onRequestPost: vi.fn(() => new Response
 vi.mock('../functions/mp-create-preference.js', () => ({ onRequestPost: vi.fn(() => new Response('ok')) }));
 vi.mock('../functions/mp-webhook.js', () => ({ onRequestPost: vi.fn(() => new Response('ok')), onRequestGet: vi.fn(() => new Response('ok')) }));
 vi.mock('../functions/mp-subscription-status.js', () => ({ onRequestGet: vi.fn(() => new Response('ok')) }));
-vi.mock('../functions/mp-payment-status.js', () => ({ onRequestGet: vi.fn(() => new Response('ok')) }));
+vi.mock('../functions/mp-payment-status.js', () => ({ onRequestPost: vi.fn(() => new Response('ok')), onRequestGet: vi.fn(() => new Response('ok')) }));
 
 const { default: worker } = await import('../worker.js');
 
@@ -45,11 +45,9 @@ describe('worker router', () => {
     expect(resp.headers.get('Allow')).toContain('POST');
   });
 
-  it('returns 405 for POST on GET-only route', async () => {
+  it('routes POST /mp-payment-status to POST handler', async () => {
     const resp = await worker.fetch(makeRequest('POST', '/mp-payment-status'), env, ctx);
-    expect(resp.status).toBe(405);
-    expect(resp.headers.get('Allow')).toContain('GET');
-    expect(resp.headers.get('Allow')).not.toContain('POST');
+    expect(resp.status).toBe(200);
   });
 
   it('returns 204 for OPTIONS preflight on API route', async () => {
