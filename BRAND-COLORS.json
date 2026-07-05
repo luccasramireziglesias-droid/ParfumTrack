@@ -1,0 +1,113 @@
+{
+  "brand": {
+    "name": "Parfum Track",
+    "description": "Brand color palette for all marketing assets",
+    "primary": {
+      "gold": "#c9a84c",
+      "gold_light": "#f5dfa0",
+      "gold_bright": "#e8c97e",
+      "gold_rgb": "201, 168, 76"
+    },
+    "dark": {
+      "bg_primary": "#0f0f1a",
+      "bg_secondary": "#1a1a2e",
+      "bg_tertiary": "#141428",
+      "card": "#181830",
+      "card_alt": "#1e1e3a"
+    },
+    "text": {
+      "primary": "#f0ece4",
+      "secondary": "#b8b5d0",
+      "muted": "#9a97c0",
+      "dim": "#6a6660"
+    },
+    "semantic": {
+      "success": "#70c9a0",
+      "success_dim": "rgba(74, 222, 128, 0.1)",
+      "error": "#e07070",
+      "error_dim": "rgba(248, 113, 113, 0.1)",
+      "warning": "#f4c20d"
+    },
+    "utility": {
+      "border": "rgba(255, 255, 255, 0.07)",
+      "border_light": "rgba(255, 255, 255, 0.12)",
+      "border_strong": "rgba(255, 255, 255, 0.18)",
+      "gold_bg_light": "rgba(201, 168, 76, 0.12)",
+      "gold_bg_lighter": "rgba(201, 168, 76, 0.06)"
+    },
+    "gradients": {
+      "gold_gradient": {
+        "angle": "135deg",
+        "from": "#f5dfa0",
+        "to": "#c9a84c",
+        "css": "linear-gradient(135deg, #f5dfa0, #c9a84c)"
+      },
+      "gold_gradient_alt": {
+        "angle": "135deg",
+        "from": "#c9a84c",
+        "to": "#e8c97e",
+        "css": "linear-gradient(135deg, #c9a84c, #e8c97e)"
+      },
+      "bg_gradient": {
+        "angle": "135deg",
+        "from": "#0f0f1a",
+        "to": "#1a1a2e",
+        "css": "linear-gradient(135deg, #0f0f1a, #1a1a2e)"
+      },
+      "ambient_glow": {
+        "type": "radial",
+        "color": "rgba(201, 168, 76, 0.12)",
+        "css": "radial-gradient(ellipse, rgba(201, 168, 76, 0.12), transparent 65%)"
+      }
+    },
+    "typography": {
+      "font_primary": "Cormorant Garamond",
+      "font_secondary": "DM Sans",
+      "font_icons": "Material Symbols Rounded",
+      "headings": {
+        "h1": {
+          "font": "Cormorant Garamond",
+          "weight": 700,
+          "size_px": 72,
+          "size_clamp": "clamp(36px, 6vw, 68px)",
+          "letter_spacing": "-0.5px",
+          "line_height": 1.05
+        },
+        "h2": {
+          "font": "Cormorant Garamond",
+          "weight": 700,
+          "size_px": 40,
+          "letter_spacing": "-0.5px",
+          "line_height": 1.1
+        }
+      },
+      "body": {
+        "font": "DM Sans",
+        "weight": 400,
+        "size_px": 16,
+        "line_height": 1.6
+      },
+      "small": {
+        "font": "DM Sans",
+        "weight": 500,
+        "size_px": 14,
+        "letter_spacing": "0.05em"
+      }
+    }
+  },
+  "og_image_specs": {
+    "dimensions": {
+      "width": 1200,
+      "height": 630,
+      "ratio": "1.91:1",
+      "dpi": 72
+    },
+    "export": {
+      "format": "PNG",
+      "color_mode": "sRGB",
+      "compression": "optimized",
+      "max_size_kb": 200
+    },
+    "usage": "Open Graph preview (Facebook, Twitter, LinkedIn)"
+  }
+}
