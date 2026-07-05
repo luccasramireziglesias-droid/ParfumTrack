@@ -81,6 +81,44 @@ export async function checkBurstRateLimit(env, key, burstThreshold = 5, burstWin
   return null;
 }
 
+// PH3-02: IP-based rate limiting — rechazar IPs con demasiados requests
+export async function checkIPRateLimit(env, request, endpoint, maxPerWindow = 100, windowSecs = 60) {
+  if (!env.PT_LICENSES) {
+    log('error', 'ip-rate-limit', 'PT_LICENSES KV not configured');
+    return 'Service temporarily unavailable';
+  }
+
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+  if (ip === 'unknown') {
+    log('warn', 'ip-rate-limit', 'Could not determine client IP');
+    return null;
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const windowKey = `ip_rate:${endpoint}:${ip}:${Math.floor(now / windowSecs)}`;
+
+  let count = 0;
+  try {
+    const stored = await env.PT_LICENSES.get(windowKey);
+    count = stored ? (parseInt(stored, 10) || 0) : 0;
+  } catch {
+    return 'Rate limit check failed';
+  }
+
+  if (count >= maxPerWindow) {
+    log('warn', 'ip-rate-limit', 'IP rate limit exceeded', { ip: '***', endpoint, count, maxPerWindow });
+    return 'Too many requests from your IP, please try again later';
+  }
+
+  try {
+    await env.PT_LICENSES.put(windowKey, String(count + 1), { expirationTtl: windowSecs * 2 });
+  } catch {
+    return 'Rate limit write failed';
+  }
+
+  return null;
+}
+
 export function timingSafeEqual(a, b) {
   const len = Math.max(a.length, b.length);
   const paddedA = a.padEnd(len, '\0');
