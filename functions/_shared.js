@@ -451,6 +451,50 @@ export async function decryptSecret(encrypted, masterKey) {
   return new TextDecoder().decode(plaintext);
 }
 
+// PH4-02: HMAC integrity verification — detectar si encrypted data fue modificado
+export async function createAuthenticatedEncryption(encrypted, masterKey) {
+  if (!masterKey) throw new Error('Master key required');
+  if (typeof encrypted !== 'string') throw new Error('Encrypted data must be string');
+
+  // Verify encrypted format (IV.ciphertext = 1 dot)
+  const dotCount = (encrypted.match(/\./g) || []).length;
+  if (dotCount !== 1) throw new Error('Invalid encrypted format: expected IV.ciphertext');
+
+  // Compute HMAC-SHA256 over entire encrypted blob
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(masterKey), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const signature = await crypto.subtle.sign('HMAC', key, enc.encode(encrypted));
+  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(signature)));
+
+  // Return: IV.ciphertext.HMAC
+  return `${encrypted}.${sigB64}`;
+}
+
+// Verify and extract authenticated encryption
+export async function verifyAuthenticatedEncryption(authenticated, masterKey) {
+  if (!masterKey) throw new Error('Master key required');
+  if (typeof authenticated !== 'string') throw new Error('Authenticated data must be string');
+
+  // Authenticated format should be: IV.ciphertext.HMAC (2 dots)
+  const dotCount = (authenticated.match(/\./g) || []).length;
+  if (dotCount !== 2) throw new Error('Invalid authenticated format: expected IV.ciphertext.HMAC');
+
+  // Split into encrypted part (IV.ciphertext) and HMAC
+  const lastDot = authenticated.lastIndexOf('.');
+  const encrypted = authenticated.substring(0, lastDot);
+  const providedSigB64 = authenticated.substring(lastDot + 1);
+
+  // Verify HMAC
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(masterKey), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
+  const providedSig = new Uint8Array(atob(providedSigB64).split('').map(c => c.charCodeAt(0)));
+
+  const isValid = await crypto.subtle.verify('HMAC', key, providedSig, enc.encode(encrypted));
+  if (!isValid) throw new Error('HMAC verification failed — data may be tampered');
+
+  return encrypted;
+}
+
 export function validateCsrfToken(request, opts = {}) {
   const csrfToken = request.headers.get('X-CSRF-Token') || '';
   const { optional = false } = opts;
