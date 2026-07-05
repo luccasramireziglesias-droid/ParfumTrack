@@ -209,12 +209,16 @@ async function handleSinglePayment(paymentId, payment, env) {
 
   // Obtener email y plan desde external_reference (con validación cruzada)
   let email, plan;
-  const payerEmail = payment.payer?.email;
+  let payerEmail = payment.payer?.email;
+
+  // MP-PH-01: Normalizar emails inmediatamente para evitar duplicados
+  // case-insensitive (USER@example.com vs user@example.com) y whitespace
+  if (payerEmail) payerEmail = payerEmail.toLowerCase().trim();
 
   if (payment.external_reference) {
     try {
       const ref = JSON.parse(payment.external_reference);
-      email = ref.email;
+      email = ref.email?.toLowerCase().trim();
       plan  = ref.plan || 'monthly';
     } catch { /* JSON inválido — usar fallback */ }
   }
@@ -227,7 +231,7 @@ async function handleSinglePayment(paymentId, payment, env) {
 
   // Si tenemos ambos, prefiero payer.email (visto por MP directamente)
   // pero valido que no conflictúen (posible spoofing)
-  if (email && payerEmail && email.toLowerCase() !== payerEmail.toLowerCase()) {
+  if (email && payerEmail && email !== payerEmail) {
     log('warn', 'mp-webhook', 'email mismatch: external_reference vs payer', {
       external: email,
       payer: payerEmail,
@@ -240,9 +244,6 @@ async function handleSinglePayment(paymentId, payment, env) {
   }
 
   if (!plan) plan = 'monthly';
-
-  // Normalizar y validar email
-  email = email.toLowerCase().trim();
   if (!isValidEmail(email)) {
     log('error', 'mp-webhook', 'invalid email format', { email: email.slice(0, 5) + '***', paymentId });
     return;
