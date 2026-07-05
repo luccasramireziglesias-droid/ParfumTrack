@@ -81,21 +81,50 @@ export async function onRequestPost(context) {
     return jsonResp({ ok: false, error: 'kv_unavailable' }, 500);
   }
 
-  // 3. Idempotencia: atomic check-and-set para evitar race conditions
-  // Si entre el check y el put viene otro webhook, ambos verían "not found"
-  // Solución: usar un UUID único per worker invocation, reintentable
+  // 3. Idempotencia: atomic check-and-set para evitar race conditions (MP-PH-03)
+  // Race condition sin protección:
+  //   T0: webhook A checks idKey → not found
+  //   T1: webhook B checks idKey → not found
+  //   T2: webhook A puts processing:A
+  //   T3: webhook B puts processing:B (overwrites A)
+  //   T4: both A and B proceed → licencia duplicada
+  //
+  // Solución: verificar si está en "processing" ANTES de procesar
   const idKey = `webhook_processed:${type}:${resourceId}`;
   const workerId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
   const already = await env.PT_LICENSES.get(idKey);
+
   if (already === 'done') {
     log('info', 'mp-webhook', 'already processed', { idKey });
     return jsonResp({ ok: true });
   }
 
-  // Marcar con worker ID único para detectar simultáneamente (TTL 5 min)
-  // Si el mismo tipo:resourceId viene 2x en <5 min, tendrán workerIds distintos
-  await env.PT_LICENSES.put(idKey, `processing:${workerId}`, { expirationTtl: 300 });
+  // MP-PH-03: Detectar si otro worker está procesando este evento
+  if (already && already.startsWith('processing:')) {
+    const [, existingWorker, timestamp] = already.split(':');
+    const processingTime = parseInt(timestamp, 10);
+    const now = Date.now();
+    const elapsedMs = now - processingTime;
+
+    // Si otro worker procesó hace <5 min, es probable que esté en progreso → retry
+    if (elapsedMs < 300000) {
+      log('warn', 'mp-webhook', 'concurrent processing detected', {
+        idKey,
+        existingWorker,
+        elapsedMs
+      });
+      // MP reintentará tras 503
+      return jsonResp({ ok: false, error: 'concurrent_processing' }, 503);
+    }
+
+    // Si procesamiento anterior tardó >5 min, asumir que crasheó
+    log('info', 'mp-webhook', 'stale processing marker removed', { idKey, elapsedMs });
+  }
+
+  // Marcar como processing con timestamp para detectar concurrencia
+  const processingValue = `processing:${workerId}:${Date.now()}`;
+  await env.PT_LICENSES.put(idKey, processingValue, { expirationTtl: 300 });
 
   // 4. Procesar sincrónicamente para que MP reintente si falla
   try {
