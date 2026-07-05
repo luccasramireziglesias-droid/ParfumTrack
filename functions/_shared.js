@@ -39,6 +39,48 @@ export async function checkRateLimit(env, key, max, windowSecs) {
   return null;
 }
 
+// PH3-01: Burst detection — rechazar spikes anormales (5+ requests en <5 segundos)
+export async function checkBurstRateLimit(env, key, burstThreshold = 5, burstWindowMs = 5000) {
+  if (!env.PT_LICENSES) {
+    log('error', 'burst-limit', 'PT_LICENSES KV not configured');
+    return 'Service temporarily unavailable';
+  }
+
+  const now = Date.now();
+  const historyKey = `burst_history:${key}`;
+  let history = [];
+
+  try {
+    const stored = await env.PT_LICENSES.get(historyKey);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      history = Array.isArray(parsed) ? parsed : [];
+    }
+  } catch {
+    history = [];
+  }
+
+  // Mantener solo timestamps dentro de la ventana
+  history = history.filter(ts => now - ts < burstWindowMs);
+
+  // Si hay demasiados requests en ventana corta: burst detectado
+  if (history.length >= burstThreshold) {
+    log('warn', 'burst-limit', 'burst detected', { key, count: history.length, window: `${burstWindowMs}ms` });
+    return 'Too many rapid requests, please slow down';
+  }
+
+  // Agregar timestamp actual
+  history.push(now);
+
+  try {
+    await env.PT_LICENSES.put(historyKey, JSON.stringify(history), { expirationTtl: Math.ceil(burstWindowMs / 1000) + 1 });
+  } catch {
+    return 'Rate limit write failed';
+  }
+
+  return null;
+}
+
 export function timingSafeEqual(a, b) {
   const len = Math.max(a.length, b.length);
   const paddedA = a.padEnd(len, '\0');
