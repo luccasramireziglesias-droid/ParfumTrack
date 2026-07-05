@@ -41,6 +41,7 @@ function makeRequest(body) {
       'Content-Type': 'application/json',
       'Origin': 'https://parfumtrack.luccasramireziglesias.workers.dev',
       'CF-Connecting-IP': '1.2.3.4',
+      'X-CSRF-Token': '0'.repeat(64), // Valid 64-char hex token
     },
     body: JSON.stringify(body),
   });
@@ -123,7 +124,7 @@ describe('validate-license', () => {
       const env = makeEnv();
       const request = new Request('https://test.com/validate-license', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4', 'X-CSRF-Token': '0'.repeat(64) },
         body: 'NOT-JSON',
       });
       const resp = await onRequestPost({ request, env });

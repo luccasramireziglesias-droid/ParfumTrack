@@ -35,7 +35,7 @@ export async function onRequestPost(context) {
   const ctError = requireJson(request, 5_242_880);
   if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
 
-  const csrfError = validateCsrfToken(request, { optional: true });
+  const csrfError = validateCsrfToken(request, { optional: false });
   if (csrfError) return json({ ok: false, error: 'CSRF validation failed' }, 403, headers);
 
   const { data: body, error: parseError } = await parseJsonBody(request, 5_242_880);

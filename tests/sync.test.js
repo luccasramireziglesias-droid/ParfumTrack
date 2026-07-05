@@ -86,7 +86,7 @@ describe('sync', () => {
       const env = makeEnv();
       const request = new Request('https://test.com/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4', 'X-CSRF-Token': '0'.repeat(64) },
         body: JSON.stringify({ code, token, data: { ventas: [1] } }),
       });
       const resp = await onRequestPost({ request, env });
@@ -106,7 +106,7 @@ describe('sync', () => {
       const env = makeEnv();
       const request = new Request('https://test.com/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4', 'X-CSRF-Token': '0'.repeat(64) },
         body: JSON.stringify({ code: 'X' }),
       });
       const resp = await onRequestPost({ request, env });
@@ -117,7 +117,7 @@ describe('sync', () => {
       const env = makeEnv();
       const request = new Request('https://test.com/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4', 'X-CSRF-Token': '0'.repeat(64) },
         body: JSON.stringify({ code: 'SYNC-X', token: 'a'.repeat(64), data: {} }),
       });
       const resp = await onRequestPost({ request, env });
@@ -128,7 +128,7 @@ describe('sync', () => {
       const env = makeEnv();
       const request = new Request('https://test.com/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4', 'X-CSRF-Token': '0'.repeat(64) },
         body: JSON.stringify({ code: 'invalid!@#', token: 'a'.repeat(64), data: {} }),
       });
       const resp = await onRequestPost({ request, env });
@@ -143,7 +143,7 @@ describe('sync', () => {
       const token = await generateToken(code, SECRET);
       const request = new Request('https://test.com/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4', 'X-CSRF-Token': '0'.repeat(64) },
         body: JSON.stringify({ code, token, data: {} }),
       });
       const resp = await onRequestPost({ request, env });
@@ -156,7 +156,7 @@ describe('sync', () => {
       const env = makeEnv({ PT_BACKUP: undefined });
       const request = new Request('https://test.com/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4', 'X-CSRF-Token': '0'.repeat(64) },
         body: JSON.stringify({ code, token, data: {} }),
       });
       const resp = await onRequestPost({ request, env });

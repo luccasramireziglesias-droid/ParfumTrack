@@ -54,6 +54,7 @@ function makePostRequest(body, origin = 'https://parfumtrack.luccasramireziglesi
       'Content-Type': 'application/json',
       'Origin': origin,
       'CF-Connecting-IP': '1.2.3.4',
+      'X-CSRF-Token': '0'.repeat(64), // Valid 64-char hex token
     },
     body: JSON.stringify(body),
   });
@@ -193,7 +194,7 @@ describe('backup', () => {
       const bigData = 'x'.repeat(5_242_881);
       const request = new Request('https://test.com/backup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+        headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4', 'X-CSRF-Token': '0'.repeat(64) },
         body: bigData,
       });
       const resp = await onRequestPost({ request, env });
