@@ -406,6 +406,51 @@ export function isValidEmail(email) {
   );
 }
 
+// PH4-01: Encrypt sensitive KV secrets (LICENSE_PRIVATE_KEY, MP_ACCESS_TOKEN, etc.)
+export async function encryptSecret(secret, masterKey) {
+  if (!masterKey) throw new Error('Master key required for encryption');
+  if (typeof secret !== 'string') throw new Error('Secret must be string');
+
+  // Generate random 96-bit IV
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const enc = new TextEncoder();
+  const secretData = enc.encode(secret);
+
+  // Derive key from master key (256-bit)
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(masterKey), { name: 'PBKDF2' }, false, ['deriveBits']);
+  const derivedKey = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: iv, iterations: 100000 }, keyMaterial, 256);
+
+  // Encrypt with AES-256-GCM
+  const key = await crypto.subtle.importKey('raw', derivedKey, { name: 'AES-GCM' }, false, ['encrypt']);
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, secretData);
+
+  // Return: IV (base64) + ciphertext (base64)
+  const ivB64 = btoa(String.fromCharCode(...iv));
+  const ctB64 = btoa(String.fromCharCode(...new Uint8Array(ciphertext)));
+  return `${ivB64}.${ctB64}`;
+}
+
+// Decrypt encrypted secret
+export async function decryptSecret(encrypted, masterKey) {
+  if (!masterKey) throw new Error('Master key required for decryption');
+  if (typeof encrypted !== 'string' || !encrypted.includes('.')) throw new Error('Invalid encrypted format');
+
+  const [ivB64, ctB64] = encrypted.split('.');
+  const iv = new Uint8Array(atob(ivB64).split('').map(c => c.charCodeAt(0)));
+  const ciphertext = new Uint8Array(atob(ctB64).split('').map(c => c.charCodeAt(0)));
+  const enc = new TextEncoder();
+
+  // Derive same key as encryption
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(masterKey), { name: 'PBKDF2' }, false, ['deriveBits']);
+  const derivedKey = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: iv, iterations: 100000 }, keyMaterial, 256);
+
+  // Decrypt
+  const key = await crypto.subtle.importKey('raw', derivedKey, { name: 'AES-GCM' }, false, ['decrypt']);
+  const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+
+  return new TextDecoder().decode(plaintext);
+}
+
 export function validateCsrfToken(request, opts = {}) {
   const csrfToken = request.headers.get('X-CSRF-Token') || '';
   const { optional = false } = opts;
