@@ -224,6 +224,18 @@
   },
 
   async exportPDF() {
+    // Pro feature only
+    if (!this.isPro()) {
+      this.appConfirm(
+        'Función de Básico Pro',
+        'Exportar a PDF solo está disponible en Básico Pro. Actualiza para acceder.',
+        'Actualizar plan',
+        'Cancelar'
+      ).then(result => {
+        if (result) this.showScreen('cuenta');
+      });
+      return;
+    }
     this.toast('Generando PDF…', 'hourglass_top');
     try {
       await this._loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
@@ -277,6 +289,18 @@
   },
 
   async exportExcel() {
+    // Pro feature only
+    if (!this.isPro()) {
+      this.appConfirm(
+        'Función de Básico Pro',
+        'Exportar a Excel solo está disponible en Básico Pro. Actualiza para acceder.',
+        'Actualizar plan',
+        'Cancelar'
+      ).then(result => {
+        if (result) this.showScreen('cuenta');
+      });
+      return;
+    }
     this.toast('Generando Excel…', 'hourglass_top');
     try {
       await this._loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
@@ -351,6 +375,18 @@
   _catalogoImages: [],
 
   compartirCatalogo() {
+    // Pro feature only
+    if (!this.isPro()) {
+      this.appConfirm(
+        'Catálogo WA en Básico Pro',
+        'Compartir tu catálogo por WhatsApp es una función de Básico Pro. Actualiza para acceder.',
+        'Actualizar plan',
+        'Cancelar'
+      ).then(result => {
+        if (result) this.showScreen('cuenta');
+      });
+      return;
+    }
     const disponibles = this.perfumes.filter(p => p.stock > 0).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     if (disponibles.length === 0) {
       this.toast('No hay perfumes en stock', 'warning');

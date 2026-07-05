@@ -507,20 +507,37 @@
     const gastos = thisMonth.reduce((s, v) => s + v.precioCompra, 0);
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 
-    const maxVal = Math.max(ganancia, gastos, totalVenta, 1000);
-    const gPct = Math.min(95, Math.max(5, Math.round((ganancia / maxVal) * 90)));
-    const xPct = Math.min(95, Math.max(3, Math.round((gastos / maxVal) * 90)));
+    // Show charts only if Pro; hide bars for Free
+    const isPro = this.isPro();
+    const barGanancia = document.getElementById('bar-ganancia');
+    const barGastos = document.getElementById('bar-gastos');
+    if (barGanancia && barGastos) {
+      if (isPro) {
+        const maxVal = Math.max(ganancia, gastos, totalVenta, 1000);
+        const gPct = Math.min(95, Math.max(5, Math.round((ganancia / maxVal) * 90)));
+        const xPct = Math.min(95, Math.max(3, Math.round((gastos / maxVal) * 90)));
+        barGanancia.style.height = gPct + '%';
+        barGastos.style.height = Math.max(3, xPct) + '%';
+      } else {
+        barGanancia.style.display = 'none';
+        barGastos.style.display = 'none';
+      }
+    }
 
-    document.getElementById('bar-ganancia').style.height = gPct + '%';
-    document.getElementById('bar-gastos').style.height = Math.max(3, xPct) + '%';
-    document.getElementById('bar-label-g').textContent = monthNames[now.getMonth()];
+    const barLabel = document.getElementById('bar-label-g');
+    if (barLabel) barLabel.textContent = monthNames[now.getMonth()];
 
-    const steps = [maxVal, maxVal * 0.8, maxVal * 0.6, maxVal * 0.4, maxVal * 0.2, 0];
-    const yLabels = ['cy5','cy4','cy3','cy2','cy1'];
-    yLabels.forEach((id, i) => {
-      const v = steps[i];
-      document.getElementById(id).textContent = v >= 1000 ? this._moneda + Math.round(v / 1000) + 'k' : this._moneda + Math.round(v);
-    });
+    if (isPro) {
+      const steps = [Math.max(ganancia, gastos, totalVenta, 1000), Math.max(ganancia, gastos, totalVenta, 1000) * 0.8, Math.max(ganancia, gastos, totalVenta, 1000) * 0.6, Math.max(ganancia, gastos, totalVenta, 1000) * 0.4, Math.max(ganancia, gastos, totalVenta, 1000) * 0.2, 0];
+      const yLabels = ['cy5','cy4','cy3','cy2','cy1'];
+      yLabels.forEach((id, i) => {
+        const el = document.getElementById(id);
+        if (el) {
+          const v = steps[i];
+          el.textContent = v >= 1000 ? this._moneda + Math.round(v / 1000) + 'k' : this._moneda + Math.round(v);
+        }
+      });
+    }
 
     const ticket = thisMonth.length > 0 ? Math.round(totalVenta / thisMonth.length) : 0;
     document.getElementById('m-ticket').textContent = this.fmt(ticket);
@@ -542,6 +559,16 @@
   },
 
   renderRankings(ventas) {
+    // Rankings only in Pro plan
+    const rankPerfumesEl = document.getElementById('ranking-perfumes');
+    const rankVendedoresEl = document.getElementById('ranking-vendedores');
+
+    if (!this.isPro()) {
+      if (rankPerfumesEl) rankPerfumesEl.innerHTML = '<div style="color:var(--text4);font-size:12px;padding:12px;text-align:center;"><span class="ms" style="font-size:16px;">lock</span><br>Solo en Básico Pro</div>';
+      if (rankVendedoresEl) rankVendedoresEl.innerHTML = '<div style="color:var(--text4);font-size:12px;padding:12px;text-align:center;"><span class="ms" style="font-size:16px;">lock</span><br>Solo en Básico Pro</div>';
+      return;
+    }
+
     const perfumeCounts = {};
     const vendedorCounts = {};
     ventas.forEach(v => {
@@ -566,25 +593,29 @@
 
     const medalEmojis = ['🥇', '🥈', '🥉'];
 
-    document.getElementById('ranking-perfumes').innerHTML = topPerfumes.length === 0
-      ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
-      : topPerfumes.map(([name, data], i) =>
-        `<div class="ranking-item">
-          <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
-          <span class="ranking-name">${this.esc(name)}</span>
-          <span class="ranking-count">${data.count} ventas</span>
-          <span class="ranking-amount">${this.fmt(data.amount)}</span>
-        </div>`).join('');
+    if (rankPerfumesEl) {
+      rankPerfumesEl.innerHTML = topPerfumes.length === 0
+        ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
+        : topPerfumes.map(([name, data], i) =>
+          `<div class="ranking-item">
+            <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
+            <span class="ranking-name">${this.esc(name)}</span>
+            <span class="ranking-count">${data.count} ventas</span>
+            <span class="ranking-amount">${this.fmt(data.amount)}</span>
+          </div>`).join('');
+    }
 
-    document.getElementById('ranking-vendedores').innerHTML = topVendedores.length === 0
-      ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
-      : topVendedores.map(([name, data], i) =>
-        `<div class="ranking-item">
-          <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
-          <span class="ranking-name">${this.esc(name)}</span>
-          <span class="ranking-count">${data.count} ventas</span>
-          <span class="ranking-amount">${this.fmt(data.amount)}</span>
-        </div>`).join('');
+    if (rankVendedoresEl) {
+      rankVendedoresEl.innerHTML = topVendedores.length === 0
+        ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
+        : topVendedores.map(([name, data], i) =>
+          `<div class="ranking-item">
+            <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
+            <span class="ranking-name">${this.esc(name)}</span>
+            <span class="ranking-count">${data.count} ventas</span>
+            <span class="ranking-amount">${this.fmt(data.amount)}</span>
+          </div>`).join('');
+    }
   },
 
   updateNavBadge() {
