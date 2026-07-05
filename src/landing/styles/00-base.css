@@ -1,0 +1,40 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a15;
+  --bg2: #0f0f1e;
+  --bg3: #141428;
+  --card: #181830;
+  --card2: #1e1e3a;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --border3: rgba(255,255,255,0.18);
+  --gold: #c9a84c;
+  --gold2: #e8cc7a;
+  --gold3: rgba(201,168,76,0.12);
+  --gold4: rgba(201,168,76,0.06);
+  --text: #f0ede8;
+  --text2: #a8a49c;
+  --text3: #6a6660;
+  --green: #4ade80;
+  --green-dim: rgba(74,222,128,0.1);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,0.1);
+  --radius: 16px;
+  --radius2: 12px;
+  --radius3: 8px;
+  --shadow: 0 20px 60px rgba(0,0,0,0.6);
+  --shadow2: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+

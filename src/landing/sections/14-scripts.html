@@ -1,0 +1,209 @@
+
+<!-- ══════════════════════════════════
+     FOOTER
+══════════════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="/" class="footer-logo">
+        <img src="/icon-192.png" alt="Parfum Track">
+        Parfum Track
+      </a>
+      <p class="footer-tagline">La app para revendedores de perfumes. Ventas, cuotas, stock y estadísticas desde tu celular.</p>
+      <a href="mailto:parfumtrack@gmail.com" class="footer-wa-btn">
+        📧 parfumtrack@gmail.com
+      </a>
+    </div>
+    <div class="footer-col">
+      <h4>App</h4>
+      <a href="/index.html">Abrir la app</a>
+      <a href="#beneficios">Beneficios</a>
+      <a href="#funciones">Funciones</a>
+      <a href="#pricing">Precios</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ayuda</h4>
+      <a href="#faq">Preguntas frecuentes</a>
+      <a href="mailto:parfumtrack@gmail.com">Contacto</a>
+      <a href="mailto:parfumtrack@gmail.com?subject=Consulta%20sobre%20planes">Consultar plan</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="/terminos.html">Términos de uso</a>
+      <a href="/privacidad.html">Política de privacidad</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Parfum Track. Todos los derechos reservados.</span>
+    <span>Hecho para revendedores de perfumes en LATAM</span>
+    <span style="display:block;width:100%;margin-top:10px;font-size:11px;color:#6a6660;">Parfum Track — Montevideo, Uruguay — Contacto: parfumtrack@gmail.com</span>
+  </div>
+</footer>
+
+<script>
+// ── Hamburger Nav ──
+function toggleNav() {
+  document.querySelector('.nav').classList.toggle('open');
+  document.body.style.overflow = document.querySelector('.nav').classList.contains('open') ? 'hidden' : '';
+}
+document.addEventListener('click', e => {
+  const nav = document.querySelector('.nav');
+  if (nav.classList.contains('open') && !nav.contains(e.target)) {
+    nav.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+});
+
+// ── FAQ Accordion ──
+document.querySelectorAll('.faq-question').forEach(q => {
+  function toggleFaq() {
+    const item = q.parentElement;
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => {
+      i.classList.remove('open');
+      i.querySelector('.faq-question')?.setAttribute('aria-expanded', 'false');
+    });
+    if (!isOpen) {
+      item.classList.add('open');
+      q.setAttribute('aria-expanded', 'true');
+    }
+  }
+  q.addEventListener('click', toggleFaq);
+  q.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleFaq(); }
+  });
+});
+
+// ── Pricing Toggle ──
+function togglePricing(mode) {
+  document.querySelectorAll('.ptog-btn').forEach(b => {
+    const active = b.dataset.mode === mode;
+    b.style.background    = active ? 'linear-gradient(135deg,#c9a84c,#e8cc7a)' : '#1e1e35';
+    b.style.color         = active ? '#1a1a2e' : '#b8b4a8';
+    b.style.borderColor   = active ? '#e8cc7a' : 'rgba(201,168,76,0.35)';
+    b.style.fontWeight    = active ? '700' : '600';
+  });
+  if (mode === 'annual') {
+    document.body.classList.add('annual-mode');
+    document.querySelectorAll('[data-annual]').forEach(el => el.style.display = '');
+    document.querySelectorAll('[data-monthly]').forEach(el => el.style.display = 'none');
+  } else {
+    document.body.classList.remove('annual-mode');
+    document.querySelectorAll('[data-monthly]').forEach(el => el.style.display = '');
+    document.querySelectorAll('[data-annual]').forEach(el => el.style.display = 'none');
+  }
+}
+
+// ── Checkout MP ──
+function abrirCheckoutMP(plan) {
+  const resolvedPlan = plan || (document.body.classList.contains('annual-mode') ? 'annual' : 'monthly');
+  document.getElementById('mp-checkout-modal').style.display = 'flex';
+  document.getElementById('mp-checkout-modal').dataset.plan = resolvedPlan;
+  document.getElementById('mp-email-input').focus();
+  document.getElementById('mp-checkout-error').textContent = '';
+  const sub = document.getElementById('mp-modal-subtitle');
+  if (sub) sub.textContent = resolvedPlan === 'annual'
+    ? '$7.99/mes · Se factura USD 95.88/año via Mercado Pago'
+    : '$9.99/mes · Se cobra via Mercado Pago · Tu código llega por email';
+}
+function cerrarCheckoutMP() {
+  document.getElementById('mp-checkout-modal').style.display = 'none';
+  document.getElementById('mp-email-input').value = '';
+}
+async function iniciarCheckoutMP() {
+  const modal  = document.getElementById('mp-checkout-modal');
+  const email  = document.getElementById('mp-email-input').value.trim();
+  const plan   = modal.dataset.plan || 'monthly';
+  const errEl  = document.getElementById('mp-checkout-error');
+  const btn    = document.getElementById('mp-checkout-btn');
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    errEl.textContent = 'Ingresá un email válido';
+    return;
+  }
+  btn.disabled    = true;
+  btn.textContent = 'Conectando con Mercado Pago…';
+  errEl.textContent = '';
+
+  // Abrir ventana vacía en sincrónico para no ser bloqueada por el popup blocker
+  const win = window.open('', '_blank');
+
+  try {
+    const resp = await fetch('/mp-create-preference', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, plan }),
+    });
+    const data = await resp.json();
+
+    if (!data.ok) {
+      if (win) win.close();
+      errEl.textContent = data.error || 'Error al crear el pago. Intentá de nuevo.';
+      btn.disabled    = false;
+      btn.textContent = 'Ir a pagar →';
+      return;
+    }
+
+    // Redirigir la ventana ya abierta a MP Checkout (fallback si el popup fue bloqueado)
+    if (win && !win.closed) {
+      win.location.href = data.initPoint;
+    } else {
+      window.location.href = data.initPoint;
+    }
+    cerrarCheckoutMP();
+    if (window.plausible) plausible('mp_checkout_redirect', { props: { plan } });
+  } catch (e) {
+    if (win) win.close();
+    errEl.textContent = 'Error de conexión. Intentá de nuevo.';
+    btn.disabled    = false;
+    btn.textContent = 'Ir a pagar →';
+  }
+}
+
+// ── Scroll Reveal ──
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      revealObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ── Smooth scroll ──
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) {
+      e.preventDefault();
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+// ── Plausible scroll depth ──
+let depths = { 25: false, 50: false, 75: false, 100: false };
+window.addEventListener('scroll', () => {
+  const scrollPct = Math.round((window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100);
+  [25, 50, 75, 100].forEach(d => {
+    if (scrollPct >= d && !depths[d]) {
+      depths[d] = true;
+      if (window.plausible) plausible('scroll_depth', { props: { depth: d + '%' } });
+    }
+  });
+}, { passive: true });
+
+// ── Nav scroll shadow ──
+const nav = document.querySelector('.nav');
+window.addEventListener('scroll', () => {
+  nav.style.boxShadow = window.scrollY > 20 ? '0 4px 32px rgba(0,0,0,0.4)' : '';
+}, { passive: true });
+</script>
+
+
+</div>
+</body>
+</html>

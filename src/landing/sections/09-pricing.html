@@ -1,0 +1,116 @@
+<section class="section" id="pricing">
+  <div class="container text-center">
+    <span class="eyebrow">Precios</span>
+    <h2 class="section-h2">Simple, claro<br>y <span class="hl">sin sorpresas</span></h2>
+    <p class="section-sub" style="max-width:480px;margin:0 auto;">Empezá gratis para siempre. Sin tarjeta, sin compromiso.</p>
+
+    <!-- Toggle mensual / anual -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:24px 0 32px;">
+      <button class="ptog-btn" data-mode="monthly" onclick="togglePricing('monthly')"
+        style="padding:9px 22px;border-radius:50px;border:1.5px solid #e8cc7a;background:linear-gradient(135deg,#c9a84c,#e8cc7a);color:#1a1a2e;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;">
+        Mensual
+      </button>
+      <button class="ptog-btn" data-mode="annual" onclick="togglePricing('annual')"
+        style="padding:9px 22px;border-radius:50px;border:1.5px solid rgba(201,168,76,0.35);background:#1e1e35;color:#b8b4a8;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;">
+        Anual <span style="background:rgba(112,201,160,0.2);color:#70c9a0;font-size:10px;font-weight:700;padding:2px 7px;border-radius:50px;margin-left:4px;">-20%</span>
+      </button>
+    </div>
+
+    <div class="pricing-grid">
+      <!-- Free -->
+      <div class="price-card reveal">
+        <div class="price-name">Free</div>
+        <div class="price-amount">
+          <span class="price-currency">USD</span>
+          <span class="price-num">0</span>
+        </div>
+        <div class="price-period">para siempre · sin tarjeta</div>
+        <div class="price-annual-note">&nbsp;</div>
+        <hr class="price-divider">
+        <ul class="price-features-list">
+          <li><span class="pfl-check">✓</span> Ventas ilimitadas</li>
+          <li><span class="pfl-check">✓</span> Cuotas y cobros por WA</li>
+          <li><span class="pfl-check">✓</span> Ganancia visible en tiempo real</li>
+          <li><span class="pfl-check">✓</span> Stock de perfumes</li>
+          <li><span class="pfl-check">✓</span> Funciona sin internet</li>
+          <li><span class="pfl-check">✓</span> 1 perfil de negocio</li>
+          <li class="disabled"><span class="pfl-dash">–</span> Recordatorios WA automáticos</li>
+          <li class="disabled"><span class="pfl-dash">–</span> Estadísticas avanzadas</li>
+        </ul>
+        <a href="/index.html" class="btn-price secondary" onclick="if(window.plausible)plausible('pricing_cta',{props:{tier:'free'}})">
+          Empezar gratis →
+        </a>
+      </div>
+
+      <!-- Básico Pro -->
+      <div class="price-card featured reveal reveal-d1">
+        <div class="price-badge">⭐ MÁS POPULAR</div>
+        <div class="price-name">Básico Pro</div>
+        <div class="price-amount">
+          <span class="price-currency">USD</span>
+          <span class="price-num" data-monthly>9<span style="font-size:22px">.99</span></span>
+          <span class="price-num" data-annual style="display:none;">7<span style="font-size:22px">.99</span></span>
+        </div>
+        <div class="price-period" data-monthly>por mes</div>
+        <div class="price-period" data-annual style="display:none;">por mes · facturado USD 95.88/año</div>
+        <div class="price-annual-note" data-monthly>o USD 7.99/mes eligiendo el plan anual</div>
+        <div class="price-annual-note" data-annual style="display:none;">✓ Ahorrás USD 24 por año vs mensual</div>
+        <hr class="price-divider">
+        <ul class="price-features-list">
+          <li><span class="pfl-check">✓</span> Todo lo de Free</li>
+          <li><span class="pfl-check">✓</span> Recordatorios WhatsApp automáticos</li>
+          <li><span class="pfl-check">✓</span> Notificaciones push de cobros</li>
+          <li><span class="pfl-check">✓</span> Estadísticas avanzadas</li>
+          <li><span class="pfl-check">✓</span> Catálogo por WhatsApp</li>
+          <li><span class="pfl-check">✓</span> Ranking y segmentación de clientes</li>
+          <li><span class="pfl-check">✓</span> Exportar a Excel y PDF</li>
+          <li><span class="pfl-check">✓</span> Meta mensual de ventas</li>
+          <li><span class="pfl-check">✓</span> Soporte prioritario</li>
+        </ul>
+        <button class="btn-price primary" onclick="abrirCheckoutMP(document.body.classList.contains('annual-mode')?'annual':'monthly'); if(window.plausible)plausible('pricing_cta',{props:{tier:'basic',mode:document.body.classList.contains('annual-mode')?'annual':'monthly'}})">
+          <span data-monthly>Activar plan — $9.99/mes →</span>
+          <span data-annual style="display:none;">Activar plan — $7.99/mes →</span>
+        </button>
+        <a href="mailto:parfumtrack@gmail.com?subject=Quiero%20activar%20el%20plan%20Básico%20Pro"
+           style="display:block;text-align:center;font-size:12px;color:var(--text3);margin-top:10px;text-decoration:none;">
+          ¿Dudas? Escribinos por email →
+        </a>
+      </div>
+
+      <!-- Pro -->
+      <div class="price-card reveal reveal-d2" style="overflow:hidden;">
+        <div class="plan-ribbon-soon">🚧 PRÓXIMAMENTE</div>
+        <div class="price-name" style="margin-top:38px;">Pro</div>
+        <div class="price-amount">
+          <span class="price-currency">USD</span>
+          <span class="price-num">19<span style="font-size:22px">.99</span></span>
+        </div>
+        <div class="price-period">por mes · o USD 15.99/mes anual</div>
+        <div class="price-annual-note">✓ Ahorrás USD 48 por año con pago anual</div>
+        <hr class="price-divider">
+        <ul class="price-features-list">
+          <li><span class="pfl-check">✓</span> Todo lo de Básico Pro</li>
+          <li><span class="pfl-check">✓</span> Múltiples perfiles de negocio</li>
+          <li><span class="pfl-check">✓</span> Backup automático en la nube</li>
+          <li><span class="pfl-check">✓</span> Sincronización entre dispositivos</li>
+          <li><span class="pfl-check">✓</span> Soporte preferencial</li>
+          <li><span class="pfl-check">✓</span> Actualizaciones anticipadas</li>
+          <li>&nbsp;</li>
+        </ul>
+        <span class="btn-price secondary" style="opacity:0.55;pointer-events:none;">
+          Próximamente
+        </span>
+      </div>
+    </div>
+
+    <p class="pricing-note">
+      🆓 Plan Free gratis para siempre · Sin tarjeta ni compromiso<br>
+      🔒 Pago seguro · ✅ Cancelás cuando querés · 📧 Soporte por email<br>
+      <a href="/index.html" onclick="if(window.plausible)plausible('cta_pricing_free')">→ Empezar ahora sin tarjeta</a>
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════
+     FAQ
+══════════════════════════════════ -->

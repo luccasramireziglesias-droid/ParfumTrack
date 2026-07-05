@@ -1,0 +1,19 @@
+/* ═══════════════════════════════════
+   ANNOUNCEMENT BAR
+═══════════════════════════════════ */
+.announce-bar {
+  background: linear-gradient(90deg, rgba(201,168,76,0.15), rgba(232,204,122,0.1), rgba(201,168,76,0.15));
+  border-bottom: 1px solid rgba(201,168,76,0.2);
+  padding: 10px 20px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gold2);
+  letter-spacing: 0.3px;
+}
+.announce-bar a {
+  color: var(--gold2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+

@@ -1,0 +1,24 @@
+<!-- ── Modal checkout Mercado Pago ── -->
+<div id="mp-checkout-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)cerrarCheckoutMP()">
+  <div style="background:#1e1e35;border:1px solid rgba(201,168,76,0.3);border-radius:20px;padding:32px 28px;max-width:400px;width:100%;">
+    <button onclick="cerrarCheckoutMP()" style="float:right;background:none;border:none;color:var(--text3,#7a7870);font-size:22px;cursor:pointer;line-height:1;">✕</button>
+    <div style="text-align:center;margin-bottom:20px;">
+      <img src="/icon-192.png" alt="Parfum Track" style="width:48px;height:48px;border-radius:12px;margin-bottom:8px;">
+      <h3 style="color:#e8cc7a;font-size:19px;font-weight:700;margin:0 0 6px;">Pagar — Plan Básico Pro</h3>
+      <p id="mp-modal-subtitle" style="font-size:13px;color:#7a7870;">$9.99/mes · Se cobra via Mercado Pago · Tu código llega por email</p>
+    </div>
+    <label style="display:block;font-size:13px;color:#b8b4a8;margin-bottom:6px;">Tu email</label>
+    <input id="mp-email-input" type="email" placeholder="hola@ejemplo.com" autocomplete="email"
+      onkeydown="if(event.key==='Enter')iniciarCheckoutMP()"
+      style="width:100%;padding:12px 16px;background:#13132a;border:1.5px solid rgba(201,168,76,0.3);border-radius:10px;color:#f0eee8;font-size:15px;margin-bottom:8px;outline:none;font-family:inherit;">
+    <p id="mp-checkout-error" style="font-size:12px;color:#e07070;min-height:16px;margin-bottom:12px;"></p>
+    <p style="font-size:11px;color:#7a7870;text-align:center;margin-bottom:10px;line-height:1.5;">Política de reembolso: Los pagos no son reembolsables salvo error técnico, cobro duplicado o falla grave del servicio (7 días). Consultar <a href="/terminos.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Términos de Uso</a>.</p>
+    <button id="mp-checkout-btn" onclick="iniciarCheckoutMP()"
+      style="width:100%;padding:14px;background:linear-gradient(135deg,#009ee3,#0070ba);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">
+      Ir a pagar con Mercado Pago →
+    </button>
+    <p style="font-size:11px;color:#4a4848;text-align:center;line-height:1.6;">
+      🔒 Pago seguro vía Mercado Pago · El monto se cobra en tu moneda local<br>
+      Al pagar aceptás los <a href="/terminos.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Términos de uso</a> y la <a href="/privacidad.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Política de privacidad</a>
+    </p>
+  </div>

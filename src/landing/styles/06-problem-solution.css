@@ -1,0 +1,96 @@
+/* ═══════════════════════════════════
+   PROBLEMA
+═══════════════════════════════════ */
+.pain-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 56px;
+}
+.pain-card {
+  background: var(--red-dim);
+  border: 1px solid rgba(248,113,113,0.15);
+  border-radius: var(--radius);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.pain-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(248,113,113,0.4), transparent);
+}
+.pain-emoji { font-size: 28px; margin-bottom: 12px; }
+.pain-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 7px; }
+.pain-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.pain-quote {
+  max-width: 660px;
+  margin: 48px auto 0;
+  text-align: center;
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-style: italic;
+  color: var(--text2);
+  line-height: 1.5;
+}
+.pain-quote strong { color: var(--text); font-style: normal; }
+
+
+/* ═══════════════════════════════════
+   SOLUCIÓN (Benefits)
+═══════════════════════════════════ */
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 56px;
+}
+.benefit-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.benefit-card:hover {
+  border-color: rgba(201,168,76,0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+.benefit-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.benefit-card:hover::after { opacity: 1; }
+.benefit-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--gold3);
+  border: 1px solid rgba(201,168,76,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+.benefit-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 9px;
+}
+.benefit-desc {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.65;
+}
+

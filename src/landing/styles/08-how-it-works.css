@@ -1,0 +1,46 @@
+/* ═══════════════════════════════════
+   HOW IT WORKS
+═══════════════════════════════════ */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  position: relative;
+  margin-top: 64px;
+}
+.steps-line {
+  position: absolute;
+  top: 28px;
+  left: 12.5%;
+  right: 12.5%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border2), var(--border2), transparent);
+}
+.step-item {
+  text-align: center;
+  padding: 0 16px;
+  position: relative;
+}
+.step-num {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 2px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--gold2);
+  margin: 0 auto 20px;
+  position: relative;
+  z-index: 1;
+}
+.step-num.active {
+  background: var(--gold3);
+  border-color: var(--gold);
+}
+.step-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.step-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+

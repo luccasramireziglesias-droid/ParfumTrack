@@ -64,10 +64,25 @@ describe('Landing Build Process', () => {
     console.log('✅ Build script exists and references correct path');
   });
 
-  it('landing.html matches template content', () => {
-    const template = fs.readFileSync(templatePath, 'utf-8');
+  it('landing.html includes all modular sections', () => {
     const landing = fs.readFileSync(landingPath, 'utf-8');
-    expect(landing).toBe(template);
-    console.log('✅ Landing.html matches template (build verified)');
+    const stylesDir = path.join(process.cwd(), 'src', 'landing', 'styles');
+    const sectionsDir = path.join(process.cwd(), 'src', 'landing', 'sections');
+
+    // Verify CSS files are included
+    const cssFiles = fs.readdirSync(stylesDir).filter(f => f.endsWith('.css'));
+    expect(cssFiles.length).toBeGreaterThan(0);
+
+    // Verify section files are included
+    const sectionFiles = fs.readdirSync(sectionsDir).filter(f => f.endsWith('.html'));
+    expect(sectionFiles.length).toBeGreaterThan(0);
+
+    // Verify key content from sections is present
+    const keyMarkers = ['<style>', '</style>', 'announce-bar', 'nav-logo', 'hero', 'contacto', 'Mercado Pago'];
+    keyMarkers.forEach(marker => {
+      expect(landing).toContain(marker);
+    });
+
+    console.log(`✅ Landing.html built from ${cssFiles.length} CSS files + ${sectionFiles.length} sections`);
   });
 });

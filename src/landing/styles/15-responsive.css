@@ -1,0 +1,62 @@
+/* ═══════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════ */
+.compare-3col { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 900px) { .compare-3col { grid-template-columns: 1fr; } }
+
+@media (max-width: 1024px) {
+  .feature-hero { grid-template-columns: 1fr; gap: 40px; }
+  .feature-hero.reverse { direction: ltr; }
+  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin-left: auto; margin-right: auto; }
+  .price-card.featured { transform: none; }
+  .footer-inner { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .nav-hamburger { display: flex; }
+  .nav-links {
+    display: none;
+    position: fixed;
+    top: 57px; left: 0; right: 0;
+    background: rgba(10,10,21,0.97);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--border2);
+    padding: 8px 24px 20px;
+    flex-direction: column;
+    gap: 0;
+    z-index: 199;
+  }
+  .nav.open .nav-links { display: flex; }
+  .nav-links a {
+    padding: 15px 0;
+    font-size: 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  .nav-links a:last-child { border-bottom: none; }
+  .nav-actions .btn-outline { display: none; }
+  .nav-actions .btn-gold { padding: 7px 14px; font-size: 13px; white-space: nowrap; }
+  .nav-logo { font-size: 15px; gap: 7px; white-space: nowrap; }
+  .nav-logo img { width: 26px; height: 26px; }
+  .nav { padding: 10px 16px; }
+  .hero { padding: 72px 20px 64px; }
+  .hero h1 { letter-spacing: -0.8px; }
+  .hero-floating-cards-wrap { display: flex; justify-content: center; gap: 12px; margin-top: 18px; }
+  .hero-floating-card { position: static; animation: none; font-size: 11px; padding: 8px 12px; }
+  .compare-wrap { grid-template-columns: 1fr; }
+  .steps-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .steps-line { display: none; }
+  .section { padding: 72px 20px; }
+  .footer-inner { grid-template-columns: 1fr; gap: 28px; }
+  .footer-bottom { flex-direction: column; text-align: center; }
+  .trust-bar-inner { gap: 28px; }
+}
+@media (max-width: 480px) {
+  .hero h1 { letter-spacing: -0.5px; }
+  .btn-hero { padding: 14px 24px; font-size: 15px; }
+  .steps-grid { grid-template-columns: 1fr; }
+  .testi-grid { grid-template-columns: 1fr; }
+  .pain-cards { grid-template-columns: 1fr; }
+  .benefits-grid { grid-template-columns: 1fr; }
+}
+

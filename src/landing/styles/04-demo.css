@@ -1,0 +1,104 @@
+/* ═══════════════════════════════════
+   VIDEO DEMO
+═══════════════════════════════════ */
+.demo-section {
+  padding: 64px 24px;
+  background: var(--bg2);
+  text-align: center;
+}
+.demo-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.demo-subtitle {
+  font-size: 15px;
+  color: var(--text2);
+  margin-bottom: 28px;
+}
+.demo-btn {
+  display: inline-block;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #000;
+  font-weight: 700;
+  border-radius: var(--radius3);
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+.demo-btn:hover { transform: scale(1.05); box-shadow: 0 8px 32px rgba(201,168,76,0.4); }
+
+.video-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.video-modal.active { display: flex; }
+.video-modal video {
+  max-width: 100%;
+  max-height: 90vh;
+  border-radius: 12px;
+}
+.video-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.2);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 24px;
+  color: white;
+  transition: all 0.3s;
+}
+.video-close:hover { background: rgba(255,255,255,0.4); }
+
+
+/* ═══════════════════════════════════
+   TRUST BAR
+═══════════════════════════════════ */
+.trust-bar {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 32px 24px;
+}
+.trust-bar-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+.trust-stat {
+  text-align: center;
+}
+.trust-stat-num {
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.trust-stat-label {
+  font-size: 12px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
