@@ -407,7 +407,7 @@ export function isValidEmail(email) {
 }
 
 // PH4-01: Encrypt sensitive KV secrets (LICENSE_PRIVATE_KEY, MP_ACCESS_TOKEN, etc.)
-export async function encryptSecret(secret, masterKey) {
+export async function encryptSecret(secret, masterKey, context = '') {
   if (!masterKey) throw new Error('Master key required for encryption');
   if (typeof secret !== 'string') throw new Error('Secret must be string');
 
@@ -424,6 +424,9 @@ export async function encryptSecret(secret, masterKey) {
   const key = await crypto.subtle.importKey('raw', derivedKey, { name: 'AES-GCM' }, false, ['encrypt']);
   const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, secretData);
 
+  // PH4-03: Audit log
+  log('info', 'encryption', 'secret encrypted', { context, secretLength: secret.length });
+
   // Return: IV (base64) + ciphertext (base64)
   const ivB64 = btoa(String.fromCharCode(...iv));
   const ctB64 = btoa(String.fromCharCode(...new Uint8Array(ciphertext)));
@@ -431,7 +434,7 @@ export async function encryptSecret(secret, masterKey) {
 }
 
 // Decrypt encrypted secret
-export async function decryptSecret(encrypted, masterKey) {
+export async function decryptSecret(encrypted, masterKey, context = '') {
   if (!masterKey) throw new Error('Master key required for decryption');
   if (typeof encrypted !== 'string' || !encrypted.includes('.')) throw new Error('Invalid encrypted format');
 
@@ -448,11 +451,14 @@ export async function decryptSecret(encrypted, masterKey) {
   const key = await crypto.subtle.importKey('raw', derivedKey, { name: 'AES-GCM' }, false, ['decrypt']);
   const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
 
+  // PH4-03: Audit log
+  log('info', 'decryption', 'secret decrypted', { context, plaintextLength: plaintext.byteLength });
+
   return new TextDecoder().decode(plaintext);
 }
 
 // PH4-02: HMAC integrity verification — detectar si encrypted data fue modificado
-export async function createAuthenticatedEncryption(encrypted, masterKey) {
+export async function createAuthenticatedEncryption(encrypted, masterKey, context = '') {
   if (!masterKey) throw new Error('Master key required');
   if (typeof encrypted !== 'string') throw new Error('Encrypted data must be string');
 
@@ -466,12 +472,15 @@ export async function createAuthenticatedEncryption(encrypted, masterKey) {
   const signature = await crypto.subtle.sign('HMAC', key, enc.encode(encrypted));
   const sigB64 = btoa(String.fromCharCode(...new Uint8Array(signature)));
 
+  // PH4-03: Audit log
+  log('info', 'hmac-creation', 'HMAC computed', { context, dataLength: encrypted.length });
+
   // Return: IV.ciphertext.HMAC
   return `${encrypted}.${sigB64}`;
 }
 
 // Verify and extract authenticated encryption
-export async function verifyAuthenticatedEncryption(authenticated, masterKey) {
+export async function verifyAuthenticatedEncryption(authenticated, masterKey, context = '') {
   if (!masterKey) throw new Error('Master key required');
   if (typeof authenticated !== 'string') throw new Error('Authenticated data must be string');
 
@@ -490,7 +499,14 @@ export async function verifyAuthenticatedEncryption(authenticated, masterKey) {
   const providedSig = new Uint8Array(atob(providedSigB64).split('').map(c => c.charCodeAt(0)));
 
   const isValid = await crypto.subtle.verify('HMAC', key, providedSig, enc.encode(encrypted));
-  if (!isValid) throw new Error('HMAC verification failed — data may be tampered');
+
+  // PH4-03: Audit log — siempre registrar intentos de verificación
+  if (!isValid) {
+    log('warn', 'hmac-verification', 'HMAC verification failed', { context, dataLength: encrypted.length, tamperingDetected: true });
+    throw new Error('HMAC verification failed — data may be tampered');
+  }
+
+  log('info', 'hmac-verification', 'HMAC verified successfully', { context, dataLength: encrypted.length });
 
   return encrypted;
 }
