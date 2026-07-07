@@ -430,11 +430,24 @@
 
   switchCuotasView(view) {
     this._cuotasView = view;
-    document.getElementById('tab-cuotas').classList.toggle('active', view === 'cuotas');
-    document.getElementById('tab-deudores').classList.toggle('active', view === 'deudores');
-    document.getElementById('cuotas-list').classList.toggle('hidden', view !== 'cuotas');
-    document.getElementById('deudores-list').classList.toggle('hidden', view !== 'deudores');
-    if (view === 'deudores') this.renderDeudores();
+    const tabCuotas = document.getElementById('tab-cuotas');
+    const tabDeudores = document.getElementById('tab-deudores');
+    const listCuotas = document.getElementById('cuotas-list');
+    const listDeudores = document.getElementById('deudores-list');
+
+    if (view === 'cuotas') {
+      tabCuotas.classList.add('active');
+      tabDeudores.classList.remove('active');
+      listCuotas.classList.remove('hidden');
+      listDeudores.classList.add('hidden');
+      this.renderCuotas();
+    } else {
+      tabCuotas.classList.remove('active');
+      tabDeudores.classList.add('active');
+      listCuotas.classList.add('hidden');
+      listDeudores.classList.remove('hidden');
+      this.renderDeudores();
+    }
   },
 
   renderDeudores() {
