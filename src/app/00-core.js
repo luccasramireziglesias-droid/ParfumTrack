@@ -26,6 +26,7 @@
     this._initCsrfToken();
     this.checkPinOnStart();
     this.checkOnboarding();
+    this.checkConsent();
     this.renderAll();
     this.registerSW();
     this._initTabSync();

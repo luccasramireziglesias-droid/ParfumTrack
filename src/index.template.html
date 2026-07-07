@@ -268,6 +268,42 @@
   <!-- ====== SCREEN: CATÁLOGO WA ====== -->
   <!--PT:SCREEN:catalogo-->
 
+  <!-- ====== MODAL: CONSENTIMIENTO (TÉRMINOS, PRIVACIDAD, COOKIES) ====== -->
+  <div id="modal-consent" class="modal-overlay hidden" onclick="event.target.id === 'modal-consent' ? null : null" style="background:rgba(0,0,0,0.7);z-index:9997;">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width:400px;border:2px solid var(--gold);gap:20px;">
+      <h2 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);text-align:center;margin:0;">Aceptar Términos & Privacidad</h2>
+      <p style="color:var(--text3);font-size:13px;line-height:1.6;margin:0;">Para usar Parfum Track, necesitamos que aceptes nuestros términos, política de privacidad y uso de cookies.</p>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" id="consent-terms" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
+          <span style="color:var(--text2);font-size:13px;">Acepto los <a href="/terminos.html" target="_blank" style="color:var(--gold);text-decoration:underline;">Términos de Servicio</a></span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" id="consent-privacy" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
+          <span style="color:var(--text2);font-size:13px;">Acepto la <a href="/privacidad.html" target="_blank" style="color:var(--gold);text-decoration:underline;">Política de Privacidad</a></span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" id="consent-cookies" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
+          <span style="color:var(--text2);font-size:13px;">Autorizo el uso de cookies para análisis y mejora del servicio</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" id="consent-email" checked style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
+          <span style="color:var(--text3);font-size:12px;">✓ Opcional: Recibir emails sobre nuevas features y promociones</span>
+        </label>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-direction:column;">
+        <button class="btn-primary btn-full" onclick="App.acceptConsent()" id="consent-btn-accept" style="opacity:0.5;cursor:not-allowed;" disabled>
+          <span class="ms">check</span>Aceptar
+        </button>
+        <button class="btn-outline-gold btn-full" onclick="App.rejectConsent()">
+          Rechazar
+        </button>
+      </div>
+    </div>
+  </div>
+
   </div><!-- /screens-container -->
 
   <!-- ====== BOTTOM NAV ====== -->
