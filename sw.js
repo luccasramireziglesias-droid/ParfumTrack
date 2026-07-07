@@ -2,7 +2,7 @@
 // v16: Versionado automático + invalidación inteligente de cache
 // Cada versión tiene su propio cache, automáticamente limpia versiones antiguas
 
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.1.1";
 const CACHE_NAME = `parfumtrack-v${APP_VERSION}`;
 const STATIC_ASSETS = [
   "/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",

@@ -6,16 +6,11 @@
 // Devuelve el código de licencia cuando el pago está activo y el email verificado.
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, isValidEmail, log, hashIp } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, isValidEmail, log, hashIp, requireJson, parseJsonBody, validateCsrfToken } from './_shared.js';
 
-export async function onRequestGet(context) {
-  const { request, env } = context;
-  const origin  = request.headers.get('Origin') || '';
-  const headers = corsHeaders(origin, { methods: 'GET, OPTIONS' });
-  const url     = new URL(request.url);
-
-  const paymentId = url.searchParams.get('paymentId')?.trim();
-  const email = url.searchParams.get('email')?.trim().toLowerCase();
+async function handlePaymentStatus(paymentId, email, env, request) {
+  const origin = request.headers.get('Origin') || '';
+  const headers = corsHeaders(origin, { methods: 'GET, POST, OPTIONS' });
 
   if (!paymentId || !/^\d+$/.test(paymentId) || paymentId.length > 20) {
     return json({ ok: false, error: 'paymentId inválido' }, 400, headers);
@@ -89,7 +84,34 @@ export async function onRequestGet(context) {
   }, 200, headers);
 }
 
+export async function onRequestGet(context) {
+  const { request } = context;
+  const url = new URL(request.url);
+  const paymentId = url.searchParams.get('paymentId')?.trim();
+  const email = url.searchParams.get('email')?.trim().toLowerCase();
+
+  return handlePaymentStatus(paymentId, email, context.env, request);
+}
+
+export async function onRequestPost(context) {
+  const { request, env } = context;
+  const origin = request.headers.get('Origin') || '';
+  const headers = corsHeaders(origin, { methods: 'GET, POST, OPTIONS' });
+
+  const ctError = requireJson(request, 4096);
+  if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
+
+  const csrfError = validateCsrfToken(request, { optional: false });
+  if (csrfError) return json({ ok: false, error: 'CSRF validation failed' }, 403, headers);
+
+  const { data: body, error: parseError } = await parseJsonBody(request, 4096);
+  if (parseError) return json({ ok: false, error: parseError === 'Payload too large' ? parseError : 'Bad request' }, parseError === 'Payload too large' ? 413 : 400, headers);
+
+  const { paymentId, email } = body;
+  return handlePaymentStatus(paymentId?.trim(), email?.trim().toLowerCase(), env, request);
+}
+
 export async function onRequestOptions(context) {
   const origin = context.request.headers.get('Origin') || '';
-  return new Response(null, { status: 204, headers: corsHeaders(origin, { methods: 'GET, OPTIONS' }) });
+  return new Response(null, { status: 204, headers: corsHeaders(origin, { methods: 'GET, POST, OPTIONS' }) });
 }

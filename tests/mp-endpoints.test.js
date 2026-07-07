@@ -81,7 +81,7 @@ describe('mp-create-preference', () => {
 
     const request = new Request('https://test.com/mp-create-preference', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4', 'X-CSRF-Token': '0'.repeat(64) },
       body: JSON.stringify({ email: 'user@test.com', plan: 'monthly' }),
     });
     const resp = await createPref({ request, env });
@@ -97,7 +97,7 @@ describe('mp-create-preference', () => {
     const env = makeEnv();
     const request = new Request('https://test.com/mp-create-preference', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4', 'X-CSRF-Token': '0'.repeat(64) },
       body: JSON.stringify({ email: 'bad', plan: 'monthly' }),
     });
     const resp = await createPref({ request, env });
@@ -108,7 +108,7 @@ describe('mp-create-preference', () => {
     const env = makeEnv();
     const request = new Request('https://test.com/mp-create-preference', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4', 'X-CSRF-Token': '0'.repeat(64) },
       body: JSON.stringify({ email: 'user@test.com', plan: 'premium' }),
     });
     const resp = await createPref({ request, env });
@@ -119,7 +119,7 @@ describe('mp-create-preference', () => {
     const env = makeEnv();
     const request = new Request('https://test.com/mp-create-preference', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4', 'X-CSRF-Token': '0'.repeat(64) },
       body: JSON.stringify({ email: 'unknown@test.com', plan: 'monthly' }),
     });
     const resp = await createPref({ request, env });
@@ -132,7 +132,7 @@ describe('mp-create-preference', () => {
     const env = makeEnv({ PT_LICENSES: kv, MP_ACCESS_TOKEN: undefined });
     const request = new Request('https://test.com/mp-create-preference', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4', 'X-CSRF-Token': '0'.repeat(64) },
       body: JSON.stringify({ email: 'user@test.com', plan: 'monthly' }),
     });
     const resp = await createPref({ request, env });

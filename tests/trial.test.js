@@ -24,14 +24,16 @@ function makeEnv(overrides = {}) {
 }
 
 function makeRequest(body, headers = {}) {
+  const defaultHeaders = {
+    'Content-Type': 'application/json',
+    'Origin': 'https://parfumtrack.luccasramireziglesias.workers.dev',
+    'CF-Connecting-IP': '1.2.3.4',
+    'X-CSRF-Token': '0'.repeat(64), // Valid 64-char hex token
+    ...headers,
+  };
   return new Request('https://parfumtrack.luccasramireziglesias.workers.dev/trial', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Origin': 'https://parfumtrack.luccasramireziglesias.workers.dev',
-      'CF-Connecting-IP': '1.2.3.4',
-      ...headers,
-    },
+    headers: defaultHeaders,
     body: JSON.stringify(body),
   });
 }

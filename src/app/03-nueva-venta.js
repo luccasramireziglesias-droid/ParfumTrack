@@ -204,6 +204,23 @@
       return;
     }
 
+    // Plan limit check: Free = max 10 pending cuotas
+    if (!this.isPro() && this.formaPago === 'cuotas' && numCuotas > 1) {
+      const pendingCuotas = this.cuotasData.filter(c => !c.pagado).length;
+      const newCuotasCount = numCuotas - 1; // Primera cuota se marca pagada
+      if (pendingCuotas + newCuotasCount > 10) {
+        this.appConfirm(
+          'Límite de cuotas alcanzado',
+          `Plan Free: máx 10 cuotas pendientes. Tenés ${pendingCuotas} pendientes y querés agregar ${newCuotasCount}.\n\nActualiza a Básico Pro para ilimitadas.`,
+          'Actualizar plan',
+          'Cancelar'
+        ).then(result => {
+          if (result) this.showScreen('cuenta');
+        });
+        return;
+      }
+    }
+
     try {
       await DB.addVenta({
         perfume,

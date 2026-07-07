@@ -1,0 +1,104 @@
+/* ═══════════════════════════════════
+   NAV
+═══════════════════════════════════ */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  background: rgba(10,10,21,0.88);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.3s;
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--gold2);
+  text-decoration: none;
+  letter-spacing: -0.3px;
+}
+.nav-logo img { width: 30px; height: 30px; border-radius: 8px; }
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.nav-links a {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text2);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--text); }
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-outline {
+  padding: 8px 18px;
+  border-radius: 50px;
+  border: 1.5px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+}
+.btn-outline:hover { border-color: var(--gold); color: var(--gold2); }
+.btn-gold {
+  padding: 9px 20px;
+  border-radius: 50px;
+  border: none;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #1a1400;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 16px rgba(201,168,76,0.3);
+}
+.btn-gold:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 4px 24px rgba(201,168,76,0.4); }
+
+
+/* ═══════════════════════════════════
+   HAMBURGER MENU
+═══════════════════════════════════ */
+.nav-hamburger {
+  display: none;
+  width: 40px; height: 40px;
+  background: transparent; border: none; cursor: pointer;
+  flex-direction: column; justify-content: center; align-items: center; gap: 5px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  margin-left: 8px;
+}
+.nav-hamburger:hover { background: rgba(255,255,255,0.06); }
+.nav-hamburger span {
+  display: block; width: 22px; height: 2px;
+  background: var(--text2); border-radius: 1px;
+  transition: all 0.25s ease;
+}
+.nav.open .nav-hamburger span:nth-child(1) { transform: translateY(7px) rotate(45deg); background: var(--gold2); }
+.nav.open .nav-hamburger span:nth-child(2) { opacity: 0; }
+.nav.open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background: var(--gold2); }
+

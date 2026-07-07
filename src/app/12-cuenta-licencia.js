@@ -123,7 +123,7 @@
       const res = await fetch('/trial', {
         signal: AbortSignal.timeout(30000),
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ step: 'register', email, deviceId: this._getDeviceId() })
       });
       const data = await res.json();
@@ -151,7 +151,7 @@
       const res = await fetch('/trial', {
         signal: AbortSignal.timeout(30000),
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ step: 'verify', email: this._pendingEmail, otp, deviceId: this._getDeviceId() })
       });
       const data = await res.json();
@@ -196,7 +196,7 @@
     try {
       const res = await fetch('/validate-license', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ code })
       });
       const data = await res.json();
@@ -232,7 +232,7 @@
     try {
       const res = await fetch('/mp-create-preference', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ email: this._account.email, plan })
       });
       const data = await res.json();
@@ -268,13 +268,12 @@
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
         negocio: localStorage.getItem('pt_negocio'),
-        pin: localStorage.getItem('pt_pin'),
       }
     };
     try {
       const res = await fetch('/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ code, token, data })
       });
       const result = await res.json();

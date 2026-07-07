@@ -13,11 +13,11 @@ import { onRequestPost as syncPost, onRequestGet as syncGet } from './functions/
 import { onRequestPost as mpCreatePreference }    from './functions/mp-create-preference.js';
 import { onRequestPost as mpWebhookPost, onRequestGet as mpWebhookGet } from './functions/mp-webhook.js';
 import { onRequestGet  as mpSubscriptionStatus }  from './functions/mp-subscription-status.js';
-import { onRequestGet  as mpPaymentStatus }        from './functions/mp-payment-status.js';
+import { onRequestPost as mpPaymentStatusPost, onRequestGet as mpPaymentStatusGet } from './functions/mp-payment-status.js';
 import { onRequestPost as generateOwnerLicense }   from './functions/generate-owner-license.js';
 import { onRequestGet  as debugLicense }            from './functions/debug-license.js';
 
-const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup', '/trial', '/sync', '/mp-create-preference', '/mp-webhook', '/generate-owner-license'];
+const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup', '/trial', '/sync', '/mp-create-preference', '/mp-webhook', '/mp-payment-status', '/generate-owner-license'];
 const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status', '/mp-payment-status', '/health', '/generate-owner-license', '/debug-license'];
 
 // Critical routes for connection limiting (Fix #14)
@@ -155,6 +155,7 @@ async function handleRequest(request, env, ctx) {
       if (path === '/sync')                   return syncPost(context);
       if (path === '/mp-create-preference')   return mpCreatePreference(context);
       if (path === '/mp-webhook')              return mpWebhookPost(context);
+      if (path === '/mp-payment-status')      return mpPaymentStatusPost(context);
       if (path === '/generate-owner-license') return generateOwnerLicense(context);
 
     }
@@ -164,7 +165,7 @@ async function handleRequest(request, env, ctx) {
       if (path === '/sync')                   return syncGet(context);
       if (path === '/mp-webhook')             return mpWebhookGet(context);
       if (path === '/mp-subscription-status') return mpSubscriptionStatus(context);
-      if (path === '/mp-payment-status')      return mpPaymentStatus(context);
+      if (path === '/mp-payment-status')      return mpPaymentStatusGet(context);
       if (path === '/generate-owner-license') return generateOwnerLicense(context);
       if (path === '/debug-license')          return debugLicense(context);
 

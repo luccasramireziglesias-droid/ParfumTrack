@@ -3,24 +3,61 @@
     await openDB();
   },
 
+  _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja']),
+
+  _shouldEncrypt(store) {
+    return this._encryptedStores.has(store) && localStorage.getItem('pt_license_code');
+  },
+
+  async _encryptBeforeStore(store, data) {
+    if (!this._shouldEncrypt(store)) return data;
+    try {
+      const encrypted = await ENCRYPTION.encryptDataWithVersion(data);
+      return { _encrypted: encrypted, _v: 1 };
+    } catch (e) {
+      console.warn('Encryption failed, storing plaintext:', e.message);
+      return data;
+    }
+  },
+
+  async _decryptAfterRetrieve(store, data) {
+    if (!this._shouldEncrypt(store) || !data) return data;
+    if (Array.isArray(data)) {
+      return Promise.all(data.map(item => this._decryptAfterRetrieve(store, item)));
+    }
+    if (data._encrypted && data._v) {
+      try {
+        return await ENCRYPTION.decryptDataWithVersion(data._encrypted);
+      } catch (e) {
+        console.warn('Decryption failed, returning as-is:', e.message);
+        return data;
+      }
+    }
+    return data;
+  },
+
   async getAll(store) {
     await openDB();
-    return reqP(tx(store).getAll());
+    const data = await reqP(tx(store).getAll());
+    return this._decryptAfterRetrieve(store, data);
   },
 
   async get(store, id) {
     await openDB();
-    return reqP(tx(store).get(id));
+    const data = await reqP(tx(store).get(id));
+    return this._decryptAfterRetrieve(store, data);
   },
 
   async add(store, data) {
     await openDB();
-    return reqP(tx(store, 'readwrite').add(data));
+    const encrypted = await this._encryptBeforeStore(store, data);
+    return reqP(tx(store, 'readwrite').add(encrypted));
   },
 
   async put(store, data) {
     await openDB();
-    return reqP(tx(store, 'readwrite').put(data));
+    const encrypted = await this._encryptBeforeStore(store, data);
+    return reqP(tx(store, 'readwrite').put(encrypted));
   },
 
   async delete(store, id) {
@@ -298,3 +335,4 @@
       await this.addVenta(v);
     }
   }
+

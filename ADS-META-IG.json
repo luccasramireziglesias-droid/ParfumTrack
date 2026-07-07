@@ -1,0 +1,258 @@
+{
+  "campaign": {
+    "name": "ParfumTrack LATAM Launch",
+    "objective": "LEAD_GENERATION",
+    "goal": "Registros/descargas app",
+    "budget_daily_usd": 125,
+    "duration_days": 36,
+    "target_countries": ["AR", "UY", "CO", "MX"],
+    "platform": "Meta + Instagram"
+  },
+  "ads": [
+    {
+      "id": "ad_001",
+      "name": "Problema — Sin control ganancia",
+      "angle": "Pain point",
+      "target_segment": "Principiantes",
+      "headline": "Vendés, pero ¿ganás?",
+      "primary_text": "99% de revendedores no sabe cuánto ganó en sus ventas. Adivina, calcula mal, pierde dinero.",
+      "description": "Descubrí tu ganancia real",
+      "cta_button": "Empezar gratis",
+      "image_brief": "Split: Left (pregunta + números confusos), Right (gold highlight). Texto: ❌ Adivinando vs ✓ Sabemos",
+      "placements": ["INSTAGRAM_FEED", "FACEBOOK_FEED"],
+      "daily_budget_usd": 12.5,
+      "priority": "HIGH"
+    },
+    {
+      "id": "ad_002",
+      "name": "Solución — Ganancia automática",
+      "angle": "Solution",
+      "target_segment": "Pain-aware",
+      "headline": "Ganancia automática",
+      "primary_text": "Registrá una venta en 10 segundos. La app calcula tu ganancia neta al instante. Sin cuentas, sin errores.",
+      "description": "Sabé exactamente cuánto ganás",
+      "cta_button": "Ver cómo funciona",
+      "image_brief": "Phone mockup: Input venta → Output ganancia (números grandes en gold)",
+      "placements": ["INSTAGRAM_FEED", "FACEBOOK_FEED"],
+      "daily_budget_usd": 12.5,
+      "priority": "HIGH"
+    },
+    {
+      "id": "ad_003",
+      "name": "Beneficio — 100% Offline",
+      "angle": "Feature highlight",
+      "target_segment": "Mobility-focused",
+      "headline": "Vende en cualquier lado",
+      "primary_text": "En la feria, en la calle, en un evento... Registra ventas sin internet. Se sincroniza automático cuando vuelvas online.",
+      "description": "Funciona 100% offline",
+      "cta_button": "Empezar gratis",
+      "image_brief": "3 locations montage + wifi icon crossed out. ✓ Sin internet, sin problema",
+      "placements": ["INSTAGRAM_FEED", "INSTAGRAM_REELS", "FACEBOOK_FEED"],
+      "daily_budget_usd": 11,
+      "priority": "MEDIUM"
+    },
+    {
+      "id": "ad_004",
+      "name": "Velocidad — 10 segundos",
+      "angle": "Speed/Convenience",
+      "target_segment": "Busy personas",
+      "headline": "Venta en 10 segundos",
+      "primary_text": "Elegís perfume → Cargás precio → Listo. No hay formularios largos ni procesos complicados. Así de rápido.",
+      "description": "La forma más rápida de vender",
+      "cta_button": "Probar ahora",
+      "image_brief": "Timeline: 3 pasos en 10 segundos. Clock icon. Phone screens cada paso.",
+      "placements": ["INSTAGRAM_FEED", "FACEBOOK_FEED"],
+      "daily_budget_usd": 12.5,
+      "priority": "HIGH"
+    },
+    {
+      "id": "ad_005",
+      "name": "Social Proof — Revendedores confían",
+      "angle": "Trust/Community",
+      "target_segment": "Hesitant",
+      "headline": "Revendedores en LATAM",
+      "primary_text": "Miles de revendedores en Argentina, Uruguay, Colombia y México ya saben cuánto ganan con Parfum Track. ¿Vos cuándo?",
+      "description": "Únete a miles de usuarios",
+      "cta_button": "Empezar gratis",
+      "image_brief": "Mapa LATAM + 4 países destacados. '3,000+ usuarios activos'. Banderas AR/UY/CO/MX.",
+      "placements": ["INSTAGRAM_FEED", "FACEBOOK_FEED"],
+      "daily_budget_usd": 10,
+      "priority": "MEDIUM"
+    },
+    {
+      "id": "ad_006",
+      "name": "Gratuito — Sin tarjeta",
+      "angle": "No friction",
+      "target_segment": "First-time users",
+      "headline": "Gratis. De verdad.",
+      "primary_text": "Sin tarjeta de crédito. Sin vencimiento. Sin sorpresas. Usa Parfum Track gratis para siempre. Planes premium opcionales cuando crezcas.",
+      "description": "Comenzá sin costo",
+      "cta_button": "Registrarse gratis",
+      "image_brief": "Credit card ❌ + Green checkmarks: Sin tarjeta, Sin límite, Sin costo. Fondo clean/minimalista.",
+      "placements": ["FACEBOOK_FEED", "INSTAGRAM_FEED"],
+      "daily_budget_usd": 11,
+      "priority": "MEDIUM"
+    },
+    {
+      "id": "ad_007",
+      "name": "Urgency — Cierre de mes",
+      "angle": "FOMO/Time-sensitive",
+      "target_segment": "Decision makers",
+      "headline": "Cierre de mes fácil",
+      "primary_text": "¿Llegó cierre de mes y no sabés los números? Parfum Track te muestra exactamente qué vendiste, cuánto ganaste y cuánto cobraste. En 2 clics.",
+      "description": "Control total en cierre",
+      "cta_button": "Empezar ahora",
+      "image_brief": "Calendar (mes casi terminado) + Dashboard stats. Stress → Relief visual progression.",
+      "placements": ["INSTAGRAM_FEED", "FACEBOOK_FEED"],
+      "daily_budget_usd": 12.5,
+      "priority": "HIGH"
+    },
+    {
+      "id": "ad_008",
+      "name": "Comparison — vs. Excel/Cuaderno",
+      "angle": "Alternative comparison",
+      "target_segment": "Current solution users",
+      "headline": "Adiós Excel y cuadernos",
+      "primary_text": "¿Aún usás Excel o cuadernos para tus ventas? Nosotros ofrecemos algo mejor: App móvil, cálculo automático, acceso desde cualquier lado.",
+      "description": "Modernizá tu negocio",
+      "cta_button": "Ver diferencia",
+      "image_brief": "Before/After: Left (cuaderno + Excel caótico) vs Right (Parfum Track limpio). X rojo vs ✓ verde.",
+      "placements": ["INSTAGRAM_FEED", "FACEBOOK_FEED"],
+      "daily_budget_usd": 10,
+      "priority": "MEDIUM"
+    },
+    {
+      "id": "ad_009",
+      "name": "Feature — Cobros por WhatsApp",
+      "angle": "Unique feature",
+      "target_segment": "Cash flow conscious",
+      "headline": "Cobros por WhatsApp",
+      "primary_text": "Tus clientes usan WhatsApp. Eso sabés. Enviá recordatorios de cobro + catálogo directo desde la app. Sin apps extras.",
+      "description": "Cobra más rápido",
+      "cta_button": "Conocer más",
+      "image_brief": "WhatsApp icon prominente. Phone: catálogo + reminder. Green accent (WhatsApp color).",
+      "placements": ["INSTAGRAM_FEED", "INSTAGRAM_REELS", "FACEBOOK_FEED"],
+      "daily_budget_usd": 11,
+      "priority": "MEDIUM"
+    },
+    {
+      "id": "ad_010",
+      "name": "Gamification — Ranking vendedores",
+      "angle": "Gamification/Competition",
+      "target_segment": "Team leaders",
+      "headline": "¿Quién vende más?",
+      "primary_text": "Con Parfum Track ves ranking de tu equipo. Quién vende más, quién gana más, quién cobra mejor. Motiva y gestiona mejor.",
+      "description": "Compite y crece",
+      "cta_button": "Empezar gratis",
+      "image_brief": "Leaderboard: Top 3 vendedores. 🥇🥈🥉 medallas. Números/ganancias destacadas.",
+      "placements": ["INSTAGRAM_FEED", "FACEBOOK_FEED"],
+      "daily_budget_usd": 10,
+      "priority": "MEDIUM"
+    },
+    {
+      "id": "ad_011",
+      "name": "Security — Tus datos seguros",
+      "angle": "Security/Peace of mind",
+      "target_segment": "Risk-aware",
+      "headline": "Tus datos en tu celular",
+      "primary_text": "No guardamos tus datos en servidores. Están en tu dispositivo, bajo tu control. Privacidad real, sin sorpresas.",
+      "description": "Seguridad garantizada",
+      "cta_button": "Empezar hoy",
+      "image_brief": "Lock icon prominente. Phone con datos = seguro. Green shield background.",
+      "placements": ["FACEBOOK_FEED"],
+      "daily_budget_usd": 9,
+      "priority": "LOW"
+    },
+    {
+      "id": "ad_012",
+      "name": "Objection Handler — Míralo en acción",
+      "angle": "Social proof + Demo",
+      "target_segment": "Skeptical",
+      "headline": "Míralo en acción",
+      "primary_text": "No te pido que creas. Te mostramos cómo funciona en 30 segundos. Registra venta, ve ganancia calculada. Decidís si te quedás.",
+      "description": "Demo en vivo",
+      "cta_button": "Ver demo",
+      "image_brief": "Play button overlay. Teaser app screen. 'Prueba sin riesgos' text.",
+      "placements": ["INSTAGRAM_REELS", "FACEBOOK_FEED"],
+      "daily_budget_usd": 12.5,
+      "priority": "HIGH"
+    }
+  ],
+  "targeting": {
+    "audiences": [
+      {
+        "name": "Broad — Nuevos usuarios",
+        "age_min": 25,
+        "age_max": 55,
+        "locations": ["AR", "UY", "CO", "MX"],
+        "interests": ["Small business", "Entrepreneurship", "Sales", "Mobile commerce"],
+        "behaviors": "E-commerce converters, mobile shoppers",
+        "ads": ["ad_001", "ad_002", "ad_006", "ad_010"],
+        "budget_pct": 30
+      },
+      {
+        "name": "Problem-Aware — Visitantes landing",
+        "audience_type": "CUSTOM_AUDIENCE",
+        "source": "Website visitors (last 30 days, no conversión)",
+        "interests": ["Business tools", "Accounting", "Small business"],
+        "ads": ["ad_003", "ad_004", "ad_007", "ad_008"],
+        "budget_pct": 40
+      },
+      {
+        "name": "Hesitant — Low engagement",
+        "audience_type": "CUSTOM_AUDIENCE",
+        "source": "Landing visitors <30 seconds",
+        "behaviors": "Low engagement, high bounce",
+        "ads": ["ad_005", "ad_009", "ad_011", "ad_012"],
+        "budget_pct": 30
+      }
+    ]
+  },
+  "ab_testing": {
+    "variables": [
+      {
+        "name": "Primary CTA",
+        "variant_a": "Empezar gratis",
+        "variant_b": "Probar ahora",
+        "test_ads": ["ad_001", "ad_002"]
+      },
+      {
+        "name": "Headline Tone",
+        "variant_a": "Direct (Venta en 10s)",
+        "variant_b": "Question (¿Vendés?)",
+        "test_ads": ["ad_004", "ad_007"]
+      },
+      {
+        "name": "Image Type",
+        "variant_a": "Phone mockup",
+        "variant_b": "Real person using",
+        "test_ads": ["ad_002", "ad_003"]
+      }
+    ],
+    "test_duration_days": 3,
+    "total_testing_period_days": 36,
+    "success_metric": "CTR > 2.5%, CPC < $0.50"
+  },
+  "tracking": {
+    "utm_template": "?utm_source=meta&utm_medium=cpc&utm_campaign=latam_revendedores&utm_content={ad_id}",
+    "pixel_events": ["PageView", "Lead", "Purchase"],
+    "conversion_window_days": 7
+  },
+  "qa": {
+    "compliance": [
+      "No usar 'free' sin mencionar versión free",
+      "Link checking: All URLs funcionan",
+      "Copy review: No typos, claridad OK",
+      "Image compliance: Tamaños correctos, no clickbait"
+    ],
+    "launch_checklist": [
+      "✅ 12 imágenes creadas (Canva)",
+      "✅ Copy aprobado",
+      "✅ Audiences configurados en Meta",
+      "✅ Pixel instalado en landing",
+      "✅ UTM parameters set",
+      "✅ Daily budget OK",
+      "✅ Schedule de 36 días"
+    ]
+  }
+}

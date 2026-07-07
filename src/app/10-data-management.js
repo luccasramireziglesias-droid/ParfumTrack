@@ -167,7 +167,6 @@
     if (data.settings) {
       if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
       if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
-      if (data.settings.pin) localStorage.setItem('pt_pin', data.settings.pin);
     }
     await this.loadData();
     this.loadMoneda();
@@ -227,6 +226,18 @@
   },
 
   async exportPDF() {
+    // Pro feature only
+    if (!this.isPro()) {
+      this.appConfirm(
+        'Función de Básico Pro',
+        'Exportar a PDF solo está disponible en Básico Pro. Actualiza para acceder.',
+        'Actualizar plan',
+        'Cancelar'
+      ).then(result => {
+        if (result) this.showScreen('cuenta');
+      });
+      return;
+    }
     this.toast('Generando PDF…', 'hourglass_top');
     try {
       await this._loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
@@ -280,6 +291,18 @@
   },
 
   async exportExcel() {
+    // Pro feature only
+    if (!this.isPro()) {
+      this.appConfirm(
+        'Función de Básico Pro',
+        'Exportar a Excel solo está disponible en Básico Pro. Actualiza para acceder.',
+        'Actualizar plan',
+        'Cancelar'
+      ).then(result => {
+        if (result) this.showScreen('cuenta');
+      });
+      return;
+    }
     this.toast('Generando Excel…', 'hourglass_top');
     try {
       await this._loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
@@ -354,6 +377,18 @@
   _catalogoImages: [],
 
   compartirCatalogo() {
+    // Pro feature only
+    if (!this.isPro()) {
+      this.appConfirm(
+        'Catálogo WA en Básico Pro',
+        'Compartir tu catálogo por WhatsApp es una función de Básico Pro. Actualiza para acceder.',
+        'Actualizar plan',
+        'Cancelar'
+      ).then(result => {
+        if (result) this.showScreen('cuenta');
+      });
+      return;
+    }
     const disponibles = this.perfumes.filter(p => p.stock > 0).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     if (disponibles.length === 0) {
       this.toast('No hay perfumes en stock', 'warning');
@@ -607,7 +642,6 @@
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
         negocio: localStorage.getItem('pt_negocio'),
-        pin: localStorage.getItem('pt_pin'),
       }
     };
 
@@ -617,7 +651,7 @@
 
       const res = await fetch('/backup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ code, token, encryptedData })
       });
       const result = await res.json();

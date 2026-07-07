@@ -65,3 +65,4 @@
     const steps = el.querySelectorAll('.onb-step');
     steps.forEach((s, i) => s.style.display = i === 0 ? 'flex' : 'none');
   },
+

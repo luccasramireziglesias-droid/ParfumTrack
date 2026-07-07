@@ -81,21 +81,50 @@ export async function onRequestPost(context) {
     return jsonResp({ ok: false, error: 'kv_unavailable' }, 500);
   }
 
-  // 3. Idempotencia: atomic check-and-set para evitar race conditions
-  // Si entre el check y el put viene otro webhook, ambos verían "not found"
-  // Solución: usar un UUID único per worker invocation, reintentable
+  // 3. Idempotencia: atomic check-and-set para evitar race conditions (MP-PH-03)
+  // Race condition sin protección:
+  //   T0: webhook A checks idKey → not found
+  //   T1: webhook B checks idKey → not found
+  //   T2: webhook A puts processing:A
+  //   T3: webhook B puts processing:B (overwrites A)
+  //   T4: both A and B proceed → licencia duplicada
+  //
+  // Solución: verificar si está en "processing" ANTES de procesar
   const idKey = `webhook_processed:${type}:${resourceId}`;
   const workerId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
   const already = await env.PT_LICENSES.get(idKey);
+
   if (already === 'done') {
     log('info', 'mp-webhook', 'already processed', { idKey });
     return jsonResp({ ok: true });
   }
 
-  // Marcar con worker ID único para detectar simultáneamente (TTL 5 min)
-  // Si el mismo tipo:resourceId viene 2x en <5 min, tendrán workerIds distintos
-  await env.PT_LICENSES.put(idKey, `processing:${workerId}`, { expirationTtl: 300 });
+  // MP-PH-03: Detectar si otro worker está procesando este evento
+  if (already && already.startsWith('processing:')) {
+    const [, existingWorker, timestamp] = already.split(':');
+    const processingTime = parseInt(timestamp, 10);
+    const now = Date.now();
+    const elapsedMs = now - processingTime;
+
+    // Si otro worker procesó hace <5 min, es probable que esté en progreso → retry
+    if (elapsedMs < 300000) {
+      log('warn', 'mp-webhook', 'concurrent processing detected', {
+        idKey,
+        existingWorker,
+        elapsedMs
+      });
+      // MP reintentará tras 503
+      return jsonResp({ ok: false, error: 'concurrent_processing' }, 503);
+    }
+
+    // Si procesamiento anterior tardó >5 min, asumir que crasheó
+    log('info', 'mp-webhook', 'stale processing marker removed', { idKey, elapsedMs });
+  }
+
+  // Marcar como processing con timestamp para detectar concurrencia
+  const processingValue = `processing:${workerId}:${Date.now()}`;
+  await env.PT_LICENSES.put(idKey, processingValue, { expirationTtl: 300 });
 
   // 4. Procesar sincrónicamente para que MP reintente si falla
   try {
@@ -195,6 +224,13 @@ async function handlePaymentEvent(paymentId, env) {
   }
 
   const payment = await resp.json();
+
+  const validation = validatePaymentResponse(payment);
+  if (!validation.valid) {
+    log('warn', 'mp-webhook', 'invalid payment response', { paymentId, error: validation.error });
+    throw new Error(`Invalid payment response: ${validation.error}`);
+  }
+
   log('info', 'mp-webhook', 'payment status', { paymentId, status: payment.status });
   await handleSinglePayment(paymentId, payment, env);
 }
@@ -209,14 +245,31 @@ async function handleSinglePayment(paymentId, payment, env) {
 
   // Obtener email y plan desde external_reference (con validación cruzada)
   let email, plan;
-  const payerEmail = payment.payer?.email;
+  let payerEmail = payment.payer?.email;
 
+  // MP-PH-01: Normalizar emails inmediatamente para evitar duplicados
+  // case-insensitive (USER@example.com vs user@example.com) y whitespace
+  if (payerEmail) payerEmail = payerEmail.toLowerCase().trim();
+
+  // MP-PH-02: Validate external_reference JSON structure
   if (payment.external_reference) {
     try {
       const ref = JSON.parse(payment.external_reference);
-      email = ref.email;
-      plan  = ref.plan || 'monthly';
-    } catch { /* JSON inválido — usar fallback */ }
+      // Validar estructura: email es string, plan es string opcional
+      if (typeof ref === 'object' && ref !== null && typeof ref.email === 'string') {
+        email = ref.email.toLowerCase().trim();
+        plan  = ref.plan || 'monthly';
+        // Validar plan está en lista whitelist
+        if (!['monthly', 'annual', 'basic_monthly', 'basic_annual'].includes(plan)) {
+          log('warn', 'mp-webhook', 'invalid plan in external_reference', { plan, paymentId });
+          plan = 'monthly';
+        }
+      } else {
+        log('warn', 'mp-webhook', 'invalid external_reference structure', { paymentId });
+      }
+    } catch (e) {
+      log('warn', 'mp-webhook', 'malformed JSON in external_reference', { paymentId });
+    }
   }
 
   // Validar email: debe estar presente y ser válido
@@ -227,7 +280,7 @@ async function handleSinglePayment(paymentId, payment, env) {
 
   // Si tenemos ambos, prefiero payer.email (visto por MP directamente)
   // pero valido que no conflictúen (posible spoofing)
-  if (email && payerEmail && email.toLowerCase() !== payerEmail.toLowerCase()) {
+  if (email && payerEmail && email !== payerEmail) {
     log('warn', 'mp-webhook', 'email mismatch: external_reference vs payer', {
       external: email,
       payer: payerEmail,
@@ -240,9 +293,6 @@ async function handleSinglePayment(paymentId, payment, env) {
   }
 
   if (!plan) plan = 'monthly';
-
-  // Normalizar y validar email
-  email = email.toLowerCase().trim();
   if (!isValidEmail(email)) {
     log('error', 'mp-webhook', 'invalid email format', { email: email.slice(0, 5) + '***', paymentId });
     return;
@@ -405,6 +455,39 @@ async function handleSinglePayment(paymentId, payment, env) {
 }
 
 // ── Utilidades ────────────────────────────────────────────────────
+
+function validatePaymentResponse(payment) {
+  if (!payment || typeof payment !== 'object') {
+    return { valid: false, error: 'invalid_payment_object' };
+  }
+
+  if (typeof payment.status !== 'string') {
+    return { valid: false, error: 'missing_status_field' };
+  }
+
+  if (!payment.id && !payment.paymentId) {
+    return { valid: false, error: 'missing_id_fields' };
+  }
+
+  if (payment.status === 'approved') {
+    const hasPayer = payment.payer && typeof payment.payer === 'object' && typeof payment.payer.email === 'string';
+    const hasExtRef = payment.external_reference && typeof payment.external_reference === 'string';
+
+    if (!hasPayer && !hasExtRef) {
+      return { valid: false, error: 'missing_email_source' };
+    }
+
+    if (typeof payment.transaction_amount !== 'number' && typeof payment.transaction_amount !== 'string') {
+      return { valid: false, error: 'missing_transaction_amount' };
+    }
+
+    if (typeof payment.currency_id !== 'string') {
+      return { valid: false, error: 'missing_currency_id' };
+    }
+  }
+
+  return { valid: true };
+}
 
 async function generateLicenseCode(env) {
   const toHex = arr => Array.from(arr).map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();

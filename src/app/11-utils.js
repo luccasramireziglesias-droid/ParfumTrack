@@ -68,6 +68,15 @@
     return div.innerHTML;
   },
 
+  // Base64 UTF-8-safe: btoa/atob solos lanzan InvalidCharacterError con emojis (fuera de Latin1)
+  b64Encode(s) {
+    return btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+  },
+
+  b64Decode(b64) {
+    return new TextDecoder().decode(Uint8Array.from(atob(b64), c => c.charCodeAt(0)));
+  },
+
   track(event, props) {
     if (window.plausible) window.plausible(event, props ? { props } : undefined);
   },

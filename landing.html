@@ -65,6 +65,8 @@ body {
   overflow-x: hidden;
 }
 
+
+
 /* ═══════════════════════════════════
    ANNOUNCEMENT BAR
 ═══════════════════════════════════ */
@@ -83,6 +85,8 @@ body {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+
 
 /* ═══════════════════════════════════
    NAV
@@ -164,6 +168,31 @@ body {
   box-shadow: 0 2px 16px rgba(201,168,76,0.3);
 }
 .btn-gold:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 4px 24px rgba(201,168,76,0.4); }
+
+
+/* ═══════════════════════════════════
+   HAMBURGER MENU
+═══════════════════════════════════ */
+.nav-hamburger {
+  display: none;
+  width: 40px; height: 40px;
+  background: transparent; border: none; cursor: pointer;
+  flex-direction: column; justify-content: center; align-items: center; gap: 5px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  margin-left: 8px;
+}
+.nav-hamburger:hover { background: rgba(255,255,255,0.06); }
+.nav-hamburger span {
+  display: block; width: 22px; height: 2px;
+  background: var(--text2); border-radius: 1px;
+  transition: all 0.25s ease;
+}
+.nav.open .nav-hamburger span:nth-child(1) { transform: translateY(7px) rotate(45deg); background: var(--gold2); }
+.nav.open .nav-hamburger span:nth-child(2) { opacity: 0; }
+.nav.open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background: var(--gold2); }
+
+
 
 /* ═══════════════════════════════════
    HERO
@@ -343,6 +372,45 @@ body {
 .hfc-value { color: var(--gold2); font-size: 16px; font-weight: 800; }
 .hfc-sub { color: var(--green); font-size: 10px; font-weight: 600; }
 
+
+/* ═══════════════════════════════════
+   HERO SCREENSHOT SVG
+═══════════════════════════════════ */
+.hero-screenshot-wrap {
+  width: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 20px 60px rgba(0,0,0,0.6);
+  display: block;
+  background: #0a0a15;
+}
+.hero-screenshot-wrap svg, .hero-screenshot-wrap img { display: block; width: 100%; height: auto; }
+
+
+/* ═══════════════════════════════════
+   SOCIAL PROOF STRIP (hero)
+═══════════════════════════════════ */
+.hero-social-proof {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(74,222,128,0.07);
+  border: 1px solid rgba(74,222,128,0.2);
+  border-radius: 50px;
+  padding: 7px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+  margin-bottom: 28px;
+}
+.hero-social-proof .sp-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  animation: pulse-dot 2s ease infinite;
+}
+
+
+
 /* ═══════════════════════════════════
    VIDEO DEMO
 ═══════════════════════════════════ */
@@ -408,6 +476,7 @@ body {
 }
 .video-close:hover { background: rgba(255,255,255,0.4); }
 
+
 /* ═══════════════════════════════════
    TRUST BAR
 ═══════════════════════════════════ */
@@ -445,6 +514,8 @@ body {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
+
+
 
 /* ═══════════════════════════════════
    SECTIONS COMMONS
@@ -486,6 +557,8 @@ body {
   line-height: 1.65;
 }
 
+
+
 /* ═══════════════════════════════════
    PROBLEMA
 ═══════════════════════════════════ */
@@ -523,6 +596,7 @@ body {
   line-height: 1.5;
 }
 .pain-quote strong { color: var(--text); font-style: normal; }
+
 
 /* ═══════════════════════════════════
    SOLUCIÓN (Benefits)
@@ -580,6 +654,8 @@ body {
   color: var(--text2);
   line-height: 1.65;
 }
+
+
 
 /* ═══════════════════════════════════
    FEATURE DESTACADA — CATÁLOGO
@@ -739,6 +815,8 @@ body {
 .srm-value { font-weight: 700; color: var(--gold2); }
 .srm-change { font-size: 11px; color: var(--green); font-weight: 600; }
 
+
+
 /* ═══════════════════════════════════
    HOW IT WORKS
 ═══════════════════════════════════ */
@@ -785,6 +863,8 @@ body {
 .step-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
 .step-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
 
+
+
 /* ═══════════════════════════════════
    COMPARISON
 ═══════════════════════════════════ */
@@ -828,6 +908,8 @@ body {
 .compare-item:last-child { border-bottom: none; }
 .ci-bullet { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
 .compare-good .ci-bullet { color: var(--green); font-weight: 700; }
+
+
 
 /* ═══════════════════════════════════
    TESTIMONIALS
@@ -891,6 +973,8 @@ body {
 }
 .testi-name { font-size: 14px; font-weight: 700; color: var(--text); }
 .testi-role { font-size: 12px; color: var(--text3); }
+
+
 
 /* ═══════════════════════════════════
    PRICING
@@ -1048,6 +1132,15 @@ body {
 .pricing-note a { color: var(--gold); text-decoration: none; }
 .pricing-note a:hover { text-decoration: underline; }
 
+
+/* ═══════════════════════════════════
+   PRICING TOGGLE JS HELPER
+═══════════════════════════════════ */
+[data-annual] { display: none; }
+body.annual-mode [data-monthly] { display: none; }
+body.annual-mode [data-annual] { display: block; }
+
+
 /* ═══════════════════════════════════
    FAQ
 ═══════════════════════════════════ */
@@ -1101,6 +1194,8 @@ body {
 }
 .faq-item.open .faq-answer { display: block; }
 
+
+
 /* ═══════════════════════════════════
    CTA FINAL
 ═══════════════════════════════════ */
@@ -1144,6 +1239,7 @@ body {
   margin-top: 24px;
 }
 .cta-guarantee-icon { font-size: 16px; }
+
 
 /* ═══════════════════════════════════
    FOOTER
@@ -1220,6 +1316,8 @@ footer {
   color: var(--text3);
 }
 
+
+
 /* ═══════════════════════════════════
    ANIMATIONS (Scroll)
 ═══════════════════════════════════ */
@@ -1242,62 +1340,7 @@ footer {
   @keyframes pulse-dot { from, to { opacity: 1; } }
 }
 
-/* ═══════════════════════════════════
-   HAMBURGER MENU
-═══════════════════════════════════ */
-.nav-hamburger {
-  display: none;
-  width: 40px; height: 40px;
-  background: transparent; border: none; cursor: pointer;
-  flex-direction: column; justify-content: center; align-items: center; gap: 5px;
-  border-radius: 8px;
-  transition: background 0.2s;
-  margin-left: 8px;
-}
-.nav-hamburger:hover { background: rgba(255,255,255,0.06); }
-.nav-hamburger span {
-  display: block; width: 22px; height: 2px;
-  background: var(--text2); border-radius: 1px;
-  transition: all 0.25s ease;
-}
-.nav.open .nav-hamburger span:nth-child(1) { transform: translateY(7px) rotate(45deg); background: var(--gold2); }
-.nav.open .nav-hamburger span:nth-child(2) { opacity: 0; }
-.nav.open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background: var(--gold2); }
 
-/* ═══════════════════════════════════
-   HERO SCREENSHOT SVG
-═══════════════════════════════════ */
-.hero-screenshot-wrap {
-  width: 100%;
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 20px 60px rgba(0,0,0,0.6);
-  display: block;
-  background: #0a0a15;
-}
-.hero-screenshot-wrap svg, .hero-screenshot-wrap img { display: block; width: 100%; height: auto; }
-
-/* ═══════════════════════════════════
-   SOCIAL PROOF STRIP (hero)
-═══════════════════════════════════ */
-.hero-social-proof {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(74,222,128,0.07);
-  border: 1px solid rgba(74,222,128,0.2);
-  border-radius: 50px;
-  padding: 7px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--green);
-  margin-bottom: 28px;
-}
-.hero-social-proof .sp-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--green);
-  animation: pulse-dot 2s ease infinite;
-}
 
 /* ═══════════════════════════════════
    RESPONSIVE
@@ -1361,12 +1404,8 @@ footer {
   .benefits-grid { grid-template-columns: 1fr; }
 }
 
-/* ═══════════════════════════════════
-   PRICING TOGGLE JS HELPER
-═══════════════════════════════════ */
-[data-annual] { display: none; }
-body.annual-mode [data-monthly] { display: none; }
-body.annual-mode [data-annual] { display: block; }
+
+
 </style>
 </head>
 <body>
@@ -1411,7 +1450,7 @@ body.annual-mode [data-annual] { display: block; }
   </div>
 </nav>
 
-<main id="contenido-principal">
+
 <!-- ══════════════════════════════════
      HERO
 ══════════════════════════════════ -->
@@ -1475,6 +1514,7 @@ body.annual-mode [data-annual] { display: block; }
 <!-- ══════════════════════════════════
      VIDEO DEMO
 ══════════════════════════════════ -->
+
 <section class="demo-section">
   <div class="container-narrow">
     <div class="demo-title">Mirá cómo funciona en 25 segundos</div>
@@ -1518,6 +1558,7 @@ body.annual-mode [data-annual] { display: block; }
 <!-- ══════════════════════════════════
      PROBLEMA
 ══════════════════════════════════ -->
+
 <section class="section">
   <div class="container">
     <div class="text-center container-narrow" style="margin: 0 auto;">
@@ -1559,6 +1600,7 @@ body.annual-mode [data-annual] { display: block; }
 <!-- ══════════════════════════════════
      SOLUCIÓN
 ══════════════════════════════════ -->
+
 <section class="section bg2" id="beneficios">
   <div class="container">
     <div class="text-center container-narrow" style="margin: 0 auto;">
@@ -1605,6 +1647,7 @@ body.annual-mode [data-annual] { display: block; }
 <!-- ══════════════════════════════════
      FEATURE DESTACADA 1 — Catálogo WhatsApp
 ══════════════════════════════════ -->
+
 <section class="section" id="funciones">
   <div class="container">
     <div class="feature-hero">
@@ -1634,6 +1677,7 @@ body.annual-mode [data-annual] { display: block; }
 <!-- ══════════════════════════════════
      FEATURE 2 — Cobros WA
 ══════════════════════════════════ -->
+
 <section class="section bg2">
   <div class="container">
     <div class="feature-hero reverse">
@@ -1727,6 +1771,7 @@ body.annual-mode [data-annual] { display: block; }
 <!-- ══════════════════════════════════
      COMPARACIÓN
 ══════════════════════════════════ -->
+
 <section class="section">
   <div class="container">
     <div class="text-center container-narrow" style="margin: 0 auto;">
@@ -1832,6 +1877,7 @@ body.annual-mode [data-annual] { display: block; }
 <!-- ══════════════════════════════════
      PRICING
 ══════════════════════════════════ -->
+
 <section class="section" id="pricing">
   <div class="container text-center">
     <span class="eyebrow">Precios</span>
@@ -1948,6 +1994,7 @@ body.annual-mode [data-annual] { display: block; }
 <!-- ══════════════════════════════════
      FAQ
 ══════════════════════════════════ -->
+
 <section class="section bg2" id="faq">
   <div class="container text-center">
     <span class="eyebrow">Preguntas frecuentes</span>
@@ -2025,6 +2072,7 @@ body.annual-mode [data-annual] { display: block; }
 <!-- ══════════════════════════════════
      CTA FINAL
 ══════════════════════════════════ -->
+
 <section class="cta-final">
   <div class="container-narrow text-center">
     <span class="eyebrow">Empezá hoy</span>
@@ -2049,6 +2097,7 @@ body.annual-mode [data-annual] { display: block; }
 <!-- ══════════════════════════════════
      CONTACTO
 ══════════════════════════════════ -->
+
 <section id="contacto" style="padding:60px 20px;background:#0f0f1a;">
   <div class="container-narrow text-center">
     <span class="eyebrow">Contacto</span>
@@ -2068,6 +2117,32 @@ body.annual-mode [data-annual] { display: block; }
 </section>
 
 </main>
+
+<!-- ── Modal checkout Mercado Pago ── -->
+<div id="mp-checkout-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)cerrarCheckoutMP()">
+  <div style="background:#1e1e35;border:1px solid rgba(201,168,76,0.3);border-radius:20px;padding:32px 28px;max-width:400px;width:100%;">
+    <button onclick="cerrarCheckoutMP()" style="float:right;background:none;border:none;color:var(--text3,#7a7870);font-size:22px;cursor:pointer;line-height:1;">✕</button>
+    <div style="text-align:center;margin-bottom:20px;">
+      <img src="/icon-192.png" alt="Parfum Track" style="width:48px;height:48px;border-radius:12px;margin-bottom:8px;">
+      <h3 style="color:#e8cc7a;font-size:19px;font-weight:700;margin:0 0 6px;">Pagar — Plan Básico Pro</h3>
+      <p id="mp-modal-subtitle" style="font-size:13px;color:#7a7870;">$9.99/mes · Se cobra via Mercado Pago · Tu código llega por email</p>
+    </div>
+    <label style="display:block;font-size:13px;color:#b8b4a8;margin-bottom:6px;">Tu email</label>
+    <input id="mp-email-input" type="email" placeholder="hola@ejemplo.com" autocomplete="email"
+      onkeydown="if(event.key==='Enter')iniciarCheckoutMP()"
+      style="width:100%;padding:12px 16px;background:#13132a;border:1.5px solid rgba(201,168,76,0.3);border-radius:10px;color:#f0eee8;font-size:15px;margin-bottom:8px;outline:none;font-family:inherit;">
+    <p id="mp-checkout-error" style="font-size:12px;color:#e07070;min-height:16px;margin-bottom:12px;"></p>
+    <p style="font-size:11px;color:#7a7870;text-align:center;margin-bottom:10px;line-height:1.5;">Política de reembolso: Los pagos no son reembolsables salvo error técnico, cobro duplicado o falla grave del servicio (7 días). Consultar <a href="/terminos.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Términos de Uso</a>.</p>
+    <button id="mp-checkout-btn" onclick="iniciarCheckoutMP()"
+      style="width:100%;padding:14px;background:linear-gradient(135deg,#009ee3,#0070ba);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">
+      Ir a pagar con Mercado Pago →
+    </button>
+    <p style="font-size:11px;color:#4a4848;text-align:center;line-height:1.6;">
+      🔒 Pago seguro vía Mercado Pago · El monto se cobra en tu moneda local<br>
+      Al pagar aceptás los <a href="/terminos.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Términos de uso</a> y la <a href="/privacidad.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Política de privacidad</a>
+    </p>
+  </div>
+
 
 <!-- ══════════════════════════════════
      FOOTER
@@ -2273,30 +2348,8 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 </script>
 
-<!-- ── Modal checkout Mercado Pago ── -->
-<div id="mp-checkout-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)cerrarCheckoutMP()">
-  <div style="background:#1e1e35;border:1px solid rgba(201,168,76,0.3);border-radius:20px;padding:32px 28px;max-width:400px;width:100%;">
-    <button onclick="cerrarCheckoutMP()" style="float:right;background:none;border:none;color:var(--text3,#7a7870);font-size:22px;cursor:pointer;line-height:1;">✕</button>
-    <div style="text-align:center;margin-bottom:20px;">
-      <img src="/icon-192.png" alt="Parfum Track" style="width:48px;height:48px;border-radius:12px;margin-bottom:8px;">
-      <h3 style="color:#e8cc7a;font-size:19px;font-weight:700;margin:0 0 6px;">Pagar — Plan Básico Pro</h3>
-      <p id="mp-modal-subtitle" style="font-size:13px;color:#7a7870;">$9.99/mes · Se cobra via Mercado Pago · Tu código llega por email</p>
-    </div>
-    <label style="display:block;font-size:13px;color:#b8b4a8;margin-bottom:6px;">Tu email</label>
-    <input id="mp-email-input" type="email" placeholder="hola@ejemplo.com" autocomplete="email"
-      onkeydown="if(event.key==='Enter')iniciarCheckoutMP()"
-      style="width:100%;padding:12px 16px;background:#13132a;border:1.5px solid rgba(201,168,76,0.3);border-radius:10px;color:#f0eee8;font-size:15px;margin-bottom:8px;outline:none;font-family:inherit;">
-    <p id="mp-checkout-error" style="font-size:12px;color:#e07070;min-height:16px;margin-bottom:12px;"></p>
-    <p style="font-size:11px;color:#7a7870;text-align:center;margin-bottom:10px;line-height:1.5;">Política de reembolso: Los pagos no son reembolsables salvo error técnico, cobro duplicado o falla grave del servicio (7 días). Consultar <a href="/terminos.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Términos de Uso</a>.</p>
-    <button id="mp-checkout-btn" onclick="iniciarCheckoutMP()"
-      style="width:100%;padding:14px;background:linear-gradient(135deg,#009ee3,#0070ba);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">
-      Ir a pagar con Mercado Pago →
-    </button>
-    <p style="font-size:11px;color:#4a4848;text-align:center;line-height:1.6;">
-      🔒 Pago seguro vía Mercado Pago · El monto se cobra en tu moneda local<br>
-      Al pagar aceptás los <a href="/terminos.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Términos de uso</a> y la <a href="/privacidad.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Política de privacidad</a>
-    </p>
-  </div>
+
 </div>
 </body>
 </html>
+

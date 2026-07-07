@@ -93,6 +93,7 @@ function mockMPPaymentAPI(payment) {
 
 function approvedPayment(overrides = {}) {
   return {
+    id: 1234567890,
     status: 'approved',
     external_reference: JSON.stringify({ email: 'user@example.com', plan: 'monthly' }),
     payer: { email: 'user@example.com' },

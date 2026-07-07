@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="app-version" content="1.1.0">
+<meta name="app-version" content="1.1.1">
 <title>Parfum Track</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -2188,7 +2188,7 @@ input[type="date"].form-input {
 </div>
 
 <!-- ====== CONSENT MODAL ====== -->
-<div id="consent-modal" style="position:fixed;inset:0;z-index:9997;background:rgba(15,15,26,0.8);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;">
+<div id="consent-modal" style="position:fixed;inset:0;z-index:9997;background:rgba(15,15,26,0.8);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--bg2);border:1px solid var(--gold);border-radius:12px;padding:28px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;">
     <h2 style="font:600 18px 'DM Sans';color:var(--gold2);margin-bottom:16px;">Aceptar Términos & Privacidad</h2>
     <p style="font-size:13px;color:var(--text3);line-height:1.6;margin-bottom:20px;">Para usar Parfum Track, necesitamos que aceptes nuestros términos, política de privacidad y uso de cookies.</p>
@@ -3272,24 +3272,61 @@ const DB = {
     await openDB();
   },
 
+  _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja']),
+
+  _shouldEncrypt(store) {
+    return this._encryptedStores.has(store) && localStorage.getItem('pt_license_code');
+  },
+
+  async _encryptBeforeStore(store, data) {
+    if (!this._shouldEncrypt(store)) return data;
+    try {
+      const encrypted = await ENCRYPTION.encryptDataWithVersion(data);
+      return { _encrypted: encrypted, _v: 1 };
+    } catch (e) {
+      console.warn('Encryption failed, storing plaintext:', e.message);
+      return data;
+    }
+  },
+
+  async _decryptAfterRetrieve(store, data) {
+    if (!this._shouldEncrypt(store) || !data) return data;
+    if (Array.isArray(data)) {
+      return Promise.all(data.map(item => this._decryptAfterRetrieve(store, item)));
+    }
+    if (data._encrypted && data._v) {
+      try {
+        return await ENCRYPTION.decryptDataWithVersion(data._encrypted);
+      } catch (e) {
+        console.warn('Decryption failed, returning as-is:', e.message);
+        return data;
+      }
+    }
+    return data;
+  },
+
   async getAll(store) {
     await openDB();
-    return reqP(tx(store).getAll());
+    const data = await reqP(tx(store).getAll());
+    return this._decryptAfterRetrieve(store, data);
   },
 
   async get(store, id) {
     await openDB();
-    return reqP(tx(store).get(id));
+    const data = await reqP(tx(store).get(id));
+    return this._decryptAfterRetrieve(store, data);
   },
 
   async add(store, data) {
     await openDB();
-    return reqP(tx(store, 'readwrite').add(data));
+    const encrypted = await this._encryptBeforeStore(store, data);
+    return reqP(tx(store, 'readwrite').add(encrypted));
   },
 
   async put(store, data) {
     await openDB();
-    return reqP(tx(store, 'readwrite').put(data));
+    const encrypted = await this._encryptBeforeStore(store, data);
+    return reqP(tx(store, 'readwrite').put(encrypted));
   },
 
   async delete(store, id) {
@@ -3567,6 +3604,7 @@ const DB = {
       await this.addVenta(v);
     }
   }
+
 };
 // ====== ENCRYPTION LAYER (Phase 5: F-31 to F-35) ======
 
@@ -3903,6 +3941,8 @@ const App = {
     this.loadMoneda();
     this.loadNombreNegocio();
     this.loadAccount();
+    await this._initializeEncryption();
+    this._initCsrfToken();
     this.checkPinOnStart();
     this.checkConsent();
     this.renderAll();
@@ -3922,7 +3962,8 @@ const App = {
         e.preventDefault();
         try {
           // BUG #B-02 FIX: Validar base64 encoding antes de decodificar
-          const msg = atob(btn.dataset.msg);
+          // UTF-8-safe: atob solo no soporta emojis del mensaje (fuera de Latin1)
+          const msg = this.b64Decode(btn.dataset.msg);
           this.cobrarWhatsApp(msg);
         } catch (err) {
           console.error('Error decodificando mensaje WhatsApp:', err);
@@ -3943,6 +3984,35 @@ const App = {
         }
       }
     });
+  },
+
+  async _initCsrfToken() {
+    const existing = localStorage.getItem('pt_csrf_token');
+    if (existing) return;
+    const token = await this._generateCsrfToken();
+    localStorage.setItem('pt_csrf_token', token);
+  },
+
+  async _generateCsrfToken() {
+    const randomBytes = crypto.getRandomValues(new Uint8Array(32));
+    const buf = await crypto.subtle.digest('SHA-256', randomBytes);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  },
+
+  async _rotateCsrfToken() {
+    const newToken = await this._generateCsrfToken();
+    localStorage.setItem('pt_csrf_token', newToken);
+    return newToken;
+  },
+
+  _getCsrfToken() {
+    return localStorage.getItem('pt_csrf_token') || '';
+  },
+
+  _getCsrfHeaders() {
+    return {
+      'X-CSRF-Token': this._getCsrfToken()
+    };
   },
 
   _checkPendingLicense() {
@@ -4416,7 +4486,7 @@ const App = {
           <span style="font:500 13px 'DM Sans';color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.esc(name)}</span>
         </div>
         <span style="font:700 14px 'DM Sans';color:var(--red);margin:0 10px;white-space:nowrap;">${this.fmt(total)}</span>
-        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${btoa(waMsg)}"><span class="ms" style="font-size:16px;">chat</span></button>
+        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${this.b64Encode(waMsg)}"><span class="ms" style="font-size:16px;">chat</span></button>
       </div>`;
     }).join('');
   },
@@ -4608,8 +4678,8 @@ const App = {
         </div>
         <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
-          <button class="btn-whatsapp" data-msg="${btoa(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
-          <button class="btn-pay" data-cuota-id="${proxima.id}"><span class="ms">add_card</span></button>
+          <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
+          <button class="btn-pay" data-cuota-id="${this.esc(JSON.stringify(proxima.id))}"><span class="ms">add_card</span></button>
         </div>
         <div class="wa-preview-label">VISTA PREVIA DEL MENSAJE</div>
         <div class="wa-bubble">
@@ -4624,11 +4694,24 @@ const App = {
 
   switchCuotasView(view) {
     this._cuotasView = view;
-    document.getElementById('tab-cuotas').classList.toggle('active', view === 'cuotas');
-    document.getElementById('tab-deudores').classList.toggle('active', view === 'deudores');
-    document.getElementById('cuotas-list').classList.toggle('hidden', view !== 'cuotas');
-    document.getElementById('deudores-list').classList.toggle('hidden', view !== 'deudores');
-    if (view === 'deudores') this.renderDeudores();
+    const tabCuotas = document.getElementById('tab-cuotas');
+    const tabDeudores = document.getElementById('tab-deudores');
+    const listCuotas = document.getElementById('cuotas-list');
+    const listDeudores = document.getElementById('deudores-list');
+
+    if (view === 'cuotas') {
+      tabCuotas.classList.add('active');
+      tabDeudores.classList.remove('active');
+      listCuotas.classList.remove('hidden');
+      listDeudores.classList.add('hidden');
+      this.renderCuotas();
+    } else {
+      tabCuotas.classList.remove('active');
+      tabDeudores.classList.add('active');
+      listCuotas.classList.add('hidden');
+      listDeudores.classList.remove('hidden');
+      this.renderDeudores();
+    }
   },
 
   renderDeudores() {
@@ -4681,7 +4764,7 @@ const App = {
         </div>
         <div class="deudor-items">${items}</div>
         <div class="deudor-actions">
-          <button class="btn-whatsapp" data-msg="${btoa(waMsg)}"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
+          <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
         </div>
       </div>`;
     }).join('');
@@ -4702,20 +4785,37 @@ const App = {
     const gastos = thisMonth.reduce((s, v) => s + v.precioCompra, 0);
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 
-    const maxVal = Math.max(ganancia, gastos, totalVenta, 1000);
-    const gPct = Math.min(95, Math.max(5, Math.round((ganancia / maxVal) * 90)));
-    const xPct = Math.min(95, Math.max(3, Math.round((gastos / maxVal) * 90)));
+    // Show charts only if Pro; hide bars for Free
+    const isPro = this.isPro();
+    const barGanancia = document.getElementById('bar-ganancia');
+    const barGastos = document.getElementById('bar-gastos');
+    if (barGanancia && barGastos) {
+      if (isPro) {
+        const maxVal = Math.max(ganancia, gastos, totalVenta, 1000);
+        const gPct = Math.min(95, Math.max(5, Math.round((ganancia / maxVal) * 90)));
+        const xPct = Math.min(95, Math.max(3, Math.round((gastos / maxVal) * 90)));
+        barGanancia.style.height = gPct + '%';
+        barGastos.style.height = Math.max(3, xPct) + '%';
+      } else {
+        barGanancia.style.display = 'none';
+        barGastos.style.display = 'none';
+      }
+    }
 
-    document.getElementById('bar-ganancia').style.height = gPct + '%';
-    document.getElementById('bar-gastos').style.height = Math.max(3, xPct) + '%';
-    document.getElementById('bar-label-g').textContent = monthNames[now.getMonth()];
+    const barLabel = document.getElementById('bar-label-g');
+    if (barLabel) barLabel.textContent = monthNames[now.getMonth()];
 
-    const steps = [maxVal, maxVal * 0.8, maxVal * 0.6, maxVal * 0.4, maxVal * 0.2, 0];
-    const yLabels = ['cy5','cy4','cy3','cy2','cy1'];
-    yLabels.forEach((id, i) => {
-      const v = steps[i];
-      document.getElementById(id).textContent = v >= 1000 ? this._moneda + Math.round(v / 1000) + 'k' : this._moneda + Math.round(v);
-    });
+    if (isPro) {
+      const steps = [Math.max(ganancia, gastos, totalVenta, 1000), Math.max(ganancia, gastos, totalVenta, 1000) * 0.8, Math.max(ganancia, gastos, totalVenta, 1000) * 0.6, Math.max(ganancia, gastos, totalVenta, 1000) * 0.4, Math.max(ganancia, gastos, totalVenta, 1000) * 0.2, 0];
+      const yLabels = ['cy5','cy4','cy3','cy2','cy1'];
+      yLabels.forEach((id, i) => {
+        const el = document.getElementById(id);
+        if (el) {
+          const v = steps[i];
+          el.textContent = v >= 1000 ? this._moneda + Math.round(v / 1000) + 'k' : this._moneda + Math.round(v);
+        }
+      });
+    }
 
     const ticket = thisMonth.length > 0 ? Math.round(totalVenta / thisMonth.length) : 0;
     document.getElementById('m-ticket').textContent = this.fmt(ticket);
@@ -4737,6 +4837,16 @@ const App = {
   },
 
   renderRankings(ventas) {
+    // Rankings only in Pro plan
+    const rankPerfumesEl = document.getElementById('ranking-perfumes');
+    const rankVendedoresEl = document.getElementById('ranking-vendedores');
+
+    if (!this.isPro()) {
+      if (rankPerfumesEl) rankPerfumesEl.innerHTML = '<div style="color:var(--text4);font-size:12px;padding:12px;text-align:center;"><span class="ms" style="font-size:16px;">lock</span><br>Solo en Básico Pro</div>';
+      if (rankVendedoresEl) rankVendedoresEl.innerHTML = '<div style="color:var(--text4);font-size:12px;padding:12px;text-align:center;"><span class="ms" style="font-size:16px;">lock</span><br>Solo en Básico Pro</div>';
+      return;
+    }
+
     const perfumeCounts = {};
     const vendedorCounts = {};
     ventas.forEach(v => {
@@ -4761,25 +4871,29 @@ const App = {
 
     const medalEmojis = ['🥇', '🥈', '🥉'];
 
-    document.getElementById('ranking-perfumes').innerHTML = topPerfumes.length === 0
-      ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
-      : topPerfumes.map(([name, data], i) =>
-        `<div class="ranking-item">
-          <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
-          <span class="ranking-name">${this.esc(name)}</span>
-          <span class="ranking-count">${data.count} ventas</span>
-          <span class="ranking-amount">${this.fmt(data.amount)}</span>
-        </div>`).join('');
+    if (rankPerfumesEl) {
+      rankPerfumesEl.innerHTML = topPerfumes.length === 0
+        ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
+        : topPerfumes.map(([name, data], i) =>
+          `<div class="ranking-item">
+            <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
+            <span class="ranking-name">${this.esc(name)}</span>
+            <span class="ranking-count">${data.count} ventas</span>
+            <span class="ranking-amount">${this.fmt(data.amount)}</span>
+          </div>`).join('');
+    }
 
-    document.getElementById('ranking-vendedores').innerHTML = topVendedores.length === 0
-      ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
-      : topVendedores.map(([name, data], i) =>
-        `<div class="ranking-item">
-          <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
-          <span class="ranking-name">${this.esc(name)}</span>
-          <span class="ranking-count">${data.count} ventas</span>
-          <span class="ranking-amount">${this.fmt(data.amount)}</span>
-        </div>`).join('');
+    if (rankVendedoresEl) {
+      rankVendedoresEl.innerHTML = topVendedores.length === 0
+        ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
+        : topVendedores.map(([name, data], i) =>
+          `<div class="ranking-item">
+            <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
+            <span class="ranking-name">${this.esc(name)}</span>
+            <span class="ranking-count">${data.count} ventas</span>
+            <span class="ranking-amount">${this.fmt(data.amount)}</span>
+          </div>`).join('');
+    }
   },
 
   updateNavBadge() {
@@ -4995,6 +5109,23 @@ const App = {
       return;
     }
 
+    // Plan limit check: Free = max 10 pending cuotas
+    if (!this.isPro() && this.formaPago === 'cuotas' && numCuotas > 1) {
+      const pendingCuotas = this.cuotasData.filter(c => !c.pagado).length;
+      const newCuotasCount = numCuotas - 1; // Primera cuota se marca pagada
+      if (pendingCuotas + newCuotasCount > 10) {
+        this.appConfirm(
+          'Límite de cuotas alcanzado',
+          `Plan Free: máx 10 cuotas pendientes. Tenés ${pendingCuotas} pendientes y querés agregar ${newCuotasCount}.\n\nActualiza a Básico Pro para ilimitadas.`,
+          'Actualizar plan',
+          'Cancelar'
+        ).then(result => {
+          if (result) this.showScreen('cuenta');
+        });
+        return;
+      }
+    }
+
     try {
       await DB.addVenta({
         perfume,
@@ -5149,6 +5280,19 @@ const App = {
 
     if (!nombre) {
       this.toast('Ingresá el nombre', 'warning');
+      return;
+    }
+
+    // Plan limit check: Free = max 30 perfumes
+    if (!this.isPro() && this.perfumes.length >= 30) {
+      this.appConfirm(
+        'Límite de stock alcanzado',
+        'Plan Free: máx 30 perfumes. Tenés que actualizar a Básico Pro para agregar más.',
+        'Actualizar plan',
+        'Cancelar'
+      ).then(result => {
+        if (result) this.showScreen('cuenta');
+      });
       return;
     }
 
@@ -6082,7 +6226,6 @@ const App = {
     if (data.settings) {
       if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
       if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
-      if (data.settings.pin) localStorage.setItem('pt_pin', data.settings.pin);
     }
     await this.loadData();
     this.loadMoneda();
@@ -6142,6 +6285,18 @@ const App = {
   },
 
   async exportPDF() {
+    // Pro feature only
+    if (!this.isPro()) {
+      this.appConfirm(
+        'Función de Básico Pro',
+        'Exportar a PDF solo está disponible en Básico Pro. Actualiza para acceder.',
+        'Actualizar plan',
+        'Cancelar'
+      ).then(result => {
+        if (result) this.showScreen('cuenta');
+      });
+      return;
+    }
     this.toast('Generando PDF…', 'hourglass_top');
     try {
       await this._loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
@@ -6195,6 +6350,18 @@ const App = {
   },
 
   async exportExcel() {
+    // Pro feature only
+    if (!this.isPro()) {
+      this.appConfirm(
+        'Función de Básico Pro',
+        'Exportar a Excel solo está disponible en Básico Pro. Actualiza para acceder.',
+        'Actualizar plan',
+        'Cancelar'
+      ).then(result => {
+        if (result) this.showScreen('cuenta');
+      });
+      return;
+    }
     this.toast('Generando Excel…', 'hourglass_top');
     try {
       await this._loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
@@ -6269,6 +6436,18 @@ const App = {
   _catalogoImages: [],
 
   compartirCatalogo() {
+    // Pro feature only
+    if (!this.isPro()) {
+      this.appConfirm(
+        'Catálogo WA en Básico Pro',
+        'Compartir tu catálogo por WhatsApp es una función de Básico Pro. Actualiza para acceder.',
+        'Actualizar plan',
+        'Cancelar'
+      ).then(result => {
+        if (result) this.showScreen('cuenta');
+      });
+      return;
+    }
     const disponibles = this.perfumes.filter(p => p.stock > 0).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     if (disponibles.length === 0) {
       this.toast('No hay perfumes en stock', 'warning');
@@ -6522,7 +6701,6 @@ const App = {
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
         negocio: localStorage.getItem('pt_negocio'),
-        pin: localStorage.getItem('pt_pin'),
       }
     };
 
@@ -6532,7 +6710,7 @@ const App = {
 
       const res = await fetch('/backup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ code, token, encryptedData })
       });
       const result = await res.json();
@@ -6668,6 +6846,15 @@ const App = {
     const div = document.createElement('div');
     div.textContent = s;
     return div.innerHTML;
+  },
+
+  // Base64 UTF-8-safe: btoa/atob solos lanzan InvalidCharacterError con emojis (fuera de Latin1)
+  b64Encode(s) {
+    return btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+  },
+
+  b64Decode(b64) {
+    return new TextDecoder().decode(Uint8Array.from(atob(b64), c => c.charCodeAt(0)));
   },
 
   track(event, props) {
@@ -6850,7 +7037,7 @@ const App = {
       const res = await fetch('/trial', {
         signal: AbortSignal.timeout(30000),
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ step: 'register', email, deviceId: this._getDeviceId() })
       });
       const data = await res.json();
@@ -6878,7 +7065,7 @@ const App = {
       const res = await fetch('/trial', {
         signal: AbortSignal.timeout(30000),
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ step: 'verify', email: this._pendingEmail, otp, deviceId: this._getDeviceId() })
       });
       const data = await res.json();
@@ -6923,7 +7110,7 @@ const App = {
     try {
       const res = await fetch('/validate-license', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ code })
       });
       const data = await res.json();
@@ -6959,7 +7146,7 @@ const App = {
     try {
       const res = await fetch('/mp-create-preference', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ email: this._account.email, plan })
       });
       const data = await res.json();
@@ -6995,13 +7182,12 @@ const App = {
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
         negocio: localStorage.getItem('pt_negocio'),
-        pin: localStorage.getItem('pt_pin'),
       }
     };
     try {
       const res = await fetch('/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ code, token, data })
       });
       const result = await res.json();
@@ -7120,6 +7306,8 @@ const App = {
     steps.forEach((s, i) => s.style.display = i === 0 ? 'flex' : 'none');
   },
 
+
+
   // ====== PIN LOCK ======
   async _hashPin(pin) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin));
@@ -7128,14 +7316,20 @@ const App = {
   _pinBuffer: '',
 
   checkPinOnStart() {
-    const pin = localStorage.getItem('pt_pin');
-    if (pin) {
+    // Verificar si PIN está ACTIVADO (guardado en localStorage)
+    const pinEnabled = localStorage.getItem('pt_pin_enabled') === '1';
+    // Verificar si ya ingresó PIN en ESTA sesión (sessionStorage)
+    const pinVerified = sessionStorage.getItem('pt_pin_verified') === '1';
+
+    if (pinEnabled && !pinVerified) {
+      // PIN activado pero no verificado en esta sesión → mostrar lock screen
       document.getElementById('lock-screen').classList.remove('hidden');
       document.getElementById('lock-screen').style.display = 'flex';
     }
+
     const toggle = document.getElementById('toggle-pin');
     const knob = document.getElementById('toggle-pin-knob');
-    if (toggle && pin) {
+    if (toggle && pinEnabled) {
       toggle.checked = true;
       knob.style.left = '23px';
       knob.style.background = 'var(--gold2)';
@@ -7148,17 +7342,20 @@ const App = {
     this._pinBuffer += n;
     this._updatePinDots();
     if (this._pinBuffer.length === 4) {
-      const saved = localStorage.getItem('pt_pin');
+      // Obtener PIN hasheado guardado (en sessionStorage si existe, o comparar con input)
+      const savedHash = sessionStorage.getItem('pt_pin_hash');
       const hashed = await this._hashPin(this._pinBuffer);
-      if (hashed === saved || this._pinBuffer === saved) {
+
+      // Comparar: hash de entrada vs hash guardado
+      if (hashed === savedHash) {
+        // PIN correcto → desbloquear
         document.getElementById('lock-screen').classList.add('hidden');
         document.getElementById('lock-screen').style.display = 'none';
+        sessionStorage.setItem('pt_pin_verified', '1');
         this._pinBuffer = '';
         this.haptic('success');
-        if (this._pinBuffer !== saved && saved.length === 4) {
-          localStorage.setItem('pt_pin', hashed);
-        }
       } else {
+        // PIN incorrecto
         document.getElementById('pin-error').textContent = 'PIN incorrecto';
         this.haptic('warning');
         setTimeout(() => {
@@ -7186,7 +7383,11 @@ const App = {
       const pin = await this.appPrompt('Creá un PIN de 4 dígitos:', { inputMode: 'numeric', maxLength: 4, pattern: '\\d{4}' });
       if (pin && /^\d{4}$/.test(pin)) {
         const hashed = await this._hashPin(pin);
-        localStorage.setItem('pt_pin', hashed);
+        // Guardar en localStorage: que PIN está ACTIVADO (boolean)
+        localStorage.setItem('pt_pin_enabled', '1');
+        // Guardar en sessionStorage: el hash (se borra al cerrar navegador)
+        sessionStorage.setItem('pt_pin_hash', hashed);
+        sessionStorage.setItem('pt_pin_verified', '1');
         knob.style.left = '23px';
         knob.style.background = 'var(--gold2)';
         knob.parentElement.querySelector('span:nth-child(2)').style.background = 'rgba(201,168,76,.3)';
@@ -7196,7 +7397,10 @@ const App = {
         if (pin !== null) this.toast('El PIN debe tener 4 dígitos', 'warning');
       }
     } else {
-      localStorage.removeItem('pt_pin');
+      // Desactivar PIN
+      localStorage.removeItem('pt_pin_enabled');
+      sessionStorage.removeItem('pt_pin_hash');
+      sessionStorage.removeItem('pt_pin_verified');
       knob.style.left = '3px';
       knob.style.background = 'var(--text4)';
       knob.parentElement.querySelector('span:nth-child(2)').style.background = 'var(--card2)';

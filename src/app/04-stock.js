@@ -127,6 +127,19 @@
       return;
     }
 
+    // Plan limit check: Free = max 30 perfumes
+    if (!this.isPro() && this.perfumes.length >= 30) {
+      this.appConfirm(
+        'Límite de stock alcanzado',
+        'Plan Free: máx 30 perfumes. Tenés que actualizar a Básico Pro para agregar más.',
+        'Actualizar plan',
+        'Cancelar'
+      ).then(result => {
+        if (result) this.showScreen('cuenta');
+      });
+      return;
+    }
+
     try {
       await DB.addPerfume({ nombre, precioCompra, precioVenta, stock, foto: this._pendingPerfumePhoto || '' });
     } catch (e) {

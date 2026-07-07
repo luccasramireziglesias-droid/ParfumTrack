@@ -10,7 +10,7 @@
 // Usa Checkout Pro (preferencias) — no requiere permiso de suscripciones.
 // ══════════════════════════════════════════════════════════════
 
-import { corsHeaders, json, checkRateLimit, sha256, isValidEmail, log, requireJson, parseJsonBody, hashIp } from './_shared.js';
+import { corsHeaders, json, checkRateLimit, sha256, isValidEmail, log, requireJson, parseJsonBody, hashIp, validateCsrfToken } from './_shared.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -23,6 +23,9 @@ export async function onRequestPost(context) {
 
   const ctError = requireJson(request, 4096);
   if (ctError) return json({ ok: false, error: ctError }, ctError === 'Payload too large' ? 413 : 415, headers);
+
+  const csrfError = validateCsrfToken(request, { optional: false });
+  if (csrfError) return json({ ok: false, error: 'CSRF validation failed' }, 403, headers);
 
   const { data: body, error: parseError } = await parseJsonBody(request, 4096);
   if (parseError) return json({ ok: false, error: parseError === 'Payload too large' ? parseError : 'Bad request' }, parseError === 'Payload too large' ? 413 : 400, headers);

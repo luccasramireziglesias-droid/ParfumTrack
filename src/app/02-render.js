@@ -257,7 +257,7 @@
           <span style="font:500 13px 'DM Sans';color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.esc(name)}</span>
         </div>
         <span style="font:700 14px 'DM Sans';color:var(--red);margin:0 10px;white-space:nowrap;">${this.fmt(total)}</span>
-        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${btoa(waMsg)}"><span class="ms" style="font-size:16px;">chat</span></button>
+        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${this.b64Encode(waMsg)}"><span class="ms" style="font-size:16px;">chat</span></button>
       </div>`;
     }).join('');
   },
@@ -449,8 +449,8 @@
         </div>
         <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
-          <button class="btn-whatsapp" data-msg="${btoa(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
-          <button class="btn-pay" data-cuota-id="${proxima.id}"><span class="ms">add_card</span></button>
+          <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
+          <button class="btn-pay" data-cuota-id="${this.esc(JSON.stringify(proxima.id))}"><span class="ms">add_card</span></button>
         </div>
         <div class="wa-preview-label">VISTA PREVIA DEL MENSAJE</div>
         <div class="wa-bubble">
@@ -465,11 +465,24 @@
 
   switchCuotasView(view) {
     this._cuotasView = view;
-    document.getElementById('tab-cuotas').classList.toggle('active', view === 'cuotas');
-    document.getElementById('tab-deudores').classList.toggle('active', view === 'deudores');
-    document.getElementById('cuotas-list').classList.toggle('hidden', view !== 'cuotas');
-    document.getElementById('deudores-list').classList.toggle('hidden', view !== 'deudores');
-    if (view === 'deudores') this.renderDeudores();
+    const tabCuotas = document.getElementById('tab-cuotas');
+    const tabDeudores = document.getElementById('tab-deudores');
+    const listCuotas = document.getElementById('cuotas-list');
+    const listDeudores = document.getElementById('deudores-list');
+
+    if (view === 'cuotas') {
+      tabCuotas.classList.add('active');
+      tabDeudores.classList.remove('active');
+      listCuotas.classList.remove('hidden');
+      listDeudores.classList.add('hidden');
+      this.renderCuotas();
+    } else {
+      tabCuotas.classList.remove('active');
+      tabDeudores.classList.add('active');
+      listCuotas.classList.add('hidden');
+      listDeudores.classList.remove('hidden');
+      this.renderDeudores();
+    }
   },
 
   renderDeudores() {
@@ -522,7 +535,7 @@
         </div>
         <div class="deudor-items">${items}</div>
         <div class="deudor-actions">
-          <button class="btn-whatsapp" data-msg="${btoa(waMsg)}"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
+          <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
         </div>
       </div>`;
     }).join('');
@@ -543,20 +556,37 @@
     const gastos = thisMonth.reduce((s, v) => s + v.precioCompra, 0);
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 
-    const maxVal = Math.max(ganancia, gastos, totalVenta, 1000);
-    const gPct = Math.min(95, Math.max(5, Math.round((ganancia / maxVal) * 90)));
-    const xPct = Math.min(95, Math.max(3, Math.round((gastos / maxVal) * 90)));
+    // Show charts only if Pro; hide bars for Free
+    const isPro = this.isPro();
+    const barGanancia = document.getElementById('bar-ganancia');
+    const barGastos = document.getElementById('bar-gastos');
+    if (barGanancia && barGastos) {
+      if (isPro) {
+        const maxVal = Math.max(ganancia, gastos, totalVenta, 1000);
+        const gPct = Math.min(95, Math.max(5, Math.round((ganancia / maxVal) * 90)));
+        const xPct = Math.min(95, Math.max(3, Math.round((gastos / maxVal) * 90)));
+        barGanancia.style.height = gPct + '%';
+        barGastos.style.height = Math.max(3, xPct) + '%';
+      } else {
+        barGanancia.style.display = 'none';
+        barGastos.style.display = 'none';
+      }
+    }
 
-    document.getElementById('bar-ganancia').style.height = gPct + '%';
-    document.getElementById('bar-gastos').style.height = Math.max(3, xPct) + '%';
-    document.getElementById('bar-label-g').textContent = monthNames[now.getMonth()];
+    const barLabel = document.getElementById('bar-label-g');
+    if (barLabel) barLabel.textContent = monthNames[now.getMonth()];
 
-    const steps = [maxVal, maxVal * 0.8, maxVal * 0.6, maxVal * 0.4, maxVal * 0.2, 0];
-    const yLabels = ['cy5','cy4','cy3','cy2','cy1'];
-    yLabels.forEach((id, i) => {
-      const v = steps[i];
-      document.getElementById(id).textContent = v >= 1000 ? this._moneda + Math.round(v / 1000) + 'k' : this._moneda + Math.round(v);
-    });
+    if (isPro) {
+      const steps = [Math.max(ganancia, gastos, totalVenta, 1000), Math.max(ganancia, gastos, totalVenta, 1000) * 0.8, Math.max(ganancia, gastos, totalVenta, 1000) * 0.6, Math.max(ganancia, gastos, totalVenta, 1000) * 0.4, Math.max(ganancia, gastos, totalVenta, 1000) * 0.2, 0];
+      const yLabels = ['cy5','cy4','cy3','cy2','cy1'];
+      yLabels.forEach((id, i) => {
+        const el = document.getElementById(id);
+        if (el) {
+          const v = steps[i];
+          el.textContent = v >= 1000 ? this._moneda + Math.round(v / 1000) + 'k' : this._moneda + Math.round(v);
+        }
+      });
+    }
 
     const ticket = thisMonth.length > 0 ? Math.round(totalVenta / thisMonth.length) : 0;
     document.getElementById('m-ticket').textContent = this.fmt(ticket);
@@ -578,6 +608,16 @@
   },
 
   renderRankings(ventas) {
+    // Rankings only in Pro plan
+    const rankPerfumesEl = document.getElementById('ranking-perfumes');
+    const rankVendedoresEl = document.getElementById('ranking-vendedores');
+
+    if (!this.isPro()) {
+      if (rankPerfumesEl) rankPerfumesEl.innerHTML = '<div style="color:var(--text4);font-size:12px;padding:12px;text-align:center;"><span class="ms" style="font-size:16px;">lock</span><br>Solo en Básico Pro</div>';
+      if (rankVendedoresEl) rankVendedoresEl.innerHTML = '<div style="color:var(--text4);font-size:12px;padding:12px;text-align:center;"><span class="ms" style="font-size:16px;">lock</span><br>Solo en Básico Pro</div>';
+      return;
+    }
+
     const perfumeCounts = {};
     const vendedorCounts = {};
     ventas.forEach(v => {
@@ -602,25 +642,29 @@
 
     const medalEmojis = ['🥇', '🥈', '🥉'];
 
-    document.getElementById('ranking-perfumes').innerHTML = topPerfumes.length === 0
-      ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
-      : topPerfumes.map(([name, data], i) =>
-        `<div class="ranking-item">
-          <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
-          <span class="ranking-name">${this.esc(name)}</span>
-          <span class="ranking-count">${data.count} ventas</span>
-          <span class="ranking-amount">${this.fmt(data.amount)}</span>
-        </div>`).join('');
+    if (rankPerfumesEl) {
+      rankPerfumesEl.innerHTML = topPerfumes.length === 0
+        ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
+        : topPerfumes.map(([name, data], i) =>
+          `<div class="ranking-item">
+            <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
+            <span class="ranking-name">${this.esc(name)}</span>
+            <span class="ranking-count">${data.count} ventas</span>
+            <span class="ranking-amount">${this.fmt(data.amount)}</span>
+          </div>`).join('');
+    }
 
-    document.getElementById('ranking-vendedores').innerHTML = topVendedores.length === 0
-      ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
-      : topVendedores.map(([name, data], i) =>
-        `<div class="ranking-item">
-          <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
-          <span class="ranking-name">${this.esc(name)}</span>
-          <span class="ranking-count">${data.count} ventas</span>
-          <span class="ranking-amount">${this.fmt(data.amount)}</span>
-        </div>`).join('');
+    if (rankVendedoresEl) {
+      rankVendedoresEl.innerHTML = topVendedores.length === 0
+        ? '<div style="color:var(--text4);font-size:12px;padding:12px;">Sin datos este mes</div>'
+        : topVendedores.map(([name, data], i) =>
+          `<div class="ranking-item">
+            <span class="ranking-pos">${medalEmojis[i] || (i + 1)}</span>
+            <span class="ranking-name">${this.esc(name)}</span>
+            <span class="ranking-count">${data.count} ventas</span>
+            <span class="ranking-amount">${this.fmt(data.amount)}</span>
+          </div>`).join('');
+    }
   },
 
   updateNavBadge() {
