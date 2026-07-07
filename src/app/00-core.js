@@ -25,12 +25,46 @@
     await this._initializeEncryption();
     this._initCsrfToken();
     this.checkPinOnStart();
-    this.checkOnboarding();
     this.checkConsent();
     this.renderAll();
     this.registerSW();
     this._initTabSync();
     this._checkPendingLicense();
+    this._initEventDelegation();
+    this._initAutoUpdate();
+    await this._initDOMContentLoaded();
+  },
+
+  _initEventDelegation() {
+    // BUG #2 FIX: Event delegation para botones WhatsApp y Pago (evita XSS)
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-whatsapp[data-msg]');
+      if (btn) {
+        e.preventDefault();
+        try {
+          // BUG #B-02 FIX: Validar base64 encoding antes de decodificar
+          // UTF-8-safe: atob solo no soporta emojis del mensaje (fuera de Latin1)
+          const msg = this.b64Decode(btn.dataset.msg);
+          this.cobrarWhatsApp(msg);
+        } catch (err) {
+          console.error('Error decodificando mensaje WhatsApp:', err);
+          this.toast('Error al procesar mensaje', 'error');
+        }
+      }
+
+      const payBtn = e.target.closest('.btn-pay[data-cuota-id]');
+      if (payBtn) {
+        e.preventDefault();
+        try {
+          // BUG #B-01 FIX: Validar JSON parsing de cuota ID
+          const cuotaId = JSON.parse(payBtn.dataset.cuotaId);
+          this.abrirPagoCuota(cuotaId);
+        } catch (err) {
+          console.error('Error parseando cuota ID:', err);
+          this.toast('Error al abrir pago de cuota', 'error');
+        }
+      }
+    });
   },
 
   async _initCsrfToken() {

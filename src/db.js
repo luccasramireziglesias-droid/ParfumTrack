@@ -101,25 +101,40 @@
       }
     }
     if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
-      const montoCuota = Math.round(v.precioVenta / v.numCuotas);
-      const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
-      for (let i = 0; i < v.numCuotas; i++) {
-        const vence = new Date();
-        vence.setMonth(vence.getMonth() + i);
-        const isLast = i === v.numCuotas - 1;
-        const monto = isLast ? lastCuota : montoCuota;
-        await this.add('cuotas', {
-          ventaId: id,
-          perfume: v.perfume,
-          cliente: v.cliente,
-          numero: i + 1,
-          total: v.numCuotas,
-          monto,
-          montoTotal: v.precioVenta,
-          pagado: i === 0,
-          montoPagado: i === 0 ? monto : 0,
-          vence: vence.getTime()
-        });
+      // BUG #12 FIX: Limitar número de cuotas a máximo 12
+      if (v.numCuotas > 12) {
+        throw new Error('Maximum 12 installments allowed');
+      }
+
+      try {
+        const montoCuota = Math.round(v.precioVenta / v.numCuotas);
+        const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
+        for (let i = 0; i < v.numCuotas; i++) {
+          // BUG #10 FIX: Usar fecha segura para suma de meses (evita problemas fin de mes)
+          const vence = new Date();
+          const targetMonth = vence.getMonth() + i;
+          const targetYear = vence.getFullYear() + Math.floor(targetMonth / 12);
+          vence.setFullYear(targetYear, targetMonth % 12, 1);
+          vence.setDate(Math.min(new Date(targetYear, targetMonth % 12 + 1, 0).getDate(), new Date().getDate()));
+          const isLast = i === v.numCuotas - 1;
+          const monto = isLast ? lastCuota : montoCuota;
+          await this.add('cuotas', {
+            ventaId: id,
+            perfume: v.perfume,
+            cliente: v.cliente,
+            numero: i + 1,
+            total: v.numCuotas,
+            monto,
+            montoTotal: v.precioVenta,
+            pagado: i === 0,
+            montoPagado: i === 0 ? monto : 0,
+            vence: vence.getTime()
+          });
+        }
+      } catch (e) {
+        // BUG #14 FIX: Si falla creación de cuotas, loguear y propagar error
+        console.error('Failed to create installments:', e.message);
+        throw new Error('Failed to create installments: ' + e.message);
       }
     }
     return id;
@@ -158,7 +173,14 @@
     if (c) {
       const prevPagado = c.montoPagado || 0;
       const totalPagado = prevPagado + montoPagado;
-      c.montoPagado = Math.min(totalPagado, c.monto);
+
+      // BUG #4 FIX: Validar que no se pague más que el monto de la cuota
+      if (totalPagado > c.monto) {
+        const exceso = totalPagado - c.monto;
+        throw new Error(`Sobrepago de ${exceso.toFixed(2)}: solo resta ${(c.monto - prevPagado).toFixed(2)} para esta cuota`);
+      }
+
+      c.montoPagado = totalPagado;
       c.pagado = c.montoPagado >= c.monto;
       c.fechaPago = Date.now();
       if (!c.pagos) c.pagos = [];
@@ -238,6 +260,38 @@
 
   async deleteGasto(id) {
     return this.delete('gastos', id);
+  },
+
+  async getVentasByPerfume(perfumeId) {
+    await openDB();
+    const index = tx('ventas', 'readonly').index('perfumeId');
+    return reqP(index.getAll(perfumeId));
+  },
+
+  async getVentasByCliente(cliente) {
+    await openDB();
+    const index = tx('ventas', 'readonly').index('cliente');
+    return reqP(index.getAll(cliente));
+  },
+
+  async getCuotasSinPagar() {
+    await openDB();
+    const index = tx('cuotas', 'readonly').index('pagado');
+    return reqP(index.getAll(false));
+  },
+
+  async getCuotasPorVencer(diasAdelante = 30) {
+    await openDB();
+    const ahora = Date.now();
+    const fecha = ahora + (diasAdelante * 86400000);
+    const cuotas = await this.getAll('cuotas');
+    return cuotas.filter(c => c.vence && c.vence <= fecha && !c.pagado);
+  },
+
+  async getCajaByTipo(tipo) {
+    await openDB();
+    const index = tx('caja', 'readonly').index('tipo');
+    return reqP(index.getAll(tipo));
   },
 
   async seedDemo() {

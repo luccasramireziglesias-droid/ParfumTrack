@@ -12,9 +12,11 @@
       caja: this.cajaData,
       gastos: this.gastosData,
       config,
+      // BUG #18 FIX: No incluir datos sensibles (PIN) en export
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
         negocio: localStorage.getItem('pt_negocio'),
+        // pin: omitido intencionalmente por seguridad
       },
       exportDate: new Date().toISOString()
     };

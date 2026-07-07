@@ -16,6 +16,11 @@
   async adjustStock(id, delta) {
     const p = this.perfumes.find(x => x.id === id);
     if (!p) return;
+    // BUG #16 FIX: Validar delta razonable para ajustes de stock
+    if (Math.abs(delta) > 1000) {
+      this.toast('Ajuste demasiado grande (máx ±1000)', 'warning');
+      return;
+    }
     p.stock = Math.max(0, p.stock + delta);
     try {
       await DB.updatePerfume(p);

@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="app-version" content="1.1.1">
 <title>Parfum Track</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -2186,6 +2187,46 @@ input[type="date"].form-input {
   </div>
 </div>
 
+<!-- ====== CONSENT MODAL ====== -->
+<div id="consent-modal" style="position:fixed;inset:0;z-index:9997;background:rgba(15,15,26,0.8);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--bg2);border:1px solid var(--gold);border-radius:12px;padding:28px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;">
+    <h2 style="font:600 18px 'DM Sans';color:var(--gold2);margin-bottom:16px;">Aceptar Términos & Privacidad</h2>
+    <p style="font-size:13px;color:var(--text3);line-height:1.6;margin-bottom:20px;">Para usar Parfum Track, necesitamos que aceptes nuestros términos, política de privacidad y uso de cookies.</p>
+
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;">
+        <input type="checkbox" id="consent-terms" style="margin-top:3px;cursor:pointer;">
+        <span style="color:var(--text2);">Acepto los <a href="/terminos.html" target="_blank" style="color:var(--gold);text-decoration:none;border-bottom:1px solid var(--gold);">Términos de Servicio</a></span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;">
+        <input type="checkbox" id="consent-privacy" style="margin-top:3px;cursor:pointer;">
+        <span style="color:var(--text2);">Acepto la <a href="/privacidad.html" target="_blank" style="color:var(--gold);text-decoration:none;border-bottom:1px solid var(--gold);">Política de Privacidad</a></span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;">
+        <input type="checkbox" id="consent-cookies" style="margin-top:3px;cursor:pointer;">
+        <span style="color:var(--text2);">Autorizo el uso de cookies para análisis y mejora del servicio</span>
+      </label>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:16px;margin-bottom:16px;">
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;">
+        <input type="checkbox" id="consent-marketing" style="margin-top:3px;cursor:pointer;" checked>
+        <span style="color:var(--text3);">✓ Opcional: Recibir emails sobre nuevas features y promociones</span>
+      </label>
+      <p style="font-size:12px;color:var(--text3);margin-top:12px;line-height:1.4;">Si cargarás datos de tus clientes, también revisá nuestro <a href="/dpa.html" target="_blank" style="color:var(--gold);text-decoration:underline;">Acuerdo de Procesamiento de Datos (DPA)</a>.</p>
+    </div>
+
+    <div id="consent-error" style="font-size:12px;color:var(--red);margin-bottom:16px;height:16px;"></div>
+
+    <button class="btn-primary btn-full" onclick="App.acceptConsent()" style="margin-bottom:10px;">
+      <span class="ms">check</span>Aceptar
+    </button>
+    <button onclick="App.rejectConsent()" style="background:none;border:1px solid var(--gold);color:var(--gold);padding:10px 16px;border-radius:6px;font-size:13px;cursor:pointer;width:100%;">
+      Rechazar
+    </button>
+  </div>
+</div>
+
 <!-- ====== ONBOARDING ====== -->
 <div id="onboarding" class="hidden" style="position:fixed;inset:0;z-index:9998;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;">
   <div class="logo-drop" style="width:64px;height:64px;margin-bottom:20px;"></div>
@@ -2232,12 +2273,23 @@ input[type="date"].form-input {
 
       <div class="hero-card" style="padding-bottom:20px;">
         <div class="hero-glow"></div>
-        <div class="hero-label">Ganancia · <span id="hero-month"></span></div>
+        <div class="hero-label" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>Ganancia</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button onclick="App.changeDashboardMonth(-1)" style="background:none;border:none;color:var(--text3);padding:4px;cursor:pointer;"><span class="ms" style="font-size:18px;">navigate_before</span></button>
+            <span id="hero-month" style="min-width:140px;text-align:center;"></span>
+            <button onclick="App.changeDashboardMonth(1)" style="background:none;border:none;color:var(--text3);padding:4px;cursor:pointer;"><span class="ms" style="font-size:18px;">navigate_next</span></button>
+            <button onclick="App.resetDashboardMonth()" style="background:none;border:none;color:var(--text3);padding:4px;cursor:pointer;margin-left:4px;" title="Volver a hoy"><span class="ms" style="font-size:16px;">today</span></button>
+          </div>
+        </div>
         <div class="hero-row">
           <div class="hero-amount" id="hero-ganancia">$0</div>
           <div class="hero-badge" id="hero-trend"><span class="ms">trending_up</span>+0%</div>
         </div>
         <div class="hero-sub" id="hero-ventas-count">0 ventas registradas</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:12px;padding-top:12px;border-top:1px solid var(--border);line-height:1.4;">
+          <span class="ms" style="font-size:12px;vertical-align:middle;">info</span> Los cálculos son informativos. Verificá siempre tus registros.
+        </div>
       </div>
 
       <div class="stat-pair">
@@ -2346,8 +2398,8 @@ input[type="date"].form-input {
           <input type="text" class="form-input" id="venta-cliente" placeholder="Nombre…" autocomplete="off">
           <div class="autocomplete-list hidden" id="ac-cliente"></div>
         </div>
-        <div class="form-group">
-          <label class="form-label">VENDEDOR</label>
+        <div class="form-group" id="vendedor-group">
+          <label class="form-label">VENDEDOR <span class="pro-badge" id="vendedor-pro-badge" style="display:none;font-size:10px;background:var(--gold);color:var(--bg);padding:2px 6px;border-radius:3px;margin-left:6px;">PRO</span></label>
           <input type="text" class="form-input" id="venta-vendedor" placeholder="Nombre…" value="Luccas" autocomplete="off">
           <div class="autocomplete-list hidden" id="ac-vendedor"></div>
         </div>
@@ -3120,42 +3172,6 @@ input[type="date"].form-input {
     </div>
   </div>
 
-  <!-- ====== MODAL: CONSENTIMIENTO (TÉRMINOS, PRIVACIDAD, COOKIES) ====== -->
-  <div id="modal-consent" class="modal-overlay hidden" onclick="event.target.id === 'modal-consent' ? null : null" style="background:rgba(0,0,0,0.7);z-index:9997;">
-    <div class="modal-content" onclick="event.stopPropagation()" style="max-width:400px;border:2px solid var(--gold);gap:20px;">
-      <h2 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);text-align:center;margin:0;">Aceptar Términos & Privacidad</h2>
-      <p style="color:var(--text3);font-size:13px;line-height:1.6;margin:0;">Para usar Parfum Track, necesitamos que aceptes nuestros términos, política de privacidad y uso de cookies.</p>
-
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <input type="checkbox" id="consent-terms" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
-          <span style="color:var(--text2);font-size:13px;">Acepto los <a href="/terminos.html" target="_blank" style="color:var(--gold);text-decoration:underline;">Términos de Servicio</a></span>
-        </label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <input type="checkbox" id="consent-privacy" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
-          <span style="color:var(--text2);font-size:13px;">Acepto la <a href="/privacidad.html" target="_blank" style="color:var(--gold);text-decoration:underline;">Política de Privacidad</a></span>
-        </label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <input type="checkbox" id="consent-cookies" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
-          <span style="color:var(--text2);font-size:13px;">Autorizo el uso de cookies para análisis y mejora del servicio</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <input type="checkbox" id="consent-email" checked style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
-          <span style="color:var(--text3);font-size:12px;">✓ Opcional: Recibir emails sobre nuevas features y promociones</span>
-        </label>
-      </div>
-
-      <div style="display:flex;gap:10px;flex-direction:column;">
-        <button class="btn-primary btn-full" onclick="App.acceptConsent()" id="consent-btn-accept" style="opacity:0.5;cursor:not-allowed;" disabled>
-          <span class="ms">check</span>Aceptar
-        </button>
-        <button class="btn-outline-gold btn-full" onclick="App.rejectConsent()">
-          Rechazar
-        </button>
-      </div>
-    </div>
-  </div>
-
   </div><!-- /screens-container -->
 
   <!-- ====== BOTTOM NAV ====== -->
@@ -3200,10 +3216,14 @@ function openDB() {
       if (!d.objectStoreNames.contains('ventas')) {
         const s = d.createObjectStore('ventas', { keyPath: 'id', autoIncrement: true });
         s.createIndex('fecha', 'fecha', { unique: false });
+        s.createIndex('perfumeId', 'perfumeId', { unique: false });
+        s.createIndex('cliente', 'cliente', { unique: false });
       }
       if (!d.objectStoreNames.contains('cuotas')) {
         const s = d.createObjectStore('cuotas', { keyPath: 'id', autoIncrement: true });
         s.createIndex('ventaId', 'ventaId', { unique: false });
+        s.createIndex('pagado', 'pagado', { unique: false });
+        s.createIndex('vence', 'vence', { unique: false });
       }
       if (!d.objectStoreNames.contains('config')) {
         d.createObjectStore('config', { keyPath: 'key' });
@@ -3216,6 +3236,7 @@ function openDB() {
       if (!d.objectStoreNames.contains('caja')) {
         const s = d.createObjectStore('caja', { keyPath: 'id', autoIncrement: true });
         s.createIndex('fecha', 'fecha', { unique: false });
+        s.createIndex('tipo', 'tipo', { unique: false });
       }
       if (!d.objectStoreNames.contains('gastos')) {
         const s = d.createObjectStore('gastos', { keyPath: 'id', autoIncrement: true });
@@ -3349,25 +3370,40 @@ const DB = {
       }
     }
     if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
-      const montoCuota = Math.round(v.precioVenta / v.numCuotas);
-      const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
-      for (let i = 0; i < v.numCuotas; i++) {
-        const vence = new Date();
-        vence.setMonth(vence.getMonth() + i);
-        const isLast = i === v.numCuotas - 1;
-        const monto = isLast ? lastCuota : montoCuota;
-        await this.add('cuotas', {
-          ventaId: id,
-          perfume: v.perfume,
-          cliente: v.cliente,
-          numero: i + 1,
-          total: v.numCuotas,
-          monto,
-          montoTotal: v.precioVenta,
-          pagado: i === 0,
-          montoPagado: i === 0 ? monto : 0,
-          vence: vence.getTime()
-        });
+      // BUG #12 FIX: Limitar número de cuotas a máximo 12
+      if (v.numCuotas > 12) {
+        throw new Error('Maximum 12 installments allowed');
+      }
+
+      try {
+        const montoCuota = Math.round(v.precioVenta / v.numCuotas);
+        const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
+        for (let i = 0; i < v.numCuotas; i++) {
+          // BUG #10 FIX: Usar fecha segura para suma de meses (evita problemas fin de mes)
+          const vence = new Date();
+          const targetMonth = vence.getMonth() + i;
+          const targetYear = vence.getFullYear() + Math.floor(targetMonth / 12);
+          vence.setFullYear(targetYear, targetMonth % 12, 1);
+          vence.setDate(Math.min(new Date(targetYear, targetMonth % 12 + 1, 0).getDate(), new Date().getDate()));
+          const isLast = i === v.numCuotas - 1;
+          const monto = isLast ? lastCuota : montoCuota;
+          await this.add('cuotas', {
+            ventaId: id,
+            perfume: v.perfume,
+            cliente: v.cliente,
+            numero: i + 1,
+            total: v.numCuotas,
+            monto,
+            montoTotal: v.precioVenta,
+            pagado: i === 0,
+            montoPagado: i === 0 ? monto : 0,
+            vence: vence.getTime()
+          });
+        }
+      } catch (e) {
+        // BUG #14 FIX: Si falla creación de cuotas, loguear y propagar error
+        console.error('Failed to create installments:', e.message);
+        throw new Error('Failed to create installments: ' + e.message);
       }
     }
     return id;
@@ -3406,7 +3442,14 @@ const DB = {
     if (c) {
       const prevPagado = c.montoPagado || 0;
       const totalPagado = prevPagado + montoPagado;
-      c.montoPagado = Math.min(totalPagado, c.monto);
+
+      // BUG #4 FIX: Validar que no se pague más que el monto de la cuota
+      if (totalPagado > c.monto) {
+        const exceso = totalPagado - c.monto;
+        throw new Error(`Sobrepago de ${exceso.toFixed(2)}: solo resta ${(c.monto - prevPagado).toFixed(2)} para esta cuota`);
+      }
+
+      c.montoPagado = totalPagado;
       c.pagado = c.montoPagado >= c.monto;
       c.fechaPago = Date.now();
       if (!c.pagos) c.pagos = [];
@@ -3486,6 +3529,38 @@ const DB = {
 
   async deleteGasto(id) {
     return this.delete('gastos', id);
+  },
+
+  async getVentasByPerfume(perfumeId) {
+    await openDB();
+    const index = tx('ventas', 'readonly').index('perfumeId');
+    return reqP(index.getAll(perfumeId));
+  },
+
+  async getVentasByCliente(cliente) {
+    await openDB();
+    const index = tx('ventas', 'readonly').index('cliente');
+    return reqP(index.getAll(cliente));
+  },
+
+  async getCuotasSinPagar() {
+    await openDB();
+    const index = tx('cuotas', 'readonly').index('pagado');
+    return reqP(index.getAll(false));
+  },
+
+  async getCuotasPorVencer(diasAdelante = 30) {
+    await openDB();
+    const ahora = Date.now();
+    const fecha = ahora + (diasAdelante * 86400000);
+    const cuotas = await this.getAll('cuotas');
+    return cuotas.filter(c => c.vence && c.vence <= fecha && !c.pagado);
+  },
+
+  async getCajaByTipo(tipo) {
+    await openDB();
+    const index = tx('caja', 'readonly').index('tipo');
+    return reqP(index.getAll(tipo));
   },
 
   async seedDemo() {
@@ -3594,7 +3669,8 @@ const ENCRYPTION = {
     const encrypted = await this.encryptData(key, Buffer.from(pinHash));
 
     localStorage.setItem('pt_master_key_encrypted', encrypted);
-    localStorage.setItem('pt_pin_unlocked_at', String(Date.now()));
+    // BUG #9 FIX: Usar sessionStorage para datos transitorios (no persisten XSS)
+    sessionStorage.setItem('pt_pin_unlocked_at', String(Date.now()));
 
     return true;
   },
@@ -3611,7 +3687,8 @@ const ENCRYPTION = {
     try {
       const key = await this.decryptData(encrypted, Buffer.from(pinHash));
       this.masterKey = key;
-      localStorage.setItem('pt_pin_unlocked_at', String(Date.now()));
+      // BUG #9 FIX: Usar sessionStorage para datos transitorios (no persisten XSS)
+    sessionStorage.setItem('pt_pin_unlocked_at', String(Date.now()));
       return true;
     } catch {
       return false;
@@ -3823,7 +3900,8 @@ const ENCRYPTION = {
 
   // Check if master key is unlocked and not timed out
   isMasterKeyUnlocked() {
-    const unlockedAt = localStorage.getItem('pt_pin_unlocked_at');
+    // BUG #9 FIX: Usar sessionStorage para datos transitorios
+    const unlockedAt = sessionStorage.getItem('pt_pin_unlocked_at');
     if (!unlockedAt) return false;
 
     const elapsed = Date.now() - parseInt(unlockedAt);
@@ -3835,7 +3913,7 @@ const ENCRYPTION = {
   // Lock master key
   lockMasterKey() {
     this.masterKey = null;
-    localStorage.removeItem('pt_pin_unlocked_at');
+    sessionStorage.removeItem('pt_pin_unlocked_at');
   },
 };
 
@@ -3866,12 +3944,46 @@ const App = {
     await this._initializeEncryption();
     this._initCsrfToken();
     this.checkPinOnStart();
-    this.checkOnboarding();
     this.checkConsent();
     this.renderAll();
     this.registerSW();
     this._initTabSync();
     this._checkPendingLicense();
+    this._initEventDelegation();
+    this._initAutoUpdate();
+    await this._initDOMContentLoaded();
+  },
+
+  _initEventDelegation() {
+    // BUG #2 FIX: Event delegation para botones WhatsApp y Pago (evita XSS)
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-whatsapp[data-msg]');
+      if (btn) {
+        e.preventDefault();
+        try {
+          // BUG #B-02 FIX: Validar base64 encoding antes de decodificar
+          // UTF-8-safe: atob solo no soporta emojis del mensaje (fuera de Latin1)
+          const msg = this.b64Decode(btn.dataset.msg);
+          this.cobrarWhatsApp(msg);
+        } catch (err) {
+          console.error('Error decodificando mensaje WhatsApp:', err);
+          this.toast('Error al procesar mensaje', 'error');
+        }
+      }
+
+      const payBtn = e.target.closest('.btn-pay[data-cuota-id]');
+      if (payBtn) {
+        e.preventDefault();
+        try {
+          // BUG #B-01 FIX: Validar JSON parsing de cuota ID
+          const cuotaId = JSON.parse(payBtn.dataset.cuotaId);
+          this.abrirPagoCuota(cuotaId);
+        } catch (err) {
+          console.error('Error parseando cuota ID:', err);
+          this.toast('Error al abrir pago de cuota', 'error');
+        }
+      }
+    });
   },
 
   async _initCsrfToken() {
@@ -4120,6 +4232,9 @@ const App = {
   // ====== RENDER ======
 
   _debounceTimers: {},
+  _dashboardMonth: null,
+  _dashboardYear: null,
+
   debounce(key, fn, ms = 100) {
     clearTimeout(this._debounceTimers[key]);
     this._debounceTimers[key] = setTimeout(fn, ms);
@@ -4136,19 +4251,47 @@ const App = {
     });
   },
 
+  changeDashboardMonth(offset) {
+    const now = new Date();
+    if (!this._dashboardMonth) this._dashboardMonth = now.getMonth();
+    if (!this._dashboardYear) this._dashboardYear = now.getFullYear();
+
+    this._dashboardMonth += offset;
+    if (this._dashboardMonth > 11) {
+      this._dashboardMonth = 0;
+      this._dashboardYear += 1;
+    } else if (this._dashboardMonth < 0) {
+      this._dashboardMonth = 11;
+      this._dashboardYear -= 1;
+    }
+
+    this.renderDashboard();
+  },
+
+  resetDashboardMonth() {
+    this._dashboardMonth = null;
+    this._dashboardYear = null;
+    this.renderDashboard();
+  },
+
   renderDashboard() {
     const now = new Date();
     const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     const el = (id) => document.getElementById(id);
 
-    el('hero-month').textContent = monthNames[now.getMonth()] + ' ' + now.getFullYear();
+    // Usar mes seleccionado o mes actual
+    const displayMonth = this._dashboardMonth ?? now.getMonth();
+    const displayYear = this._dashboardYear ?? now.getFullYear();
+
+    el('hero-month').textContent = monthNames[displayMonth] + ' ' + displayYear;
 
     const thisMonth = this.ventas.filter(v => {
       const d = new Date(v.fecha);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      return d.getMonth() === displayMonth && d.getFullYear() === displayYear;
     });
 
-    const ganancia = thisMonth.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
+    // BUG #6 FIX: Usar precioOriginal (antes de descuento) para ganancia bruta
+    const ganancia = thisMonth.reduce((s, v) => s + ((v.precioOriginal || v.precioVenta) - v.precioCompra), 0);
     const totalVentas = thisMonth.length;
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 
@@ -4156,7 +4299,9 @@ const App = {
     el('hero-ventas-count').textContent = totalVentas + ' ventas registradas';
     el('stat-ventas').textContent = totalVentas;
 
-    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonthNum = displayMonth === 0 ? 11 : displayMonth - 1;
+    const prevMonthYear = displayMonth === 0 ? displayYear - 1 : displayYear;
+    const prevMonth = new Date(prevMonthYear, prevMonthNum, 1);
     const prevVentas = this.ventas.filter(v => {
       const d = new Date(v.fecha);
       return d.getMonth() === prevMonth.getMonth() && d.getFullYear() === prevMonth.getFullYear();
@@ -4271,7 +4416,8 @@ const App = {
         </div>`;
     }
 
-    const gan = v.precioVenta - v.precioCompra;
+    // BUG #6 FIX: Usar precioOriginal para ganancia bruta
+    const gan = (v.precioOriginal || v.precioVenta) - v.precioCompra;
     const esCuotas = v.formaPago === 'cuotas';
     return `<div class="${cls}"${styleAttr}>
         <div class="venta-top">
@@ -4283,7 +4429,7 @@ const App = {
             <div class="venta-tags">
               <span class="tag">${this.esc(v.vendedor || '—')}</span>
               ${v.proveedor ? `<span class="tag">${this.esc(v.proveedor)}</span>` : ''}
-              ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${v.descuento}%</span>` : ''}
+              ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${Math.round(v.descuento || 0)}%</span>` : ''}
               ${esCuotas
                 ? `<span class="tag-cuotas">En cuotas</span>`
                 : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
@@ -4333,13 +4479,14 @@ const App = {
     section.classList.remove('hidden');
     list.innerHTML = sorted.map(([name, total]) => {
       const waMsg = `Hola ${name}! Te recuerdo que tenés un saldo pendiente de *${this.fmt(total)}*. Avisame cuando puedas pagar!`;
+      // BUG #2 FIX: Usar data attribute en lugar de onclick inline
       return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:6px;">
         <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
           <span class="ms" style="color:var(--gold);font-size:18px;">person</span>
           <span style="font:500 13px 'DM Sans';color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.esc(name)}</span>
         </div>
         <span style="font:700 14px 'DM Sans';color:var(--red);margin:0 10px;white-space:nowrap;">${this.fmt(total)}</span>
-        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms" style="font-size:16px;">chat</span></button>
+        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${this.b64Encode(waMsg)}"><span class="ms" style="font-size:16px;">chat</span></button>
       </div>`;
     }).join('');
   },
@@ -4531,8 +4678,8 @@ const App = {
         </div>
         <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
-          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar por WhatsApp</button>
-          <button class="btn-pay" onclick="App.abrirPagoCuota(${JSON.stringify(proxima.id)})"><span class="ms">add_card</span></button>
+          <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
+          <button class="btn-pay" data-cuota-id="${this.esc(JSON.stringify(proxima.id))}"><span class="ms">add_card</span></button>
         </div>
         <div class="wa-preview-label">VISTA PREVIA DEL MENSAJE</div>
         <div class="wa-bubble">
@@ -4617,7 +4764,7 @@ const App = {
         </div>
         <div class="deudor-items">${items}</div>
         <div class="deudor-actions">
-          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
+          <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
         </div>
       </div>`;
     }).join('');
@@ -4633,7 +4780,8 @@ const App = {
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
 
-    const ganancia = thisMonth.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
+    // BUG #6 FIX: Usar precioOriginal (antes de descuento) para ganancia bruta
+    const ganancia = thisMonth.reduce((s, v) => s + ((v.precioOriginal || v.precioVenta) - v.precioCompra), 0);
     const gastos = thisMonth.reduce((s, v) => s + v.precioCompra, 0);
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 
@@ -4759,6 +4907,27 @@ const App = {
 
   // ====== NUEVA VENTA ======
 
+  _checkVendedorRestriction() {
+    const input = document.getElementById('venta-vendedor');
+    const badge = document.getElementById('vendedor-pro-badge');
+    const group = document.getElementById('vendedor-group');
+
+    if (!this.isPro()) {
+      // Free tier: deshabilitar vendedor
+      input.disabled = true;
+      input.value = 'Luccas';
+      badge.style.display = 'inline-block';
+      group.style.opacity = '0.6';
+      group.title = 'Feature disponible en plan Pro';
+    } else {
+      // Pro: habilitar vendedor
+      input.disabled = false;
+      badge.style.display = 'none';
+      group.style.opacity = '1';
+      group.title = '';
+    }
+  },
+
   resetVentaForm() {
     document.getElementById('venta-perfume-id').value = '';
     document.getElementById('venta-perfume-nombre').value = '';
@@ -4774,6 +4943,7 @@ const App = {
     this.setFormaPago('contado');
     this.calcLiveProfit();
     this.setupAutocomplete();
+    this._checkVendedorRestriction();
     this._editingVentaId = null;
     const saveBtn = document.querySelector('#screen-nueva-venta .btn-primary');
     if (saveBtn) {
@@ -4823,10 +4993,26 @@ const App = {
     const filtered = val ? values.filter(v => v.toLowerCase().includes(val)) : values.slice(0, 5);
 
     if (filtered.length === 0) { listEl.classList.add('hidden'); return; }
+
+    // BUG #1 FIX: Usar addEventListener en lugar de onclick inline para evitar XSS
     listEl.innerHTML = filtered.map(v => {
-      const safe = this.esc(v).replace(/'/g, '&#39;');
-      return `<div class="ac-item" onmousedown="document.getElementById('${inputId}').value='${safe}';document.getElementById('${listId}').classList.add('hidden');App.calcLiveProfit()">${this.esc(v)}</div>`;
+      return `<div class="ac-item" data-value="${this.esc(v)}">${this.esc(v)}</div>`;
     }).join('');
+
+    // Agregar listeners a cada item
+    listEl.querySelectorAll('.ac-item').forEach(item => {
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const input = document.getElementById(inputId);
+        const list = document.getElementById(listId);
+        if (input && list) {
+          input.value = item.dataset.value;
+          list.classList.add('hidden');
+          this.calcLiveProfit();
+        }
+      });
+    });
+
     listEl.classList.remove('hidden');
   },
 
@@ -4886,15 +5072,21 @@ const App = {
     const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
     const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
-    const vendedor = document.getElementById('venta-vendedor').value;
+    let vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
     const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
-    const fecha = fechaStr ? new Date(fechaStr + 'T12:00:00').getTime() : Date.now();
+    // BUG #5 FIX: Usar 'Z' para UTC en lugar de hora local para evitar discrepancias de zona horaria
+    const fecha = fechaStr ? new Date(fechaStr + 'T00:00:00Z').getTime() : Date.now();
     const nota = document.getElementById('venta-nota').value;
     const perfumeId = document.getElementById('venta-perfume-id').value;
     const numCuotas = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
     const pvFinal = descuento > 0 ? Math.round(precioVenta * (1 - descuento / 100)) : precioVenta;
+
+    // P-01 FIX: Multi-vendedor solo para Pro
+    if (!this.isPro()) {
+      vendedor = 'Luccas';
+    }
 
     if (!perfume || perfume === 'Elegir perfume…') {
       this.toast('Elegí un perfume', 'warning');
@@ -4902,6 +5094,18 @@ const App = {
     }
     if (precioVenta <= 0) {
       this.toast('Ingresá el precio de venta', 'warning');
+      return;
+    }
+
+    // BUG #8 FIX: Validar descuento entre 0 y 100
+    if (descuento < 0 || descuento > 100) {
+      this.toast('Descuento debe estar entre 0 y 100%', 'warning');
+      return;
+    }
+
+    // BUG #11 FIX: Validar número de cuotas entre 1 y 12
+    if (numCuotas < 1 || numCuotas > 12) {
+      this.toast('Cuotas debe estar entre 1 y 12', 'warning');
       return;
     }
 
@@ -4936,7 +5140,8 @@ const App = {
         fecha,
         formaPago: this.formaPago,
         numCuotas: this.formaPago === 'cuotas' ? numCuotas : 1,
-        perfumeId: perfumeId ? parseInt(perfumeId) : ''
+        // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío
+        perfumeId: perfumeId ? parseInt(perfumeId, 10) : null
       });
     } catch (e) {
       this.toast('Error al guardar la venta. Intentá de nuevo.', 'error');
@@ -4967,6 +5172,11 @@ const App = {
   async adjustStock(id, delta) {
     const p = this.perfumes.find(x => x.id === id);
     if (!p) return;
+    // BUG #16 FIX: Validar delta razonable para ajustes de stock
+    if (Math.abs(delta) > 1000) {
+      this.toast('Ajuste demasiado grande (máx ±1000)', 'warning');
+      return;
+    }
     p.stock = Math.max(0, p.stock + delta);
     try {
       await DB.updatePerfume(p);
@@ -5205,6 +5415,7 @@ const App = {
     if (title) title.textContent = 'Editar venta';
 
     this.calcLiveProfit();
+    this._checkVendedorRestriction();
   },
 
   async updateVenta() {
@@ -5215,14 +5426,20 @@ const App = {
     const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
     const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
-    const vendedor = document.getElementById('venta-vendedor').value;
+    let vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
     const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
-    const fecha = fechaStr ? new Date(fechaStr + 'T12:00:00').getTime() : Date.now();
+    // BUG #5 FIX: Usar 'Z' para UTC en lugar de hora local
+    const fecha = fechaStr ? new Date(fechaStr + 'T00:00:00Z').getTime() : Date.now();
     const nota = document.getElementById('venta-nota').value;
     const perfumeId = document.getElementById('venta-perfume-id').value;
     const pvFinal = descuento > 0 ? Math.round(precioVenta * (1 - descuento / 100)) : precioVenta;
+
+    // P-01 FIX: Multi-vendedor solo para Pro
+    if (!this.isPro()) {
+      vendedor = 'Luccas';
+    }
 
     if (!perfume || perfume === 'Elegir perfume…') {
       this.toast('Elegí un perfume', 'warning');
@@ -5239,7 +5456,8 @@ const App = {
         perfume, precioVenta: pvFinal, precioOriginal: precioVenta, precioCompra,
         cliente: cliente || 'Anónimo', vendedor: vendedor || 'Anónimo',
         proveedor: proveedor || '', descuento, nota, fecha,
-        perfumeId: perfumeId ? parseInt(perfumeId) : '',
+        // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío
+        perfumeId: perfumeId ? parseInt(perfumeId, 10) : null,
         formaPago: newFormaPago,
         numCuotas: newFormaPago === 'cuotas' ? numCuotas : 1,
       });
@@ -5853,9 +6071,11 @@ const App = {
       caja: this.cajaData,
       gastos: this.gastosData,
       config,
+      // BUG #18 FIX: No incluir datos sensibles (PIN) en export
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
         negocio: localStorage.getItem('pt_negocio'),
+        // pin: omitido intencionalmente por seguridad
       },
       exportDate: new Date().toISOString()
     };
@@ -6628,6 +6848,15 @@ const App = {
     return div.innerHTML;
   },
 
+  // Base64 UTF-8-safe: btoa/atob solos lanzan InvalidCharacterError con emojis (fuera de Latin1)
+  b64Encode(s) {
+    return btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+  },
+
+  b64Decode(b64) {
+    return new TextDecoder().decode(Uint8Array.from(atob(b64), c => c.charCodeAt(0)));
+  },
+
   track(event, props) {
     if (window.plausible) window.plausible(event, props ? { props } : undefined);
   },
@@ -6804,7 +7033,9 @@ const App = {
     }
     this.toast('Enviando código…', 'hourglass_top');
     try {
+      // BUG #17 FIX: Agregar timeout a fetch calls (30s)
       const res = await fetch('/trial', {
+        signal: AbortSignal.timeout(30000),
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ step: 'register', email, deviceId: this._getDeviceId() })
@@ -6832,6 +7063,7 @@ const App = {
     this.toast('Verificando…', 'hourglass_top');
     try {
       const res = await fetch('/trial', {
+        signal: AbortSignal.timeout(30000),
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
         body: JSON.stringify({ step: 'verify', email: this._pendingEmail, otp, deviceId: this._getDeviceId() })
@@ -7008,7 +7240,48 @@ const App = {
     this.toast('Sesión cerrada', 'logout');
   },
 
-  // ====== ONBOARDING ======
+  // ====== CONSENT & ONBOARDING ======
+
+  checkConsent() {
+    if (!localStorage.getItem('pt_consent_accepted')) {
+      const el = document.getElementById('consent-modal');
+      el.style.display = 'flex';
+    } else {
+      this.checkOnboarding();
+    }
+  },
+
+  acceptConsent() {
+    const terms = document.getElementById('consent-terms').checked;
+    const privacy = document.getElementById('consent-privacy').checked;
+    const cookies = document.getElementById('consent-cookies').checked;
+    const marketing = document.getElementById('consent-marketing').checked;
+
+    if (!terms || !privacy || !cookies) {
+      document.getElementById('consent-error').textContent = 'Debes aceptar todos los términos para continuar';
+      return;
+    }
+
+    localStorage.setItem('pt_consent_accepted', '1');
+    localStorage.setItem('pt_consent_date', new Date().toISOString());
+    localStorage.setItem('pt_consent_marketing', marketing ? '1' : '0');
+    document.getElementById('consent-modal').style.display = 'none';
+    this.checkOnboarding();
+  },
+
+  rejectConsent() {
+    if (confirm('Si rechazas, no podrás usar Parfum Track. ¿Estás seguro?')) {
+      document.getElementById('consent-modal').style.display = 'none';
+      document.getElementById('onboarding').classList.remove('hidden');
+      document.getElementById('onboarding').innerHTML = `
+        <div style="text-align:center;color:var(--gold2);font-size:16px;">
+          <div class="logo-drop" style="width:64px;height:64px;margin-bottom:20px;"></div>
+          <p style="margin-bottom:20px;">No pudimos continuar sin tu consentimiento.</p>
+          <button class="btn-primary" onclick="window.location.href='/'">Volver al inicio</button>
+        </div>
+      `;
+    }
+  },
 
   checkOnboarding() {
     if (!localStorage.getItem('pt_onboarded')) {
@@ -7033,63 +7306,7 @@ const App = {
     steps.forEach((s, i) => s.style.display = i === 0 ? 'flex' : 'none');
   },
 
-  // ====== CONSENTIMIENTO (TÉRMINOS, PRIVACIDAD, COOKIES) ======
 
-  checkConsent() {
-    if (!localStorage.getItem('pt_consent_accepted')) {
-      const modal = document.getElementById('modal-consent');
-      if (modal) {
-        modal.classList.remove('hidden');
-        this._setupConsentListeners();
-      }
-    }
-  },
-
-  _setupConsentListeners() {
-    const termsChk = document.getElementById('consent-terms');
-    const privacyChk = document.getElementById('consent-privacy');
-    const cookiesChk = document.getElementById('consent-cookies');
-    const acceptBtn = document.getElementById('consent-btn-accept');
-
-    const updateButtonState = () => {
-      const allChecked = termsChk?.checked && privacyChk?.checked && cookiesChk?.checked;
-      if (acceptBtn) {
-        acceptBtn.disabled = !allChecked;
-        acceptBtn.style.opacity = allChecked ? '1' : '0.5';
-        acceptBtn.style.cursor = allChecked ? 'pointer' : 'not-allowed';
-      }
-    };
-
-    [termsChk, privacyChk, cookiesChk].forEach(el => {
-      if (el) el.addEventListener('change', updateButtonState);
-    });
-  },
-
-  acceptConsent() {
-    const termsChk = document.getElementById('consent-terms');
-    const privacyChk = document.getElementById('consent-privacy');
-    const cookiesChk = document.getElementById('consent-cookies');
-    const emailChk = document.getElementById('consent-email');
-
-    if (termsChk?.checked && privacyChk?.checked && cookiesChk?.checked) {
-      const consentData = {
-        accepted: true,
-        timestamp: Date.now(),
-        terms: true,
-        privacy: true,
-        cookies: true,
-        email: emailChk?.checked || false
-      };
-      localStorage.setItem('pt_consent_accepted', JSON.stringify(consentData));
-      const modal = document.getElementById('modal-consent');
-      if (modal) modal.classList.add('hidden');
-      this.toast('Términos aceptados', 'check_circle');
-    }
-  },
-
-  rejectConsent() {
-    this.toast('Debes aceptar los términos para usar la app', 'warning');
-  },
 
   // ====== PIN LOCK ======
   async _hashPin(pin) {
@@ -7273,9 +7490,160 @@ const App = {
       await App._checkAndRotateKeyIfNeeded().catch(() => {});
     }
   },
+// ====== AUTO-UPDATE (Versionado + Actualización automática) ======
+
+  _updateCheckInterval: null,
+  _currentVersion: null,
+  _latestVersion: null,
+
+  // Inicializar verificación automática de actualizaciones
+  async _initAutoUpdate() {
+    // Obtener versión actual del meta tag
+    const versionMeta = document.querySelector('meta[name="app-version"]');
+    this._currentVersion = versionMeta?.content || '1.0.0';
+    console.log('📦 App version:', this._currentVersion);
+
+    // Verificar versión al iniciar
+    await this._checkForUpdates();
+
+    // Verificar cada 5 minutos
+    this._updateCheckInterval = setInterval(() => {
+      this._checkForUpdates().catch(err => console.warn('Update check failed:', err.message));
+    }, 5 * 60 * 1000); // 5 minutos
+  },
+
+  // Verificar si hay actualización disponible
+  async _checkForUpdates() {
+    try {
+      const response = await fetch('/version', {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(5000)
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const data = await response.json();
+      this._latestVersion = data.version;
+
+      console.log('🔄 Latest version available:', this._latestVersion);
+
+      // Si hay versión más nueva, recargar
+      if (this._isNewerVersion(this._latestVersion, this._currentVersion)) {
+        console.log('✨ Nueva versión disponible, recargando...');
+        this._reloadWithNewVersion();
+      }
+    } catch (err) {
+      console.warn('Failed to check for updates:', err.message);
+    }
+  },
+
+  // Comparar versiones (true si version1 > version2)
+  _isNewerVersion(version1, version2) {
+    const v1 = version1.split('.').map(Number);
+    const v2 = version2.split('.').map(Number);
+
+    for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
+      const num1 = v1[i] || 0;
+      const num2 = v2[i] || 0;
+      if (num1 > num2) return true;
+      if (num1 < num2) return false;
+    }
+
+    return false;
+  },
+
+  // Recargar con nueva versión
+  _reloadWithNewVersion() {
+    // Limpiar interval
+    if (this._updateCheckInterval) {
+      clearInterval(this._updateCheckInterval);
+      this._updateCheckInterval = null;
+    }
+
+    // Opción 1: Recargar inmediatamente (agresivo)
+    // window.location.reload();
+
+    // Opción 2: Notificar al usuario (amigable)
+    const banner = document.createElement('div');
+    banner.style.cssText = `
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--gold2);
+      color: var(--bg);
+      padding: 16px;
+      text-align: center;
+      font-weight: 600;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      animation: slideUp 0.3s ease-out;
+    `;
+    banner.innerHTML = `
+      <span class="ms" style="font-size: 20px;">system_update</span>
+      <span>Actualización disponible</span>
+      <button onclick="window.location.reload()" style="
+        background: var(--bg);
+        color: var(--gold2);
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-left: 12px;
+      ">Recargar</button>
+    `;
+
+    // Agregar estilos de animación si no existen
+    if (!document.getElementById('pt-auto-update-styles')) {
+      const style = document.createElement('style');
+      style.id = 'pt-auto-update-styles';
+      style.textContent = `
+        @keyframes slideUp {
+          from { transform: translateY(100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    document.body.appendChild(banner);
+
+    // Recargar automáticamente después de 10 segundos si el usuario no lo hace
+    setTimeout(() => {
+      window.location.reload();
+    }, 10000);
+  },
+
+  // Limpiar interval al desmontar
+  _cleanupAutoUpdate() {
+    if (this._updateCheckInterval) {
+      clearInterval(this._updateCheckInterval);
+      this._updateCheckInterval = null;
+    }
+  },
 };
 
 document.addEventListener('DOMContentLoaded', () => App.init());
+
+// v15: Forzar actualización del Service Worker en cada carga
+// Detectar cambios en index.html e invalidar caché
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.ready.then(reg => {
+    // Verificar actualizaciones cada 10 segundos (desarrollador puede cambiar backend)
+    setInterval(() => {
+      reg.update().catch(() => {});
+    }, 10000);
+  });
+
+  // En caso de actualización, recargar la página
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
 </script>
 </body>
 </html>

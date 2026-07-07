@@ -2,6 +2,27 @@
 
   // ====== NUEVA VENTA ======
 
+  _checkVendedorRestriction() {
+    const input = document.getElementById('venta-vendedor');
+    const badge = document.getElementById('vendedor-pro-badge');
+    const group = document.getElementById('vendedor-group');
+
+    if (!this.isPro()) {
+      // Free tier: deshabilitar vendedor
+      input.disabled = true;
+      input.value = 'Luccas';
+      badge.style.display = 'inline-block';
+      group.style.opacity = '0.6';
+      group.title = 'Feature disponible en plan Pro';
+    } else {
+      // Pro: habilitar vendedor
+      input.disabled = false;
+      badge.style.display = 'none';
+      group.style.opacity = '1';
+      group.title = '';
+    }
+  },
+
   resetVentaForm() {
     document.getElementById('venta-perfume-id').value = '';
     document.getElementById('venta-perfume-nombre').value = '';
@@ -17,6 +38,7 @@
     this.setFormaPago('contado');
     this.calcLiveProfit();
     this.setupAutocomplete();
+    this._checkVendedorRestriction();
     this._editingVentaId = null;
     const saveBtn = document.querySelector('#screen-nueva-venta .btn-primary');
     if (saveBtn) {
@@ -66,10 +88,26 @@
     const filtered = val ? values.filter(v => v.toLowerCase().includes(val)) : values.slice(0, 5);
 
     if (filtered.length === 0) { listEl.classList.add('hidden'); return; }
+
+    // BUG #1 FIX: Usar addEventListener en lugar de onclick inline para evitar XSS
     listEl.innerHTML = filtered.map(v => {
-      const safe = this.esc(v).replace(/'/g, '&#39;');
-      return `<div class="ac-item" onmousedown="document.getElementById('${inputId}').value='${safe}';document.getElementById('${listId}').classList.add('hidden');App.calcLiveProfit()">${this.esc(v)}</div>`;
+      return `<div class="ac-item" data-value="${this.esc(v)}">${this.esc(v)}</div>`;
     }).join('');
+
+    // Agregar listeners a cada item
+    listEl.querySelectorAll('.ac-item').forEach(item => {
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const input = document.getElementById(inputId);
+        const list = document.getElementById(listId);
+        if (input && list) {
+          input.value = item.dataset.value;
+          list.classList.add('hidden');
+          this.calcLiveProfit();
+        }
+      });
+    });
+
     listEl.classList.remove('hidden');
   },
 
@@ -129,15 +167,21 @@
     const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
     const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
-    const vendedor = document.getElementById('venta-vendedor').value;
+    let vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
     const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
-    const fecha = fechaStr ? new Date(fechaStr + 'T12:00:00').getTime() : Date.now();
+    // BUG #5 FIX: Usar 'Z' para UTC en lugar de hora local para evitar discrepancias de zona horaria
+    const fecha = fechaStr ? new Date(fechaStr + 'T00:00:00Z').getTime() : Date.now();
     const nota = document.getElementById('venta-nota').value;
     const perfumeId = document.getElementById('venta-perfume-id').value;
     const numCuotas = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
     const pvFinal = descuento > 0 ? Math.round(precioVenta * (1 - descuento / 100)) : precioVenta;
+
+    // P-01 FIX: Multi-vendedor solo para Pro
+    if (!this.isPro()) {
+      vendedor = 'Luccas';
+    }
 
     if (!perfume || perfume === 'Elegir perfume…') {
       this.toast('Elegí un perfume', 'warning');
@@ -145,6 +189,18 @@
     }
     if (precioVenta <= 0) {
       this.toast('Ingresá el precio de venta', 'warning');
+      return;
+    }
+
+    // BUG #8 FIX: Validar descuento entre 0 y 100
+    if (descuento < 0 || descuento > 100) {
+      this.toast('Descuento debe estar entre 0 y 100%', 'warning');
+      return;
+    }
+
+    // BUG #11 FIX: Validar número de cuotas entre 1 y 12
+    if (numCuotas < 1 || numCuotas > 12) {
+      this.toast('Cuotas debe estar entre 1 y 12', 'warning');
       return;
     }
 
@@ -179,7 +235,8 @@
         fecha,
         formaPago: this.formaPago,
         numCuotas: this.formaPago === 'cuotas' ? numCuotas : 1,
-        perfumeId: perfumeId ? parseInt(perfumeId) : ''
+        // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío
+        perfumeId: perfumeId ? parseInt(perfumeId, 10) : null
       });
     } catch (e) {
       this.toast('Error al guardar la venta. Intentá de nuevo.', 'error');

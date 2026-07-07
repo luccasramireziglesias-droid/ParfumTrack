@@ -12,12 +12,23 @@
 
       <div class="hero-card" style="padding-bottom:20px;">
         <div class="hero-glow"></div>
-        <div class="hero-label">Ganancia · <span id="hero-month"></span></div>
+        <div class="hero-label" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>Ganancia</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button onclick="App.changeDashboardMonth(-1)" style="background:none;border:none;color:var(--text3);padding:4px;cursor:pointer;"><span class="ms" style="font-size:18px;">navigate_before</span></button>
+            <span id="hero-month" style="min-width:140px;text-align:center;"></span>
+            <button onclick="App.changeDashboardMonth(1)" style="background:none;border:none;color:var(--text3);padding:4px;cursor:pointer;"><span class="ms" style="font-size:18px;">navigate_next</span></button>
+            <button onclick="App.resetDashboardMonth()" style="background:none;border:none;color:var(--text3);padding:4px;cursor:pointer;margin-left:4px;" title="Volver a hoy"><span class="ms" style="font-size:16px;">today</span></button>
+          </div>
+        </div>
         <div class="hero-row">
           <div class="hero-amount" id="hero-ganancia">$0</div>
           <div class="hero-badge" id="hero-trend"><span class="ms">trending_up</span>+0%</div>
         </div>
         <div class="hero-sub" id="hero-ventas-count">0 ventas registradas</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:12px;padding-top:12px;border-top:1px solid var(--border);line-height:1.4;">
+          <span class="ms" style="font-size:12px;vertical-align:middle;">info</span> Los cálculos son informativos. Verificá siempre tus registros.
+        </div>
       </div>
 
       <div class="stat-pair">

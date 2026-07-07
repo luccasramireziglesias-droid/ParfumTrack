@@ -61,7 +61,8 @@ const ENCRYPTION = {
     const encrypted = await this.encryptData(key, Buffer.from(pinHash));
 
     localStorage.setItem('pt_master_key_encrypted', encrypted);
-    localStorage.setItem('pt_pin_unlocked_at', String(Date.now()));
+    // BUG #9 FIX: Usar sessionStorage para datos transitorios (no persisten XSS)
+    sessionStorage.setItem('pt_pin_unlocked_at', String(Date.now()));
 
     return true;
   },
@@ -78,7 +79,8 @@ const ENCRYPTION = {
     try {
       const key = await this.decryptData(encrypted, Buffer.from(pinHash));
       this.masterKey = key;
-      localStorage.setItem('pt_pin_unlocked_at', String(Date.now()));
+      // BUG #9 FIX: Usar sessionStorage para datos transitorios (no persisten XSS)
+    sessionStorage.setItem('pt_pin_unlocked_at', String(Date.now()));
       return true;
     } catch {
       return false;
@@ -290,7 +292,8 @@ const ENCRYPTION = {
 
   // Check if master key is unlocked and not timed out
   isMasterKeyUnlocked() {
-    const unlockedAt = localStorage.getItem('pt_pin_unlocked_at');
+    // BUG #9 FIX: Usar sessionStorage para datos transitorios
+    const unlockedAt = sessionStorage.getItem('pt_pin_unlocked_at');
     if (!unlockedAt) return false;
 
     const elapsed = Date.now() - parseInt(unlockedAt);
@@ -302,6 +305,6 @@ const ENCRYPTION = {
   // Lock master key
   lockMasterKey() {
     this.masterKey = null;
-    localStorage.removeItem('pt_pin_unlocked_at');
+    sessionStorage.removeItem('pt_pin_unlocked_at');
   },
 };

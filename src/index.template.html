@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="app-version" content="/*PT:VERSION*/">
 <title>Parfum Track</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -41,6 +42,46 @@
     <div></div>
     <button class="pin-key" onclick="App.pinInput(0)">0</button>
     <button class="pin-key" onclick="App.pinDelete()" style="font-size:20px;"><span class="ms">backspace</span></button>
+  </div>
+</div>
+
+<!-- ====== CONSENT MODAL ====== -->
+<div id="consent-modal" style="position:fixed;inset:0;z-index:9997;background:rgba(15,15,26,0.8);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--bg2);border:1px solid var(--gold);border-radius:12px;padding:28px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;">
+    <h2 style="font:600 18px 'DM Sans';color:var(--gold2);margin-bottom:16px;">Aceptar Términos & Privacidad</h2>
+    <p style="font-size:13px;color:var(--text3);line-height:1.6;margin-bottom:20px;">Para usar Parfum Track, necesitamos que aceptes nuestros términos, política de privacidad y uso de cookies.</p>
+
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;">
+        <input type="checkbox" id="consent-terms" style="margin-top:3px;cursor:pointer;">
+        <span style="color:var(--text2);">Acepto los <a href="/terminos.html" target="_blank" style="color:var(--gold);text-decoration:none;border-bottom:1px solid var(--gold);">Términos de Servicio</a></span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;">
+        <input type="checkbox" id="consent-privacy" style="margin-top:3px;cursor:pointer;">
+        <span style="color:var(--text2);">Acepto la <a href="/privacidad.html" target="_blank" style="color:var(--gold);text-decoration:none;border-bottom:1px solid var(--gold);">Política de Privacidad</a></span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;">
+        <input type="checkbox" id="consent-cookies" style="margin-top:3px;cursor:pointer;">
+        <span style="color:var(--text2);">Autorizo el uso de cookies para análisis y mejora del servicio</span>
+      </label>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:16px;margin-bottom:16px;">
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;">
+        <input type="checkbox" id="consent-marketing" style="margin-top:3px;cursor:pointer;" checked>
+        <span style="color:var(--text3);">✓ Opcional: Recibir emails sobre nuevas features y promociones</span>
+      </label>
+      <p style="font-size:12px;color:var(--text3);margin-top:12px;line-height:1.4;">Si cargarás datos de tus clientes, también revisá nuestro <a href="/dpa.html" target="_blank" style="color:var(--gold);text-decoration:underline;">Acuerdo de Procesamiento de Datos (DPA)</a>.</p>
+    </div>
+
+    <div id="consent-error" style="font-size:12px;color:var(--red);margin-bottom:16px;height:16px;"></div>
+
+    <button class="btn-primary btn-full" onclick="App.acceptConsent()" style="margin-bottom:10px;">
+      <span class="ms">check</span>Aceptar
+    </button>
+    <button onclick="App.rejectConsent()" style="background:none;border:1px solid var(--gold);color:var(--gold);padding:10px 16px;border-radius:6px;font-size:13px;cursor:pointer;width:100%;">
+      Rechazar
+    </button>
   </div>
 </div>
 
@@ -268,42 +309,6 @@
   <!-- ====== SCREEN: CATÁLOGO WA ====== -->
   <!--PT:SCREEN:catalogo-->
 
-  <!-- ====== MODAL: CONSENTIMIENTO (TÉRMINOS, PRIVACIDAD, COOKIES) ====== -->
-  <div id="modal-consent" class="modal-overlay hidden" onclick="event.target.id === 'modal-consent' ? null : null" style="background:rgba(0,0,0,0.7);z-index:9997;">
-    <div class="modal-content" onclick="event.stopPropagation()" style="max-width:400px;border:2px solid var(--gold);gap:20px;">
-      <h2 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);text-align:center;margin:0;">Aceptar Términos & Privacidad</h2>
-      <p style="color:var(--text3);font-size:13px;line-height:1.6;margin:0;">Para usar Parfum Track, necesitamos que aceptes nuestros términos, política de privacidad y uso de cookies.</p>
-
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <input type="checkbox" id="consent-terms" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
-          <span style="color:var(--text2);font-size:13px;">Acepto los <a href="/terminos.html" target="_blank" style="color:var(--gold);text-decoration:underline;">Términos de Servicio</a></span>
-        </label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <input type="checkbox" id="consent-privacy" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
-          <span style="color:var(--text2);font-size:13px;">Acepto la <a href="/privacidad.html" target="_blank" style="color:var(--gold);text-decoration:underline;">Política de Privacidad</a></span>
-        </label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <input type="checkbox" id="consent-cookies" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
-          <span style="color:var(--text2);font-size:13px;">Autorizo el uso de cookies para análisis y mejora del servicio</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <input type="checkbox" id="consent-email" checked style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
-          <span style="color:var(--text3);font-size:12px;">✓ Opcional: Recibir emails sobre nuevas features y promociones</span>
-        </label>
-      </div>
-
-      <div style="display:flex;gap:10px;flex-direction:column;">
-        <button class="btn-primary btn-full" onclick="App.acceptConsent()" id="consent-btn-accept" style="opacity:0.5;cursor:not-allowed;" disabled>
-          <span class="ms">check</span>Aceptar
-        </button>
-        <button class="btn-outline-gold btn-full" onclick="App.rejectConsent()">
-          Rechazar
-        </button>
-      </div>
-    </div>
-  </div>
-
   </div><!-- /screens-container -->
 
   <!-- ====== BOTTOM NAV ====== -->
@@ -348,10 +353,14 @@ function openDB() {
       if (!d.objectStoreNames.contains('ventas')) {
         const s = d.createObjectStore('ventas', { keyPath: 'id', autoIncrement: true });
         s.createIndex('fecha', 'fecha', { unique: false });
+        s.createIndex('perfumeId', 'perfumeId', { unique: false });
+        s.createIndex('cliente', 'cliente', { unique: false });
       }
       if (!d.objectStoreNames.contains('cuotas')) {
         const s = d.createObjectStore('cuotas', { keyPath: 'id', autoIncrement: true });
         s.createIndex('ventaId', 'ventaId', { unique: false });
+        s.createIndex('pagado', 'pagado', { unique: false });
+        s.createIndex('vence', 'vence', { unique: false });
       }
       if (!d.objectStoreNames.contains('config')) {
         d.createObjectStore('config', { keyPath: 'key' });
@@ -364,6 +373,7 @@ function openDB() {
       if (!d.objectStoreNames.contains('caja')) {
         const s = d.createObjectStore('caja', { keyPath: 'id', autoIncrement: true });
         s.createIndex('fecha', 'fecha', { unique: false });
+        s.createIndex('tipo', 'tipo', { unique: false });
       }
       if (!d.objectStoreNames.contains('gastos')) {
         const s = d.createObjectStore('gastos', { keyPath: 'id', autoIncrement: true });
@@ -399,6 +409,22 @@ const DB = {/*PT:DB*/};
 const App = {/*PT:APP*/};
 
 document.addEventListener('DOMContentLoaded', () => App.init());
+
+// v15: Forzar actualización del Service Worker en cada carga
+// Detectar cambios en index.html e invalidar caché
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.ready.then(reg => {
+    // Verificar actualizaciones cada 10 segundos (desarrollador puede cambiar backend)
+    setInterval(() => {
+      reg.update().catch(() => {});
+    }, 10000);
+  });
+
+  // En caso de actualización, recargar la página
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
 </script>
 </body>
 </html>

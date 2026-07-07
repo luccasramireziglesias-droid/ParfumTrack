@@ -6,6 +6,10 @@
 const fs = require('fs');
 const path = require('path');
 
+// Read version from package.json
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
+const version = pkg.version;
+
 const ROOT = path.join(__dirname, '..');
 const SRC = path.join(ROOT, 'src');
 
@@ -17,6 +21,9 @@ function readOrdered(dir) {
 }
 
 let html = fs.readFileSync(path.join(SRC, 'index.template.html'), 'utf8');
+
+// Inyectar versión
+html = html.replace('/*PT:VERSION*/', () => version);
 
 const css = readOrdered(path.join(SRC, 'styles')).join('');
 html = html.replace('/*PT:CSS*/', () => css);
@@ -44,9 +51,9 @@ const appFiles = fs.readdirSync(path.join(SRC, 'app'))
 const app = appFiles.join('');
 html = html.replace('/*PT:APP*/', () => app);
 
-if (/PT:(CSS|DB|APP|ENCRYPTION)|PT:SCREEN:/.test(html)) {
+if (/PT:(CSS|DB|APP|ENCRYPTION|VERSION)|PT:SCREEN:/.test(html)) {
   throw new Error('build.js: unresolved placeholder remains in generated output');
 }
 
 fs.writeFileSync(path.join(ROOT, 'index.html'), html);
-console.log(`build.js: wrote index.html (${html.length} chars)`);
+console.log(`build.js: wrote index.html (${html.length} chars) — version ${version}`);

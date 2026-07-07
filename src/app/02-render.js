@@ -3,6 +3,9 @@
   // ====== RENDER ======
 
   _debounceTimers: {},
+  _dashboardMonth: null,
+  _dashboardYear: null,
+
   debounce(key, fn, ms = 100) {
     clearTimeout(this._debounceTimers[key]);
     this._debounceTimers[key] = setTimeout(fn, ms);
@@ -19,19 +22,47 @@
     });
   },
 
+  changeDashboardMonth(offset) {
+    const now = new Date();
+    if (!this._dashboardMonth) this._dashboardMonth = now.getMonth();
+    if (!this._dashboardYear) this._dashboardYear = now.getFullYear();
+
+    this._dashboardMonth += offset;
+    if (this._dashboardMonth > 11) {
+      this._dashboardMonth = 0;
+      this._dashboardYear += 1;
+    } else if (this._dashboardMonth < 0) {
+      this._dashboardMonth = 11;
+      this._dashboardYear -= 1;
+    }
+
+    this.renderDashboard();
+  },
+
+  resetDashboardMonth() {
+    this._dashboardMonth = null;
+    this._dashboardYear = null;
+    this.renderDashboard();
+  },
+
   renderDashboard() {
     const now = new Date();
     const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     const el = (id) => document.getElementById(id);
 
-    el('hero-month').textContent = monthNames[now.getMonth()] + ' ' + now.getFullYear();
+    // Usar mes seleccionado o mes actual
+    const displayMonth = this._dashboardMonth ?? now.getMonth();
+    const displayYear = this._dashboardYear ?? now.getFullYear();
+
+    el('hero-month').textContent = monthNames[displayMonth] + ' ' + displayYear;
 
     const thisMonth = this.ventas.filter(v => {
       const d = new Date(v.fecha);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      return d.getMonth() === displayMonth && d.getFullYear() === displayYear;
     });
 
-    const ganancia = thisMonth.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
+    // BUG #6 FIX: Usar precioOriginal (antes de descuento) para ganancia bruta
+    const ganancia = thisMonth.reduce((s, v) => s + ((v.precioOriginal || v.precioVenta) - v.precioCompra), 0);
     const totalVentas = thisMonth.length;
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 
@@ -39,7 +70,9 @@
     el('hero-ventas-count').textContent = totalVentas + ' ventas registradas';
     el('stat-ventas').textContent = totalVentas;
 
-    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonthNum = displayMonth === 0 ? 11 : displayMonth - 1;
+    const prevMonthYear = displayMonth === 0 ? displayYear - 1 : displayYear;
+    const prevMonth = new Date(prevMonthYear, prevMonthNum, 1);
     const prevVentas = this.ventas.filter(v => {
       const d = new Date(v.fecha);
       return d.getMonth() === prevMonth.getMonth() && d.getFullYear() === prevMonth.getFullYear();
@@ -154,7 +187,8 @@
         </div>`;
     }
 
-    const gan = v.precioVenta - v.precioCompra;
+    // BUG #6 FIX: Usar precioOriginal para ganancia bruta
+    const gan = (v.precioOriginal || v.precioVenta) - v.precioCompra;
     const esCuotas = v.formaPago === 'cuotas';
     return `<div class="${cls}"${styleAttr}>
         <div class="venta-top">
@@ -166,7 +200,7 @@
             <div class="venta-tags">
               <span class="tag">${this.esc(v.vendedor || '—')}</span>
               ${v.proveedor ? `<span class="tag">${this.esc(v.proveedor)}</span>` : ''}
-              ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${v.descuento}%</span>` : ''}
+              ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${Math.round(v.descuento || 0)}%</span>` : ''}
               ${esCuotas
                 ? `<span class="tag-cuotas">En cuotas</span>`
                 : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
@@ -216,13 +250,14 @@
     section.classList.remove('hidden');
     list.innerHTML = sorted.map(([name, total]) => {
       const waMsg = `Hola ${name}! Te recuerdo que tenés un saldo pendiente de *${this.fmt(total)}*. Avisame cuando puedas pagar!`;
+      // BUG #2 FIX: Usar data attribute en lugar de onclick inline
       return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:6px;">
         <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
           <span class="ms" style="color:var(--gold);font-size:18px;">person</span>
           <span style="font:500 13px 'DM Sans';color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.esc(name)}</span>
         </div>
         <span style="font:700 14px 'DM Sans';color:var(--red);margin:0 10px;white-space:nowrap;">${this.fmt(total)}</span>
-        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms" style="font-size:16px;">chat</span></button>
+        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${this.b64Encode(waMsg)}"><span class="ms" style="font-size:16px;">chat</span></button>
       </div>`;
     }).join('');
   },
@@ -414,8 +449,8 @@
         </div>
         <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
-          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar por WhatsApp</button>
-          <button class="btn-pay" onclick="App.abrirPagoCuota(${JSON.stringify(proxima.id)})"><span class="ms">add_card</span></button>
+          <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
+          <button class="btn-pay" data-cuota-id="${this.esc(JSON.stringify(proxima.id))}"><span class="ms">add_card</span></button>
         </div>
         <div class="wa-preview-label">VISTA PREVIA DEL MENSAJE</div>
         <div class="wa-bubble">
@@ -500,7 +535,7 @@
         </div>
         <div class="deudor-items">${items}</div>
         <div class="deudor-actions">
-          <button class="btn-whatsapp" onclick="App.cobrarWhatsApp('${this.esc(waMsg).replace(/\n/g, '\\n').replace(/'/g, "\\'")}')"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
+          <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}"><span class="ms">chat</span>Cobrar todo por WhatsApp</button>
         </div>
       </div>`;
     }).join('');
@@ -516,7 +551,8 @@
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
 
-    const ganancia = thisMonth.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
+    // BUG #6 FIX: Usar precioOriginal (antes de descuento) para ganancia bruta
+    const ganancia = thisMonth.reduce((s, v) => s + ((v.precioOriginal || v.precioVenta) - v.precioCompra), 0);
     const gastos = thisMonth.reduce((s, v) => s + v.precioCompra, 0);
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 

@@ -1,6 +1,47 @@
 
 
-  // ====== ONBOARDING ======
+  // ====== CONSENT & ONBOARDING ======
+
+  checkConsent() {
+    if (!localStorage.getItem('pt_consent_accepted')) {
+      const el = document.getElementById('consent-modal');
+      el.style.display = 'flex';
+    } else {
+      this.checkOnboarding();
+    }
+  },
+
+  acceptConsent() {
+    const terms = document.getElementById('consent-terms').checked;
+    const privacy = document.getElementById('consent-privacy').checked;
+    const cookies = document.getElementById('consent-cookies').checked;
+    const marketing = document.getElementById('consent-marketing').checked;
+
+    if (!terms || !privacy || !cookies) {
+      document.getElementById('consent-error').textContent = 'Debes aceptar todos los términos para continuar';
+      return;
+    }
+
+    localStorage.setItem('pt_consent_accepted', '1');
+    localStorage.setItem('pt_consent_date', new Date().toISOString());
+    localStorage.setItem('pt_consent_marketing', marketing ? '1' : '0');
+    document.getElementById('consent-modal').style.display = 'none';
+    this.checkOnboarding();
+  },
+
+  rejectConsent() {
+    if (confirm('Si rechazas, no podrás usar Parfum Track. ¿Estás seguro?')) {
+      document.getElementById('consent-modal').style.display = 'none';
+      document.getElementById('onboarding').classList.remove('hidden');
+      document.getElementById('onboarding').innerHTML = `
+        <div style="text-align:center;color:var(--gold2);font-size:16px;">
+          <div class="logo-drop" style="width:64px;height:64px;margin-bottom:20px;"></div>
+          <p style="margin-bottom:20px;">No pudimos continuar sin tu consentimiento.</p>
+          <button class="btn-primary" onclick="window.location.href='/'">Volver al inicio</button>
+        </div>
+      `;
+    }
+  },
 
   checkOnboarding() {
     if (!localStorage.getItem('pt_onboarded')) {
@@ -25,60 +66,3 @@
     steps.forEach((s, i) => s.style.display = i === 0 ? 'flex' : 'none');
   },
 
-  // ====== CONSENTIMIENTO (TÉRMINOS, PRIVACIDAD, COOKIES) ======
-
-  checkConsent() {
-    if (!localStorage.getItem('pt_consent_accepted')) {
-      const modal = document.getElementById('modal-consent');
-      if (modal) {
-        modal.classList.remove('hidden');
-        this._setupConsentListeners();
-      }
-    }
-  },
-
-  _setupConsentListeners() {
-    const termsChk = document.getElementById('consent-terms');
-    const privacyChk = document.getElementById('consent-privacy');
-    const cookiesChk = document.getElementById('consent-cookies');
-    const acceptBtn = document.getElementById('consent-btn-accept');
-
-    const updateButtonState = () => {
-      const allChecked = termsChk?.checked && privacyChk?.checked && cookiesChk?.checked;
-      if (acceptBtn) {
-        acceptBtn.disabled = !allChecked;
-        acceptBtn.style.opacity = allChecked ? '1' : '0.5';
-        acceptBtn.style.cursor = allChecked ? 'pointer' : 'not-allowed';
-      }
-    };
-
-    [termsChk, privacyChk, cookiesChk].forEach(el => {
-      if (el) el.addEventListener('change', updateButtonState);
-    });
-  },
-
-  acceptConsent() {
-    const termsChk = document.getElementById('consent-terms');
-    const privacyChk = document.getElementById('consent-privacy');
-    const cookiesChk = document.getElementById('consent-cookies');
-    const emailChk = document.getElementById('consent-email');
-
-    if (termsChk?.checked && privacyChk?.checked && cookiesChk?.checked) {
-      const consentData = {
-        accepted: true,
-        timestamp: Date.now(),
-        terms: true,
-        privacy: true,
-        cookies: true,
-        email: emailChk?.checked || false
-      };
-      localStorage.setItem('pt_consent_accepted', JSON.stringify(consentData));
-      const modal = document.getElementById('modal-consent');
-      if (modal) modal.classList.add('hidden');
-      this.toast('Términos aceptados', 'check_circle');
-    }
-  },
-
-  rejectConsent() {
-    this.toast('Debes aceptar los términos para usar la app', 'warning');
-  },
