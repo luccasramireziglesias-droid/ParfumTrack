@@ -5,7 +5,7 @@ import path from 'path';
 describe('Demo modal fullscreen functionality', () => {
   it('should have expand button with proper event handlers', () => {
     // Read the built HTML
-    const htmlPath = path.resolve('/home/user/ParfumTrack/index.html');
+    const htmlPath = path.join(import.meta.dirname, '..', 'index.html');
     const html = fs.readFileSync(htmlPath, 'utf-8');
 
     // Verify HTML structure
@@ -19,7 +19,7 @@ describe('Demo modal fullscreen functionality', () => {
   });
 
   it('should have expandDemoVideo method for modal expansion', () => {
-    const htmlPath = path.resolve('/home/user/ParfumTrack/index.html');
+    const htmlPath = path.join(import.meta.dirname, '..', 'index.html');
     const html = fs.readFileSync(htmlPath, 'utf-8');
 
     // Extract the expandDemoVideo method
@@ -39,7 +39,7 @@ describe('Demo modal fullscreen functionality', () => {
   });
 
   it('should have demo modal with correct event propagation', () => {
-    const htmlPath = path.resolve('/home/user/ParfumTrack/index.html');
+    const htmlPath = path.join(import.meta.dirname, '..', 'index.html');
     const html = fs.readFileSync(htmlPath, 'utf-8');
 
     // Find modal-demo structure
@@ -63,7 +63,7 @@ describe('Demo modal fullscreen functionality', () => {
   });
 
   it('should have required button onclick handlers verified', () => {
-    const htmlPath = path.resolve('/home/user/ParfumTrack/index.html');
+    const htmlPath = path.join(import.meta.dirname, '..', 'index.html');
     const html = fs.readFileSync(htmlPath, 'utf-8');
 
     // Count the fullscreen buttons (should be at least 1 in app)
@@ -80,7 +80,7 @@ describe('Demo modal fullscreen functionality', () => {
   });
 
   it('should verify expand method is callable and defined', () => {
-    const htmlPath = path.resolve('/home/user/ParfumTrack/index.html');
+    const htmlPath = path.join(import.meta.dirname, '..', 'index.html');
     const html = fs.readFileSync(htmlPath, 'utf-8');
 
     // Extract script content
@@ -104,7 +104,7 @@ describe('Demo modal fullscreen functionality', () => {
   });
 
   it('should have closeDemoModal method that resets modal state', () => {
-    const htmlPath = path.resolve('/home/user/ParfumTrack/index.html');
+    const htmlPath = path.join(import.meta.dirname, '..', 'index.html');
     const html = fs.readFileSync(htmlPath, 'utf-8');
 
     // Extract script content
