@@ -48,6 +48,14 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 10px;
+}
+
+/* El bloque nombre+cliente toma todo el ancho disponible menos el badge;
+   min-width:0 permite que el ellipsis actúe dentro del flex */
+.cuota-top > div:first-child {
+  flex: 1;
+  min-width: 0;
 }
 
 .cuota-perfume {
@@ -58,7 +66,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 55%;
 }
 
 .cuota-cliente {
@@ -76,6 +83,8 @@
   background: rgba(224,176,96,0.12);
   padding: 5px 10px;
   border-radius: var(--radius-pill);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .progress-header {
