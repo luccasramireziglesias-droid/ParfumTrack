@@ -18,6 +18,7 @@
     await DB.seedDemo();
     await this._fixCorruptDates();
     await this._fixStringCuotaIds();
+    await this._fixCuotasSaldadas();
     await this.loadData();
     this.loadMoneda();
     this.loadNombreNegocio();
@@ -158,6 +159,44 @@
       }
     }
     localStorage.setItem('pt_cuota_ids_fixed', '1');
+  },
+
+  // Sana cuotas que quedaron "atrapadas" como pendientes aunque la deuda ya
+  // está cubierta (data vieja, imports duplicados). Corre en cada init: es
+  // idempotente y solo escribe cuando encuentra algo que corregir.
+  async _fixCuotasSaldadas() {
+    const cuotas = await DB.getAll('cuotas');
+
+    // 1) Cuota individualmente cubierta pero sin marcar como pagada
+    for (const c of cuotas) {
+      if (!c.pagado && (c.monto || 0) > 0 && (c.montoPagado || 0) >= c.monto - 0.01) {
+        c.pagado = true;
+        c.montoPagado = c.monto;
+        await DB.put('cuotas', c);
+      }
+    }
+
+    // 2) Venta cuyo total ya está cubierto entre todas sus cuotas (p.ej.
+    //    cuotas duplicadas por un import): marcar las pendientes como pagadas
+    const grupos = {};
+    for (const c of cuotas) {
+      if (!grupos[c.ventaId]) grupos[c.ventaId] = [];
+      grupos[c.ventaId].push(c);
+    }
+    for (const grupo of Object.values(grupos)) {
+      const montoTotal = grupo[0].montoTotal || 0;
+      if (montoTotal <= 0) continue;
+      const totalPagado = grupo.reduce((s, c) => s + (c.pagado ? (c.monto || 0) : (c.montoPagado || 0)), 0);
+      if (totalPagado >= montoTotal - 0.01) {
+        for (const c of grupo) {
+          if (!c.pagado) {
+            c.pagado = true;
+            c.montoPagado = c.monto;
+            await DB.put('cuotas', c);
+          }
+        }
+      }
+    }
   },
 
   async loadData() {

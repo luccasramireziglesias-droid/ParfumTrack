@@ -68,6 +68,35 @@
     return div.innerHTML;
   },
 
+  // Interpreta montos tipeados con separadores regionales: "1.400" (miles AR/UY),
+  // "1400,50" (decimal con coma), "1.400,50", "$ 1400". parseFloat solo NO alcanza:
+  // parseFloat("1.400") === 1.4
+  parseMonto(str) {
+    if (typeof str === 'number') return str;
+    let s = String(str || '').trim().replace(/[^\d.,-]/g, '');
+    if (!s) return 0;
+    const lastDot = s.lastIndexOf('.');
+    const lastComma = s.lastIndexOf(',');
+    if (lastDot !== -1 && lastComma !== -1) {
+      // Aparecen ambos: el último es el decimal, el otro es miles
+      const dec = lastDot > lastComma ? '.' : ',';
+      const thou = dec === '.' ? ',' : '.';
+      s = s.split(thou).join('');
+      if (dec === ',') s = s.replace(',', '.');
+    } else if (lastComma !== -1) {
+      const decimales = s.length - lastComma - 1;
+      // "1,400" o varias comas → miles; "1400,5"/"1400,50" → decimal
+      if (decimales === 3 || s.split(',').length > 2) s = s.split(',').join('');
+      else s = s.replace(',', '.');
+    } else if (lastDot !== -1) {
+      const decimales = s.length - lastDot - 1;
+      // "1.400" o varios puntos → miles; "1400.5"/"1400.50" → decimal
+      if (decimales === 3 || s.split('.').length > 2) s = s.split('.').join('');
+    }
+    const n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+  },
+
   // Base64 UTF-8-safe: btoa/atob solos lanzan InvalidCharacterError con emojis (fuera de Latin1)
   b64Encode(s) {
     return btoa(String.fromCharCode(...new TextEncoder().encode(s)));
