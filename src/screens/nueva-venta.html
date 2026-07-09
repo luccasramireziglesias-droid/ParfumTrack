@@ -84,6 +84,11 @@
         <div class="form-row">
           <input type="number" class="form-input" id="venta-num-cuotas" value="2" min="2" max="12" placeholder="2">
         </div>
+        <label class="form-label" style="margin-top:12px;">PRIMERA CUOTA</label>
+        <div class="segmented" id="seg-primera-cuota">
+          <div class="seg-option active" onclick="App.setPrimeraCuota(true)">Cobrada ahora</div>
+          <div class="seg-option" onclick="App.setPrimeraCuota(false)">Sin cobrar</div>
+        </div>
       </div>
 
       <div class="form-group">
