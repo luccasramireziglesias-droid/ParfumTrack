@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Pago recibido — Parfum Track</title>
   <link rel="icon" href="/icon-192.png" type="image/png">
+  <script defer data-domain="parfumtrack.luccasramireziglesias.workers.dev" src="https://plausible.io/js/script.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -189,10 +190,12 @@
     function showSuccess() {
       document.getElementById('checking-section').style.display = 'none';
       document.getElementById('success-section').style.display  = 'block';
+      if (window.plausible) plausible('mp_payment_success');
     }
     function showTimeout() {
       document.getElementById('checking-section').style.display = 'none';
       document.getElementById('timeout-section').style.display  = 'block';
+      if (window.plausible) plausible('mp_payment_timeout');
     }
     function updateProgress() {
       const elapsed = Date.now() - start;
