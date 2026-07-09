@@ -2438,6 +2438,11 @@ input[type="date"].form-input {
         <div class="form-row">
           <input type="number" class="form-input" id="venta-num-cuotas" value="2" min="2" max="12" placeholder="2">
         </div>
+        <label class="form-label" style="margin-top:12px;">PRIMERA CUOTA</label>
+        <div class="segmented" id="seg-primera-cuota">
+          <div class="seg-option active" onclick="App.setPrimeraCuota(true)">Cobrada ahora</div>
+          <div class="seg-option" onclick="App.setPrimeraCuota(false)">Sin cobrar</div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -3387,6 +3392,8 @@ const DB = {
       try {
         const montoCuota = Math.round(v.precioVenta / v.numCuotas);
         const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
+        // primeraPagada !== false: por defecto la primera cuota se cobra al vender
+        const primeraPagada = v.primeraPagada !== false;
         for (let i = 0; i < v.numCuotas; i++) {
           // BUG #10 FIX: Usar fecha segura para suma de meses (evita problemas fin de mes)
           const vence = new Date();
@@ -3396,6 +3403,7 @@ const DB = {
           vence.setDate(Math.min(new Date(targetYear, targetMonth % 12 + 1, 0).getDate(), new Date().getDate()));
           const isLast = i === v.numCuotas - 1;
           const monto = isLast ? lastCuota : montoCuota;
+          const pagada = i === 0 && primeraPagada;
           await this.add('cuotas', {
             ventaId: id,
             perfume: v.perfume,
@@ -3404,8 +3412,8 @@ const DB = {
             total: v.numCuotas,
             monto,
             montoTotal: v.precioVenta,
-            pagado: i === 0,
-            montoPagado: i === 0 ? monto : 0,
+            pagado: pagada,
+            montoPagado: pagada ? monto : 0,
             vence: vence.getTime()
           });
         }
@@ -4992,6 +5000,7 @@ const App = {
     document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
     document.getElementById('venta-nota').value = '';
     this.setFormaPago('contado');
+    this.setPrimeraCuota(true);
     this.calcLiveProfit();
     this.setupAutocomplete();
     this._checkVendedorRestriction();
@@ -5074,6 +5083,17 @@ const App = {
       o.classList.toggle('active', o.textContent.trim().toLowerCase() === tipo);
     });
     document.getElementById('cuotas-config').classList.toggle('hidden', tipo !== 'cuotas');
+  },
+
+  _primeraCuotaPagada: true,
+
+  setPrimeraCuota(pagada) {
+    this._primeraCuotaPagada = pagada;
+    const opts = document.querySelectorAll('#seg-primera-cuota .seg-option');
+    if (opts.length === 2) {
+      opts[0].classList.toggle('active', pagada);
+      opts[1].classList.toggle('active', !pagada);
+    }
   },
 
   openPerfumeSelector() {
@@ -5163,7 +5183,7 @@ const App = {
     // Plan limit check: Free = max 10 pending cuotas
     if (!this.isPro() && this.formaPago === 'cuotas' && numCuotas > 1) {
       const pendingCuotas = this.cuotasData.filter(c => !c.pagado).length;
-      const newCuotasCount = numCuotas - 1; // Primera cuota se marca pagada
+      const newCuotasCount = numCuotas - (this._primeraCuotaPagada ? 1 : 0);
       if (pendingCuotas + newCuotasCount > 10) {
         this.appConfirm(
           'Límite de cuotas alcanzado',
@@ -5191,6 +5211,7 @@ const App = {
         fecha,
         formaPago: this.formaPago,
         numCuotas: this.formaPago === 'cuotas' ? numCuotas : 1,
+        primeraPagada: this._primeraCuotaPagada,
         // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío
         perfumeId: perfumeId ? parseInt(perfumeId, 10) : null
       });

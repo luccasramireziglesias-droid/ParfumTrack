@@ -109,6 +109,8 @@
       try {
         const montoCuota = Math.round(v.precioVenta / v.numCuotas);
         const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
+        // primeraPagada !== false: por defecto la primera cuota se cobra al vender
+        const primeraPagada = v.primeraPagada !== false;
         for (let i = 0; i < v.numCuotas; i++) {
           // BUG #10 FIX: Usar fecha segura para suma de meses (evita problemas fin de mes)
           const vence = new Date();
@@ -118,6 +120,7 @@
           vence.setDate(Math.min(new Date(targetYear, targetMonth % 12 + 1, 0).getDate(), new Date().getDate()));
           const isLast = i === v.numCuotas - 1;
           const monto = isLast ? lastCuota : montoCuota;
+          const pagada = i === 0 && primeraPagada;
           await this.add('cuotas', {
             ventaId: id,
             perfume: v.perfume,
@@ -126,8 +129,8 @@
             total: v.numCuotas,
             monto,
             montoTotal: v.precioVenta,
-            pagado: i === 0,
-            montoPagado: i === 0 ? monto : 0,
+            pagado: pagada,
+            montoPagado: pagada ? monto : 0,
             vence: vence.getTime()
           });
         }

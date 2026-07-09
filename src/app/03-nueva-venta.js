@@ -36,6 +36,7 @@
     document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
     document.getElementById('venta-nota').value = '';
     this.setFormaPago('contado');
+    this.setPrimeraCuota(true);
     this.calcLiveProfit();
     this.setupAutocomplete();
     this._checkVendedorRestriction();
@@ -118,6 +119,17 @@
       o.classList.toggle('active', o.textContent.trim().toLowerCase() === tipo);
     });
     document.getElementById('cuotas-config').classList.toggle('hidden', tipo !== 'cuotas');
+  },
+
+  _primeraCuotaPagada: true,
+
+  setPrimeraCuota(pagada) {
+    this._primeraCuotaPagada = pagada;
+    const opts = document.querySelectorAll('#seg-primera-cuota .seg-option');
+    if (opts.length === 2) {
+      opts[0].classList.toggle('active', pagada);
+      opts[1].classList.toggle('active', !pagada);
+    }
   },
 
   openPerfumeSelector() {
@@ -207,7 +219,7 @@
     // Plan limit check: Free = max 10 pending cuotas
     if (!this.isPro() && this.formaPago === 'cuotas' && numCuotas > 1) {
       const pendingCuotas = this.cuotasData.filter(c => !c.pagado).length;
-      const newCuotasCount = numCuotas - 1; // Primera cuota se marca pagada
+      const newCuotasCount = numCuotas - (this._primeraCuotaPagada ? 1 : 0);
       if (pendingCuotas + newCuotasCount > 10) {
         this.appConfirm(
           'Límite de cuotas alcanzado',
@@ -235,6 +247,7 @@
         fecha,
         formaPago: this.formaPago,
         numCuotas: this.formaPago === 'cuotas' ? numCuotas : 1,
+        primeraPagada: this._primeraCuotaPagada,
         // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío
         perfumeId: perfumeId ? parseInt(perfumeId, 10) : null
       });
