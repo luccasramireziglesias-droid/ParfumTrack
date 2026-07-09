@@ -29,7 +29,7 @@
     const id = this._pagoCuotaId;
     if (!id) return;
     const input = document.getElementById('pago-cuota-input');
-    const monto = parseFloat(input.value);
+    const monto = this.parseMonto(input.value);
     if (!monto || monto <= 0) {
       this.toast('Ingresá un monto válido', 'error');
       return;
