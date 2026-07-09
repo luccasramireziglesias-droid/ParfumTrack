@@ -6089,13 +6089,45 @@ const App = {
       exportDate: new Date().toISOString()
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const filename = this._backupFilename();
+
+    // En mobile, share sheet nativo: la descarga silenciosa de un blob no da
+    // feedback de destino (y en iOS standalone directamente puede no ocurrir)
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile && navigator.canShare) {
+      const file = new File([blob], filename, { type: 'application/json' });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: filename });
+          this.toast('Backup exportado', 'download');
+          return;
+        } catch (e) {
+          if (e.name === 'AbortError') return; // el usuario cerró el share sheet
+          // si el share falla por otra razón, caemos a la descarga clásica
+        }
+      }
+    }
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'parfum-track-backup.json';
+    a.download = filename;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
-    this.toast('Datos exportados', 'download');
+    a.remove();
+    // revocar recién cuando la descarga ya arrancó (revocar en sincrónico la corta en algunos navegadores)
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    this.toast(`Backup descargado: ${filename}`, 'download');
+  },
+
+  _backupFilename() {
+    const negocio = (localStorage.getItem('pt_negocio') || '').trim();
+    const base = (negocio || 'Parfum Track')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9 _-]/g, '')
+      .trim().replace(/\s+/g, '-').toLowerCase() || 'parfum-track';
+    const fecha = new Date().toISOString().slice(0, 10);
+    return `${base}-backup-${fecha}.json`;
   },
 
   importData() {
