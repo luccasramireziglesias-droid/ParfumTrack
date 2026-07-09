@@ -200,6 +200,9 @@
       if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
       if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
     }
+    // Los backups pueden traer ids string o cuotas ya cubiertas sin marcar
+    await this._fixStringCuotaIds();
+    await this._fixCuotasSaldadas();
     await this.loadData();
     this.loadMoneda();
     this.loadNombreNegocio();

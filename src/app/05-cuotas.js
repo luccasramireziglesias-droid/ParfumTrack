@@ -5,9 +5,13 @@
   _pagoCuotaId: null,
 
   abrirPagoCuota(id) {
-    const cuota = this.cuotasData.find(c => c.id === id);
-    if (!cuota) return;
-    this._pagoCuotaId = id;
+    // Tolerante a ids string vs numérico (backups importados viejos)
+    const cuota = this.cuotasData.find(c => c.id === id || String(c.id) === String(id));
+    if (!cuota) {
+      this.toast('No se encontró la cuota', 'error');
+      return;
+    }
+    this._pagoCuotaId = cuota.id; // el id real almacenado, no el que vino del atributo
     const restante = cuota.monto - (cuota.montoPagado || 0);
     document.getElementById('pago-cuota-perfume').textContent = cuota.perfume;
     document.getElementById('pago-cuota-cliente').textContent = cuota.cliente;

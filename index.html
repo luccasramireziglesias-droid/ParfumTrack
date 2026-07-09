@@ -3985,8 +3985,11 @@ const App = {
       if (payBtn) {
         e.preventDefault();
         try {
-          // BUG #B-01 FIX: Validar JSON parsing de cuota ID
-          const cuotaId = JSON.parse(payBtn.dataset.cuotaId);
+          // El id viaja como JSON percent-encoded (soporta ids numéricos y
+          // string sin romper el atributo HTML); fallback al valor crudo
+          const raw = decodeURIComponent(payBtn.dataset.cuotaId);
+          let cuotaId;
+          try { cuotaId = JSON.parse(raw); } catch { cuotaId = raw; }
           this.abrirPagoCuota(cuotaId);
         } catch (err) {
           console.error('Error parseando cuota ID:', err);
@@ -4075,8 +4078,9 @@ const App = {
     localStorage.setItem('pt_dates_fixed_v3', '1');
   },
 
+  // Sin flag one-time: los imports pueden reintroducir ids string en
+  // cualquier momento. Idempotente — solo escribe si encuentra ids string.
   async _fixStringCuotaIds() {
-    if (localStorage.getItem('pt_cuota_ids_fixed')) return;
     const cuotas = await DB.getAll('cuotas');
     for (const c of cuotas) {
       if (typeof c.id === 'string') {
@@ -4086,7 +4090,6 @@ const App = {
         await DB.add('cuotas', copy);
       }
     }
-    localStorage.setItem('pt_cuota_ids_fixed', '1');
   },
 
   // Sana cuotas que quedaron "atrapadas" como pendientes aunque la deuda ya
@@ -4727,7 +4730,7 @@ const App = {
         <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
           <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
-          <button class="btn-pay" data-cuota-id="${this.esc(JSON.stringify(proxima.id))}"><span class="ms">add_card</span></button>
+          <button class="btn-pay" data-cuota-id="${encodeURIComponent(JSON.stringify(proxima.id))}"><span class="ms">add_card</span></button>
         </div>
         <div class="wa-preview-label">VISTA PREVIA DEL MENSAJE</div>
         <div class="wa-bubble">
@@ -5362,9 +5365,13 @@ const App = {
   _pagoCuotaId: null,
 
   abrirPagoCuota(id) {
-    const cuota = this.cuotasData.find(c => c.id === id);
-    if (!cuota) return;
-    this._pagoCuotaId = id;
+    // Tolerante a ids string vs numérico (backups importados viejos)
+    const cuota = this.cuotasData.find(c => c.id === id || String(c.id) === String(id));
+    if (!cuota) {
+      this.toast('No se encontró la cuota', 'error');
+      return;
+    }
+    this._pagoCuotaId = cuota.id; // el id real almacenado, no el que vino del atributo
     const restante = cuota.monto - (cuota.montoPagado || 0);
     document.getElementById('pago-cuota-perfume').textContent = cuota.perfume;
     document.getElementById('pago-cuota-cliente').textContent = cuota.cliente;
@@ -6307,6 +6314,9 @@ const App = {
       if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
       if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
     }
+    // Los backups pueden traer ids string o cuotas ya cubiertas sin marcar
+    await this._fixStringCuotaIds();
+    await this._fixCuotasSaldadas();
     await this.loadData();
     this.loadMoneda();
     this.loadNombreNegocio();

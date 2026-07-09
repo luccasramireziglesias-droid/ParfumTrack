@@ -57,8 +57,11 @@
       if (payBtn) {
         e.preventDefault();
         try {
-          // BUG #B-01 FIX: Validar JSON parsing de cuota ID
-          const cuotaId = JSON.parse(payBtn.dataset.cuotaId);
+          // El id viaja como JSON percent-encoded (soporta ids numéricos y
+          // string sin romper el atributo HTML); fallback al valor crudo
+          const raw = decodeURIComponent(payBtn.dataset.cuotaId);
+          let cuotaId;
+          try { cuotaId = JSON.parse(raw); } catch { cuotaId = raw; }
           this.abrirPagoCuota(cuotaId);
         } catch (err) {
           console.error('Error parseando cuota ID:', err);
@@ -147,8 +150,9 @@
     localStorage.setItem('pt_dates_fixed_v3', '1');
   },
 
+  // Sin flag one-time: los imports pueden reintroducir ids string en
+  // cualquier momento. Idempotente — solo escribe si encuentra ids string.
   async _fixStringCuotaIds() {
-    if (localStorage.getItem('pt_cuota_ids_fixed')) return;
     const cuotas = await DB.getAll('cuotas');
     for (const c of cuotas) {
       if (typeof c.id === 'string') {
@@ -158,7 +162,6 @@
         await DB.add('cuotas', copy);
       }
     }
-    localStorage.setItem('pt_cuota_ids_fixed', '1');
   },
 
   // Sana cuotas que quedaron "atrapadas" como pendientes aunque la deuda ya
