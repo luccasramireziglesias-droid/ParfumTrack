@@ -82,12 +82,16 @@
       <div class="form-group hidden" id="cuotas-config">
         <label class="form-label">NÚMERO DE CUOTAS</label>
         <div class="form-row">
-          <input type="number" class="form-input" id="venta-num-cuotas" value="2" min="2" max="12" placeholder="2">
+          <input type="number" class="form-input" id="venta-num-cuotas" value="2" min="2" max="12" placeholder="2" oninput="App.calcLiveProfit()">
         </div>
         <label class="form-label" style="margin-top:12px;">PRIMERA CUOTA</label>
         <div class="segmented" id="seg-primera-cuota">
           <div class="seg-option active" onclick="App.setPrimeraCuota(true)">Cobrada ahora</div>
           <div class="seg-option" onclick="App.setPrimeraCuota(false)">Sin cobrar</div>
+        </div>
+        <div id="primer-pago-wrap">
+          <label class="form-label" style="margin-top:12px;">MONTO COBRADO AHORA <span class="muted-label">(vacío = 1ª cuota completa)</span></label>
+          <input type="text" class="form-input" id="venta-primer-pago" placeholder="" inputmode="decimal" autocomplete="off">
         </div>
       </div>
 

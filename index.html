@@ -2436,12 +2436,16 @@ input[type="date"].form-input {
       <div class="form-group hidden" id="cuotas-config">
         <label class="form-label">NÚMERO DE CUOTAS</label>
         <div class="form-row">
-          <input type="number" class="form-input" id="venta-num-cuotas" value="2" min="2" max="12" placeholder="2">
+          <input type="number" class="form-input" id="venta-num-cuotas" value="2" min="2" max="12" placeholder="2" oninput="App.calcLiveProfit()">
         </div>
         <label class="form-label" style="margin-top:12px;">PRIMERA CUOTA</label>
         <div class="segmented" id="seg-primera-cuota">
           <div class="seg-option active" onclick="App.setPrimeraCuota(true)">Cobrada ahora</div>
           <div class="seg-option" onclick="App.setPrimeraCuota(false)">Sin cobrar</div>
+        </div>
+        <div id="primer-pago-wrap">
+          <label class="form-label" style="margin-top:12px;">MONTO COBRADO AHORA <span class="muted-label">(vacío = 1ª cuota completa)</span></label>
+          <input type="text" class="form-input" id="venta-primer-pago" placeholder="" inputmode="decimal" autocomplete="off">
         </div>
       </div>
 
@@ -3392,8 +3396,16 @@ const DB = {
       try {
         const montoCuota = Math.round(v.precioVenta / v.numCuotas);
         const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
-        // primeraPagada !== false: por defecto la primera cuota se cobra al vender
+        // primeraPagada !== false: por defecto la primera cuota se cobra al vender.
+        // primerPago (opcional): monto arbitrario cobrado al vender — se aplica
+        // sobre las cuotas en orden (cubre la 1ª, el excedente pasa a la 2ª, etc.)
         const primeraPagada = v.primeraPagada !== false;
+        let inicialRestante = 0;
+        if (primeraPagada) {
+          inicialRestante = (v.primerPago === null || v.primerPago === undefined)
+            ? montoCuota
+            : Math.max(0, Math.min(v.primerPago, v.precioVenta));
+        }
         for (let i = 0; i < v.numCuotas; i++) {
           // BUG #10 FIX: Usar fecha segura para suma de meses (evita problemas fin de mes)
           const vence = new Date();
@@ -3403,7 +3415,8 @@ const DB = {
           vence.setDate(Math.min(new Date(targetYear, targetMonth % 12 + 1, 0).getDate(), new Date().getDate()));
           const isLast = i === v.numCuotas - 1;
           const monto = isLast ? lastCuota : montoCuota;
-          const pagada = i === 0 && primeraPagada;
+          const pago = Math.min(monto, inicialRestante);
+          inicialRestante -= pago;
           await this.add('cuotas', {
             ventaId: id,
             perfume: v.perfume,
@@ -3412,8 +3425,9 @@ const DB = {
             total: v.numCuotas,
             monto,
             montoTotal: v.precioVenta,
-            pagado: pagada,
-            montoPagado: pagada ? monto : 0,
+            pagado: pago >= monto,
+            montoPagado: pago,
+            pagos: pago > 0 ? [{ monto: pago, fecha: Date.now() }] : [],
             vence: vence.getTime()
           });
         }
@@ -5001,6 +5015,7 @@ const App = {
     document.getElementById('venta-nota').value = '';
     this.setFormaPago('contado');
     this.setPrimeraCuota(true);
+    document.getElementById('venta-primer-pago').value = '';
     this.calcLiveProfit();
     this.setupAutocomplete();
     this._checkVendedorRestriction();
@@ -5026,6 +5041,13 @@ const App = {
     document.getElementById('live-venta').textContent = this.fmt(pvFinal);
     document.getElementById('live-compra').textContent = this.fmt(pc);
     document.getElementById('live-margen').textContent = margen + '%';
+
+    // Sugerir el valor de la 1ª cuota como placeholder del primer pago
+    const primerPagoInput = document.getElementById('venta-primer-pago');
+    if (primerPagoInput) {
+      const n = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
+      primerPagoInput.placeholder = pvFinal > 0 ? this.fmt(Math.round(pvFinal / n)) : '';
+    }
   },
 
   setupAutocomplete() {
@@ -5094,6 +5116,10 @@ const App = {
       opts[0].classList.toggle('active', pagada);
       opts[1].classList.toggle('active', !pagada);
     }
+    const wrap = document.getElementById('primer-pago-wrap');
+    if (wrap) wrap.classList.toggle('hidden', !pagada);
+    const input = document.getElementById('venta-primer-pago');
+    if (input && !pagada) input.value = '';
   },
 
   openPerfumeSelector() {
@@ -5180,10 +5206,30 @@ const App = {
       return;
     }
 
+    // Monto cobrado ahora (solo cuotas + "Cobrada ahora"): vacío = 1ª cuota completa
+    let primerPago = null;
+    if (this.formaPago === 'cuotas' && this._primeraCuotaPagada) {
+      const raw = document.getElementById('venta-primer-pago').value.trim();
+      if (raw !== '') {
+        primerPago = this.parseMonto(raw);
+        if (primerPago <= 0) {
+          this.toast('El monto cobrado debe ser mayor a 0 (o elegí "Sin cobrar")', 'warning');
+          return;
+        }
+        if (primerPago > pvFinal) {
+          this.toast('El monto cobrado no puede superar el total de la venta', 'warning');
+          return;
+        }
+      }
+    }
+
     // Plan limit check: Free = max 10 pending cuotas
     if (!this.isPro() && this.formaPago === 'cuotas' && numCuotas > 1) {
       const pendingCuotas = this.cuotasData.filter(c => !c.pagado).length;
-      const newCuotasCount = numCuotas - (this._primeraCuotaPagada ? 1 : 0);
+      const montoCuotaEst = Math.round(pvFinal / numCuotas) || 1;
+      const cubiertas = !this._primeraCuotaPagada ? 0
+        : (primerPago === null ? 1 : Math.min(numCuotas, Math.floor((primerPago + 0.01) / montoCuotaEst)));
+      const newCuotasCount = numCuotas - cubiertas;
       if (pendingCuotas + newCuotasCount > 10) {
         this.appConfirm(
           'Límite de cuotas alcanzado',
@@ -5212,6 +5258,7 @@ const App = {
         formaPago: this.formaPago,
         numCuotas: this.formaPago === 'cuotas' ? numCuotas : 1,
         primeraPagada: this._primeraCuotaPagada,
+        primerPago,
         // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío
         perfumeId: perfumeId ? parseInt(perfumeId, 10) : null
       });

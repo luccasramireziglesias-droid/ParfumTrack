@@ -37,6 +37,7 @@
     document.getElementById('venta-nota').value = '';
     this.setFormaPago('contado');
     this.setPrimeraCuota(true);
+    document.getElementById('venta-primer-pago').value = '';
     this.calcLiveProfit();
     this.setupAutocomplete();
     this._checkVendedorRestriction();
@@ -62,6 +63,13 @@
     document.getElementById('live-venta').textContent = this.fmt(pvFinal);
     document.getElementById('live-compra').textContent = this.fmt(pc);
     document.getElementById('live-margen').textContent = margen + '%';
+
+    // Sugerir el valor de la 1ª cuota como placeholder del primer pago
+    const primerPagoInput = document.getElementById('venta-primer-pago');
+    if (primerPagoInput) {
+      const n = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
+      primerPagoInput.placeholder = pvFinal > 0 ? this.fmt(Math.round(pvFinal / n)) : '';
+    }
   },
 
   setupAutocomplete() {
@@ -130,6 +138,10 @@
       opts[0].classList.toggle('active', pagada);
       opts[1].classList.toggle('active', !pagada);
     }
+    const wrap = document.getElementById('primer-pago-wrap');
+    if (wrap) wrap.classList.toggle('hidden', !pagada);
+    const input = document.getElementById('venta-primer-pago');
+    if (input && !pagada) input.value = '';
   },
 
   openPerfumeSelector() {
@@ -216,10 +228,30 @@
       return;
     }
 
+    // Monto cobrado ahora (solo cuotas + "Cobrada ahora"): vacío = 1ª cuota completa
+    let primerPago = null;
+    if (this.formaPago === 'cuotas' && this._primeraCuotaPagada) {
+      const raw = document.getElementById('venta-primer-pago').value.trim();
+      if (raw !== '') {
+        primerPago = this.parseMonto(raw);
+        if (primerPago <= 0) {
+          this.toast('El monto cobrado debe ser mayor a 0 (o elegí "Sin cobrar")', 'warning');
+          return;
+        }
+        if (primerPago > pvFinal) {
+          this.toast('El monto cobrado no puede superar el total de la venta', 'warning');
+          return;
+        }
+      }
+    }
+
     // Plan limit check: Free = max 10 pending cuotas
     if (!this.isPro() && this.formaPago === 'cuotas' && numCuotas > 1) {
       const pendingCuotas = this.cuotasData.filter(c => !c.pagado).length;
-      const newCuotasCount = numCuotas - (this._primeraCuotaPagada ? 1 : 0);
+      const montoCuotaEst = Math.round(pvFinal / numCuotas) || 1;
+      const cubiertas = !this._primeraCuotaPagada ? 0
+        : (primerPago === null ? 1 : Math.min(numCuotas, Math.floor((primerPago + 0.01) / montoCuotaEst)));
+      const newCuotasCount = numCuotas - cubiertas;
       if (pendingCuotas + newCuotasCount > 10) {
         this.appConfirm(
           'Límite de cuotas alcanzado',
@@ -248,6 +280,7 @@
         formaPago: this.formaPago,
         numCuotas: this.formaPago === 'cuotas' ? numCuotas : 1,
         primeraPagada: this._primeraCuotaPagada,
+        primerPago,
         // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío
         perfumeId: perfumeId ? parseInt(perfumeId, 10) : null
       });
