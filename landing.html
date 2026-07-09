@@ -1421,7 +1421,7 @@ footer {
 ══════════════════════════════════ -->
 <div class="announce-bar">
   🍶 Plan Free <strong>gratis para siempre</strong> · Sin tarjeta, sin compromiso →
-  <a href="/index.html" onclick="if(window.plausible)plausible('cta_announce')">Empezar ahora</a>
+  <a href="/index.html" onclick="if(window.plausible)plausible('cta_announce')">Empezar gratis</a>
 </div>
 
 <!-- ══════════════════════════════════
@@ -1442,7 +1442,7 @@ footer {
   <div class="nav-actions">
     <a href="#pricing" class="btn-outline">Ver precios</a>
     <a href="/index.html" class="btn-gold" onclick="if(window.plausible)plausible('cta_nav')">
-      Probar gratis →
+      Empezar gratis →
     </a>
     <button class="nav-hamburger" aria-label="Menú" onclick="toggleNav()">
       <span></span><span></span><span></span>
@@ -1494,7 +1494,7 @@ footer {
   <div class="hero-visual">
     <div class="hero-visual-glow"></div>
     <div class="hero-screenshot-wrap">
-      <img src="/screenshot-app.jpg" alt="Parfum Track — vista real de la app" width="1080" height="2093" loading="eager">
+      <img src="/screenshot-app.webp" alt="Parfum Track — vista real de la app" width="720" height="1395" loading="eager" fetchpriority="high">
     </div>
     <div class="hero-floating-cards-wrap">
       <div class="hero-floating-card hfc-left">
@@ -1909,9 +1909,9 @@ footer {
         <hr class="price-divider">
         <ul class="price-features-list">
           <li><span class="pfl-check">✓</span> Ventas ilimitadas</li>
-          <li><span class="pfl-check">✓</span> Cuotas y cobros por WA</li>
+          <li><span class="pfl-check">✓</span> Cuotas y cobros por WA <span style="color:var(--text3);font-size:12px;">(hasta 10 activas)</span></li>
           <li><span class="pfl-check">✓</span> Ganancia visible en tiempo real</li>
-          <li><span class="pfl-check">✓</span> Stock de perfumes</li>
+          <li><span class="pfl-check">✓</span> Stock de perfumes <span style="color:var(--text3);font-size:12px;">(hasta 30)</span></li>
           <li><span class="pfl-check">✓</span> Funciona sin internet</li>
           <li><span class="pfl-check">✓</span> 1 perfil de negocio</li>
           <li class="disabled"><span class="pfl-dash">–</span> Recordatorios WA automáticos</li>
@@ -1937,7 +1937,7 @@ footer {
         <div class="price-annual-note" data-annual style="display:none;">✓ Ahorrás USD 24 por año vs mensual</div>
         <hr class="price-divider">
         <ul class="price-features-list">
-          <li><span class="pfl-check">✓</span> Todo lo de Free</li>
+          <li><span class="pfl-check">✓</span> Todo lo de Free — <strong>sin límites</strong> de stock ni cuotas</li>
           <li><span class="pfl-check">✓</span> Recordatorios WhatsApp automáticos</li>
           <li><span class="pfl-check">✓</span> Notificaciones push de cobros</li>
           <li><span class="pfl-check">✓</span> Estadísticas avanzadas</li>
@@ -2132,14 +2132,14 @@ footer {
       onkeydown="if(event.key==='Enter')iniciarCheckoutMP()"
       style="width:100%;padding:12px 16px;background:#13132a;border:1.5px solid rgba(201,168,76,0.3);border-radius:10px;color:#f0eee8;font-size:15px;margin-bottom:8px;outline:none;font-family:inherit;">
     <p id="mp-checkout-error" style="font-size:12px;color:#e07070;min-height:16px;margin-bottom:12px;"></p>
-    <p style="font-size:11px;color:#7a7870;text-align:center;margin-bottom:10px;line-height:1.5;">Política de reembolso: Los pagos no son reembolsables salvo error técnico, cobro duplicado o falla grave del servicio (7 días). Consultar <a href="/terminos.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Términos de Uso</a>.</p>
+    <p style="font-size:12px;color:#b8b4a8;text-align:center;margin-bottom:12px;line-height:1.5;">🔒 Pago seguro vía Mercado Pago · Cancelás cuando querés<br>El monto se cobra en tu moneda local</p>
     <button id="mp-checkout-btn" onclick="iniciarCheckoutMP()"
       style="width:100%;padding:14px;background:linear-gradient(135deg,#009ee3,#0070ba);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">
       Ir a pagar con Mercado Pago →
     </button>
     <p style="font-size:11px;color:#4a4848;text-align:center;line-height:1.6;">
-      🔒 Pago seguro vía Mercado Pago · El monto se cobra en tu moneda local<br>
-      Al pagar aceptás los <a href="/terminos.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Términos de uso</a> y la <a href="/privacidad.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Política de privacidad</a>
+      Al pagar aceptás los <a href="/terminos.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Términos de uso</a> y la <a href="/privacidad.html" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;">Política de privacidad</a>.<br>
+      Reembolsos: solo por error técnico, cobro duplicado o falla grave del servicio (7 días).
     </p>
   </div>
 </div>
@@ -2271,8 +2271,10 @@ async function iniciarCheckoutMP() {
   btn.textContent = 'Conectando con Mercado Pago…';
   errEl.textContent = '';
 
-  // Abrir ventana vacía en sincrónico para no ser bloqueada por el popup blocker
-  const win = window.open('', '_blank');
+  // En mobile redirigimos en el mismo tab (el cambio de tab desorienta y los
+  // popup blockers móviles son agresivos); en desktop, tab nueva pre-abierta
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  const win = isMobile ? null : window.open('', '_blank');
 
   try {
     const resp = await fetch('/mp-create-preference', {
@@ -2290,13 +2292,14 @@ async function iniciarCheckoutMP() {
       return;
     }
 
-    // Redirigir la ventana ya abierta a MP Checkout (fallback si el popup fue bloqueado)
+    // Redirigir la ventana ya abierta a MP Checkout (fallback si el popup fue
+    // bloqueado); en mobile siempre mismo tab
     if (win && !win.closed) {
       win.location.href = data.initPoint;
+      cerrarCheckoutMP();
     } else {
       window.location.href = data.initPoint;
     }
-    cerrarCheckoutMP();
     if (window.plausible) plausible('mp_checkout_redirect', { props: { plan } });
   } catch (e) {
     if (win) win.close();

@@ -125,8 +125,10 @@ async function iniciarCheckoutMP() {
   btn.textContent = 'Conectando con Mercado Pago…';
   errEl.textContent = '';
 
-  // Abrir ventana vacía en sincrónico para no ser bloqueada por el popup blocker
-  const win = window.open('', '_blank');
+  // En mobile redirigimos en el mismo tab (el cambio de tab desorienta y los
+  // popup blockers móviles son agresivos); en desktop, tab nueva pre-abierta
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  const win = isMobile ? null : window.open('', '_blank');
 
   try {
     const resp = await fetch('/mp-create-preference', {
@@ -144,13 +146,14 @@ async function iniciarCheckoutMP() {
       return;
     }
 
-    // Redirigir la ventana ya abierta a MP Checkout (fallback si el popup fue bloqueado)
+    // Redirigir la ventana ya abierta a MP Checkout (fallback si el popup fue
+    // bloqueado); en mobile siempre mismo tab
     if (win && !win.closed) {
       win.location.href = data.initPoint;
+      cerrarCheckoutMP();
     } else {
       window.location.href = data.initPoint;
     }
-    cerrarCheckoutMP();
     if (window.plausible) plausible('mp_checkout_redirect', { props: { plan } });
   } catch (e) {
     if (win) win.close();
