@@ -65,6 +65,8 @@
     }
     const title = document.querySelector('#screen-nueva-venta .sub-title');
     if (title) title.textContent = 'Nueva venta';
+    // UX-9: medir cuánto tarda el usuario en registrar la venta
+    this._ventaFormStart = Date.now();
   },
 
   // UX-4: campos secundarios (proveedor, vendedor, descuento, fecha, nota)
@@ -397,7 +399,10 @@
     }
 
     await this.loadData();
-    this.track('sale_created', { method: this.formaPago });
+    // UX-9: duración form→guardar en buckets (props de baja cardinalidad)
+    const segs = this._ventaFormStart ? Math.round((Date.now() - this._ventaFormStart) / 1000) : null;
+    const bucket = segs === null ? 'desconocido' : segs <= 10 ? '0-10s' : segs <= 30 ? '10-30s' : segs <= 60 ? '30-60s' : '60s+';
+    this.track('sale_created', { method: this.formaPago, duracion: bucket });
     this.toast('Venta guardada', 'check_circle');
     this.haptic('success');
     this._notifyTabs();
