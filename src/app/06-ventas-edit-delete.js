@@ -64,7 +64,7 @@
 
     // P-01 FIX: Multi-vendedor solo para Pro
     if (!this.isPro()) {
-      vendedor = 'Luccas';
+      vendedor = this._defaultVendedor();
     }
 
     if (!perfume || perfume === 'Elegir perfume…') {

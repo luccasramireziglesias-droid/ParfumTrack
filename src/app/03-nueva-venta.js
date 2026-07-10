@@ -2,6 +2,15 @@
 
   // ====== NUEVA VENTA ======
 
+  // UX-5: el vendedor default es el último usado por ESTE usuario, o el
+  // nombre de su negocio — nunca un nombre hardcodeado
+  _defaultVendedor() {
+    const ultimo = (this.ventas || []).find(v => v.vendedor && v.vendedor !== 'Anónimo');
+    if (ultimo) return ultimo.vendedor;
+    const negocio = (localStorage.getItem('pt_negocio') || '').trim();
+    return negocio || 'Mi negocio';
+  },
+
   _checkVendedorRestriction() {
     const input = document.getElementById('venta-vendedor');
     const badge = document.getElementById('vendedor-pro-badge');
@@ -10,7 +19,7 @@
     if (!this.isPro()) {
       // Free tier: deshabilitar vendedor
       input.disabled = true;
-      input.value = 'Luccas';
+      input.value = this._defaultVendedor();
       badge.style.display = 'inline-block';
       group.style.opacity = '0.6';
       group.title = 'Feature disponible en plan Pro';
@@ -30,7 +39,7 @@
     document.getElementById('venta-precio').value = '';
     document.getElementById('venta-compra').value = '';
     document.getElementById('venta-cliente').value = '';
-    document.getElementById('venta-vendedor').value = 'Luccas';
+    document.getElementById('venta-vendedor').value = this._defaultVendedor();
     document.getElementById('venta-proveedor').value = '';
     document.getElementById('venta-descuento').value = '';
     document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
@@ -243,7 +252,7 @@
 
     // P-01 FIX: Multi-vendedor solo para Pro
     if (!this.isPro()) {
-      vendedor = 'Luccas';
+      vendedor = this._defaultVendedor();
     }
 
     if (!perfume || perfume === 'Elegir perfume…') {
