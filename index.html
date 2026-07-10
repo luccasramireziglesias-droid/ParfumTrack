@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="app-version" content="1.1.1">
+<meta name="app-version" content="1.2.0">
 <title>Parfum Track</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -688,6 +688,30 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   font-weight: 700;
 }
 
+
+/* UX-4: colapsable "Más detalles" en nueva venta */
+.detalles-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: 1px dashed var(--border, rgba(201,168,76,0.25));
+  border-radius: 10px;
+  padding: 11px 14px;
+  margin-bottom: 14px;
+  color: var(--text3);
+  font: 600 12px 'DM Sans', sans-serif;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+.detalles-toggle .ms { font-size: 17px; color: var(--gold); }
+.detalles-toggle .detalles-chevron {
+  margin-left: auto;
+  color: var(--text3);
+  transition: transform 0.2s;
+}
+.detalles-toggle.open .detalles-chevron { transform: rotate(180deg); }
 /* ====== BUTTONS ====== */
 .btn-primary {
   display: flex;
@@ -961,6 +985,11 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .stock-btn.plus {
   color: var(--gold2);
   background: rgba(201,168,76,0.12);
+}
+
+.stock-btn.sell {
+  color: var(--green);
+  background: rgba(112,201,160,0.12);
 }
 
 /* ====== CUOTAS ====== */
@@ -2387,42 +2416,18 @@ input[type="date"].form-input {
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">PRECIO VENTA</label>
-          <input type="number" class="form-input" id="venta-precio" placeholder="0" oninput="App.calcLiveProfit()">
+          <input type="text" class="form-input" id="venta-precio" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcLiveProfit()">
         </div>
         <div class="form-group">
           <label class="form-label">PRECIO COMPRA</label>
-          <input type="number" class="form-input" id="venta-compra" placeholder="0" oninput="App.calcLiveProfit()">
+          <input type="text" class="form-input" id="venta-compra" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcLiveProfit()">
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label">PROVEEDOR</label>
-        <input type="text" class="form-input" id="venta-proveedor" placeholder="Nombre del proveedor…" autocomplete="off">
-        <div class="autocomplete-list hidden" id="ac-proveedor"></div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">CLIENTE</label>
-          <input type="text" class="form-input" id="venta-cliente" placeholder="Nombre…" autocomplete="off">
-          <div class="autocomplete-list hidden" id="ac-cliente"></div>
-        </div>
-        <div class="form-group" id="vendedor-group">
-          <label class="form-label">VENDEDOR <span class="pro-badge" id="vendedor-pro-badge" style="display:none;font-size:10px;background:var(--gold);color:var(--bg);padding:2px 6px;border-radius:3px;margin-left:6px;">PRO</span></label>
-          <input type="text" class="form-input" id="venta-vendedor" placeholder="Nombre…" value="Luccas" autocomplete="off">
-          <div class="autocomplete-list hidden" id="ac-vendedor"></div>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">DESCUENTO %</label>
-          <input type="number" class="form-input" id="venta-descuento" placeholder="0" min="0" max="100" oninput="App.calcLiveProfit()">
-        </div>
-        <div class="form-group">
-          <label class="form-label">FECHA</label>
-          <input type="date" class="form-input" id="venta-fecha">
-        </div>
+        <label class="form-label">CLIENTE</label>
+        <input type="text" class="form-input" id="venta-cliente" placeholder="Nombre…" autocomplete="off">
+        <div class="autocomplete-list hidden" id="ac-cliente"></div>
       </div>
 
       <div class="form-group">
@@ -2449,9 +2454,40 @@ input[type="date"].form-input {
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">NOTA <span class="muted-label">(opcional)</span></label>
-        <input type="text" class="form-input" id="venta-nota" placeholder="Entrega el viernes…">
+      <button type="button" class="detalles-toggle" id="venta-detalles-toggle" onclick="App.toggleVentaDetalles()">
+        <span class="ms">tune</span>
+        <span id="venta-detalles-label">Más detalles</span>
+        <span class="ms detalles-chevron" id="venta-detalles-chevron">expand_more</span>
+      </button>
+
+      <div class="hidden" id="venta-detalles">
+        <div class="form-group">
+          <label class="form-label">PROVEEDOR</label>
+          <input type="text" class="form-input" id="venta-proveedor" placeholder="Nombre del proveedor…" autocomplete="off">
+          <div class="autocomplete-list hidden" id="ac-proveedor"></div>
+        </div>
+
+        <div class="form-group" id="vendedor-group">
+          <label class="form-label">VENDEDOR <span class="pro-badge" id="vendedor-pro-badge" style="display:none;font-size:10px;background:var(--gold);color:var(--bg);padding:2px 6px;border-radius:3px;margin-left:6px;">PRO</span></label>
+          <input type="text" class="form-input" id="venta-vendedor" placeholder="Nombre…" autocomplete="off">
+          <div class="autocomplete-list hidden" id="ac-vendedor"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">DESCUENTO %</label>
+            <input type="number" class="form-input" id="venta-descuento" placeholder="0" min="0" max="100" oninput="App.calcLiveProfit()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">FECHA</label>
+            <input type="date" class="form-input" id="venta-fecha">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">NOTA <span class="muted-label">(opcional)</span></label>
+          <input type="text" class="form-input" id="venta-nota" placeholder="Entrega el viernes…">
+        </div>
       </div>
 
       <div class="save-bar">
@@ -2741,7 +2777,7 @@ input[type="date"].form-input {
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">MONTO</label>
-          <input type="number" class="form-input" id="caja-monto" placeholder="0">
+          <input type="text" class="form-input" id="caja-monto" placeholder="0" inputmode="decimal" autocomplete="off">
         </div>
         <div class="form-group">
           <label class="form-label">DESCRIPCIÓN</label>
@@ -2787,13 +2823,15 @@ input[type="date"].form-input {
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">MONTO</label>
-          <input type="number" class="form-input" id="gasto-monto" placeholder="0">
+          <input type="text" class="form-input" id="gasto-monto" placeholder="0" inputmode="decimal" autocomplete="off">
         </div>
         <div class="form-group">
           <label class="form-label">DESCRIPCIÓN</label>
           <input type="text" class="form-input" id="gasto-desc" placeholder="Detalle…">
         </div>
       </div>
+
+      <div class="filter-chips hidden" id="gasto-quick-chips" style="margin:-2px 0 12px;"></div>
 
       <button class="btn-primary btn-full" onclick="App.guardarGasto()">
         <span class="ms">add_circle</span>Registrar gasto
@@ -3004,11 +3042,11 @@ input[type="date"].form-input {
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">PRECIO COMPRA</label>
-          <input type="number" class="form-input" id="add-perfume-compra" placeholder="0">
+          <input type="text" class="form-input" id="add-perfume-compra" placeholder="0" inputmode="decimal" autocomplete="off">
         </div>
         <div class="form-group">
           <label class="form-label">PRECIO VENTA</label>
-          <input type="number" class="form-input" id="add-perfume-venta" placeholder="0">
+          <input type="text" class="form-input" id="add-perfume-venta" placeholder="0" inputmode="decimal" autocomplete="off">
         </div>
       </div>
       <div class="form-group">
@@ -3616,19 +3654,19 @@ const DB = {
     const now = Date.now();
     const day = 86400000;
     const demoVentas = [
-      { perfume: 'Yara EDT', precioVenta: 4400, precioCompra: 3200, cliente: 'Susana', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 10, perfumeId: '' },
-      { perfume: 'The Kingdom', precioVenta: 2600, precioCompra: 1800, cliente: 'Susana', vendedor: 'Luccas', formaPago: 'cuotas', numCuotas: 2, nota: '', fecha: now - day * 15, perfumeId: '' },
-      { perfume: 'Haramain Gold', precioVenta: 3900, precioCompra: 2700, cliente: 'Pedro', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 5, perfumeId: '' },
-      { perfume: 'Bharara King', precioVenta: 3900, precioCompra: 2700, cliente: 'María', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 3, perfumeId: '' },
-      { perfume: 'Yara Rosa', precioVenta: 2500, precioCompra: 1700, cliente: 'Ana', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 2, perfumeId: '' },
-      { perfume: 'Lattafa Pride', precioVenta: 3200, precioCompra: 2200, cliente: 'Carlos', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 1, perfumeId: '' },
-      { perfume: 'Afnan 9PM', precioVenta: 3600, precioCompra: 2500, cliente: 'Laura', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 8, perfumeId: '' },
-      { perfume: 'Haramain Gold', precioVenta: 3900, precioCompra: 2700, cliente: 'Jorge', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 12, perfumeId: '' },
-      { perfume: 'Asad Negro', precioVenta: 2600, precioCompra: 1800, cliente: 'Lucía', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 7, perfumeId: '' },
-      { perfume: 'Yara EDT', precioVenta: 4400, precioCompra: 3200, cliente: 'Roberto', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 4, perfumeId: '' },
-      { perfume: 'Bharara King', precioVenta: 3900, precioCompra: 2700, cliente: 'Sofía', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 6, perfumeId: '' },
-      { perfume: 'Afnan 9PM', precioVenta: 3600, precioCompra: 2500, cliente: 'Diego', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 9, perfumeId: '' },
-      { perfume: 'Yara EDT', precioVenta: 4400, precioCompra: 3200, cliente: 'Martín', vendedor: 'Luccas', formaPago: 'contado', nota: 'Entrega el viernes', fecha: now, perfumeId: '' },
+      { perfume: 'Yara EDT', precioVenta: 4400, precioCompra: 3200, cliente: 'Susana', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 10, perfumeId: '' },
+      { perfume: 'The Kingdom', precioVenta: 2600, precioCompra: 1800, cliente: 'Susana', vendedor: 'Mi negocio', formaPago: 'cuotas', numCuotas: 2, nota: '', fecha: now - day * 15, perfumeId: '' },
+      { perfume: 'Haramain Gold', precioVenta: 3900, precioCompra: 2700, cliente: 'Pedro', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 5, perfumeId: '' },
+      { perfume: 'Bharara King', precioVenta: 3900, precioCompra: 2700, cliente: 'María', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 3, perfumeId: '' },
+      { perfume: 'Yara Rosa', precioVenta: 2500, precioCompra: 1700, cliente: 'Ana', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 2, perfumeId: '' },
+      { perfume: 'Lattafa Pride', precioVenta: 3200, precioCompra: 2200, cliente: 'Carlos', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 1, perfumeId: '' },
+      { perfume: 'Afnan 9PM', precioVenta: 3600, precioCompra: 2500, cliente: 'Laura', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 8, perfumeId: '' },
+      { perfume: 'Haramain Gold', precioVenta: 3900, precioCompra: 2700, cliente: 'Jorge', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 12, perfumeId: '' },
+      { perfume: 'Asad Negro', precioVenta: 2600, precioCompra: 1800, cliente: 'Lucía', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 7, perfumeId: '' },
+      { perfume: 'Yara EDT', precioVenta: 4400, precioCompra: 3200, cliente: 'Roberto', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 4, perfumeId: '' },
+      { perfume: 'Bharara King', precioVenta: 3900, precioCompra: 2700, cliente: 'Sofía', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 6, perfumeId: '' },
+      { perfume: 'Afnan 9PM', precioVenta: 3600, precioCompra: 2500, cliente: 'Diego', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 9, perfumeId: '' },
+      { perfume: 'Yara EDT', precioVenta: 4400, precioCompra: 3200, cliente: 'Martín', vendedor: 'Mi negocio', formaPago: 'contado', nota: 'Entrega el viernes', fecha: now, perfumeId: '' },
     ];
 
     for (const v of demoVentas) {
@@ -4522,6 +4560,7 @@ const App = {
             <div class="venta-ganancia-value">${this.fmtSigned(gan)}</div>
           </div>
           <div class="venta-actions">
+            <button class="venta-action-btn ms" onclick="App.repetirVenta(${v.id})" aria-label="Vender de nuevo">repeat</button>
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
             <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})">delete</button>
           </div>
@@ -4612,6 +4651,7 @@ const App = {
           <div class="stock-row">
             <span class="stock-price">${this.fmt(p.precioVenta)}</span>
             <div class="stock-controls">
+              <button class="stock-btn sell ms" onclick="App.venderDesdeStock(${p.id})" aria-label="Vender">sell</button>
               <button class="stock-btn minus ms" onclick="App.adjustStock(${p.id}, -1)">remove</button>
               <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)">add</button>
             </div>
@@ -4980,6 +5020,21 @@ const App = {
 
   // ====== NUEVA VENTA ======
 
+  // UX-5: el vendedor default es el último usado por ESTE usuario, o el
+  // nombre de su negocio — nunca un nombre hardcodeado
+  _defaultVendedor() {
+    const ultimo = (this.ventas || []).find(v => v.vendedor && v.vendedor !== 'Anónimo');
+    if (ultimo) return ultimo.vendedor;
+    const negocio = (localStorage.getItem('pt_negocio') || '').trim();
+    return negocio || 'Mi negocio';
+  },
+
+  // UX-6: los revendedores compran a 1-2 proveedores fijos — prefijar el último
+  _defaultProveedor() {
+    const ultimo = (this.ventas || []).find(v => v.proveedor);
+    return ultimo ? ultimo.proveedor : '';
+  },
+
   _checkVendedorRestriction() {
     const input = document.getElementById('venta-vendedor');
     const badge = document.getElementById('vendedor-pro-badge');
@@ -4988,7 +5043,7 @@ const App = {
     if (!this.isPro()) {
       // Free tier: deshabilitar vendedor
       input.disabled = true;
-      input.value = 'Luccas';
+      input.value = this._defaultVendedor();
       badge.style.display = 'inline-block';
       group.style.opacity = '0.6';
       group.title = 'Feature disponible en plan Pro';
@@ -5008,14 +5063,15 @@ const App = {
     document.getElementById('venta-precio').value = '';
     document.getElementById('venta-compra').value = '';
     document.getElementById('venta-cliente').value = '';
-    document.getElementById('venta-vendedor').value = 'Luccas';
-    document.getElementById('venta-proveedor').value = '';
+    document.getElementById('venta-vendedor').value = this._defaultVendedor();
+    document.getElementById('venta-proveedor').value = this._defaultProveedor();
     document.getElementById('venta-descuento').value = '';
     document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
     document.getElementById('venta-nota').value = '';
     this.setFormaPago('contado');
     this.setPrimeraCuota(true);
     document.getElementById('venta-primer-pago').value = '';
+    this.toggleVentaDetalles(false);
     this.calcLiveProfit();
     this.setupAutocomplete();
     this._checkVendedorRestriction();
@@ -5027,11 +5083,51 @@ const App = {
     }
     const title = document.querySelector('#screen-nueva-venta .sub-title');
     if (title) title.textContent = 'Nueva venta';
+    // UX-9: medir cuánto tarda el usuario en registrar la venta
+    this._ventaFormStart = Date.now();
+  },
+
+  // UX-4: campos secundarios (proveedor, vendedor, descuento, fecha, nota)
+  // colapsados por defecto — el form rápido queda en 4 decisiones
+  toggleVentaDetalles(forzar) {
+    const panel = document.getElementById('venta-detalles');
+    const toggle = document.getElementById('venta-detalles-toggle');
+    if (!panel || !toggle) return;
+    const abrir = forzar !== undefined ? forzar : panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !abrir);
+    toggle.classList.toggle('open', abrir);
+    document.getElementById('venta-detalles-label').textContent = abrir ? 'Ocultar detalles' : 'Más detalles';
+  },
+
+  // UX-1: repetir una venta existente — abre el form prefillado (fecha = hoy,
+  // cliente vacío: el caso típico es mismo perfume, otro cliente)
+  repetirVenta(id) {
+    const v = this.ventas.find(x => x.id === id);
+    if (!v) return;
+    this.showScreen('nueva-venta'); // resetea el form
+    document.getElementById('venta-perfume-id').value = v.perfumeId || '';
+    document.getElementById('venta-perfume-nombre').value = v.perfume;
+    document.getElementById('venta-perfume-display').textContent = v.perfume;
+    document.getElementById('venta-precio').value = v.precioOriginal || v.precioVenta;
+    document.getElementById('venta-compra').value = v.precioCompra;
+    document.getElementById('venta-proveedor').value = v.proveedor || '';
+    if (v.vendedor) document.getElementById('venta-vendedor').value = v.vendedor;
+    if (v.descuento) document.getElementById('venta-descuento').value = v.descuento;
+    this.setFormaPago(v.formaPago === 'cuotas' ? 'cuotas' : 'contado');
+    if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
+      document.getElementById('venta-num-cuotas').value = v.numCuotas;
+    }
+    this._checkVendedorRestriction();
+    // Si la venta original usa campos secundarios, mostrarlos
+    if (v.proveedor || v.descuento || v.nota) this.toggleVentaDetalles(true);
+    this.calcLiveProfit();
+    this.toast('Venta copiada — completá el cliente', 'content_copy');
+    setTimeout(() => document.getElementById('venta-cliente').focus(), 150);
   },
 
   calcLiveProfit() {
-    const pv = parseFloat(document.getElementById('venta-precio').value) || 0;
-    const pc = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const pv = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const pc = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const desc = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const pvFinal = desc > 0 ? Math.round(pv * (1 - desc / 100)) : pv;
     const gan = pvFinal - pc;
@@ -5133,11 +5229,12 @@ const App = {
   },
 
   renderPerfumeModal() {
-    const search = (document.getElementById('modal-perfume-search')?.value || '').toLowerCase();
+    const searchRaw = (document.getElementById('modal-perfume-search')?.value || '').trim();
+    const search = searchRaw.toLowerCase();
     let items = this.perfumes;
     if (search) items = items.filter(p => p.nombre.toLowerCase().includes(search));
 
-    document.getElementById('modal-perfume-list').innerHTML = items.map(p =>
+    let html = items.map(p =>
       `<div class="modal-item" onclick="App.selectPerfume(${p.id})">
         <div>
           <div class="modal-item-name">${this.esc(p.nombre)}</div>
@@ -5146,6 +5243,48 @@ const App = {
         <span class="modal-item-price">${this.fmt(p.precioVenta)}</span>
       </div>`
     ).join('');
+
+    // UX-7: si lo buscado no existe en stock, ofrecer crearlo o venderlo suelto
+    const existeExacto = this.perfumes.some(p => p.nombre.toLowerCase() === search);
+    if (searchRaw && !existeExacto) {
+      html += `
+        <div class="modal-item" id="modal-item-crear">
+          <div>
+            <div class="modal-item-name" style="color:var(--gold2);">＋ Crear «${this.esc(searchRaw)}» en stock</div>
+            <div class="modal-item-stock">Se agrega al inventario y se vende</div>
+          </div>
+        </div>
+        <div class="modal-item" id="modal-item-libre">
+          <div>
+            <div class="modal-item-name">Vender «${this.esc(searchRaw)}» sin stock</div>
+            <div class="modal-item-stock">No se agrega al inventario</div>
+          </div>
+        </div>`;
+    }
+    const list = document.getElementById('modal-perfume-list');
+    list.innerHTML = html;
+    document.getElementById('modal-item-crear')?.addEventListener('click', () => this.crearPerfumeDesdeVenta(searchRaw));
+    document.getElementById('modal-item-libre')?.addEventListener('click', () => this.usarPerfumeLibre(searchRaw));
+  },
+
+  usarPerfumeLibre(nombre) {
+    document.getElementById('venta-perfume-id').value = '';
+    document.getElementById('venta-perfume-nombre').value = nombre;
+    document.getElementById('venta-perfume-display').textContent = nombre;
+    this.closeModal();
+    setTimeout(() => document.getElementById('venta-precio').focus(), 100);
+  },
+
+  async crearPerfumeDesdeVenta(nombre) {
+    // Precios en 0: se completan solos con los de esta venta al guardar
+    const id = await DB.addPerfume({ nombre, precioCompra: 0, precioVenta: 0, stock: 1, foto: null });
+    await this.loadData();
+    document.getElementById('venta-perfume-id').value = id;
+    document.getElementById('venta-perfume-nombre').value = nombre;
+    document.getElementById('venta-perfume-display').textContent = nombre;
+    this.closeModal();
+    this.toast('Perfume creado en stock', 'inventory_2');
+    setTimeout(() => document.getElementById('venta-precio').focus(), 100);
   },
 
   filterPerfumeModal() {
@@ -5166,8 +5305,8 @@ const App = {
 
   async guardarVenta() {
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
-    const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
     let vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
@@ -5182,7 +5321,7 @@ const App = {
 
     // P-01 FIX: Multi-vendedor solo para Pro
     if (!this.isPro()) {
-      vendedor = 'Luccas';
+      vendedor = this._defaultVendedor();
     }
 
     if (!perfume || perfume === 'Elegir perfume…') {
@@ -5267,8 +5406,21 @@ const App = {
       return;
     }
 
+    // UX-7: si el perfume se creó al vuelo sin precios, copiarle los de esta venta
+    if (perfumeId) {
+      const p = await DB.get('perfumes', parseInt(perfumeId, 10));
+      if (p && !p.precioVenta && !p.precioCompra) {
+        p.precioVenta = pvFinal;
+        p.precioCompra = precioCompra;
+        await DB.put('perfumes', p);
+      }
+    }
+
     await this.loadData();
-    this.track('sale_created', { method: this.formaPago });
+    // UX-9: duración form→guardar en buckets (props de baja cardinalidad)
+    const segs = this._ventaFormStart ? Math.round((Date.now() - this._ventaFormStart) / 1000) : null;
+    const bucket = segs === null ? 'desconocido' : segs <= 10 ? '0-10s' : segs <= 30 ? '10-30s' : segs <= 60 ? '30-60s' : '60s+';
+    this.track('sale_created', { method: this.formaPago, duracion: bucket });
     this.toast('Venta guardada', 'check_circle');
     this.haptic('success');
     this._notifyTabs();
@@ -5276,6 +5428,22 @@ const App = {
   },
 
   // ====== STOCK ======
+
+  // UX-2: vender directo desde la card de stock — abre Nueva Venta con el
+  // perfume y sus precios prefillados
+  venderDesdeStock(id) {
+    const p = this.perfumes.find(x => x.id === id);
+    if (!p) return;
+    this.showScreen('nueva-venta');
+    document.getElementById('venta-perfume-id').value = p.id;
+    document.getElementById('venta-perfume-nombre').value = p.nombre;
+    document.getElementById('venta-perfume-display').textContent = p.nombre;
+    document.getElementById('venta-precio').value = p.precioVenta || '';
+    document.getElementById('venta-compra').value = p.precioCompra || '';
+    this.calcLiveProfit();
+    this.toast('Perfume cargado — completá el cliente', 'sell');
+    setTimeout(() => document.getElementById('venta-cliente').focus(), 150);
+  },
 
   filterStock() {
     this.renderStock();
@@ -5393,8 +5561,8 @@ const App = {
 
   async savePerfume() {
     const nombre = document.getElementById('add-perfume-nombre').value.trim();
-    const precioCompra = parseFloat(document.getElementById('add-perfume-compra').value) || 0;
-    const precioVenta = parseFloat(document.getElementById('add-perfume-venta').value) || 0;
+    const precioCompra = this.parseMonto(document.getElementById('add-perfume-compra').value) || 0;
+    const precioVenta = this.parseMonto(document.getElementById('add-perfume-venta').value) || 0;
     const stock = parseInt(document.getElementById('add-perfume-stock').value) || 0;
 
     if (!nombre) {
@@ -5528,6 +5696,8 @@ const App = {
     if (v.numCuotas > 1) {
       document.getElementById('venta-num-cuotas').value = v.numCuotas;
     }
+    // Al editar siempre mostrar los campos secundarios (fecha, nota, etc.)
+    this.toggleVentaDetalles(true);
 
     const saveBtn = document.querySelector('#screen-nueva-venta .btn-primary');
     if (saveBtn) {
@@ -5546,8 +5716,8 @@ const App = {
     if (!id) return;
 
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
-    const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
     let vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
@@ -5561,7 +5731,7 @@ const App = {
 
     // P-01 FIX: Multi-vendedor solo para Pro
     if (!this.isPro()) {
-      vendedor = 'Luccas';
+      vendedor = this._defaultVendedor();
     }
 
     if (!perfume || perfume === 'Elegir perfume…') {
@@ -6028,7 +6198,7 @@ const App = {
   },
 
   async guardarCaja() {
-    const monto = parseFloat(document.getElementById('caja-monto').value) || 0;
+    const monto = this.parseMonto(document.getElementById('caja-monto').value) || 0;
     const desc = document.getElementById('caja-desc').value.trim();
     if (monto <= 0) { this.toast('Ingresá un monto', 'warning'); return; }
 
@@ -6104,10 +6274,41 @@ const App = {
     this.gastoCat = cat;
     const opts = document.querySelectorAll('#gasto-cat-seg .seg-option');
     opts.forEach(o => o.classList.toggle('active', o.textContent.trim().toLowerCase() === cat));
+    this._renderGastoChips();
+  },
+
+  // UX-8: chips con los gastos más repetidos de la categoría — un tap y guardar
+  _renderGastoChips() {
+    const wrap = document.getElementById('gasto-quick-chips');
+    if (!wrap) return;
+    const delCat = (this.gastosData || []).filter(g => g.categoria === this.gastoCat && g.monto > 0);
+    // Frecuencia por combinación monto+descripción
+    const freq = {};
+    for (const g of delCat) {
+      const key = g.monto + '|' + (g.descripcion || '');
+      if (!freq[key]) freq[key] = { monto: g.monto, desc: g.descripcion || '', count: 0, ultima: 0 };
+      freq[key].count++;
+      if ((g.fecha || 0) > freq[key].ultima) freq[key].ultima = g.fecha || 0;
+    }
+    const top = Object.values(freq)
+      .filter(f => f.count >= 2 || delCat.length <= 3)
+      .sort((a, b) => b.count - a.count || b.ultima - a.ultima)
+      .slice(0, 3);
+    if (top.length === 0) { wrap.classList.add('hidden'); wrap.innerHTML = ''; return; }
+    wrap.classList.remove('hidden');
+    wrap.innerHTML = top.map((f, i) =>
+      `<span class="chip" data-chip-idx="${i}">${this.fmt(f.monto)}${f.desc && f.desc !== this.gastoCat ? ' · ' + this.esc(f.desc) : ''}</span>`
+    ).join('');
+    wrap.querySelectorAll('.chip').forEach((chip, i) => {
+      chip.addEventListener('click', () => {
+        document.getElementById('gasto-monto').value = top[i].monto;
+        document.getElementById('gasto-desc').value = top[i].desc;
+      });
+    });
   },
 
   async guardarGasto() {
-    const monto = parseFloat(document.getElementById('gasto-monto').value) || 0;
+    const monto = this.parseMonto(document.getElementById('gasto-monto').value) || 0;
     const desc = document.getElementById('gasto-desc').value.trim();
     if (monto <= 0) { this.toast('Ingresá un monto', 'warning'); return; }
 
@@ -6141,6 +6342,7 @@ const App = {
   },
 
   renderGastos() {
+    this._renderGastoChips();
     const now = new Date();
     const thisMonth = this.gastosData.filter(g => {
       const d = new Date(g.fecha);

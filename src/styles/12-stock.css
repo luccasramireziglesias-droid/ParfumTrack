@@ -232,3 +232,8 @@
   background: rgba(201,168,76,0.12);
 }
 
+.stock-btn.sell {
+  color: var(--green);
+  background: rgba(112,201,160,0.12);
+}
+

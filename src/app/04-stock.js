@@ -2,6 +2,22 @@
 
   // ====== STOCK ======
 
+  // UX-2: vender directo desde la card de stock — abre Nueva Venta con el
+  // perfume y sus precios prefillados
+  venderDesdeStock(id) {
+    const p = this.perfumes.find(x => x.id === id);
+    if (!p) return;
+    this.showScreen('nueva-venta');
+    document.getElementById('venta-perfume-id').value = p.id;
+    document.getElementById('venta-perfume-nombre').value = p.nombre;
+    document.getElementById('venta-perfume-display').textContent = p.nombre;
+    document.getElementById('venta-precio').value = p.precioVenta || '';
+    document.getElementById('venta-compra').value = p.precioCompra || '';
+    this.calcLiveProfit();
+    this.toast('Perfume cargado — completá el cliente', 'sell');
+    setTimeout(() => document.getElementById('venta-cliente').focus(), 150);
+  },
+
   filterStock() {
     this.renderStock();
   },
@@ -118,8 +134,8 @@
 
   async savePerfume() {
     const nombre = document.getElementById('add-perfume-nombre').value.trim();
-    const precioCompra = parseFloat(document.getElementById('add-perfume-compra').value) || 0;
-    const precioVenta = parseFloat(document.getElementById('add-perfume-venta').value) || 0;
+    const precioCompra = this.parseMonto(document.getElementById('add-perfume-compra').value) || 0;
+    const precioVenta = this.parseMonto(document.getElementById('add-perfume-venta').value) || 0;
     const stock = parseInt(document.getElementById('add-perfume-stock').value) || 0;
 
     if (!nombre) {

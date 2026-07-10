@@ -87,3 +87,27 @@
   font-weight: 700;
 }
 
+
+/* UX-4: colapsable "Más detalles" en nueva venta */
+.detalles-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: 1px dashed var(--border, rgba(201,168,76,0.25));
+  border-radius: 10px;
+  padding: 11px 14px;
+  margin-bottom: 14px;
+  color: var(--text3);
+  font: 600 12px 'DM Sans', sans-serif;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+.detalles-toggle .ms { font-size: 17px; color: var(--gold); }
+.detalles-toggle .detalles-chevron {
+  margin-left: auto;
+  color: var(--text3);
+  transition: transform 0.2s;
+}
+.detalles-toggle.open .detalles-chevron { transform: rotate(180deg); }

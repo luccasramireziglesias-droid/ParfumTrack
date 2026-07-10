@@ -29,6 +29,8 @@
     if (v.numCuotas > 1) {
       document.getElementById('venta-num-cuotas').value = v.numCuotas;
     }
+    // Al editar siempre mostrar los campos secundarios (fecha, nota, etc.)
+    this.toggleVentaDetalles(true);
 
     const saveBtn = document.querySelector('#screen-nueva-venta .btn-primary');
     if (saveBtn) {
@@ -47,8 +49,8 @@
     if (!id) return;
 
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
-    const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
     let vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
@@ -62,7 +64,7 @@
 
     // P-01 FIX: Multi-vendedor solo para Pro
     if (!this.isPro()) {
-      vendedor = 'Luccas';
+      vendedor = this._defaultVendedor();
     }
 
     if (!perfume || perfume === 'Elegir perfume…') {

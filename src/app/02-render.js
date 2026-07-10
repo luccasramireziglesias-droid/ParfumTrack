@@ -220,6 +220,7 @@
             <div class="venta-ganancia-value">${this.fmtSigned(gan)}</div>
           </div>
           <div class="venta-actions">
+            <button class="venta-action-btn ms" onclick="App.repetirVenta(${v.id})" aria-label="Vender de nuevo">repeat</button>
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
             <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})">delete</button>
           </div>
@@ -310,6 +311,7 @@
           <div class="stock-row">
             <span class="stock-price">${this.fmt(p.precioVenta)}</span>
             <div class="stock-controls">
+              <button class="stock-btn sell ms" onclick="App.venderDesdeStock(${p.id})" aria-label="Vender">sell</button>
               <button class="stock-btn minus ms" onclick="App.adjustStock(${p.id}, -1)">remove</button>
               <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)">add</button>
             </div>

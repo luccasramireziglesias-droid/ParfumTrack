@@ -2,6 +2,21 @@
 
   // ====== NUEVA VENTA ======
 
+  // UX-5: el vendedor default es el último usado por ESTE usuario, o el
+  // nombre de su negocio — nunca un nombre hardcodeado
+  _defaultVendedor() {
+    const ultimo = (this.ventas || []).find(v => v.vendedor && v.vendedor !== 'Anónimo');
+    if (ultimo) return ultimo.vendedor;
+    const negocio = (localStorage.getItem('pt_negocio') || '').trim();
+    return negocio || 'Mi negocio';
+  },
+
+  // UX-6: los revendedores compran a 1-2 proveedores fijos — prefijar el último
+  _defaultProveedor() {
+    const ultimo = (this.ventas || []).find(v => v.proveedor);
+    return ultimo ? ultimo.proveedor : '';
+  },
+
   _checkVendedorRestriction() {
     const input = document.getElementById('venta-vendedor');
     const badge = document.getElementById('vendedor-pro-badge');
@@ -10,7 +25,7 @@
     if (!this.isPro()) {
       // Free tier: deshabilitar vendedor
       input.disabled = true;
-      input.value = 'Luccas';
+      input.value = this._defaultVendedor();
       badge.style.display = 'inline-block';
       group.style.opacity = '0.6';
       group.title = 'Feature disponible en plan Pro';
@@ -30,14 +45,15 @@
     document.getElementById('venta-precio').value = '';
     document.getElementById('venta-compra').value = '';
     document.getElementById('venta-cliente').value = '';
-    document.getElementById('venta-vendedor').value = 'Luccas';
-    document.getElementById('venta-proveedor').value = '';
+    document.getElementById('venta-vendedor').value = this._defaultVendedor();
+    document.getElementById('venta-proveedor').value = this._defaultProveedor();
     document.getElementById('venta-descuento').value = '';
     document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
     document.getElementById('venta-nota').value = '';
     this.setFormaPago('contado');
     this.setPrimeraCuota(true);
     document.getElementById('venta-primer-pago').value = '';
+    this.toggleVentaDetalles(false);
     this.calcLiveProfit();
     this.setupAutocomplete();
     this._checkVendedorRestriction();
@@ -49,11 +65,51 @@
     }
     const title = document.querySelector('#screen-nueva-venta .sub-title');
     if (title) title.textContent = 'Nueva venta';
+    // UX-9: medir cuánto tarda el usuario en registrar la venta
+    this._ventaFormStart = Date.now();
+  },
+
+  // UX-4: campos secundarios (proveedor, vendedor, descuento, fecha, nota)
+  // colapsados por defecto — el form rápido queda en 4 decisiones
+  toggleVentaDetalles(forzar) {
+    const panel = document.getElementById('venta-detalles');
+    const toggle = document.getElementById('venta-detalles-toggle');
+    if (!panel || !toggle) return;
+    const abrir = forzar !== undefined ? forzar : panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !abrir);
+    toggle.classList.toggle('open', abrir);
+    document.getElementById('venta-detalles-label').textContent = abrir ? 'Ocultar detalles' : 'Más detalles';
+  },
+
+  // UX-1: repetir una venta existente — abre el form prefillado (fecha = hoy,
+  // cliente vacío: el caso típico es mismo perfume, otro cliente)
+  repetirVenta(id) {
+    const v = this.ventas.find(x => x.id === id);
+    if (!v) return;
+    this.showScreen('nueva-venta'); // resetea el form
+    document.getElementById('venta-perfume-id').value = v.perfumeId || '';
+    document.getElementById('venta-perfume-nombre').value = v.perfume;
+    document.getElementById('venta-perfume-display').textContent = v.perfume;
+    document.getElementById('venta-precio').value = v.precioOriginal || v.precioVenta;
+    document.getElementById('venta-compra').value = v.precioCompra;
+    document.getElementById('venta-proveedor').value = v.proveedor || '';
+    if (v.vendedor) document.getElementById('venta-vendedor').value = v.vendedor;
+    if (v.descuento) document.getElementById('venta-descuento').value = v.descuento;
+    this.setFormaPago(v.formaPago === 'cuotas' ? 'cuotas' : 'contado');
+    if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
+      document.getElementById('venta-num-cuotas').value = v.numCuotas;
+    }
+    this._checkVendedorRestriction();
+    // Si la venta original usa campos secundarios, mostrarlos
+    if (v.proveedor || v.descuento || v.nota) this.toggleVentaDetalles(true);
+    this.calcLiveProfit();
+    this.toast('Venta copiada — completá el cliente', 'content_copy');
+    setTimeout(() => document.getElementById('venta-cliente').focus(), 150);
   },
 
   calcLiveProfit() {
-    const pv = parseFloat(document.getElementById('venta-precio').value) || 0;
-    const pc = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const pv = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const pc = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const desc = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const pvFinal = desc > 0 ? Math.round(pv * (1 - desc / 100)) : pv;
     const gan = pvFinal - pc;
@@ -155,11 +211,12 @@
   },
 
   renderPerfumeModal() {
-    const search = (document.getElementById('modal-perfume-search')?.value || '').toLowerCase();
+    const searchRaw = (document.getElementById('modal-perfume-search')?.value || '').trim();
+    const search = searchRaw.toLowerCase();
     let items = this.perfumes;
     if (search) items = items.filter(p => p.nombre.toLowerCase().includes(search));
 
-    document.getElementById('modal-perfume-list').innerHTML = items.map(p =>
+    let html = items.map(p =>
       `<div class="modal-item" onclick="App.selectPerfume(${p.id})">
         <div>
           <div class="modal-item-name">${this.esc(p.nombre)}</div>
@@ -168,6 +225,48 @@
         <span class="modal-item-price">${this.fmt(p.precioVenta)}</span>
       </div>`
     ).join('');
+
+    // UX-7: si lo buscado no existe en stock, ofrecer crearlo o venderlo suelto
+    const existeExacto = this.perfumes.some(p => p.nombre.toLowerCase() === search);
+    if (searchRaw && !existeExacto) {
+      html += `
+        <div class="modal-item" id="modal-item-crear">
+          <div>
+            <div class="modal-item-name" style="color:var(--gold2);">＋ Crear «${this.esc(searchRaw)}» en stock</div>
+            <div class="modal-item-stock">Se agrega al inventario y se vende</div>
+          </div>
+        </div>
+        <div class="modal-item" id="modal-item-libre">
+          <div>
+            <div class="modal-item-name">Vender «${this.esc(searchRaw)}» sin stock</div>
+            <div class="modal-item-stock">No se agrega al inventario</div>
+          </div>
+        </div>`;
+    }
+    const list = document.getElementById('modal-perfume-list');
+    list.innerHTML = html;
+    document.getElementById('modal-item-crear')?.addEventListener('click', () => this.crearPerfumeDesdeVenta(searchRaw));
+    document.getElementById('modal-item-libre')?.addEventListener('click', () => this.usarPerfumeLibre(searchRaw));
+  },
+
+  usarPerfumeLibre(nombre) {
+    document.getElementById('venta-perfume-id').value = '';
+    document.getElementById('venta-perfume-nombre').value = nombre;
+    document.getElementById('venta-perfume-display').textContent = nombre;
+    this.closeModal();
+    setTimeout(() => document.getElementById('venta-precio').focus(), 100);
+  },
+
+  async crearPerfumeDesdeVenta(nombre) {
+    // Precios en 0: se completan solos con los de esta venta al guardar
+    const id = await DB.addPerfume({ nombre, precioCompra: 0, precioVenta: 0, stock: 1, foto: null });
+    await this.loadData();
+    document.getElementById('venta-perfume-id').value = id;
+    document.getElementById('venta-perfume-nombre').value = nombre;
+    document.getElementById('venta-perfume-display').textContent = nombre;
+    this.closeModal();
+    this.toast('Perfume creado en stock', 'inventory_2');
+    setTimeout(() => document.getElementById('venta-precio').focus(), 100);
   },
 
   filterPerfumeModal() {
@@ -188,8 +287,8 @@
 
   async guardarVenta() {
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
-    const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
     let vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
@@ -204,7 +303,7 @@
 
     // P-01 FIX: Multi-vendedor solo para Pro
     if (!this.isPro()) {
-      vendedor = 'Luccas';
+      vendedor = this._defaultVendedor();
     }
 
     if (!perfume || perfume === 'Elegir perfume…') {
@@ -289,8 +388,21 @@
       return;
     }
 
+    // UX-7: si el perfume se creó al vuelo sin precios, copiarle los de esta venta
+    if (perfumeId) {
+      const p = await DB.get('perfumes', parseInt(perfumeId, 10));
+      if (p && !p.precioVenta && !p.precioCompra) {
+        p.precioVenta = pvFinal;
+        p.precioCompra = precioCompra;
+        await DB.put('perfumes', p);
+      }
+    }
+
     await this.loadData();
-    this.track('sale_created', { method: this.formaPago });
+    // UX-9: duración form→guardar en buckets (props de baja cardinalidad)
+    const segs = this._ventaFormStart ? Math.round((Date.now() - this._ventaFormStart) / 1000) : null;
+    const bucket = segs === null ? 'desconocido' : segs <= 10 ? '0-10s' : segs <= 30 ? '10-30s' : segs <= 60 ? '30-60s' : '60s+';
+    this.track('sale_created', { method: this.formaPago, duracion: bucket });
     this.toast('Venta guardada', 'check_circle');
     this.haptic('success');
     this._notifyTabs();

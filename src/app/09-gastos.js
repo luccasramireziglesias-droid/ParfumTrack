@@ -6,10 +6,41 @@
     this.gastoCat = cat;
     const opts = document.querySelectorAll('#gasto-cat-seg .seg-option');
     opts.forEach(o => o.classList.toggle('active', o.textContent.trim().toLowerCase() === cat));
+    this._renderGastoChips();
+  },
+
+  // UX-8: chips con los gastos más repetidos de la categoría — un tap y guardar
+  _renderGastoChips() {
+    const wrap = document.getElementById('gasto-quick-chips');
+    if (!wrap) return;
+    const delCat = (this.gastosData || []).filter(g => g.categoria === this.gastoCat && g.monto > 0);
+    // Frecuencia por combinación monto+descripción
+    const freq = {};
+    for (const g of delCat) {
+      const key = g.monto + '|' + (g.descripcion || '');
+      if (!freq[key]) freq[key] = { monto: g.monto, desc: g.descripcion || '', count: 0, ultima: 0 };
+      freq[key].count++;
+      if ((g.fecha || 0) > freq[key].ultima) freq[key].ultima = g.fecha || 0;
+    }
+    const top = Object.values(freq)
+      .filter(f => f.count >= 2 || delCat.length <= 3)
+      .sort((a, b) => b.count - a.count || b.ultima - a.ultima)
+      .slice(0, 3);
+    if (top.length === 0) { wrap.classList.add('hidden'); wrap.innerHTML = ''; return; }
+    wrap.classList.remove('hidden');
+    wrap.innerHTML = top.map((f, i) =>
+      `<span class="chip" data-chip-idx="${i}">${this.fmt(f.monto)}${f.desc && f.desc !== this.gastoCat ? ' · ' + this.esc(f.desc) : ''}</span>`
+    ).join('');
+    wrap.querySelectorAll('.chip').forEach((chip, i) => {
+      chip.addEventListener('click', () => {
+        document.getElementById('gasto-monto').value = top[i].monto;
+        document.getElementById('gasto-desc').value = top[i].desc;
+      });
+    });
   },
 
   async guardarGasto() {
-    const monto = parseFloat(document.getElementById('gasto-monto').value) || 0;
+    const monto = this.parseMonto(document.getElementById('gasto-monto').value) || 0;
     const desc = document.getElementById('gasto-desc').value.trim();
     if (monto <= 0) { this.toast('Ingresá un monto', 'warning'); return; }
 
@@ -43,6 +74,7 @@
   },
 
   renderGastos() {
+    this._renderGastoChips();
     const now = new Date();
     const thisMonth = this.gastosData.filter(g => {
       const d = new Date(g.fecha);

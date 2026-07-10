@@ -329,19 +329,19 @@
     const now = Date.now();
     const day = 86400000;
     const demoVentas = [
-      { perfume: 'Yara EDT', precioVenta: 4400, precioCompra: 3200, cliente: 'Susana', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 10, perfumeId: '' },
-      { perfume: 'The Kingdom', precioVenta: 2600, precioCompra: 1800, cliente: 'Susana', vendedor: 'Luccas', formaPago: 'cuotas', numCuotas: 2, nota: '', fecha: now - day * 15, perfumeId: '' },
-      { perfume: 'Haramain Gold', precioVenta: 3900, precioCompra: 2700, cliente: 'Pedro', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 5, perfumeId: '' },
-      { perfume: 'Bharara King', precioVenta: 3900, precioCompra: 2700, cliente: 'María', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 3, perfumeId: '' },
-      { perfume: 'Yara Rosa', precioVenta: 2500, precioCompra: 1700, cliente: 'Ana', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 2, perfumeId: '' },
-      { perfume: 'Lattafa Pride', precioVenta: 3200, precioCompra: 2200, cliente: 'Carlos', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 1, perfumeId: '' },
-      { perfume: 'Afnan 9PM', precioVenta: 3600, precioCompra: 2500, cliente: 'Laura', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 8, perfumeId: '' },
-      { perfume: 'Haramain Gold', precioVenta: 3900, precioCompra: 2700, cliente: 'Jorge', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 12, perfumeId: '' },
-      { perfume: 'Asad Negro', precioVenta: 2600, precioCompra: 1800, cliente: 'Lucía', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 7, perfumeId: '' },
-      { perfume: 'Yara EDT', precioVenta: 4400, precioCompra: 3200, cliente: 'Roberto', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 4, perfumeId: '' },
-      { perfume: 'Bharara King', precioVenta: 3900, precioCompra: 2700, cliente: 'Sofía', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 6, perfumeId: '' },
-      { perfume: 'Afnan 9PM', precioVenta: 3600, precioCompra: 2500, cliente: 'Diego', vendedor: 'Luccas', formaPago: 'contado', nota: '', fecha: now - day * 9, perfumeId: '' },
-      { perfume: 'Yara EDT', precioVenta: 4400, precioCompra: 3200, cliente: 'Martín', vendedor: 'Luccas', formaPago: 'contado', nota: 'Entrega el viernes', fecha: now, perfumeId: '' },
+      { perfume: 'Yara EDT', precioVenta: 4400, precioCompra: 3200, cliente: 'Susana', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 10, perfumeId: '' },
+      { perfume: 'The Kingdom', precioVenta: 2600, precioCompra: 1800, cliente: 'Susana', vendedor: 'Mi negocio', formaPago: 'cuotas', numCuotas: 2, nota: '', fecha: now - day * 15, perfumeId: '' },
+      { perfume: 'Haramain Gold', precioVenta: 3900, precioCompra: 2700, cliente: 'Pedro', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 5, perfumeId: '' },
+      { perfume: 'Bharara King', precioVenta: 3900, precioCompra: 2700, cliente: 'María', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 3, perfumeId: '' },
+      { perfume: 'Yara Rosa', precioVenta: 2500, precioCompra: 1700, cliente: 'Ana', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 2, perfumeId: '' },
+      { perfume: 'Lattafa Pride', precioVenta: 3200, precioCompra: 2200, cliente: 'Carlos', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 1, perfumeId: '' },
+      { perfume: 'Afnan 9PM', precioVenta: 3600, precioCompra: 2500, cliente: 'Laura', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 8, perfumeId: '' },
+      { perfume: 'Haramain Gold', precioVenta: 3900, precioCompra: 2700, cliente: 'Jorge', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 12, perfumeId: '' },
+      { perfume: 'Asad Negro', precioVenta: 2600, precioCompra: 1800, cliente: 'Lucía', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 7, perfumeId: '' },
+      { perfume: 'Yara EDT', precioVenta: 4400, precioCompra: 3200, cliente: 'Roberto', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 4, perfumeId: '' },
+      { perfume: 'Bharara King', precioVenta: 3900, precioCompra: 2700, cliente: 'Sofía', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 6, perfumeId: '' },
+      { perfume: 'Afnan 9PM', precioVenta: 3600, precioCompra: 2500, cliente: 'Diego', vendedor: 'Mi negocio', formaPago: 'contado', nota: '', fecha: now - day * 9, perfumeId: '' },
+      { perfume: 'Yara EDT', precioVenta: 4400, precioCompra: 3200, cliente: 'Martín', vendedor: 'Mi negocio', formaPago: 'contado', nota: 'Entrega el viernes', fecha: now, perfumeId: '' },
     ];
 
     for (const v of demoVentas) {
