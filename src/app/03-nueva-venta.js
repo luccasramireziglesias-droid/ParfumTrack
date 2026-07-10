@@ -209,11 +209,12 @@
   },
 
   renderPerfumeModal() {
-    const search = (document.getElementById('modal-perfume-search')?.value || '').toLowerCase();
+    const searchRaw = (document.getElementById('modal-perfume-search')?.value || '').trim();
+    const search = searchRaw.toLowerCase();
     let items = this.perfumes;
     if (search) items = items.filter(p => p.nombre.toLowerCase().includes(search));
 
-    document.getElementById('modal-perfume-list').innerHTML = items.map(p =>
+    let html = items.map(p =>
       `<div class="modal-item" onclick="App.selectPerfume(${p.id})">
         <div>
           <div class="modal-item-name">${this.esc(p.nombre)}</div>
@@ -222,6 +223,48 @@
         <span class="modal-item-price">${this.fmt(p.precioVenta)}</span>
       </div>`
     ).join('');
+
+    // UX-7: si lo buscado no existe en stock, ofrecer crearlo o venderlo suelto
+    const existeExacto = this.perfumes.some(p => p.nombre.toLowerCase() === search);
+    if (searchRaw && !existeExacto) {
+      html += `
+        <div class="modal-item" id="modal-item-crear">
+          <div>
+            <div class="modal-item-name" style="color:var(--gold2);">＋ Crear «${this.esc(searchRaw)}» en stock</div>
+            <div class="modal-item-stock">Se agrega al inventario y se vende</div>
+          </div>
+        </div>
+        <div class="modal-item" id="modal-item-libre">
+          <div>
+            <div class="modal-item-name">Vender «${this.esc(searchRaw)}» sin stock</div>
+            <div class="modal-item-stock">No se agrega al inventario</div>
+          </div>
+        </div>`;
+    }
+    const list = document.getElementById('modal-perfume-list');
+    list.innerHTML = html;
+    document.getElementById('modal-item-crear')?.addEventListener('click', () => this.crearPerfumeDesdeVenta(searchRaw));
+    document.getElementById('modal-item-libre')?.addEventListener('click', () => this.usarPerfumeLibre(searchRaw));
+  },
+
+  usarPerfumeLibre(nombre) {
+    document.getElementById('venta-perfume-id').value = '';
+    document.getElementById('venta-perfume-nombre').value = nombre;
+    document.getElementById('venta-perfume-display').textContent = nombre;
+    this.closeModal();
+    setTimeout(() => document.getElementById('venta-precio').focus(), 100);
+  },
+
+  async crearPerfumeDesdeVenta(nombre) {
+    // Precios en 0: se completan solos con los de esta venta al guardar
+    const id = await DB.addPerfume({ nombre, precioCompra: 0, precioVenta: 0, stock: 1, foto: null });
+    await this.loadData();
+    document.getElementById('venta-perfume-id').value = id;
+    document.getElementById('venta-perfume-nombre').value = nombre;
+    document.getElementById('venta-perfume-display').textContent = nombre;
+    this.closeModal();
+    this.toast('Perfume creado en stock', 'inventory_2');
+    setTimeout(() => document.getElementById('venta-precio').focus(), 100);
   },
 
   filterPerfumeModal() {
@@ -341,6 +384,16 @@
     } catch (e) {
       this.toast('Error al guardar la venta. Intentá de nuevo.', 'error');
       return;
+    }
+
+    // UX-7: si el perfume se creó al vuelo sin precios, copiarle los de esta venta
+    if (perfumeId) {
+      const p = await DB.get('perfumes', parseInt(perfumeId, 10));
+      if (p && !p.precioVenta && !p.precioCompra) {
+        p.precioVenta = pvFinal;
+        p.precioCompra = precioCompra;
+        await DB.put('perfumes', p);
+      }
     }
 
     await this.loadData();
