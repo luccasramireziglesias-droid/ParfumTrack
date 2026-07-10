@@ -963,6 +963,11 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   background: rgba(201,168,76,0.12);
 }
 
+.stock-btn.sell {
+  color: var(--green);
+  background: rgba(112,201,160,0.12);
+}
+
 /* ====== CUOTAS ====== */
 .owed-banner {
   display: flex;
@@ -4613,6 +4618,7 @@ const App = {
           <div class="stock-row">
             <span class="stock-price">${this.fmt(p.precioVenta)}</span>
             <div class="stock-controls">
+              <button class="stock-btn sell ms" onclick="App.venderDesdeStock(${p.id})" aria-label="Vender">sell</button>
               <button class="stock-btn minus ms" onclick="App.adjustStock(${p.id}, -1)">remove</button>
               <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)">add</button>
             </div>
@@ -5301,6 +5307,22 @@ const App = {
   },
 
   // ====== STOCK ======
+
+  // UX-2: vender directo desde la card de stock — abre Nueva Venta con el
+  // perfume y sus precios prefillados
+  venderDesdeStock(id) {
+    const p = this.perfumes.find(x => x.id === id);
+    if (!p) return;
+    this.showScreen('nueva-venta');
+    document.getElementById('venta-perfume-id').value = p.id;
+    document.getElementById('venta-perfume-nombre').value = p.nombre;
+    document.getElementById('venta-perfume-display').textContent = p.nombre;
+    document.getElementById('venta-precio').value = p.precioVenta || '';
+    document.getElementById('venta-compra').value = p.precioCompra || '';
+    this.calcLiveProfit();
+    this.toast('Perfume cargado — completá el cliente', 'sell');
+    setTimeout(() => document.getElementById('venta-cliente').focus(), 150);
+  },
 
   filterStock() {
     this.renderStock();
