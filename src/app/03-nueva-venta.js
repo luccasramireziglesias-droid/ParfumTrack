@@ -11,6 +11,12 @@
     return negocio || 'Mi negocio';
   },
 
+  // UX-6: los revendedores compran a 1-2 proveedores fijos — prefijar el último
+  _defaultProveedor() {
+    const ultimo = (this.ventas || []).find(v => v.proveedor);
+    return ultimo ? ultimo.proveedor : '';
+  },
+
   _checkVendedorRestriction() {
     const input = document.getElementById('venta-vendedor');
     const badge = document.getElementById('vendedor-pro-badge');
@@ -40,7 +46,7 @@
     document.getElementById('venta-compra').value = '';
     document.getElementById('venta-cliente').value = '';
     document.getElementById('venta-vendedor').value = this._defaultVendedor();
-    document.getElementById('venta-proveedor').value = '';
+    document.getElementById('venta-proveedor').value = this._defaultProveedor();
     document.getElementById('venta-descuento').value = '';
     document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
     document.getElementById('venta-nota').value = '';
