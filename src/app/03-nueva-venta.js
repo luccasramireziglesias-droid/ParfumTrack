@@ -51,6 +51,30 @@
     if (title) title.textContent = 'Nueva venta';
   },
 
+  // UX-1: repetir una venta existente — abre el form prefillado (fecha = hoy,
+  // cliente vacío: el caso típico es mismo perfume, otro cliente)
+  repetirVenta(id) {
+    const v = this.ventas.find(x => x.id === id);
+    if (!v) return;
+    this.showScreen('nueva-venta'); // resetea el form
+    document.getElementById('venta-perfume-id').value = v.perfumeId || '';
+    document.getElementById('venta-perfume-nombre').value = v.perfume;
+    document.getElementById('venta-perfume-display').textContent = v.perfume;
+    document.getElementById('venta-precio').value = v.precioOriginal || v.precioVenta;
+    document.getElementById('venta-compra').value = v.precioCompra;
+    document.getElementById('venta-proveedor').value = v.proveedor || '';
+    if (v.vendedor) document.getElementById('venta-vendedor').value = v.vendedor;
+    if (v.descuento) document.getElementById('venta-descuento').value = v.descuento;
+    this.setFormaPago(v.formaPago === 'cuotas' ? 'cuotas' : 'contado');
+    if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
+      document.getElementById('venta-num-cuotas').value = v.numCuotas;
+    }
+    this._checkVendedorRestriction();
+    this.calcLiveProfit();
+    this.toast('Venta copiada — completá el cliente', 'content_copy');
+    setTimeout(() => document.getElementById('venta-cliente').focus(), 150);
+  },
+
   calcLiveProfit() {
     const pv = parseFloat(document.getElementById('venta-precio').value) || 0;
     const pc = parseFloat(document.getElementById('venta-compra').value) || 0;

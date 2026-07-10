@@ -220,6 +220,7 @@
             <div class="venta-ganancia-value">${this.fmtSigned(gan)}</div>
           </div>
           <div class="venta-actions">
+            <button class="venta-action-btn ms" onclick="App.repetirVenta(${v.id})" aria-label="Vender de nuevo">repeat</button>
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
             <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})">delete</button>
           </div>
