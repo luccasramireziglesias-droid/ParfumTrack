@@ -38,6 +38,7 @@
     this.setFormaPago('contado');
     this.setPrimeraCuota(true);
     document.getElementById('venta-primer-pago').value = '';
+    this.toggleVentaDetalles(false);
     this.calcLiveProfit();
     this.setupAutocomplete();
     this._checkVendedorRestriction();
@@ -49,6 +50,18 @@
     }
     const title = document.querySelector('#screen-nueva-venta .sub-title');
     if (title) title.textContent = 'Nueva venta';
+  },
+
+  // UX-4: campos secundarios (proveedor, vendedor, descuento, fecha, nota)
+  // colapsados por defecto — el form rápido queda en 4 decisiones
+  toggleVentaDetalles(forzar) {
+    const panel = document.getElementById('venta-detalles');
+    const toggle = document.getElementById('venta-detalles-toggle');
+    if (!panel || !toggle) return;
+    const abrir = forzar !== undefined ? forzar : panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !abrir);
+    toggle.classList.toggle('open', abrir);
+    document.getElementById('venta-detalles-label').textContent = abrir ? 'Ocultar detalles' : 'Más detalles';
   },
 
   // UX-1: repetir una venta existente — abre el form prefillado (fecha = hoy,
@@ -70,6 +83,8 @@
       document.getElementById('venta-num-cuotas').value = v.numCuotas;
     }
     this._checkVendedorRestriction();
+    // Si la venta original usa campos secundarios, mostrarlos
+    if (v.proveedor || v.descuento || v.nota) this.toggleVentaDetalles(true);
     this.calcLiveProfit();
     this.toast('Venta copiada — completá el cliente', 'content_copy');
     setTimeout(() => document.getElementById('venta-cliente').focus(), 150);

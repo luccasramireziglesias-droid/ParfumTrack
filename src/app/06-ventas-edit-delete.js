@@ -29,6 +29,8 @@
     if (v.numCuotas > 1) {
       document.getElementById('venta-num-cuotas').value = v.numCuotas;
     }
+    // Al editar siempre mostrar los campos secundarios (fecha, nota, etc.)
+    this.toggleVentaDetalles(true);
 
     const saveBtn = document.querySelector('#screen-nueva-venta .btn-primary');
     if (saveBtn) {

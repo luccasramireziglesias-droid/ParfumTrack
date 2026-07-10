@@ -42,33 +42,9 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">PROVEEDOR</label>
-        <input type="text" class="form-input" id="venta-proveedor" placeholder="Nombre del proveedor…" autocomplete="off">
-        <div class="autocomplete-list hidden" id="ac-proveedor"></div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">CLIENTE</label>
-          <input type="text" class="form-input" id="venta-cliente" placeholder="Nombre…" autocomplete="off">
-          <div class="autocomplete-list hidden" id="ac-cliente"></div>
-        </div>
-        <div class="form-group" id="vendedor-group">
-          <label class="form-label">VENDEDOR <span class="pro-badge" id="vendedor-pro-badge" style="display:none;font-size:10px;background:var(--gold);color:var(--bg);padding:2px 6px;border-radius:3px;margin-left:6px;">PRO</span></label>
-          <input type="text" class="form-input" id="venta-vendedor" placeholder="Nombre…" value="Luccas" autocomplete="off">
-          <div class="autocomplete-list hidden" id="ac-vendedor"></div>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">DESCUENTO %</label>
-          <input type="number" class="form-input" id="venta-descuento" placeholder="0" min="0" max="100" oninput="App.calcLiveProfit()">
-        </div>
-        <div class="form-group">
-          <label class="form-label">FECHA</label>
-          <input type="date" class="form-input" id="venta-fecha">
-        </div>
+        <label class="form-label">CLIENTE</label>
+        <input type="text" class="form-input" id="venta-cliente" placeholder="Nombre…" autocomplete="off">
+        <div class="autocomplete-list hidden" id="ac-cliente"></div>
       </div>
 
       <div class="form-group">
@@ -95,9 +71,40 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">NOTA <span class="muted-label">(opcional)</span></label>
-        <input type="text" class="form-input" id="venta-nota" placeholder="Entrega el viernes…">
+      <button type="button" class="detalles-toggle" id="venta-detalles-toggle" onclick="App.toggleVentaDetalles()">
+        <span class="ms">tune</span>
+        <span id="venta-detalles-label">Más detalles</span>
+        <span class="ms detalles-chevron" id="venta-detalles-chevron">expand_more</span>
+      </button>
+
+      <div class="hidden" id="venta-detalles">
+        <div class="form-group">
+          <label class="form-label">PROVEEDOR</label>
+          <input type="text" class="form-input" id="venta-proveedor" placeholder="Nombre del proveedor…" autocomplete="off">
+          <div class="autocomplete-list hidden" id="ac-proveedor"></div>
+        </div>
+
+        <div class="form-group" id="vendedor-group">
+          <label class="form-label">VENDEDOR <span class="pro-badge" id="vendedor-pro-badge" style="display:none;font-size:10px;background:var(--gold);color:var(--bg);padding:2px 6px;border-radius:3px;margin-left:6px;">PRO</span></label>
+          <input type="text" class="form-input" id="venta-vendedor" placeholder="Nombre…" autocomplete="off">
+          <div class="autocomplete-list hidden" id="ac-vendedor"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">DESCUENTO %</label>
+            <input type="number" class="form-input" id="venta-descuento" placeholder="0" min="0" max="100" oninput="App.calcLiveProfit()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">FECHA</label>
+            <input type="date" class="form-input" id="venta-fecha">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">NOTA <span class="muted-label">(opcional)</span></label>
+          <input type="text" class="form-input" id="venta-nota" placeholder="Entrega el viernes…">
+        </div>
       </div>
 
       <div class="save-bar">

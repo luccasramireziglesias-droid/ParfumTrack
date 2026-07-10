@@ -688,6 +688,30 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   font-weight: 700;
 }
 
+
+/* UX-4: colapsable "Más detalles" en nueva venta */
+.detalles-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: 1px dashed var(--border, rgba(201,168,76,0.25));
+  border-radius: 10px;
+  padding: 11px 14px;
+  margin-bottom: 14px;
+  color: var(--text3);
+  font: 600 12px 'DM Sans', sans-serif;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+.detalles-toggle .ms { font-size: 17px; color: var(--gold); }
+.detalles-toggle .detalles-chevron {
+  margin-left: auto;
+  color: var(--text3);
+  transition: transform 0.2s;
+}
+.detalles-toggle.open .detalles-chevron { transform: rotate(180deg); }
 /* ====== BUTTONS ====== */
 .btn-primary {
   display: flex;
@@ -2401,33 +2425,9 @@ input[type="date"].form-input {
       </div>
 
       <div class="form-group">
-        <label class="form-label">PROVEEDOR</label>
-        <input type="text" class="form-input" id="venta-proveedor" placeholder="Nombre del proveedor…" autocomplete="off">
-        <div class="autocomplete-list hidden" id="ac-proveedor"></div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">CLIENTE</label>
-          <input type="text" class="form-input" id="venta-cliente" placeholder="Nombre…" autocomplete="off">
-          <div class="autocomplete-list hidden" id="ac-cliente"></div>
-        </div>
-        <div class="form-group" id="vendedor-group">
-          <label class="form-label">VENDEDOR <span class="pro-badge" id="vendedor-pro-badge" style="display:none;font-size:10px;background:var(--gold);color:var(--bg);padding:2px 6px;border-radius:3px;margin-left:6px;">PRO</span></label>
-          <input type="text" class="form-input" id="venta-vendedor" placeholder="Nombre…" value="Luccas" autocomplete="off">
-          <div class="autocomplete-list hidden" id="ac-vendedor"></div>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">DESCUENTO %</label>
-          <input type="number" class="form-input" id="venta-descuento" placeholder="0" min="0" max="100" oninput="App.calcLiveProfit()">
-        </div>
-        <div class="form-group">
-          <label class="form-label">FECHA</label>
-          <input type="date" class="form-input" id="venta-fecha">
-        </div>
+        <label class="form-label">CLIENTE</label>
+        <input type="text" class="form-input" id="venta-cliente" placeholder="Nombre…" autocomplete="off">
+        <div class="autocomplete-list hidden" id="ac-cliente"></div>
       </div>
 
       <div class="form-group">
@@ -2454,9 +2454,40 @@ input[type="date"].form-input {
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">NOTA <span class="muted-label">(opcional)</span></label>
-        <input type="text" class="form-input" id="venta-nota" placeholder="Entrega el viernes…">
+      <button type="button" class="detalles-toggle" id="venta-detalles-toggle" onclick="App.toggleVentaDetalles()">
+        <span class="ms">tune</span>
+        <span id="venta-detalles-label">Más detalles</span>
+        <span class="ms detalles-chevron" id="venta-detalles-chevron">expand_more</span>
+      </button>
+
+      <div class="hidden" id="venta-detalles">
+        <div class="form-group">
+          <label class="form-label">PROVEEDOR</label>
+          <input type="text" class="form-input" id="venta-proveedor" placeholder="Nombre del proveedor…" autocomplete="off">
+          <div class="autocomplete-list hidden" id="ac-proveedor"></div>
+        </div>
+
+        <div class="form-group" id="vendedor-group">
+          <label class="form-label">VENDEDOR <span class="pro-badge" id="vendedor-pro-badge" style="display:none;font-size:10px;background:var(--gold);color:var(--bg);padding:2px 6px;border-radius:3px;margin-left:6px;">PRO</span></label>
+          <input type="text" class="form-input" id="venta-vendedor" placeholder="Nombre…" autocomplete="off">
+          <div class="autocomplete-list hidden" id="ac-vendedor"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">DESCUENTO %</label>
+            <input type="number" class="form-input" id="venta-descuento" placeholder="0" min="0" max="100" oninput="App.calcLiveProfit()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">FECHA</label>
+            <input type="date" class="form-input" id="venta-fecha">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">NOTA <span class="muted-label">(opcional)</span></label>
+          <input type="text" class="form-input" id="venta-nota" placeholder="Entrega el viernes…">
+        </div>
       </div>
 
       <div class="save-bar">
@@ -5023,6 +5054,7 @@ const App = {
     this.setFormaPago('contado');
     this.setPrimeraCuota(true);
     document.getElementById('venta-primer-pago').value = '';
+    this.toggleVentaDetalles(false);
     this.calcLiveProfit();
     this.setupAutocomplete();
     this._checkVendedorRestriction();
@@ -5034,6 +5066,18 @@ const App = {
     }
     const title = document.querySelector('#screen-nueva-venta .sub-title');
     if (title) title.textContent = 'Nueva venta';
+  },
+
+  // UX-4: campos secundarios (proveedor, vendedor, descuento, fecha, nota)
+  // colapsados por defecto — el form rápido queda en 4 decisiones
+  toggleVentaDetalles(forzar) {
+    const panel = document.getElementById('venta-detalles');
+    const toggle = document.getElementById('venta-detalles-toggle');
+    if (!panel || !toggle) return;
+    const abrir = forzar !== undefined ? forzar : panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !abrir);
+    toggle.classList.toggle('open', abrir);
+    document.getElementById('venta-detalles-label').textContent = abrir ? 'Ocultar detalles' : 'Más detalles';
   },
 
   // UX-1: repetir una venta existente — abre el form prefillado (fecha = hoy,
@@ -5055,6 +5099,8 @@ const App = {
       document.getElementById('venta-num-cuotas').value = v.numCuotas;
     }
     this._checkVendedorRestriction();
+    // Si la venta original usa campos secundarios, mostrarlos
+    if (v.proveedor || v.descuento || v.nota) this.toggleVentaDetalles(true);
     this.calcLiveProfit();
     this.toast('Venta copiada — completá el cliente', 'content_copy');
     setTimeout(() => document.getElementById('venta-cliente').focus(), 150);
@@ -5575,6 +5621,8 @@ const App = {
     if (v.numCuotas > 1) {
       document.getElementById('venta-num-cuotas').value = v.numCuotas;
     }
+    // Al editar siempre mostrar los campos secundarios (fecha, nota, etc.)
+    this.toggleVentaDetalles(true);
 
     const saveBtn = document.querySelector('#screen-nueva-venta .btn-primary');
     if (saveBtn) {
