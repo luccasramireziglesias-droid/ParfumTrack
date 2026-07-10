@@ -134,8 +134,8 @@
 
   async savePerfume() {
     const nombre = document.getElementById('add-perfume-nombre').value.trim();
-    const precioCompra = parseFloat(document.getElementById('add-perfume-compra').value) || 0;
-    const precioVenta = parseFloat(document.getElementById('add-perfume-venta').value) || 0;
+    const precioCompra = this.parseMonto(document.getElementById('add-perfume-compra').value) || 0;
+    const precioVenta = this.parseMonto(document.getElementById('add-perfume-venta').value) || 0;
     const stock = parseInt(document.getElementById('add-perfume-stock').value) || 0;
 
     if (!nombre) {

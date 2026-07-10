@@ -76,8 +76,8 @@
   },
 
   calcLiveProfit() {
-    const pv = parseFloat(document.getElementById('venta-precio').value) || 0;
-    const pc = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const pv = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const pc = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const desc = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const pvFinal = desc > 0 ? Math.round(pv * (1 - desc / 100)) : pv;
     const gan = pvFinal - pc;
@@ -212,8 +212,8 @@
 
   async guardarVenta() {
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
-    const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
     let vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;

@@ -9,7 +9,7 @@
   },
 
   async guardarCaja() {
-    const monto = parseFloat(document.getElementById('caja-monto').value) || 0;
+    const monto = this.parseMonto(document.getElementById('caja-monto').value) || 0;
     const desc = document.getElementById('caja-desc').value.trim();
     if (monto <= 0) { this.toast('Ingresá un monto', 'warning'); return; }
 

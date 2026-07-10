@@ -2392,11 +2392,11 @@ input[type="date"].form-input {
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">PRECIO VENTA</label>
-          <input type="number" class="form-input" id="venta-precio" placeholder="0" oninput="App.calcLiveProfit()">
+          <input type="text" class="form-input" id="venta-precio" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcLiveProfit()">
         </div>
         <div class="form-group">
           <label class="form-label">PRECIO COMPRA</label>
-          <input type="number" class="form-input" id="venta-compra" placeholder="0" oninput="App.calcLiveProfit()">
+          <input type="text" class="form-input" id="venta-compra" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcLiveProfit()">
         </div>
       </div>
 
@@ -2746,7 +2746,7 @@ input[type="date"].form-input {
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">MONTO</label>
-          <input type="number" class="form-input" id="caja-monto" placeholder="0">
+          <input type="text" class="form-input" id="caja-monto" placeholder="0" inputmode="decimal" autocomplete="off">
         </div>
         <div class="form-group">
           <label class="form-label">DESCRIPCIÓN</label>
@@ -2792,7 +2792,7 @@ input[type="date"].form-input {
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">MONTO</label>
-          <input type="number" class="form-input" id="gasto-monto" placeholder="0">
+          <input type="text" class="form-input" id="gasto-monto" placeholder="0" inputmode="decimal" autocomplete="off">
         </div>
         <div class="form-group">
           <label class="form-label">DESCRIPCIÓN</label>
@@ -3009,11 +3009,11 @@ input[type="date"].form-input {
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">PRECIO COMPRA</label>
-          <input type="number" class="form-input" id="add-perfume-compra" placeholder="0">
+          <input type="text" class="form-input" id="add-perfume-compra" placeholder="0" inputmode="decimal" autocomplete="off">
         </div>
         <div class="form-group">
           <label class="form-label">PRECIO VENTA</label>
-          <input type="number" class="form-input" id="add-perfume-venta" placeholder="0">
+          <input type="text" class="form-input" id="add-perfume-venta" placeholder="0" inputmode="decimal" autocomplete="off">
         </div>
       </div>
       <div class="form-group">
@@ -5061,8 +5061,8 @@ const App = {
   },
 
   calcLiveProfit() {
-    const pv = parseFloat(document.getElementById('venta-precio').value) || 0;
-    const pc = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const pv = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const pc = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const desc = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const pvFinal = desc > 0 ? Math.round(pv * (1 - desc / 100)) : pv;
     const gan = pvFinal - pc;
@@ -5197,8 +5197,8 @@ const App = {
 
   async guardarVenta() {
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
-    const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
     let vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
@@ -5440,8 +5440,8 @@ const App = {
 
   async savePerfume() {
     const nombre = document.getElementById('add-perfume-nombre').value.trim();
-    const precioCompra = parseFloat(document.getElementById('add-perfume-compra').value) || 0;
-    const precioVenta = parseFloat(document.getElementById('add-perfume-venta').value) || 0;
+    const precioCompra = this.parseMonto(document.getElementById('add-perfume-compra').value) || 0;
+    const precioVenta = this.parseMonto(document.getElementById('add-perfume-venta').value) || 0;
     const stock = parseInt(document.getElementById('add-perfume-stock').value) || 0;
 
     if (!nombre) {
@@ -5593,8 +5593,8 @@ const App = {
     if (!id) return;
 
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
-    const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
     let vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
@@ -6075,7 +6075,7 @@ const App = {
   },
 
   async guardarCaja() {
-    const monto = parseFloat(document.getElementById('caja-monto').value) || 0;
+    const monto = this.parseMonto(document.getElementById('caja-monto').value) || 0;
     const desc = document.getElementById('caja-desc').value.trim();
     if (monto <= 0) { this.toast('Ingresá un monto', 'warning'); return; }
 
@@ -6154,7 +6154,7 @@ const App = {
   },
 
   async guardarGasto() {
-    const monto = parseFloat(document.getElementById('gasto-monto').value) || 0;
+    const monto = this.parseMonto(document.getElementById('gasto-monto').value) || 0;
     const desc = document.getElementById('gasto-desc').value.trim();
     if (monto <= 0) { this.toast('Ingresá un monto', 'warning'); return; }
 

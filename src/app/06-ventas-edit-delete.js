@@ -47,8 +47,8 @@
     if (!id) return;
 
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
-    const precioVenta = parseFloat(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = parseFloat(document.getElementById('venta-compra').value) || 0;
+    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const cliente = document.getElementById('venta-cliente').value;
     let vendedor = document.getElementById('venta-vendedor').value;
     const proveedor = document.getElementById('venta-proveedor').value;
