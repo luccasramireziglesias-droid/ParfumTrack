@@ -16,6 +16,7 @@
   async init() {
     await DB.init();
     await DB.seedDemo();
+    await DB.dedupEncryptedRecords();
     await this._fixCorruptDates();
     await this._fixStringCuotaIds();
     await this._fixCuotasSaldadas();

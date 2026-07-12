@@ -201,6 +201,7 @@
       if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
     }
     // Los backups pueden traer ids string o cuotas ya cubiertas sin marcar
+    await DB.dedupEncryptedRecords();
     await this._fixStringCuotaIds();
     await this._fixCuotasSaldadas();
     await this.loadData();
