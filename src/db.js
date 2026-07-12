@@ -13,7 +13,11 @@
     if (!this._shouldEncrypt(store)) return data;
     try {
       const encrypted = await ENCRYPTION.encryptDataWithVersion(data);
-      return { _encrypted: encrypted, _v: 1 };
+      // CRÍTICO: conservar la clave (id) fuera del payload — sin esto, put()
+      // no encuentra el registro existente y lo INSERTA duplicado
+      const wrapper = { _encrypted: encrypted, _v: 1 };
+      if (data && data.id !== undefined) wrapper.id = data.id;
+      return wrapper;
     } catch (e) {
       console.warn('Encryption failed, storing plaintext:', e.message);
       return data;
@@ -27,13 +31,49 @@
     }
     if (data._encrypted && data._v) {
       try {
-        return await ENCRYPTION.decryptDataWithVersion(data._encrypted);
+        const obj = await ENCRYPTION.decryptDataWithVersion(data._encrypted);
+        // La clave real del store es la autoridad: sana payloads guardados
+        // sin id (add pre-fix) o con id viejo (duplicados por put pre-fix)
+        if (obj && typeof obj === 'object' && data.id !== undefined) obj.id = data.id;
+        return obj;
       } catch (e) {
         console.warn('Decryption failed, returning as-is:', e.message);
         return data;
       }
     }
     return data;
+  },
+
+  // Sana duplicados creados por el bug de put()+encriptación: registros cuyo
+  // payload interno apunta a otro id (el original). Se queda con la escritura
+  // más reciente (outer id más alto), la reescribe bajo el id original y
+  // borra las copias. Idempotente — corre en cada init.
+  async dedupEncryptedRecords() {
+    if (!localStorage.getItem('pt_license_code')) return 0;
+    let curados = 0;
+    for (const store of this._encryptedStores) {
+      let raw;
+      try { await openDB(); raw = await reqP(tx(store).getAll()); } catch { continue; }
+      const grupos = {};
+      for (const r of raw) {
+        if (!r || !r._encrypted || r.id === undefined) continue;
+        let payload;
+        try { payload = await ENCRYPTION.decryptDataWithVersion(r._encrypted); } catch { continue; }
+        if (!payload || payload.id === undefined || payload.id === r.id) continue;
+        if (!grupos[payload.id]) grupos[payload.id] = [];
+        grupos[payload.id].push({ outer: r.id, payload });
+      }
+      for (const innerId of Object.keys(grupos)) {
+        const dups = grupos[innerId].sort((a, b) => b.outer - a.outer);
+        const ganador = dups[0].payload; // la escritura más reciente
+        try {
+          await this.put(store, ganador); // tras el fix escribe bajo su id original
+          for (const d of dups) await this.delete(store, d.outer);
+          curados += dups.length;
+        } catch (e) { console.warn('dedup', store, e.message); }
+      }
+    }
+    return curados;
   },
 
   async getAll(store) {
