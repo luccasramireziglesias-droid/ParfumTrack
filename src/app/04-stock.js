@@ -105,8 +105,15 @@
 
   _pendingPerfumePhoto: '',
 
+  _editingPerfumeId: null,
+
   openAddPerfume() {
+    this._editingPerfumeId = null;
     document.getElementById('modal-add-perfume').classList.remove('hidden');
+    document.getElementById('add-perfume-title').textContent = 'Agregar perfume';
+    document.getElementById('add-perfume-stock-label').textContent = 'STOCK INICIAL';
+    document.getElementById('add-perfume-save-btn').innerHTML = '<span class="ms">save</span>Guardar perfume';
+    document.getElementById('add-perfume-delete-btn').classList.add('hidden');
     document.getElementById('add-perfume-nombre').value = '';
     document.getElementById('add-perfume-compra').value = '';
     document.getElementById('add-perfume-venta').value = '';
@@ -116,6 +123,52 @@
     document.getElementById('add-perfume-photo-preview').innerHTML =
       '<span class="ms" style="font-size:32px;">add_a_photo</span><span>Tocar para agregar foto</span>';
     document.getElementById('add-perfume-photo-preview').className = 'photo-preview-empty';
+  },
+
+  // Editar todos los datos del perfume (nombre, precios, stock, foto) y
+  // eliminarlo del stock — reutiliza el modal de alta
+  openEditPerfume(id) {
+    const p = this.perfumes.find(x => x.id === id);
+    if (!p) return;
+    this.openAddPerfume(); // resetea el modal
+    this._editingPerfumeId = id;
+    document.getElementById('add-perfume-title').textContent = 'Editar perfume';
+    document.getElementById('add-perfume-stock-label').textContent = 'STOCK';
+    document.getElementById('add-perfume-save-btn').innerHTML = '<span class="ms">save</span>Guardar cambios';
+    document.getElementById('add-perfume-delete-btn').classList.remove('hidden');
+    document.getElementById('add-perfume-nombre').value = p.nombre || '';
+    document.getElementById('add-perfume-compra').value = p.precioCompra || '';
+    document.getElementById('add-perfume-venta').value = p.precioVenta || '';
+    document.getElementById('add-perfume-stock').value = p.stock ?? 0;
+    if (p.foto && /^data:image\//.test(p.foto)) {
+      const preview = document.getElementById('add-perfume-photo-preview');
+      preview.className = '';
+      preview.innerHTML = `<img class="photo-preview-img" src="${p.foto}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
+    }
+  },
+
+  async deletePerfumeDesdeModal() {
+    const id = this._editingPerfumeId;
+    if (id === null) return;
+    const p = this.perfumes.find(x => x.id === id);
+    const ok = await this.appConfirm(
+      `¿Eliminar «${p ? p.nombre : 'este perfume'}» del stock? Las ventas ya registradas no se tocan.`,
+      'Eliminar',
+      'delete'
+    );
+    if (!ok) return;
+    try {
+      await DB.deletePerfume(id);
+    } catch (e) {
+      this.toast('Error al eliminar el perfume', 'error');
+      return;
+    }
+    this._editingPerfumeId = null;
+    await this.loadData();
+    this.closeAddPerfume();
+    this.renderStock();
+    this.toast('Perfume eliminado del stock', 'delete');
+    this._notifyTabs();
   },
 
   closeAddPerfume() {
@@ -143,13 +196,37 @@
       return;
     }
 
+    // Modo edición: actualizar el existente (sin límite de plan)
+    if (this._editingPerfumeId !== null) {
+      const p = this.perfumes.find(x => x.id === this._editingPerfumeId);
+      if (!p) { this.toast('No se encontró el perfume', 'error'); return; }
+      p.nombre = nombre;
+      p.precioCompra = precioCompra;
+      p.precioVenta = precioVenta;
+      p.stock = stock;
+      if (this._pendingPerfumePhoto) p.foto = this._pendingPerfumePhoto;
+      try {
+        await DB.updatePerfume(p);
+      } catch (e) {
+        this.toast('Error al guardar los cambios', 'error');
+        return;
+      }
+      this._editingPerfumeId = null;
+      this._pendingPerfumePhoto = '';
+      await this.loadData();
+      this.closeAddPerfume();
+      this.renderStock();
+      this.toast('Perfume actualizado', 'check_circle');
+      this._notifyTabs();
+      return;
+    }
+
     // Plan limit check: Free = max 30 perfumes
     if (!this.isPro() && this.perfumes.length >= 30) {
       this.appConfirm(
-        'Límite de stock alcanzado',
-        'Plan Free: máx 30 perfumes. Tenés que actualizar a Básico Pro para agregar más.',
+        'Plan Free: máx 30 perfumes en stock. Actualizá a Básico Pro para agregar más.',
         'Actualizar plan',
-        'Cancelar'
+        'workspace_premium'
       ).then(result => {
         if (result) this.showScreen('cuenta');
       });
