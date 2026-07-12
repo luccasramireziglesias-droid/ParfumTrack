@@ -203,14 +203,15 @@
 
 .stock-controls {
   display: flex;
-  gap: 4px;
+  gap: 3px;
 }
 
 .stock-btn {
   font-family: 'Material Symbols Rounded';
-  font-size: 16px;
-  width: 30px;
-  height: 28px;
+  font-size: 15px;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
   border-radius: 7px;
   border: none;
   cursor: pointer;
@@ -237,3 +238,8 @@
   background: rgba(112,201,160,0.12);
 }
 
+
+.stock-btn.edit {
+  color: var(--text2);
+  background: rgba(255,255,255,0.08);
+}

@@ -353,10 +353,9 @@
       const newCuotasCount = numCuotas - cubiertas;
       if (pendingCuotas + newCuotasCount > 10) {
         this.appConfirm(
-          'Límite de cuotas alcanzado',
-          `Plan Free: máx 10 cuotas pendientes. Tenés ${pendingCuotas} pendientes y querés agregar ${newCuotasCount}.\n\nActualiza a Básico Pro para ilimitadas.`,
+          `Plan Free: máx 10 cuotas pendientes. Tenés ${pendingCuotas} y querés agregar ${newCuotasCount}. Actualizá a Básico Pro para ilimitadas.`,
           'Actualizar plan',
-          'Cancelar'
+          'workspace_premium'
         ).then(result => {
           if (result) this.showScreen('cuenta');
         });

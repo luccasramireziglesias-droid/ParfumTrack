@@ -312,6 +312,7 @@
             <span class="stock-price">${this.fmt(p.precioVenta)}</span>
             <div class="stock-controls">
               <button class="stock-btn sell ms" onclick="App.venderDesdeStock(${p.id})" aria-label="Vender">sell</button>
+              <button class="stock-btn edit ms" onclick="App.openEditPerfume(${p.id})" aria-label="Editar">edit</button>
               <button class="stock-btn minus ms" onclick="App.adjustStock(${p.id}, -1)">remove</button>
               <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)">add</button>
             </div>
