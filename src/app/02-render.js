@@ -61,8 +61,8 @@
       return d.getMonth() === displayMonth && d.getFullYear() === displayYear;
     });
 
-    // BUG #6 FIX: Usar precioOriginal (antes de descuento) para ganancia bruta
-    const ganancia = thisMonth.reduce((s, v) => s + ((v.precioOriginal || v.precioVenta) - v.precioCompra), 0);
+    // Ganancia REAL = lo cobrado (precioVenta, ya con descuento) menos el costo
+    const ganancia = thisMonth.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
     const totalVentas = thisMonth.length;
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 
@@ -187,8 +187,8 @@
         </div>`;
     }
 
-    // BUG #6 FIX: Usar precioOriginal para ganancia bruta
-    const gan = (v.precioOriginal || v.precioVenta) - v.precioCompra;
+    // Ganancia REAL = lo cobrado (precioVenta, ya con descuento) menos el costo
+    const gan = v.precioVenta - v.precioCompra;
     const esCuotas = v.formaPago === 'cuotas';
     return `<div class="${cls}"${styleAttr}>
         <div class="venta-top">
@@ -554,8 +554,8 @@
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
 
-    // BUG #6 FIX: Usar precioOriginal (antes de descuento) para ganancia bruta
-    const ganancia = thisMonth.reduce((s, v) => s + ((v.precioOriginal || v.precioVenta) - v.precioCompra), 0);
+    // Ganancia REAL = lo cobrado (precioVenta, ya con descuento) menos el costo
+    const ganancia = thisMonth.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
     const gastos = thisMonth.reduce((s, v) => s + v.precioCompra, 0);
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 

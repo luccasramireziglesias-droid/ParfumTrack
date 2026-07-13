@@ -156,7 +156,11 @@
     this.renderPedidoPerfumesList();
   },
 
-  async guardarPedido() {
+  guardarPedido() {
+    return this._once('pedido', () => this._guardarPedidoImpl(), document.querySelector('#screen-nuevo-pedido .btn-primary'));
+  },
+
+  async _guardarPedidoImpl() {
     const nombre = document.getElementById('pedido-nombre').value.trim();
     const cedula = document.getElementById('pedido-cedula').value.trim();
     const transporte = document.getElementById('pedido-transporte').value.trim();

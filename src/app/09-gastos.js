@@ -39,7 +39,11 @@
     });
   },
 
-  async guardarGasto() {
+  guardarGasto() {
+    return this._once('gasto', () => this._guardarGastoImpl(), document.querySelector('#screen-gastos .btn-primary'));
+  },
+
+  async _guardarGastoImpl() {
     const monto = this.parseMonto(document.getElementById('gasto-monto').value) || 0;
     const desc = document.getElementById('gasto-desc').value.trim();
     if (monto <= 0) { this.toast('Ingresá un monto', 'warning'); return; }

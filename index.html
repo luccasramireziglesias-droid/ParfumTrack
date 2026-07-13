@@ -4452,8 +4452,8 @@ const App = {
       return d.getMonth() === displayMonth && d.getFullYear() === displayYear;
     });
 
-    // BUG #6 FIX: Usar precioOriginal (antes de descuento) para ganancia bruta
-    const ganancia = thisMonth.reduce((s, v) => s + ((v.precioOriginal || v.precioVenta) - v.precioCompra), 0);
+    // Ganancia REAL = lo cobrado (precioVenta, ya con descuento) menos el costo
+    const ganancia = thisMonth.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
     const totalVentas = thisMonth.length;
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 
@@ -4578,8 +4578,8 @@ const App = {
         </div>`;
     }
 
-    // BUG #6 FIX: Usar precioOriginal para ganancia bruta
-    const gan = (v.precioOriginal || v.precioVenta) - v.precioCompra;
+    // Ganancia REAL = lo cobrado (precioVenta, ya con descuento) menos el costo
+    const gan = v.precioVenta - v.precioCompra;
     const esCuotas = v.formaPago === 'cuotas';
     return `<div class="${cls}"${styleAttr}>
         <div class="venta-top">
@@ -4945,8 +4945,8 @@ const App = {
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
 
-    // BUG #6 FIX: Usar precioOriginal (antes de descuento) para ganancia bruta
-    const ganancia = thisMonth.reduce((s, v) => s + ((v.precioOriginal || v.precioVenta) - v.precioCompra), 0);
+    // Ganancia REAL = lo cobrado (precioVenta, ya con descuento) menos el costo
+    const ganancia = thisMonth.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
     const gastos = thisMonth.reduce((s, v) => s + v.precioCompra, 0);
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 
@@ -5355,7 +5355,11 @@ const App = {
     this.closeModal();
   },
 
-  async guardarVenta() {
+  guardarVenta() {
+    return this._once('venta', () => this._guardarVentaImpl(), document.querySelector('#screen-nueva-venta .btn-primary'));
+  },
+
+  async _guardarVentaImpl() {
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
     const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
     const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
@@ -5663,7 +5667,11 @@ const App = {
     preview.innerHTML = `<img class="photo-preview-img" src="${dataUrl}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
   },
 
-  async savePerfume() {
+  savePerfume() {
+    return this._once('perfume', () => this._savePerfumeImpl(), document.getElementById('add-perfume-save-btn'));
+  },
+
+  async _savePerfumeImpl() {
     const nombre = document.getElementById('add-perfume-nombre').value.trim();
     const precioCompra = this.parseMonto(document.getElementById('add-perfume-compra').value) || 0;
     const precioVenta = this.parseMonto(document.getElementById('add-perfume-venta').value) || 0;
@@ -6103,7 +6111,11 @@ const App = {
     this.renderPedidoPerfumesList();
   },
 
-  async guardarPedido() {
+  guardarPedido() {
+    return this._once('pedido', () => this._guardarPedidoImpl(), document.querySelector('#screen-nuevo-pedido .btn-primary'));
+  },
+
+  async _guardarPedidoImpl() {
     const nombre = document.getElementById('pedido-nombre').value.trim();
     const cedula = document.getElementById('pedido-cedula').value.trim();
     const transporte = document.getElementById('pedido-transporte').value.trim();
@@ -6435,7 +6447,11 @@ const App = {
     });
   },
 
-  async guardarGasto() {
+  guardarGasto() {
+    return this._once('gasto', () => this._guardarGastoImpl(), document.querySelector('#screen-gastos .btn-primary'));
+  },
+
+  async _guardarGastoImpl() {
     const monto = this.parseMonto(document.getElementById('gasto-monto').value) || 0;
     const desc = document.getElementById('gasto-desc').value.trim();
     if (monto <= 0) { this.toast('Ingresá un monto', 'warning'); return; }
@@ -7272,6 +7288,22 @@ const App = {
   // ====== UTILS ======
 
   _moneda: '$',
+
+  // Guarda anti doble-submit: evita que un doble/triple-toque en un botón
+  // "Guardar" async ejecute la operación más de una vez. Envuelve el handler
+  // y deshabilita el botón mientras corre.
+  _saveGuards: {},
+  async _once(key, fn, btnEl) {
+    if (this._saveGuards[key]) return;
+    this._saveGuards[key] = true;
+    if (btnEl) btnEl.disabled = true;
+    try {
+      return await fn();
+    } finally {
+      this._saveGuards[key] = false;
+      if (btnEl) btnEl.disabled = false;
+    }
+  },
 
   fmt(n, forceAbs) {
     const sep = this._moneda.length > 1 ? ' ' : '';

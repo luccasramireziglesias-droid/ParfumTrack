@@ -185,7 +185,11 @@
     preview.innerHTML = `<img class="photo-preview-img" src="${dataUrl}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
   },
 
-  async savePerfume() {
+  savePerfume() {
+    return this._once('perfume', () => this._savePerfumeImpl(), document.getElementById('add-perfume-save-btn'));
+  },
+
+  async _savePerfumeImpl() {
     const nombre = document.getElementById('add-perfume-nombre').value.trim();
     const precioCompra = this.parseMonto(document.getElementById('add-perfume-compra').value) || 0;
     const precioVenta = this.parseMonto(document.getElementById('add-perfume-venta').value) || 0;

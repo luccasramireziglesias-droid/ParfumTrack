@@ -285,7 +285,11 @@
     this.closeModal();
   },
 
-  async guardarVenta() {
+  guardarVenta() {
+    return this._once('venta', () => this._guardarVentaImpl(), document.querySelector('#screen-nueva-venta .btn-primary'));
+  },
+
+  async _guardarVentaImpl() {
     const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
     const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
     const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
