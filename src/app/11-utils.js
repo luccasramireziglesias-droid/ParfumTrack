@@ -4,6 +4,22 @@
 
   _moneda: '$',
 
+  // Guarda anti doble-submit: evita que un doble/triple-toque en un botón
+  // "Guardar" async ejecute la operación más de una vez. Envuelve el handler
+  // y deshabilita el botón mientras corre.
+  _saveGuards: {},
+  async _once(key, fn, btnEl) {
+    if (this._saveGuards[key]) return;
+    this._saveGuards[key] = true;
+    if (btnEl) btnEl.disabled = true;
+    try {
+      return await fn();
+    } finally {
+      this._saveGuards[key] = false;
+      if (btnEl) btnEl.disabled = false;
+    }
+  },
+
   fmt(n, forceAbs) {
     const sep = this._moneda.length > 1 ? ' ' : '';
     if (n === undefined || n === null) return this._moneda + sep + '0';

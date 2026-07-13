@@ -171,6 +171,16 @@
   async _fixCuotasSaldadas() {
     const cuotas = await DB.getAll('cuotas');
 
+    // BUG-03: acotar montoPagado > monto (datos viejos o backups adulterados)
+    // que dejan el total "a cobrar" en negativo
+    for (const c of cuotas) {
+      if ((c.montoPagado || 0) > (c.monto || 0)) {
+        c.montoPagado = c.monto || 0;
+        c.pagado = true;
+        await DB.put('cuotas', c);
+      }
+    }
+
     // 1) Cuota individualmente cubierta pero sin marcar como pagada
     for (const c of cuotas) {
       if (!c.pagado && (c.monto || 0) > 0 && (c.montoPagado || 0) >= c.monto - 0.01) {
