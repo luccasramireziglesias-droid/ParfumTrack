@@ -299,12 +299,13 @@
     }
 
     grid.innerHTML = items.map(p => {
-      const badgeClass = p.stock === 0 ? 'zero' : p.stock <= 3 ? 'low' : 'high';
+      const stockView = Math.max(0, p.stock || 0); // BUG-07: nunca mostrar stock negativo
+      const badgeClass = stockView === 0 ? 'zero' : stockView <= 3 ? 'low' : 'high';
       const hasFoto = p.foto && /^data:image\//.test(p.foto);
       return `<div class="stock-card">
         <div class="stock-photo" ${hasFoto ? `data-photo-id="${p.id}"` : ''} onclick="App.changeStockPhoto(${p.id})" style="cursor:pointer" title="Tocar para ${p.foto ? 'cambiar' : 'agregar'} foto">
           <span class="ms stock-photo-label" style="font-size:28px;">photo_camera</span>
-          <span class="stock-badge ${badgeClass}">${p.stock}</span>
+          <span class="stock-badge ${badgeClass}">${stockView}</span>
         </div>
         <div class="stock-info">
           <div class="stock-name">${this.esc(p.nombre)}</div>

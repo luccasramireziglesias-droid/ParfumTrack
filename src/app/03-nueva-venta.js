@@ -290,12 +290,13 @@
   },
 
   async _guardarVentaImpl() {
-    const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
+    // BUG-05: trim en textos para no duplicar entidades ("Ana" vs " Ana ")
+    const perfume = (document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent).trim();
     const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
     const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
-    const cliente = document.getElementById('venta-cliente').value;
-    let vendedor = document.getElementById('venta-vendedor').value;
-    const proveedor = document.getElementById('venta-proveedor').value;
+    const cliente = document.getElementById('venta-cliente').value.trim();
+    let vendedor = document.getElementById('venta-vendedor').value.trim();
+    const proveedor = document.getElementById('venta-proveedor').value.trim();
     const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
     // BUG #5 FIX: Usar 'Z' para UTC en lugar de hora local para evitar discrepancias de zona horaria
@@ -317,6 +318,21 @@
     if (precioVenta <= 0) {
       this.toast('Ingresá el precio de venta', 'warning');
       return;
+    }
+    // BUG-06: tope de monto razonable (mil millones) — evita overflow de precisión
+    if (precioVenta > 1e9 || precioCompra > 1e9) {
+      this.toast('El monto es demasiado grande (máx mil millones)', 'warning');
+      return;
+    }
+
+    // BUG-04: fecha futura — advertir (no bloquear: puede ser una venta programada)
+    if (fecha > Date.now() + 86400000) {
+      const seguir = await this.appConfirm(
+        'La fecha de la venta es futura. ¿Guardar igual?',
+        'Guardar',
+        'event'
+      );
+      if (!seguir) return;
     }
 
     // BUG #8 FIX: Validar descuento entre 0 y 100

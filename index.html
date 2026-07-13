@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="app-version" content="1.2.2">
+<meta name="app-version" content="1.2.3">
 <title>Parfum Track</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -4209,6 +4209,16 @@ const App = {
   async _fixCuotasSaldadas() {
     const cuotas = await DB.getAll('cuotas');
 
+    // BUG-03: acotar montoPagado > monto (datos viejos o backups adulterados)
+    // que dejan el total "a cobrar" en negativo
+    for (const c of cuotas) {
+      if ((c.montoPagado || 0) > (c.monto || 0)) {
+        c.montoPagado = c.monto || 0;
+        c.pagado = true;
+        await DB.put('cuotas', c);
+      }
+    }
+
     // 1) Cuota individualmente cubierta pero sin marcar como pagada
     for (const c of cuotas) {
       if (!c.pagado && (c.monto || 0) > 0 && (c.montoPagado || 0) >= c.monto - 0.01) {
@@ -4690,12 +4700,13 @@ const App = {
     }
 
     grid.innerHTML = items.map(p => {
-      const badgeClass = p.stock === 0 ? 'zero' : p.stock <= 3 ? 'low' : 'high';
+      const stockView = Math.max(0, p.stock || 0); // BUG-07: nunca mostrar stock negativo
+      const badgeClass = stockView === 0 ? 'zero' : stockView <= 3 ? 'low' : 'high';
       const hasFoto = p.foto && /^data:image\//.test(p.foto);
       return `<div class="stock-card">
         <div class="stock-photo" ${hasFoto ? `data-photo-id="${p.id}"` : ''} onclick="App.changeStockPhoto(${p.id})" style="cursor:pointer" title="Tocar para ${p.foto ? 'cambiar' : 'agregar'} foto">
           <span class="ms stock-photo-label" style="font-size:28px;">photo_camera</span>
-          <span class="stock-badge ${badgeClass}">${p.stock}</span>
+          <span class="stock-badge ${badgeClass}">${stockView}</span>
         </div>
         <div class="stock-info">
           <div class="stock-name">${this.esc(p.nombre)}</div>
@@ -5360,12 +5371,13 @@ const App = {
   },
 
   async _guardarVentaImpl() {
-    const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
+    // BUG-05: trim en textos para no duplicar entidades ("Ana" vs " Ana ")
+    const perfume = (document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent).trim();
     const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
     const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
-    const cliente = document.getElementById('venta-cliente').value;
-    let vendedor = document.getElementById('venta-vendedor').value;
-    const proveedor = document.getElementById('venta-proveedor').value;
+    const cliente = document.getElementById('venta-cliente').value.trim();
+    let vendedor = document.getElementById('venta-vendedor').value.trim();
+    const proveedor = document.getElementById('venta-proveedor').value.trim();
     const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
     // BUG #5 FIX: Usar 'Z' para UTC en lugar de hora local para evitar discrepancias de zona horaria
@@ -5387,6 +5399,21 @@ const App = {
     if (precioVenta <= 0) {
       this.toast('Ingresá el precio de venta', 'warning');
       return;
+    }
+    // BUG-06: tope de monto razonable (mil millones) — evita overflow de precisión
+    if (precioVenta > 1e9 || precioCompra > 1e9) {
+      this.toast('El monto es demasiado grande (máx mil millones)', 'warning');
+      return;
+    }
+
+    // BUG-04: fecha futura — advertir (no bloquear: puede ser una venta programada)
+    if (fecha > Date.now() + 86400000) {
+      const seguir = await this.appConfirm(
+        'La fecha de la venta es futura. ¿Guardar igual?',
+        'Guardar',
+        'event'
+      );
+      if (!seguir) return;
     }
 
     // BUG #8 FIX: Validar descuento entre 0 y 100
@@ -5851,12 +5878,12 @@ const App = {
     const id = this._editingVentaId;
     if (!id) return;
 
-    const perfume = document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent;
+    const perfume = (document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent).trim();
     const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
     const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
-    const cliente = document.getElementById('venta-cliente').value;
-    let vendedor = document.getElementById('venta-vendedor').value;
-    const proveedor = document.getElementById('venta-proveedor').value;
+    const cliente = document.getElementById('venta-cliente').value.trim();
+    let vendedor = document.getElementById('venta-vendedor').value.trim();
+    const proveedor = document.getElementById('venta-proveedor').value.trim();
     const descuento = parseFloat(document.getElementById('venta-descuento').value) || 0;
     const fechaStr = document.getElementById('venta-fecha').value;
     // BUG #5 FIX: Usar 'Z' para UTC en lugar de hora local
