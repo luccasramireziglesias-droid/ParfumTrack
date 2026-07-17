@@ -1,6 +1,6 @@
 {
   "name": "parfumtrack",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "private": true,
   "description": "PWA de gestión de ventas para revendedores de perfumes",
   "main": "worker.js",
