@@ -243,3 +243,41 @@
   color: var(--text2);
   background: rgba(255,255,255,0.08);
 }
+
+/* ====== CLIENTES (Ciclo 2) ====== */
+.cliente-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.cliente-card:active { opacity: 0.8; }
+.cliente-avatar {
+  width: 40px; height: 40px; flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #1a1a2e;
+  display: flex; align-items: center; justify-content: center;
+  font: 700 18px 'Cormorant Garamond', serif;
+}
+.cliente-info { flex: 1; min-width: 0; }
+.cliente-nombre {
+  font: 600 15px 'DM Sans'; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cliente-meta { font: 500 11px 'DM Sans'; color: var(--text3); margin-top: 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cliente-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.cliente-saldo { font: 700 11px 'DM Sans'; padding: 3px 9px; border-radius: 50px; white-space: nowrap; }
+.cliente-saldo.debe { color: var(--red); background: rgba(224,112,112,0.12); }
+.cliente-saldo.ok { color: var(--green); background: rgba(112,201,160,0.12); }
+.cliente-cuota-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px 14px; margin-bottom: 6px;
+}
