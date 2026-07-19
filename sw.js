@@ -2,7 +2,7 @@
 // v16: Versionado automático + invalidación inteligente de cache
 // Cada versión tiene su propio cache, automáticamente limpia versiones antiguas
 
-const APP_VERSION = "1.5.1";
+const APP_VERSION = "1.5.2";
 const CACHE_NAME = `parfumtrack-v${APP_VERSION}`;
 const STATIC_ASSETS = [
   "/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",
@@ -14,7 +14,8 @@ const STATIC_ASSETS = [
   "/fonts/cormorant-garamond-cyrillic-ext.woff2",
   "/fonts/cormorant-garamond-vietnamese.woff2",
   "/fonts/dm-sans-latin.woff2",
-  "/fonts/dm-sans-latin-ext.woff2"
+  "/fonts/dm-sans-latin-ext.woff2",
+  "/fonts/material-symbols-rounded.woff2"
 ];
 
 self.addEventListener("install", (event) => {
