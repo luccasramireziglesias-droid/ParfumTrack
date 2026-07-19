@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="app-version" content="1.2.4">
+<meta name="app-version" content="1.3.0">
 <title>Parfum Track</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -2229,7 +2229,7 @@ input[type="date"].form-input {
     <button class="pin-key" onclick="App.pinInput(9)">9</button>
     <div></div>
     <button class="pin-key" onclick="App.pinInput(0)">0</button>
-    <button class="pin-key" onclick="App.pinDelete()" style="font-size:20px;"><span class="ms">backspace</span></button>
+    <button class="pin-key" onclick="App.pinDelete()" style="font-size:20px;" aria-label="Borrar"><span class="ms" aria-hidden="true">backspace</span></button>
   </div>
 </div>
 
@@ -2322,10 +2322,10 @@ input[type="date"].form-input {
         <div class="hero-label" style="display:flex;align-items:center;justify-content:space-between;">
           <span>Ganancia</span>
           <div style="display:flex;align-items:center;gap:8px;">
-            <button onclick="App.changeDashboardMonth(-1)" style="background:none;border:none;color:var(--text3);padding:4px;cursor:pointer;"><span class="ms" style="font-size:18px;">navigate_before</span></button>
+            <button onclick="App.changeDashboardMonth(-1)" style="background:none;border:none;color:var(--text3);padding:4px;cursor:pointer;" aria-label="Mes anterior"><span class="ms" style="font-size:18px;" aria-hidden="true">navigate_before</span></button>
             <span id="hero-month" style="min-width:140px;text-align:center;"></span>
-            <button onclick="App.changeDashboardMonth(1)" style="background:none;border:none;color:var(--text3);padding:4px;cursor:pointer;"><span class="ms" style="font-size:18px;">navigate_next</span></button>
-            <button onclick="App.resetDashboardMonth()" style="background:none;border:none;color:var(--text3);padding:4px;cursor:pointer;margin-left:4px;" title="Volver a hoy"><span class="ms" style="font-size:16px;">today</span></button>
+            <button onclick="App.changeDashboardMonth(1)" style="background:none;border:none;color:var(--text3);padding:4px;cursor:pointer;" aria-label="Mes siguiente"><span class="ms" style="font-size:18px;" aria-hidden="true">navigate_next</span></button>
+            <button onclick="App.resetDashboardMonth()" style="background:none;border:none;color:var(--text3);padding:4px;cursor:pointer;margin-left:4px;" title="Volver a hoy" aria-label="Volver a hoy"><span class="ms" style="font-size:16px;" aria-hidden="true">today</span></button>
           </div>
         </div>
         <div class="hero-row">
@@ -3212,7 +3212,7 @@ input[type="date"].form-input {
       <div class="sub-header">
         <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Catálogo WhatsApp</span>
-        <div class="back-btn" onclick="App.toggleSelectAllCatalogo()"><span class="ms">select_all</span></div>
+        <div class="back-btn" onclick="App.toggleSelectAllCatalogo()" role="button" aria-label="Seleccionar todos"><span class="ms" aria-hidden="true">select_all</span></div>
       </div>
 
       <p style="color:var(--text3);font-size:13px;padding:0 16px 8px;margin:0;">Seleccioná los perfumes para el catálogo:</p>
@@ -4624,8 +4624,8 @@ const App = {
           </div>
           <div class="venta-actions">
             <button class="venta-action-btn ms" onclick="App.repetirVenta(${v.id})" aria-label="Vender de nuevo">repeat</button>
-            <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
-            <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})">delete</button>
+            <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})" aria-label="Editar venta">edit</button>
+            <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})" aria-label="Eliminar venta">delete</button>
           </div>
         </div>
       </div>`;
@@ -4661,7 +4661,7 @@ const App = {
           <span style="font:500 13px 'DM Sans';color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.esc(name)}</span>
         </div>
         <span style="font:700 14px 'DM Sans';color:var(--red);margin:0 10px;white-space:nowrap;">${this.fmt(total)}</span>
-        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${this.b64Encode(waMsg)}"><span class="ms" style="font-size:16px;">chat</span></button>
+        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${this.b64Encode(waMsg)}" aria-label="Cobrar por WhatsApp"><span class="ms" style="font-size:16px;" aria-hidden="true">chat</span></button>
       </div>`;
     }).join('');
   },
@@ -4717,8 +4717,8 @@ const App = {
             <div class="stock-controls">
               <button class="stock-btn sell ms" onclick="App.venderDesdeStock(${p.id})" aria-label="Vender">sell</button>
               <button class="stock-btn edit ms" onclick="App.openEditPerfume(${p.id})" aria-label="Editar">edit</button>
-              <button class="stock-btn minus ms" onclick="App.adjustStock(${p.id}, -1)">remove</button>
-              <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)">add</button>
+              <button class="stock-btn minus ms" onclick="App.adjustStock(${p.id}, -1)" aria-label="Restar stock">remove</button>
+              <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)" aria-label="Sumar stock">add</button>
             </div>
           </div>
         </div>
@@ -4857,7 +4857,7 @@ const App = {
         <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
           <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
-          <button class="btn-pay" data-cuota-id="${encodeURIComponent(JSON.stringify(proxima.id))}"><span class="ms">add_card</span></button>
+          <button class="btn-pay" data-cuota-id="${encodeURIComponent(JSON.stringify(proxima.id))}" aria-label="Registrar pago"><span class="ms" aria-hidden="true">add_card</span></button>
         </div>
         <div class="wa-preview-label">VISTA PREVIA DEL MENSAJE</div>
         <div class="wa-bubble">
@@ -6024,8 +6024,8 @@ const App = {
             ? `<button class="btn-enviar" onclick="App.marcarPedidoEnviado(${p.id})"><span class="ms">local_shipping</span>Marcar enviado</button>`
             : `<button class="btn-revertir" onclick="App.marcarPedidoPendiente(${p.id})"><span class="ms">undo</span>Revertir</button>`
           }
-          <button class="btn-delete-pedido" onclick="App.editPedido(${p.id})" style="background:var(--gold-dim);color:var(--gold2);"><span class="ms">edit</span></button>
-          <button class="btn-delete-pedido" onclick="App.deletePedido(${p.id})"><span class="ms">delete</span></button>
+          <button class="btn-delete-pedido" onclick="App.editPedido(${p.id})" style="background:var(--gold-dim);color:var(--gold2);" aria-label="Editar pedido"><span class="ms" aria-hidden="true">edit</span></button>
+          <button class="btn-delete-pedido" onclick="App.deletePedido(${p.id})" aria-label="Eliminar pedido"><span class="ms" aria-hidden="true">delete</span></button>
         </div>
       </div>`;
     }).join('');
@@ -6074,10 +6074,10 @@ const App = {
           <span class="pedido-perfume-price">${this.fmt(pf.precioVenta)}</span>
         </div>
         <div class="pedido-perfume-controls">
-          <button class="pedido-qty-btn minus" onclick="App.adjustPedidoPerfumeQty(${idx}, -1)"><span class="ms">remove</span></button>
+          <button class="pedido-qty-btn minus" onclick="App.adjustPedidoPerfumeQty(${idx}, -1)" aria-label="Restar cantidad"><span class="ms" aria-hidden="true">remove</span></button>
           <span class="pedido-qty-display">${pf.cantidad}</span>
-          <button class="pedido-qty-btn plus" onclick="App.adjustPedidoPerfumeQty(${idx}, 1)"><span class="ms">add</span></button>
-          <button class="pedido-remove-btn" onclick="App.removePerfumeFromPedido(${idx})"><span class="ms">close</span></button>
+          <button class="pedido-qty-btn plus" onclick="App.adjustPedidoPerfumeQty(${idx}, 1)" aria-label="Sumar cantidad"><span class="ms" aria-hidden="true">add</span></button>
+          <button class="pedido-remove-btn" onclick="App.removePerfumeFromPedido(${idx})" aria-label="Quitar perfume"><span class="ms" aria-hidden="true">close</span></button>
         </div>
       </div>`
     ).join('');
@@ -6343,8 +6343,8 @@ const App = {
           ? `<button class="btn-enviar" onclick="App.marcarPedidoEnviado(${p.id})"><span class="ms">local_shipping</span>Marcar enviado</button>`
           : `<button class="btn-revertir" onclick="App.marcarPedidoPendiente(${p.id})"><span class="ms">undo</span>Revertir</button>`
         }
-        <button class="btn-delete-pedido" onclick="App.editPedido(${p.id})" style="background:var(--gold-dim);color:var(--gold2);"><span class="ms">edit</span></button>
-        <button class="btn-delete-pedido" onclick="App.deletePedido(${p.id})"><span class="ms">delete</span></button>
+        <button class="btn-delete-pedido" onclick="App.editPedido(${p.id})" style="background:var(--gold-dim);color:var(--gold2);" aria-label="Editar pedido"><span class="ms" aria-hidden="true">edit</span></button>
+        <button class="btn-delete-pedido" onclick="App.deletePedido(${p.id})" aria-label="Eliminar pedido"><span class="ms" aria-hidden="true">delete</span></button>
       </div>
     `;
   },
@@ -6430,7 +6430,7 @@ const App = {
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
             <span style="font:700 16px 'DM Sans';color:${isEntrada ? 'var(--green)' : 'var(--red)'};">${this.fmt(isEntrada ? c.monto : -c.monto)}</span>
-            <button class="venta-action-btn ms" onclick="App.deleteCaja(${c.id})">delete</button>
+            <button class="venta-action-btn ms" onclick="App.deleteCaja(${c.id})" aria-label="Eliminar movimiento">delete</button>
           </div>
         </div>
       </div>`;
@@ -6550,7 +6550,7 @@ const App = {
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
             <span style="font:700 16px 'DM Sans';color:var(--red);">${this.fmt(-g.monto)}</span>
-            <button class="venta-action-btn ms" onclick="App.deleteGasto(${g.id})">delete</button>
+            <button class="venta-action-btn ms" onclick="App.deleteGasto(${g.id})" aria-label="Eliminar gasto">delete</button>
           </div>
         </div>
       </div>
@@ -8043,7 +8043,6 @@ const App = {
     try {
       const rotated = await ENCRYPTION.rotateKey();
       if (rotated) {
-        console.log('🔄 Encryption key rotated automatically');
       }
       return rotated;
     } catch (e) {
@@ -8080,7 +8079,6 @@ const App = {
     // Obtener versión actual del meta tag
     const versionMeta = document.querySelector('meta[name="app-version"]');
     this._currentVersion = versionMeta?.content || '1.0.0';
-    console.log('📦 App version:', this._currentVersion);
 
     // Verificar versión al iniciar
     await this._checkForUpdates();
@@ -8104,11 +8102,9 @@ const App = {
       const data = await response.json();
       this._latestVersion = data.version;
 
-      console.log('🔄 Latest version available:', this._latestVersion);
 
       // Si hay versión más nueva, recargar
       if (this._isNewerVersion(this._latestVersion, this._currentVersion)) {
-        console.log('✨ Nueva versión disponible, recargando...');
         this._reloadWithNewVersion();
       }
     } catch (err) {

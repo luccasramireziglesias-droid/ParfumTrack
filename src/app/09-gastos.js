@@ -113,7 +113,7 @@
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
             <span style="font:700 16px 'DM Sans';color:var(--red);">${this.fmt(-g.monto)}</span>
-            <button class="venta-action-btn ms" onclick="App.deleteGasto(${g.id})">delete</button>
+            <button class="venta-action-btn ms" onclick="App.deleteGasto(${g.id})" aria-label="Eliminar gasto">delete</button>
           </div>
         </div>
       </div>

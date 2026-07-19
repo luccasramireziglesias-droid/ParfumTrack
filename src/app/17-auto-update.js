@@ -9,7 +9,6 @@
     // Obtener versión actual del meta tag
     const versionMeta = document.querySelector('meta[name="app-version"]');
     this._currentVersion = versionMeta?.content || '1.0.0';
-    console.log('📦 App version:', this._currentVersion);
 
     // Verificar versión al iniciar
     await this._checkForUpdates();
@@ -33,11 +32,9 @@
       const data = await response.json();
       this._latestVersion = data.version;
 
-      console.log('🔄 Latest version available:', this._latestVersion);
 
       // Si hay versión más nueva, recargar
       if (this._isNewerVersion(this._latestVersion, this._currentVersion)) {
-        console.log('✨ Nueva versión disponible, recargando...');
         this._reloadWithNewVersion();
       }
     } catch (err) {

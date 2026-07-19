@@ -55,7 +55,6 @@
     try {
       const rotated = await ENCRYPTION.rotateKey();
       if (rotated) {
-        console.log('🔄 Encryption key rotated automatically');
       }
       return rotated;
     } catch (e) {
