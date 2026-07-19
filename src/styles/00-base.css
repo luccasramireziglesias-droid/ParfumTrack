@@ -36,6 +36,7 @@ body {
 
 .ms {
   font-family: 'Material Symbols Rounded';
+  font-feature-settings: 'liga';
   font-weight: normal;
   font-style: normal;
   line-height: 1;
