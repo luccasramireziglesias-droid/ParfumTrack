@@ -133,7 +133,7 @@
     span.className = 'ms';
     span.textContent = icon || 'info';
     el.appendChild(span);
-    el.appendChild(document.createTextNode(msg));
+    el.appendChild(document.createTextNode(this.t(msg)));
     el.classList.remove('hidden');
     clearTimeout(this._toastTimer);
     this._toastTimer = setTimeout(() => el.classList.add('hidden'), 2500);
@@ -150,8 +150,8 @@
   appConfirm(msg, okLabel = 'Confirmar', icon = 'warning') {
     return new Promise((resolve) => {
       const modal = document.getElementById('modal-confirm');
-      document.getElementById('confirm-msg').textContent = msg;
-      document.getElementById('confirm-ok').textContent = okLabel;
+      document.getElementById('confirm-msg').textContent = this.t(msg);
+      document.getElementById('confirm-ok').textContent = this.t(okLabel);
       document.getElementById('confirm-icon').textContent = icon;
       modal.classList.remove('hidden');
       const cleanup = (val) => { modal.classList.add('hidden'); App._confirmResolve = null; App._confirmReject = null; resolve(val); };
