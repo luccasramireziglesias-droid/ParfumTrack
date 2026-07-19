@@ -1,0 +1,23 @@
+<div id="screen-clientes" class="screen">
+    <div class="screen-scroll">
+      <div class="sub-header">
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
+        <span class="sub-title">Clientes</span>
+        <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
+      </div>
+
+      <div class="hero-card" style="padding:14px 18px;margin-bottom:12px;">
+        <div style="display:flex;gap:18px;">
+          <div><div class="hero-label">Clientes</div><div style="font:700 26px 'DM Sans';color:var(--text);" id="clientes-count">0</div></div>
+          <div style="border-left:1px solid var(--border);padding-left:18px;"><div class="hero-label">Por cobrar</div><div style="font:700 26px 'DM Sans';color:var(--red);" id="clientes-saldo">$0</div></div>
+        </div>
+      </div>
+
+      <div class="search-bar" style="margin-bottom:12px;">
+        <span class="ms muted">search</span>
+        <input type="text" id="clientes-search" placeholder="Buscar cliente…" oninput="App.filterClientes()" autocomplete="off">
+      </div>
+
+      <div id="clientes-list"></div>
+    </div>
+  </div>
