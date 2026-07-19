@@ -249,7 +249,7 @@
 
   async syncToCloud() {
     const code = this._account?.license;
-    const token = this._getAuthToken();
+    const token = await this._refreshAuthToken();
     if (!code || !token) {
       this.toast('Activá una licencia primero', 'warning');
       return;
@@ -292,7 +292,7 @@
 
   async syncFromCloud() {
     const code = this._account?.license;
-    const token = this._getAuthToken();
+    const token = await this._refreshAuthToken();
     if (!code || !token) {
       this.toast('Activá una licencia primero', 'warning');
       return;

@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="app-version" content="1.5.0">
+<meta name="app-version" content="1.5.1">
 <title>Parfum Track</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -7299,9 +7299,31 @@ const App = {
     return this._account?.licenseData?.token || '';
   },
 
+  // El token de auth dura 15 min (anti-replay). Se guarda al activar la
+  // licencia, así que para backup/restore/sync hay que renovarlo justo antes
+  // — si no, un usuario que activó hace rato ve "Token expired or from future".
+  async _refreshAuthToken() {
+    const code = this._account?.license;
+    if (!code) return this._getAuthToken();
+    try {
+      const res = await fetch('/validate-license', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
+        body: JSON.stringify({ code })
+      });
+      const data = await res.json();
+      if (data && data.valid && data.token) {
+        this._account.licenseData = data;
+        this.saveAccount();
+        return data.token;
+      }
+    } catch (_) { /* sin red: caemos al token guardado */ }
+    return this._getAuthToken();
+  },
+
   async backupToCloud() {
     const code = this._account?.license;
-    const token = this._getAuthToken();
+    const token = await this._refreshAuthToken();
     if (!code || !token) {
       this.toast('Activá una licencia primero', 'warning');
       return;
@@ -7355,7 +7377,7 @@ const App = {
 
   async restoreFromCloud() {
     const code = this._account?.license;
-    const token = this._getAuthToken();
+    const token = await this._refreshAuthToken();
     if (!code || !token) {
       this.toast('Activá una licencia primero', 'warning');
       return;
@@ -7836,7 +7858,7 @@ const App = {
 
   async syncToCloud() {
     const code = this._account?.license;
-    const token = this._getAuthToken();
+    const token = await this._refreshAuthToken();
     if (!code || !token) {
       this.toast('Activá una licencia primero', 'warning');
       return;
@@ -7879,7 +7901,7 @@ const App = {
 
   async syncFromCloud() {
     const code = this._account?.license;
-    const token = this._getAuthToken();
+    const token = await this._refreshAuthToken();
     if (!code || !token) {
       this.toast('Activá una licencia primero', 'warning');
       return;

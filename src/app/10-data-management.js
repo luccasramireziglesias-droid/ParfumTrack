@@ -648,9 +648,31 @@
     return this._account?.licenseData?.token || '';
   },
 
+  // El token de auth dura 15 min (anti-replay). Se guarda al activar la
+  // licencia, así que para backup/restore/sync hay que renovarlo justo antes
+  // — si no, un usuario que activó hace rato ve "Token expired or from future".
+  async _refreshAuthToken() {
+    const code = this._account?.license;
+    if (!code) return this._getAuthToken();
+    try {
+      const res = await fetch('/validate-license', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
+        body: JSON.stringify({ code })
+      });
+      const data = await res.json();
+      if (data && data.valid && data.token) {
+        this._account.licenseData = data;
+        this.saveAccount();
+        return data.token;
+      }
+    } catch (_) { /* sin red: caemos al token guardado */ }
+    return this._getAuthToken();
+  },
+
   async backupToCloud() {
     const code = this._account?.license;
-    const token = this._getAuthToken();
+    const token = await this._refreshAuthToken();
     if (!code || !token) {
       this.toast('Activá una licencia primero', 'warning');
       return;
@@ -704,7 +726,7 @@
 
   async restoreFromCloud() {
     const code = this._account?.license;
-    const token = this._getAuthToken();
+    const token = await this._refreshAuthToken();
     if (!code || !token) {
       this.toast('Activá una licencia primero', 'warning');
       return;
