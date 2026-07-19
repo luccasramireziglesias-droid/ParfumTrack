@@ -21,6 +21,7 @@
     await this._fixStringCuotaIds();
     await this._fixCuotasSaldadas();
     await this.loadData();
+    this._initLang();
     this.loadMoneda();
     this.loadNombreNegocio();
     this.loadAccount();

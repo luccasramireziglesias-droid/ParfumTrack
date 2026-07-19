@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="app-version" content="1.4.0">
+<meta name="app-version" content="1.5.0">
 <title>Parfum Track</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -93,6 +93,15 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
 }
 
+
+/* ====== WCAG AA: foco visible por teclado (Ciclo 4) ====== */
+:focus-visible {
+  outline: 2px solid var(--gold2, #e8c97e);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* No mostrar el anillo en interacción por mouse/touch, solo teclado */
+:focus:not(:focus-visible) { outline: none; }
 /* ====== APP LAYOUT ====== */
 #app {
   max-width: 430px;
@@ -2272,7 +2281,7 @@ input[type="date"].form-input {
 </div>
 
 <!-- ====== CONSENT MODAL ====== -->
-<div id="consent-modal" style="position:fixed;inset:0;z-index:9997;background:rgba(15,15,26,0.8);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;">
+<div id="consent-modal" role="dialog" aria-modal="true" aria-label="Aceptar términos" style="position:fixed;inset:0;z-index:9997;background:rgba(15,15,26,0.8);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--bg2);border:1px solid var(--gold);border-radius:12px;padding:28px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;">
     <h2 style="font:600 18px 'DM Sans';color:var(--gold2);margin-bottom:16px;">Aceptar Términos & Privacidad</h2>
     <p style="font-size:13px;color:var(--text3);line-height:1.6;margin-bottom:20px;">Para usar Parfum Track, necesitamos que aceptes nuestros términos, política de privacidad y uso de cookies.</p>
@@ -2977,7 +2986,7 @@ input[type="date"].form-input {
   </div>
 
   <!-- ====== MODAL: SELECTOR DE PERFUME PARA PEDIDO ====== -->
-  <div id="modal-pedido-perfume" class="modal-overlay hidden" onclick="App.closePedidoPerfumeSelector()">
+  <div id="modal-pedido-perfume" class="modal-overlay hidden" onclick="App.closePedidoPerfumeSelector()" role="dialog" aria-modal="true">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span class="modal-title">Agregar perfume</span>
@@ -2992,7 +3001,7 @@ input[type="date"].form-input {
   </div>
 
   <!-- ====== MODAL: REGISTRAR PAGO DE CUOTA ====== -->
-  <div id="modal-pago-cuota" class="modal-overlay hidden" onclick="App.cerrarPagoCuota()">
+  <div id="modal-pago-cuota" class="modal-overlay hidden" onclick="App.cerrarPagoCuota()" role="dialog" aria-modal="true">
     <div class="modal-content" onclick="event.stopPropagation()" style="max-height:auto;gap:16px;">
       <div class="modal-header">
         <span class="modal-title">Registrar pago</span>
@@ -3041,7 +3050,7 @@ input[type="date"].form-input {
   </div>
 
   <!-- ====== MODAL: CONFIRMACIÓN CUSTOM ====== -->
-  <div id="modal-confirm" class="modal-overlay hidden" onclick="App._confirmReject&&App._confirmReject()">
+  <div id="modal-confirm" class="modal-overlay hidden" onclick="App._confirmReject&&App._confirmReject()" role="dialog" aria-modal="true">
     <div class="modal-content" onclick="event.stopPropagation()" style="max-width:340px;gap:16px;text-align:center;">
       <span class="ms" id="confirm-icon" style="font-size:40px;color:var(--warn);">warning</span>
       <div id="confirm-msg" style="font-size:15px;line-height:1.5;color:var(--text);"></div>
@@ -3080,7 +3089,7 @@ input[type="date"].form-input {
   </div>
 
   <!-- ====== MODAL: AGREGAR PERFUME ====== -->
-  <div id="modal-add-perfume" class="modal-overlay hidden" onclick="App.closeAddPerfume()">
+  <div id="modal-add-perfume" class="modal-overlay hidden" onclick="App.closeAddPerfume()" role="dialog" aria-modal="true">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span class="modal-title" id="add-perfume-title">Agregar perfume</span>
@@ -3127,7 +3136,7 @@ input[type="date"].form-input {
   </div>
 
   <!-- ====== MODAL: DEMO VIDEO ====== -->
-  <div id="modal-demo" class="modal-overlay hidden" onclick="App.closeDemoModal()" style="background:rgba(0,0,0,0.95);">
+  <div id="modal-demo" class="modal-overlay hidden" onclick="App.closeDemoModal()" style="background:rgba(0,0,0,0.95);" role="dialog" aria-modal="true">
     <div id="modal-demo-content" class="modal-content" onclick="event.stopPropagation()" style="max-width:540px;border:none;background:transparent;padding:0;">
       <div style="position:relative;width:100%;">
         <div id="demo-controls" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(0,0,0,0.4);gap:8px;margin-bottom:8px;">
@@ -4143,6 +4152,7 @@ const App = {
     await this._fixStringCuotaIds();
     await this._fixCuotasSaldadas();
     await this.loadData();
+    this._initLang();
     this.loadMoneda();
     this.loadNombreNegocio();
     this.loadAccount();
@@ -7531,7 +7541,7 @@ const App = {
     span.className = 'ms';
     span.textContent = icon || 'info';
     el.appendChild(span);
-    el.appendChild(document.createTextNode(msg));
+    el.appendChild(document.createTextNode(this.t(msg)));
     el.classList.remove('hidden');
     clearTimeout(this._toastTimer);
     this._toastTimer = setTimeout(() => el.classList.add('hidden'), 2500);
@@ -7548,8 +7558,8 @@ const App = {
   appConfirm(msg, okLabel = 'Confirmar', icon = 'warning') {
     return new Promise((resolve) => {
       const modal = document.getElementById('modal-confirm');
-      document.getElementById('confirm-msg').textContent = msg;
-      document.getElementById('confirm-ok').textContent = okLabel;
+      document.getElementById('confirm-msg').textContent = this.t(msg);
+      document.getElementById('confirm-ok').textContent = this.t(okLabel);
       document.getElementById('confirm-icon').textContent = icon;
       modal.classList.remove('hidden');
       const cleanup = (val) => { modal.classList.add('hidden'); App._confirmResolve = null; App._confirmReject = null; resolve(val); };
@@ -8416,6 +8426,70 @@ const App = {
     html += ventasCliente.map(v => this._renderVentaCard(v, { style: 'margin-bottom:8px;' })).join('');
 
     cont.innerHTML = html;
+  },
+
+
+  // ====== i18n (Ciclo 3 Omega) ======
+  // Base de internacionalización de bajo riesgo: el español es el idioma
+  // fuente (las claves SON los textos en español). t() traduce si hay un
+  // diccionario para el idioma activo, y si no, devuelve el texto tal cual.
+  // Para sumar un idioma (ej. pt-BR) alcanza con completar _i18n.pt — sin
+  // tocar ningún call site: toast() y appConfirm() ya pasan por t().
+
+  _lang: 'es',
+
+  _i18n: {
+    // Semilla pt-BR (parcial): demuestra el mecanismo. Completar para el
+    // lanzamiento en Brasil. Lo que falte cae al español automáticamente.
+    pt: {
+      'Venta guardada': 'Venda salva',
+      'Perfume agregado': 'Perfume adicionado',
+      'Perfume actualizado': 'Perfume atualizado',
+      'Perfume eliminado del stock': 'Perfume removido do estoque',
+      'Gasto registrado': 'Despesa registrada',
+      'Gasto eliminado': 'Despesa excluída',
+      'Cuota pagada completa': 'Parcela paga por completo',
+      'Pago parcial registrado': 'Pagamento parcial registrado',
+      'Foto actualizada': 'Foto atualizada',
+      'Datos exportados': 'Dados exportados',
+      'Backup descargado': 'Backup baixado',
+      'Elegí un perfume': 'Escolha um perfume',
+      'Ingresá el precio de venta': 'Informe o preço de venda',
+      'Ingresá el nombre': 'Informe o nome',
+      'Ingresá un monto': 'Informe um valor',
+      'Volver a hoy': 'Voltar para hoje',
+      'Eliminar': 'Excluir',
+      'Cancelar': 'Cancelar',
+      'Guardar': 'Salvar'
+    }
+  },
+
+  _initLang() {
+    const saved = localStorage.getItem('pt_lang');
+    if (saved && (saved === 'es' || this._i18n[saved])) {
+      this._lang = saved;
+    } else {
+      // Auto-detección por el idioma del dispositivo (pt → portugués)
+      const nav = (navigator.language || 'es').toLowerCase();
+      if (nav.startsWith('pt') && this._i18n.pt) this._lang = 'pt';
+    }
+  },
+
+  setLang(lang) {
+    if (lang !== 'es' && !this._i18n[lang]) return;
+    this._lang = lang;
+    localStorage.setItem('pt_lang', lang);
+    if (this.renderAll) this.renderAll();
+  },
+
+  // Traduce una clave (texto en español). Soporta interpolación: t('Hola {n}', {n:'Ana'})
+  t(str, vars) {
+    if (str == null) return str;
+    let out = (this._lang !== 'es' && this._i18n[this._lang] && this._i18n[this._lang][str]) || str;
+    if (vars) {
+      for (const k in vars) out = out.replace(new RegExp('\\{' + k + '\\}', 'g'), vars[k]);
+    }
+    return out;
   },
 };
 

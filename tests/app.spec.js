@@ -274,4 +274,38 @@ test.describe('ParfumTrack — 5 tests de verificación', () => {
     expect(cuotasLength).toBe(0);
   });
 
+  // Ciclo 5 Omega — E2E offline real: la app debe seguir funcionando sin red
+  test('8. Offline: registra venta y persiste sin conexión', async ({ page, context }) => {
+    // Cortar la red por completo
+    await context.setOffline(true);
+
+    // Con la app ya cargada, registrar una venta usa solo IndexedDB (sin red)
+    const creada = await page.evaluate(async () => {
+      const antes = App.ventas.length;
+      await DB.addVenta({
+        perfume: 'Venta Offline', precioVenta: 2500, precioCompra: 1200,
+        cliente: 'Cliente Offline', vendedor: 'Test', proveedor: '', descuento: 0,
+        nota: '', fecha: Date.now(), formaPago: 'contado', numCuotas: 1, perfumeId: '',
+      });
+      await App.loadData();
+      App.renderAll();
+      return App.ventas.length > antes && App.ventas.some(v => v.perfume === 'Venta Offline');
+    });
+    expect(creada).toBe(true);
+
+    // La navegación entre pantallas funciona offline
+    await page.evaluate(() => App.showScreen('stock'));
+    await expect(page.locator('#screen-stock')).toHaveClass(/active/);
+    await page.evaluate(() => App.showScreen('inicio'));
+
+    // Los datos persisten al leer de nuevo desde IndexedDB (aún offline)
+    const persiste = await page.evaluate(async () => {
+      await App.loadData();
+      return App.ventas.some(v => v.perfume === 'Venta Offline');
+    });
+    expect(persiste).toBe(true);
+
+    await context.setOffline(false);
+  });
+
 });
