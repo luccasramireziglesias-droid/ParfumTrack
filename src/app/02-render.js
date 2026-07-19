@@ -221,8 +221,8 @@
           </div>
           <div class="venta-actions">
             <button class="venta-action-btn ms" onclick="App.repetirVenta(${v.id})" aria-label="Vender de nuevo">repeat</button>
-            <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})">edit</button>
-            <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})">delete</button>
+            <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})" aria-label="Editar venta">edit</button>
+            <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})" aria-label="Eliminar venta">delete</button>
           </div>
         </div>
       </div>`;
@@ -258,7 +258,7 @@
           <span style="font:500 13px 'DM Sans';color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.esc(name)}</span>
         </div>
         <span style="font:700 14px 'DM Sans';color:var(--red);margin:0 10px;white-space:nowrap;">${this.fmt(total)}</span>
-        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${this.b64Encode(waMsg)}"><span class="ms" style="font-size:16px;">chat</span></button>
+        <button class="btn-whatsapp" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-msg="${this.b64Encode(waMsg)}" aria-label="Cobrar por WhatsApp"><span class="ms" style="font-size:16px;" aria-hidden="true">chat</span></button>
       </div>`;
     }).join('');
   },
@@ -314,8 +314,8 @@
             <div class="stock-controls">
               <button class="stock-btn sell ms" onclick="App.venderDesdeStock(${p.id})" aria-label="Vender">sell</button>
               <button class="stock-btn edit ms" onclick="App.openEditPerfume(${p.id})" aria-label="Editar">edit</button>
-              <button class="stock-btn minus ms" onclick="App.adjustStock(${p.id}, -1)">remove</button>
-              <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)">add</button>
+              <button class="stock-btn minus ms" onclick="App.adjustStock(${p.id}, -1)" aria-label="Restar stock">remove</button>
+              <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)" aria-label="Sumar stock">add</button>
             </div>
           </div>
         </div>
@@ -454,7 +454,7 @@
         <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
           <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
-          <button class="btn-pay" data-cuota-id="${encodeURIComponent(JSON.stringify(proxima.id))}"><span class="ms">add_card</span></button>
+          <button class="btn-pay" data-cuota-id="${encodeURIComponent(JSON.stringify(proxima.id))}" aria-label="Registrar pago"><span class="ms" aria-hidden="true">add_card</span></button>
         </div>
         <div class="wa-preview-label">VISTA PREVIA DEL MENSAJE</div>
         <div class="wa-bubble">

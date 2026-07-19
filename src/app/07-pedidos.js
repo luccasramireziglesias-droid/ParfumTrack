@@ -40,8 +40,8 @@
             ? `<button class="btn-enviar" onclick="App.marcarPedidoEnviado(${p.id})"><span class="ms">local_shipping</span>Marcar enviado</button>`
             : `<button class="btn-revertir" onclick="App.marcarPedidoPendiente(${p.id})"><span class="ms">undo</span>Revertir</button>`
           }
-          <button class="btn-delete-pedido" onclick="App.editPedido(${p.id})" style="background:var(--gold-dim);color:var(--gold2);"><span class="ms">edit</span></button>
-          <button class="btn-delete-pedido" onclick="App.deletePedido(${p.id})"><span class="ms">delete</span></button>
+          <button class="btn-delete-pedido" onclick="App.editPedido(${p.id})" style="background:var(--gold-dim);color:var(--gold2);" aria-label="Editar pedido"><span class="ms" aria-hidden="true">edit</span></button>
+          <button class="btn-delete-pedido" onclick="App.deletePedido(${p.id})" aria-label="Eliminar pedido"><span class="ms" aria-hidden="true">delete</span></button>
         </div>
       </div>`;
     }).join('');
@@ -90,10 +90,10 @@
           <span class="pedido-perfume-price">${this.fmt(pf.precioVenta)}</span>
         </div>
         <div class="pedido-perfume-controls">
-          <button class="pedido-qty-btn minus" onclick="App.adjustPedidoPerfumeQty(${idx}, -1)"><span class="ms">remove</span></button>
+          <button class="pedido-qty-btn minus" onclick="App.adjustPedidoPerfumeQty(${idx}, -1)" aria-label="Restar cantidad"><span class="ms" aria-hidden="true">remove</span></button>
           <span class="pedido-qty-display">${pf.cantidad}</span>
-          <button class="pedido-qty-btn plus" onclick="App.adjustPedidoPerfumeQty(${idx}, 1)"><span class="ms">add</span></button>
-          <button class="pedido-remove-btn" onclick="App.removePerfumeFromPedido(${idx})"><span class="ms">close</span></button>
+          <button class="pedido-qty-btn plus" onclick="App.adjustPedidoPerfumeQty(${idx}, 1)" aria-label="Sumar cantidad"><span class="ms" aria-hidden="true">add</span></button>
+          <button class="pedido-remove-btn" onclick="App.removePerfumeFromPedido(${idx})" aria-label="Quitar perfume"><span class="ms" aria-hidden="true">close</span></button>
         </div>
       </div>`
     ).join('');
@@ -359,8 +359,8 @@
           ? `<button class="btn-enviar" onclick="App.marcarPedidoEnviado(${p.id})"><span class="ms">local_shipping</span>Marcar enviado</button>`
           : `<button class="btn-revertir" onclick="App.marcarPedidoPendiente(${p.id})"><span class="ms">undo</span>Revertir</button>`
         }
-        <button class="btn-delete-pedido" onclick="App.editPedido(${p.id})" style="background:var(--gold-dim);color:var(--gold2);"><span class="ms">edit</span></button>
-        <button class="btn-delete-pedido" onclick="App.deletePedido(${p.id})"><span class="ms">delete</span></button>
+        <button class="btn-delete-pedido" onclick="App.editPedido(${p.id})" style="background:var(--gold-dim);color:var(--gold2);" aria-label="Editar pedido"><span class="ms" aria-hidden="true">edit</span></button>
+        <button class="btn-delete-pedido" onclick="App.deletePedido(${p.id})" aria-label="Eliminar pedido"><span class="ms" aria-hidden="true">delete</span></button>
       </div>
     `;
   },

@@ -72,7 +72,7 @@
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
             <span style="font:700 16px 'DM Sans';color:${isEntrada ? 'var(--green)' : 'var(--red)'};">${this.fmt(isEntrada ? c.monto : -c.monto)}</span>
-            <button class="venta-action-btn ms" onclick="App.deleteCaja(${c.id})">delete</button>
+            <button class="venta-action-btn ms" onclick="App.deleteCaja(${c.id})" aria-label="Eliminar movimiento">delete</button>
           </div>
         </div>
       </div>`;
