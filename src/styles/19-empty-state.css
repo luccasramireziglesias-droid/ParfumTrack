@@ -7,6 +7,14 @@
   padding: 40px 0;
   color: var(--text3);
 }
-.empty-state .ms { font-size: 40px; color: var(--text5); }
-.empty-state span { font: 500 14px 'DM Sans'; }
+/* El texto va con el shorthand 'font' (resetea font-family) — por eso se
+   excluye .ms, si no el shorthand pisaba la fuente de íconos y el ícono
+   salía como texto ("receipt_long" → "rec"). */
+.empty-state span:not(.ms) { font: 500 14px 'DM Sans'; }
+.empty-state .ms {
+  font-family: 'Material Symbols Rounded';
+  font-feature-settings: 'liga';
+  font-size: 40px;
+  color: var(--text5);
+}
 
