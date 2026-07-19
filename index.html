@@ -93,6 +93,15 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
 }
 
+
+/* ====== WCAG AA: foco visible por teclado (Ciclo 4) ====== */
+:focus-visible {
+  outline: 2px solid var(--gold2, #e8c97e);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* No mostrar el anillo en interacción por mouse/touch, solo teclado */
+:focus:not(:focus-visible) { outline: none; }
 /* ====== APP LAYOUT ====== */
 #app {
   max-width: 430px;
@@ -2272,7 +2281,7 @@ input[type="date"].form-input {
 </div>
 
 <!-- ====== CONSENT MODAL ====== -->
-<div id="consent-modal" style="position:fixed;inset:0;z-index:9997;background:rgba(15,15,26,0.8);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;">
+<div id="consent-modal" role="dialog" aria-modal="true" aria-label="Aceptar términos" style="position:fixed;inset:0;z-index:9997;background:rgba(15,15,26,0.8);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--bg2);border:1px solid var(--gold);border-radius:12px;padding:28px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;">
     <h2 style="font:600 18px 'DM Sans';color:var(--gold2);margin-bottom:16px;">Aceptar Términos & Privacidad</h2>
     <p style="font-size:13px;color:var(--text3);line-height:1.6;margin-bottom:20px;">Para usar Parfum Track, necesitamos que aceptes nuestros términos, política de privacidad y uso de cookies.</p>
@@ -2977,7 +2986,7 @@ input[type="date"].form-input {
   </div>
 
   <!-- ====== MODAL: SELECTOR DE PERFUME PARA PEDIDO ====== -->
-  <div id="modal-pedido-perfume" class="modal-overlay hidden" onclick="App.closePedidoPerfumeSelector()">
+  <div id="modal-pedido-perfume" class="modal-overlay hidden" onclick="App.closePedidoPerfumeSelector()" role="dialog" aria-modal="true">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span class="modal-title">Agregar perfume</span>
@@ -2992,7 +3001,7 @@ input[type="date"].form-input {
   </div>
 
   <!-- ====== MODAL: REGISTRAR PAGO DE CUOTA ====== -->
-  <div id="modal-pago-cuota" class="modal-overlay hidden" onclick="App.cerrarPagoCuota()">
+  <div id="modal-pago-cuota" class="modal-overlay hidden" onclick="App.cerrarPagoCuota()" role="dialog" aria-modal="true">
     <div class="modal-content" onclick="event.stopPropagation()" style="max-height:auto;gap:16px;">
       <div class="modal-header">
         <span class="modal-title">Registrar pago</span>
@@ -3041,7 +3050,7 @@ input[type="date"].form-input {
   </div>
 
   <!-- ====== MODAL: CONFIRMACIÓN CUSTOM ====== -->
-  <div id="modal-confirm" class="modal-overlay hidden" onclick="App._confirmReject&&App._confirmReject()">
+  <div id="modal-confirm" class="modal-overlay hidden" onclick="App._confirmReject&&App._confirmReject()" role="dialog" aria-modal="true">
     <div class="modal-content" onclick="event.stopPropagation()" style="max-width:340px;gap:16px;text-align:center;">
       <span class="ms" id="confirm-icon" style="font-size:40px;color:var(--warn);">warning</span>
       <div id="confirm-msg" style="font-size:15px;line-height:1.5;color:var(--text);"></div>
@@ -3080,7 +3089,7 @@ input[type="date"].form-input {
   </div>
 
   <!-- ====== MODAL: AGREGAR PERFUME ====== -->
-  <div id="modal-add-perfume" class="modal-overlay hidden" onclick="App.closeAddPerfume()">
+  <div id="modal-add-perfume" class="modal-overlay hidden" onclick="App.closeAddPerfume()" role="dialog" aria-modal="true">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span class="modal-title" id="add-perfume-title">Agregar perfume</span>
@@ -3127,7 +3136,7 @@ input[type="date"].form-input {
   </div>
 
   <!-- ====== MODAL: DEMO VIDEO ====== -->
-  <div id="modal-demo" class="modal-overlay hidden" onclick="App.closeDemoModal()" style="background:rgba(0,0,0,0.95);">
+  <div id="modal-demo" class="modal-overlay hidden" onclick="App.closeDemoModal()" style="background:rgba(0,0,0,0.95);" role="dialog" aria-modal="true">
     <div id="modal-demo-content" class="modal-content" onclick="event.stopPropagation()" style="max-width:540px;border:none;background:transparent;padding:0;">
       <div style="position:relative;width:100%;">
         <div id="demo-controls" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(0,0,0,0.4);gap:8px;margin-bottom:8px;">
