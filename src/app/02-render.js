@@ -67,7 +67,8 @@
 
     el('hero-month').textContent = monthNames[displayMonth] + ' ' + displayYear;
 
-    const thisMonth = this.ventas.filter(v => {
+    // Las devueltas no cuentan: el dinero volvió al cliente
+    const thisMonth = this._ventasActivas().filter(v => {
       const d = new Date(v.fecha);
       return d.getMonth() === displayMonth && d.getFullYear() === displayYear;
     });
@@ -101,7 +102,7 @@
     const prevMonthNum = displayMonth === 0 ? 11 : displayMonth - 1;
     const prevMonthYear = displayMonth === 0 ? displayYear - 1 : displayYear;
     const prevMonth = new Date(prevMonthYear, prevMonthNum, 1);
-    const prevVentas = this.ventas.filter(v => {
+    const prevVentas = this._ventasActivas().filter(v => {
       const d = new Date(v.fecha);
       return d.getMonth() === prevMonth.getMonth() && d.getFullYear() === prevMonth.getFullYear();
     });
@@ -173,7 +174,7 @@
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const todayVentas = this.ventas.filter(v => { const d = new Date(v.fecha); return d >= today && d < tomorrow; });
+    const todayVentas = this._ventasActivas().filter(v => { const d = new Date(v.fecha); return d >= today && d < tomorrow; });
     const todayGan = todayVentas.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
     el('today-amount').textContent = this.fmt(todayGan);
     el('today-count').textContent = todayVentas.length;
@@ -209,9 +210,12 @@
     // Las ventas viejas no tienen `cantidad`: son de 1 unidad
     const cant = Math.max(1, parseInt(v.cantidad, 10) || 1);
     const badgeCant = cant > 1 ? `<span class="venta-cant" aria-label="${cant} unidades">×${cant}</span>` : '';
+    // Una venta devuelta queda en el historial, apagada y sin contar
+    const devuelta = !!v.devuelta;
+    const clsFinal = devuelta ? `${cls} devuelta` : cls;
 
     if (compact) {
-      return `<div class="${cls}"${styleAttr}>
+      return `<div class="${clsFinal}"${styleAttr}>
           <div class="venta-top">
             <div>
               <div style="display:flex;align-items:center;gap:7px;">
@@ -228,7 +232,7 @@
     // Ganancia REAL = lo cobrado (precioVenta, ya con descuento) menos el costo
     const gan = v.precioVenta - v.precioCompra;
     const esCuotas = v.formaPago === 'cuotas';
-    return `<div class="${cls}"${styleAttr}>
+    return `<div class="${clsFinal}"${styleAttr}>
         <div class="venta-top">
           <div>
             <div style="display:flex;align-items:center;gap:7px;">
@@ -240,9 +244,11 @@
               <span class="tag">${this.esc(v.vendedor || '—')}</span>
               ${v.proveedor ? `<span class="tag">${this.esc(v.proveedor)}</span>` : ''}
               ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${Math.round(v.descuento || 0)}%</span>` : ''}
-              ${esCuotas
-                ? `<span class="tag-cuotas">En cuotas</span>`
-                : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
+              ${devuelta
+                ? `<span class="tag-devuelta"><span class="ms" aria-hidden="true">assignment_return</span>Devuelta${v.motivoDevolucion ? ` · ${this.esc(v.motivoDevolucion)}` : ''}</span>`
+                : esCuotas
+                  ? `<span class="tag-cuotas">En cuotas</span>`
+                  : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
               }
             </div>
           </div>
@@ -256,11 +262,15 @@
           </div>
           <div style="text-align:right;">
             <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">${this.fmtSigned(gan)}</div>
+            <div class="venta-ganancia-value">${devuelta ? '—' : this.fmtSigned(gan)}</div>
           </div>
           <div class="venta-actions">
-            <button class="venta-action-btn ms" onclick="App.repetirVenta(${v.id})" aria-label="Vender de nuevo">repeat</button>
+            ${devuelta
+              ? `<button class="venta-action-btn ms" onclick="App.revertirDevolucion(${v.id})" aria-label="Deshacer la devolución">undo</button>`
+              : `<button class="venta-action-btn ms" onclick="App.repetirVenta(${v.id})" aria-label="Vender de nuevo">repeat</button>
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})" aria-label="Editar venta">edit</button>
+            <button class="venta-action-btn ms" onclick="App.abrirDevolucion(${v.id})" aria-label="Registrar devolución">assignment_return</button>`
+            }
             <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})" aria-label="Eliminar venta">delete</button>
           </div>
         </div>
@@ -415,7 +425,7 @@
 
     const now = Date.now();
     const thirtyDays = 30 * 24 * 60 * 60 * 1000;
-    const salesLast30 = this.ventas.filter(v => now - v.fecha < thirtyDays);
+    const salesLast30 = this._ventasActivas().filter(v => now - v.fecha < thirtyDays);
 
     const salesByPerfume = {};
     salesLast30.forEach(v => {
@@ -619,7 +629,7 @@
     const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     document.getElementById('stats-month-label').innerHTML = `${monthNames[now.getMonth()]} ${now.getFullYear()} <span class="ms">expand_more</span>`;
 
-    const thisMonth = this.ventas.filter(v => {
+    const thisMonth = this._ventasActivas().filter(v => {
       const d = new Date(v.fecha);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });

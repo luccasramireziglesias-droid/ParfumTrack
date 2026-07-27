@@ -277,6 +277,88 @@
     return this.delete('ventas', id);
   },
 
+  // F3: la venta se marca como devuelta en vez de borrarse. Queda en el
+  // historial (con motivo y fecha) pero deja de contar para la ganancia.
+  async devolverVenta(id, { motivo = '', nota = '', reponerStock = true } = {}) {
+    const v = await this.get('ventas', id);
+    if (!v) throw new Error('VENTA_NO_ENCONTRADA');
+    if (v.devuelta) throw new Error('YA_DEVUELTA');
+
+    const unidades = v.unidadesDescontadas !== undefined
+      ? v.unidadesDescontadas
+      : (v.stockDescontado !== false && v.perfumeId ? 1 : 0);
+    let repuestas = 0;
+    if (reponerStock && unidades > 0 && v.perfumeId && v.perfumeId !== '') {
+      const p = await this.get('perfumes', v.perfumeId);
+      if (p) {
+        p.stock = (p.stock || 0) + unidades;
+        await this.put('perfumes', p);
+        repuestas = unidades;
+      }
+    }
+
+    // Las cuotas que nunca se cobraron dejan de ser deuda; las que tienen
+    // plata puesta se conservan porque ese cobro sí ocurrió.
+    let cobrado = 0;
+    let canceladas = 0;
+    if (v.formaPago === 'cuotas') {
+      for (const c of await this.getAll('cuotas')) {
+        if (c.ventaId !== id) continue;
+        const pagado = c.pagado ? (c.montoPagado || c.monto || 0) : (c.montoPagado || 0);
+        if (pagado > 0) {
+          cobrado += pagado;
+        } else {
+          await this.delete('cuotas', c.id);
+          canceladas++;
+        }
+      }
+    } else {
+      cobrado = v.precioVenta || 0;
+    }
+
+    return this.put('ventas', {
+      ...v,
+      devuelta: true,
+      fechaDevolucion: Date.now(),
+      motivoDevolucion: motivo,
+      notaDevolucion: nota,
+      unidadesRepuestas: repuestas,
+      cuotasCanceladas: canceladas,
+      montoADevolver: cobrado
+    });
+  },
+
+  // Deshacer una devolución cargada por error: vuelve a descontar el stock
+  // que se había repuesto. Las cuotas canceladas NO se recrean (el usuario
+  // puede volver a editar la venta si las necesita).
+  async revertirDevolucion(id) {
+    const v = await this.get('ventas', id);
+    if (!v) throw new Error('VENTA_NO_ENCONTRADA');
+    if (!v.devuelta) return v;
+
+    const repuestas = v.unidadesRepuestas || 0;
+    let descontadas = v.unidadesDescontadas !== undefined ? v.unidadesDescontadas : 0;
+    if (repuestas > 0 && v.perfumeId && v.perfumeId !== '') {
+      const p = await this.get('perfumes', v.perfumeId);
+      if (p) {
+        const aDescontar = Math.min(repuestas, p.stock || 0);
+        p.stock = Math.max(0, (p.stock || 0) - aDescontar);
+        await this.put('perfumes', p);
+        descontadas = aDescontar;
+      }
+    }
+
+    const limpia = { ...v, unidadesDescontadas: descontadas, stockDescontado: descontadas > 0 };
+    delete limpia.devuelta;
+    delete limpia.fechaDevolucion;
+    delete limpia.motivoDevolucion;
+    delete limpia.notaDevolucion;
+    delete limpia.unidadesRepuestas;
+    delete limpia.cuotasCanceladas;
+    delete limpia.montoADevolver;
+    return this.put('ventas', limpia);
+  },
+
   async getCuotas() {
     return this.getAll('cuotas');
   },

@@ -1,0 +1,88 @@
+/* ====== DEVOLUCIONES (F3) ====== */
+
+.motivo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.motivo-chip {
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text2);
+  font: 500 13px 'DM Sans';
+  cursor: pointer;
+}
+
+.motivo-chip.active {
+  border-color: var(--gold);
+  background: rgba(201, 168, 76, 0.15);
+  color: var(--gold2);
+  font-weight: 600;
+}
+
+.devolucion-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text2);
+  font: 500 13px 'DM Sans';
+  cursor: pointer;
+}
+
+.devolucion-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gold);
+  cursor: pointer;
+}
+
+.devolucion-check.deshabilitado {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.devolucion-aviso {
+  font: 500 12px 'DM Sans';
+  color: var(--gold2);
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  border-radius: 10px;
+  padding: 10px 12px;
+  line-height: 1.45;
+}
+
+/* La venta devuelta sigue en el historial, pero apagada: se lee de un
+   vistazo que no cuenta para la ganancia */
+.venta-card.devuelta {
+  opacity: 0.72;
+  border-style: dashed;
+}
+
+.venta-card.devuelta .venta-nombre,
+.venta-card.devuelta .venta-precio-value {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.tag-devuelta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(224, 112, 112, 0.15);
+  border: 1px solid rgba(224, 112, 112, 0.35);
+  color: var(--red);
+  font: 600 11px 'DM Sans';
+}
+
+.tag-devuelta .ms {
+  font-size: 13px;
+}

@@ -324,8 +324,10 @@
     };
 
     addSection('Resumen');
-    const totalVentas = this.ventas.reduce((s, v) => s + v.precioVenta, 0);
-    const totalGanancia = this.ventas.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
+    // Los totales del reporte excluyen las ventas devueltas
+    const activas = this._ventasActivas();
+    const totalVentas = activas.reduce((s, v) => s + v.precioVenta, 0);
+    const totalGanancia = activas.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
     doc.text(`Ventas: ${this.ventas.length} | Total: ${this.fmt(totalVentas)} | Ganancia: ${this.fmt(totalGanancia)}`, 14, y); y += 6;
     doc.text(`Perfumes en stock: ${this.perfumes.length} | Cuotas pendientes: ${this.cuotasData.filter(c=>!c.pagado).length}`, 14, y); y += 10;
 
@@ -372,15 +374,19 @@
 
     const wb = XLSX.utils.book_new();
 
+    // El Excel lista TODAS las ventas (las devueltas también, marcadas como
+    // tales y con ganancia 0): el historial completo es el punto del export.
     const ventasRows = this.ventas.map(v => ({
       Fecha: new Date(v.fecha).toLocaleDateString('es-AR'),
       Perfume: v.perfume,
+      Cantidad: Math.max(1, parseInt(v.cantidad, 10) || 1),
       Cliente: v.cliente || '',
       'Precio Compra': v.precioCompra,
       'Precio Venta': v.precioVenta,
-      Ganancia: v.precioVenta - v.precioCompra,
+      Ganancia: v.devuelta ? 0 : v.precioVenta - v.precioCompra,
       Pago: v.formaPago || 'contado',
-      Cuotas: v.numCuotas || 1
+      Cuotas: v.numCuotas || 1,
+      Estado: v.devuelta ? `Devuelta${v.motivoDevolucion ? ' - ' + v.motivoDevolucion : ''}` : 'Activa'
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ventasRows), 'Ventas');
 

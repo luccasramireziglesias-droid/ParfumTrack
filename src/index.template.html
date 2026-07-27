@@ -196,6 +196,50 @@
     </div>
   </div>
 
+  <!-- ====== MODAL: DEVOLUCIÓN (F3) ====== -->
+  <div id="modal-devolucion" class="modal-overlay hidden" onclick="App.cerrarDevolucion()" role="dialog" aria-modal="true" aria-label="Registrar devolución">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Registrar devolución</span>
+        <div class="back-btn" onclick="App.cerrarDevolucion()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
+      </div>
+      <div class="pago-cuota-info">
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Perfume</span>
+          <span class="pago-cuota-value" id="devolucion-perfume"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Cliente</span>
+          <span class="pago-cuota-value" id="devolucion-cliente"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Cantidad</span>
+          <span class="pago-cuota-value" id="devolucion-cantidad"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Monto de la venta</span>
+          <span class="pago-cuota-value gold" id="devolucion-monto"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">MOTIVO</label>
+        <div class="motivo-chips" id="devolucion-motivos"></div>
+      </div>
+      <label class="devolucion-check" id="devolucion-stock-row">
+        <input type="checkbox" id="devolucion-repone-stock" checked>
+        <span id="devolucion-stock-label">Devolver al stock</span>
+      </label>
+      <div class="devolucion-aviso hidden" id="devolucion-aviso-cuotas"></div>
+      <div class="form-group">
+        <label class="form-label">NOTA (OPCIONAL)</label>
+        <input type="text" class="form-input" id="devolucion-nota" placeholder="Detalle…" autocomplete="off" maxlength="300">
+      </div>
+      <button class="btn gold-btn" id="devolucion-confirmar" onclick="App.confirmarDevolucion()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
+        <span class="ms">assignment_return</span> Confirmar devolución
+      </button>
+    </div>
+  </div>
+
   <!-- ====== MODAL: INPUT CUSTOM (PIN, etc.) ====== -->
   <div id="modal-prompt" class="modal-overlay hidden" onclick="App._promptReject&&App._promptReject()">
     <div class="modal-content" onclick="event.stopPropagation()" style="max-width:340px;gap:16px;text-align:center;">

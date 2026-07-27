@@ -199,3 +199,89 @@ describe('Service Worker — recarga por actualización', () => {
     expect(index).toMatch(/ptTeniaController/);
   });
 });
+
+describe('F3 — devoluciones y cambios', () => {
+  const dev = read('src/app/22-devoluciones.js');
+  const db = read('src/db.js');
+  const render = read('src/app/02-render.js');
+  const datos = read('src/app/10-data-management.js');
+  const clientes = read('src/app/18-clientes.js');
+  const tpl = read('src/index.template.html');
+  const index = read('index.html');
+
+  it('el modal de devolución existe y llega al build', () => {
+    expect(tpl).toContain('id="modal-devolucion"');
+    expect(tpl).toContain('id="devolucion-repone-stock"');
+    expect(tpl).toContain('id="devolucion-motivos"');
+    expect(index).toContain('id="modal-devolucion"');
+    expect(read('src/styles/22-devoluciones.css')).toContain('.tag-devuelta');
+  });
+
+  it('la venta NO se borra: se marca como devuelta con motivo y fecha', () => {
+    const idx = db.indexOf('async devolverVenta');
+    const cuerpo = db.slice(idx, idx + 2000);
+    expect(cuerpo).toMatch(/devuelta: true/);
+    expect(cuerpo).toMatch(/fechaDevolucion: Date\.now\(\)/);
+    expect(cuerpo).toMatch(/motivoDevolucion: motivo/);
+    // Nunca borra el registro
+    expect(cuerpo).not.toMatch(/this\.delete\('ventas'/);
+  });
+
+  it('no se puede devolver dos veces (el stock se repondría de más)', () => {
+    const idx = db.indexOf('async devolverVenta');
+    expect(db.slice(idx, idx + 400)).toMatch(/if \(v\.devuelta\) throw new Error\('YA_DEVUELTA'\)/);
+    expect(dev).toMatch(/_once\('devolucion'/);
+  });
+
+  it('repone exactamente las unidades que la venta descontó', () => {
+    const idx = db.indexOf('async devolverVenta');
+    const cuerpo = db.slice(idx, idx + 2000);
+    expect(cuerpo).toMatch(/v\.unidadesDescontadas !== undefined/);
+    expect(cuerpo).toMatch(/p\.stock = \(p\.stock \|\| 0\) \+ unidades/);
+    expect(cuerpo).toMatch(/unidadesRepuestas: repuestas/);
+  });
+
+  it('cancela las cuotas impagas y conserva las cobradas', () => {
+    const idx = db.indexOf('async devolverVenta');
+    const cuerpo = db.slice(idx, idx + 2000);
+    expect(cuerpo).toMatch(/if \(pagado > 0\)/);
+    expect(cuerpo).toMatch(/await this\.delete\('cuotas', c\.id\)/);
+    expect(cuerpo).toMatch(/montoADevolver: cobrado/);
+  });
+
+  it('deshacer la devolución vuelve a descontar sin dejar stock negativo', () => {
+    const idx = db.indexOf('async revertirDevolucion');
+    const cuerpo = db.slice(idx, idx + 1200);
+    expect(cuerpo).toMatch(/Math\.min\(repuestas, p\.stock \|\| 0\)/);
+    expect(cuerpo).toMatch(/delete limpia\.devuelta/);
+    expect(dev).toMatch(/revertirDevolucion\(id\)/);
+  });
+
+  it('las ventas devueltas no cuentan para ganancia, stats ni clientes', () => {
+    expect(dev).toMatch(/_ventasActivas\(\)[\s\S]{0,120}filter\(v => !v\.devuelta\)/);
+    // Todas las agregaciones pasan por el helper
+    const agregaciones = render.match(/this\.ventas\.filter\(/g) || [];
+    expect(agregaciones, 'quedan agregaciones sin filtrar devueltas').toHaveLength(0);
+    expect(datos).toMatch(/const activas = this\._ventasActivas\(\)/);
+    expect(clientes).toMatch(/for \(const v of this\._ventasActivas\(\)\)/);
+  });
+
+  it('la card marca la venta devuelta y ofrece deshacer en vez de editar', () => {
+    expect(render).toMatch(/tag-devuelta/);
+    expect(render).toMatch(/venta-card devuelta|\$\{cls\} devuelta/);
+    expect(render).toMatch(/App\.revertirDevolucion/);
+    expect(render).toMatch(/App\.abrirDevolucion/);
+    // La ganancia de una venta devuelta no se muestra como si fuera real
+    expect(render).toMatch(/devuelta \? '—' : this\.fmtSigned\(gan\)/);
+  });
+
+  it('el Excel exporta el estado y la ganancia en 0 de las devueltas', () => {
+    expect(datos).toMatch(/Estado: v\.devuelta \?/);
+    expect(datos).toMatch(/Ganancia: v\.devuelta \? 0 :/);
+  });
+
+  it('un cambio deja el form listo con el mismo cliente', () => {
+    expect(dev).toMatch(/const esCambio = motivo === 'Cambio por otro'/);
+    expect(dev).toMatch(/showScreen\('nueva-venta'\)/);
+  });
+});
