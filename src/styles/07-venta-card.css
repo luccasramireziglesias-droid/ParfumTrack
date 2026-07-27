@@ -35,6 +35,18 @@
   max-width: 60%;
 }
 
+/* Badge de cantidad: solo aparece cuando la venta es de más de una unidad */
+.venta-cant {
+  flex-shrink: 0;
+  font: 700 11px 'DM Sans';
+  color: var(--gold2);
+  background: rgba(201, 168, 76, 0.14);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 6px;
+  padding: 1px 6px;
+  line-height: 16px;
+}
+
 .venta-tags {
   display: flex;
   gap: 6px;

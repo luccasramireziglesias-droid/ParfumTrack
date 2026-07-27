@@ -13,8 +13,12 @@
     document.getElementById('venta-perfume-display').textContent = v.perfume;
     document.getElementById('venta-perfume-nombre').value = v.perfume;
     document.getElementById('venta-perfume-id').value = v.perfumeId || '';
-    document.getElementById('venta-precio').value = v.precioOriginal || v.precioVenta;
-    document.getElementById('venta-compra').value = v.precioCompra;
+    // El form trabaja con precios POR UNIDAD; la venta guarda totales.
+    // Las ventas viejas (sin `cantidad`) son de 1 unidad.
+    const cantOrig = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    document.getElementById('venta-cantidad').value = cantOrig;
+    document.getElementById('venta-precio').value = v.precioUnitario ?? Math.round((v.precioOriginal || v.precioVenta) / cantOrig);
+    document.getElementById('venta-compra').value = v.precioCompraUnitario ?? Math.round(v.precioCompra / cantOrig);
     document.getElementById('venta-cliente').value = v.cliente || '';
     document.getElementById('venta-vendedor').value = v.vendedor || '';
     document.getElementById('venta-proveedor').value = v.proveedor || '';
@@ -49,8 +53,12 @@
     if (!id) return;
 
     const perfume = (document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent).trim();
-    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    const cantidad = this._getCantidad();
+    const precioVentaUnit = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompraUnit = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    // Igual que en el alta: se guarda el TOTAL de la operación
+    const precioVenta = precioVentaUnit * cantidad;
+    const precioCompra = precioCompraUnit * cantidad;
     const cliente = document.getElementById('venta-cliente').value.trim();
     let vendedor = document.getElementById('venta-vendedor').value.trim();
     const proveedor = document.getElementById('venta-proveedor').value.trim();
@@ -100,6 +108,7 @@
       const oldFormaPago = v.formaPago || 'contado';
       Object.assign(v, {
         perfume, precioVenta: pvFinal, precioOriginal: precioVenta, precioCompra,
+        cantidad, precioUnitario: precioVentaUnit, precioCompraUnitario: precioCompraUnit,
         cliente: cliente || 'Anónimo', vendedor: vendedor || 'Anónimo',
         proveedor: proveedor || '', descuento, nota, fecha,
         // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío

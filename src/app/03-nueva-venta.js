@@ -44,6 +44,7 @@
     document.getElementById('venta-perfume-display').textContent = 'Elegir perfume…';
     document.getElementById('venta-precio').value = '';
     document.getElementById('venta-compra').value = '';
+    document.getElementById('venta-cantidad').value = '1';
     document.getElementById('venta-cliente').value = '';
     document.getElementById('venta-vendedor').value = this._defaultVendedor();
     document.getElementById('venta-proveedor').value = this._defaultProveedor();
@@ -90,8 +91,11 @@
     document.getElementById('venta-perfume-id').value = v.perfumeId || '';
     document.getElementById('venta-perfume-nombre').value = v.perfume;
     document.getElementById('venta-perfume-display').textContent = v.perfume;
-    document.getElementById('venta-precio').value = v.precioOriginal || v.precioVenta;
-    document.getElementById('venta-compra').value = v.precioCompra;
+    // Precios por unidad (las ventas viejas sin cantidad son de 1 unidad)
+    const cantOrig = v.cantidad || 1;
+    document.getElementById('venta-cantidad').value = cantOrig;
+    document.getElementById('venta-precio').value = v.precioUnitario ?? Math.round((v.precioOriginal || v.precioVenta) / cantOrig);
+    document.getElementById('venta-compra').value = v.precioCompraUnitario ?? Math.round(v.precioCompra / cantOrig);
     document.getElementById('venta-proveedor').value = v.proveedor || '';
     if (v.vendedor) document.getElementById('venta-vendedor').value = v.vendedor;
     if (v.descuento) document.getElementById('venta-descuento').value = v.descuento;
@@ -107,13 +111,48 @@
     setTimeout(() => document.getElementById('venta-cliente').focus(), 150);
   },
 
+  _getCantidad() {
+    const el = document.getElementById('venta-cantidad');
+    const n = parseInt((el?.value || '1').replace(/[^\d]/g, ''), 10);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, 999) : 1;
+  },
+
+  cambiarCantidad(delta) {
+    const el = document.getElementById('venta-cantidad');
+    if (!el) return;
+    el.value = Math.max(1, Math.min(999, this._getCantidad() + delta));
+    this.calcLiveProfit();
+    this.haptic();
+  },
+
   calcLiveProfit() {
-    const pv = this.parseMonto(document.getElementById('venta-precio').value) || 0;
-    const pc = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    const pvUnit = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const pcUnit = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const desc = parseFloat(document.getElementById('venta-descuento').value) || 0;
+    const cant = this._getCantidad();
+    // Los precios del form son POR UNIDAD; los totales multiplican por cantidad
+    const pv = pvUnit * cant;
+    const pc = pcUnit * cant;
     const pvFinal = desc > 0 ? Math.round(pv * (1 - desc / 100)) : pv;
     const gan = pvFinal - pc;
     const margen = pvFinal > 0 ? Math.round((gan / pvFinal) * 100) : 0;
+
+    // Aviso de stock: cuántas unidades hay disponibles del perfume elegido
+    const hintEl = document.getElementById('venta-cantidad-hint');
+    if (hintEl) {
+      const pid = document.getElementById('venta-perfume-id').value;
+      const perf = pid ? this.perfumes.find(x => String(x.id) === String(pid)) : null;
+      if (perf) {
+        const falta = cant > (perf.stock || 0);
+        hintEl.textContent = falta
+          ? `Solo hay ${perf.stock || 0} en stock`
+          : `${perf.stock} en stock`;
+        hintEl.classList.toggle('alerta', falta);
+      } else {
+        hintEl.textContent = cant > 1 ? `${cant} unidades` : '';
+        hintEl.classList.remove('alerta');
+      }
+    }
 
     const ganEl = document.getElementById('live-ganancia');
     ganEl.textContent = this.fmtSigned(gan);
@@ -313,8 +352,13 @@
   async _guardarVentaImpl() {
     // BUG-05: trim en textos para no duplicar entidades ("Ana" vs " Ana ")
     const perfume = (document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent).trim();
-    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    const cantidad = this._getCantidad();
+    const precioVentaUnit = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompraUnit = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    // La venta guarda TOTALES (unitario × cantidad): así ganancia, estadísticas
+    // y cuotas siguen calculando sobre el monto real de la operación.
+    const precioVenta = precioVentaUnit * cantidad;
+    const precioCompra = precioCompraUnit * cantidad;
     const cliente = document.getElementById('venta-cliente').value.trim();
     let vendedor = document.getElementById('venta-vendedor').value.trim();
     const proveedor = document.getElementById('venta-proveedor').value.trim();
@@ -420,6 +464,9 @@
         numCuotas: this.formaPago === 'cuotas' ? numCuotas : 1,
         primeraPagada: this._primeraCuotaPagada,
         primerPago,
+        cantidad,
+        precioUnitario: precioVentaUnit,
+        precioCompraUnitario: precioCompraUnit,
         // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío
         perfumeId: perfumeId ? parseInt(perfumeId, 10) : null
       });

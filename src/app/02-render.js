@@ -204,6 +204,9 @@
     const fecha = this.fmtDate(v.fecha);
     const cls = `venta-card${className}`;
     const styleAttr = style ? ` style="${style}"` : '';
+    // Las ventas viejas no tienen `cantidad`: son de 1 unidad
+    const cant = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    const badgeCant = cant > 1 ? `<span class="venta-cant" aria-label="${cant} unidades">×${cant}</span>` : '';
 
     if (compact) {
       return `<div class="${cls}"${styleAttr}>
@@ -212,6 +215,7 @@
               <div style="display:flex;align-items:center;gap:7px;">
                 <span class="venta-num">#${num}</span>
                 <span class="venta-nombre">${this.esc(v.perfume)}</span>
+                ${badgeCant}
               </div>
             </div>
             <span class="venta-date">${fecha}</span>
@@ -228,6 +232,7 @@
             <div style="display:flex;align-items:center;gap:7px;">
               <span class="venta-num">#${num}</span>
               <span class="venta-nombre">${this.esc(v.perfume)}</span>
+              ${badgeCant}
             </div>
             <div class="venta-tags">
               <span class="tag">${this.esc(v.vendedor || '—')}</span>
@@ -244,7 +249,7 @@
         <div class="venta-divider"></div>
         <div class="venta-bottom">
           <div>
-            <div class="venta-precio-label">Precio venta</div>
+            <div class="venta-precio-label">${cant > 1 ? `Precio venta (${cant}u.)` : 'Precio venta'}</div>
             <div class="venta-precio-value">${this.fmt(v.precioVenta)}</div>
           </div>
           <div style="text-align:right;">

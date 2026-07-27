@@ -452,6 +452,18 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   max-width: 60%;
 }
 
+/* Badge de cantidad: solo aparece cuando la venta es de más de una unidad */
+.venta-cant {
+  flex-shrink: 0;
+  font: 700 11px 'DM Sans';
+  color: var(--gold2);
+  background: rgba(201, 168, 76, 0.14);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 6px;
+  padding: 1px 6px;
+  line-height: 16px;
+}
+
 .venta-tags {
   display: flex;
   gap: 6px;
@@ -773,6 +785,45 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 }
 .cuotas-plan .ms { font-size: 16px; color: var(--gold); }
 .cuotas-plan strong { color: var(--gold2); font-weight: 700; }
+
+/* Stepper de cantidad en Nueva Venta */
+.cantidad-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cant-btn {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--gold2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.cant-btn:active { opacity: 0.7; }
+.cant-btn .ms { font-size: 20px; }
+.cant-input {
+  width: 68px;
+  text-align: center;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 12px 6px;
+  font: 700 17px 'DM Sans', sans-serif;
+  color: var(--text);
+  outline: none;
+}
+.cant-hint {
+  font: 500 12px 'DM Sans', sans-serif;
+  color: var(--text3);
+  flex: 1;
+}
+.cant-hint.alerta { color: var(--warn); }
 /* ====== BUTTONS ====== */
 .btn-primary {
   display: flex;
@@ -2534,13 +2585,23 @@ input[type="date"].form-input {
         <input type="hidden" id="venta-perfume-nombre">
       </div>
 
+      <div class="form-group">
+        <label class="form-label">CANTIDAD</label>
+        <div class="cantidad-stepper">
+          <button type="button" class="cant-btn" onclick="App.cambiarCantidad(-1)" aria-label="Restar una unidad"><span class="ms" aria-hidden="true">remove</span></button>
+          <input type="text" class="cant-input" id="venta-cantidad" value="1" inputmode="numeric" autocomplete="off" oninput="App.calcLiveProfit()" aria-label="Cantidad de unidades">
+          <button type="button" class="cant-btn" onclick="App.cambiarCantidad(1)" aria-label="Sumar una unidad"><span class="ms" aria-hidden="true">add</span></button>
+          <span class="cant-hint" id="venta-cantidad-hint"></span>
+        </div>
+      </div>
+
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">PRECIO VENTA</label>
+          <label class="form-label">PRECIO VENTA <span class="muted-label">(por unidad)</span></label>
           <input type="text" class="form-input" id="venta-precio" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcLiveProfit()">
         </div>
         <div class="form-group">
-          <label class="form-label">PRECIO COMPRA</label>
+          <label class="form-label">PRECIO COMPRA <span class="muted-label">(por unidad)</span></label>
           <input type="text" class="form-input" id="venta-compra" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcLiveProfit()">
         </div>
       </div>
@@ -3630,18 +3691,24 @@ const DB = {
     // Resolver el stock ANTES de insertar para dejar constancia en la venta de
     // si descontó una unidad o no. Sin ese dato, borrar una venta hecha con
     // stock en 0 devolvía al inventario una unidad que nunca existió.
-    let stockDescontado = false;
+    const cantidad = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    let unidadesDescontadas = 0;
     let perfumeADescontar = null;
     if (v.perfumeId && v.perfumeId !== '') {
       const p = await this.get('perfumes', v.perfumeId);
       if (p && p.stock > 0) {
         perfumeADescontar = p;
-        stockDescontado = true;
+        // Nunca dejar el stock en negativo: se descuenta lo que realmente hay
+        unidadesDescontadas = Math.min(cantidad, p.stock);
       }
     }
-    const id = await this.add('ventas', { ...v, fecha: v.fecha || Date.now(), stockDescontado });
-    if (perfumeADescontar) {
-      perfumeADescontar.stock = Math.max(0, perfumeADescontar.stock - 1);
+    const id = await this.add('ventas', {
+      ...v, fecha: v.fecha || Date.now(),
+      stockDescontado: unidadesDescontadas > 0,
+      unidadesDescontadas
+    });
+    if (perfumeADescontar && unidadesDescontadas > 0) {
+      perfumeADescontar.stock = Math.max(0, perfumeADescontar.stock - unidadesDescontadas);
       await this.put('perfumes', perfumeADescontar);
     }
     if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
@@ -3698,7 +3765,46 @@ const DB = {
   },
 
   async updateVenta(v) {
-    return this.put('ventas', v);
+    const prev = await this.get('ventas', v.id);
+    const norm = (x) => (x === null || x === undefined || x === '' ? null : Number(x));
+    const cantidad = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    const prevCantidad = prev ? Math.max(1, parseInt(prev.cantidad, 10) || 1) : 0;
+    const prevPerfumeId = prev ? norm(prev.perfumeId) : null;
+    const nuevoPerfumeId = norm(v.perfumeId);
+
+    // Solo tocar el inventario si cambió el perfume o la cantidad: si el usuario
+    // edita el cliente o la nota, el stock no se mueve.
+    let unidadesDescontadas = prev
+      ? (prev.unidadesDescontadas !== undefined ? prev.unidadesDescontadas : (prev.stockDescontado !== false ? 1 : 0))
+      : 0;
+    const cambioStock = !prev || prevPerfumeId !== nuevoPerfumeId || prevCantidad !== cantidad;
+
+    if (cambioStock) {
+      // Devolver lo que había descontado la versión anterior…
+      if (prevPerfumeId && unidadesDescontadas > 0) {
+        const p = await this.get('perfumes', prevPerfumeId);
+        if (p) {
+          p.stock = (p.stock || 0) + unidadesDescontadas;
+          await this.put('perfumes', p);
+        }
+      }
+      // …y descontar lo que pide la versión nueva (sin dejar stock negativo)
+      unidadesDescontadas = 0;
+      if (nuevoPerfumeId) {
+        const p = await this.get('perfumes', nuevoPerfumeId);
+        if (p && p.stock > 0) {
+          unidadesDescontadas = Math.min(cantidad, p.stock);
+          p.stock = Math.max(0, p.stock - unidadesDescontadas);
+          await this.put('perfumes', p);
+        }
+      }
+    }
+
+    return this.put('ventas', {
+      ...v,
+      stockDescontado: unidadesDescontadas > 0,
+      unidadesDescontadas
+    });
   },
 
   async deleteVenta(id) {
@@ -3706,11 +3812,14 @@ const DB = {
     if (v) {
       // Solo devolver stock si esta venta lo descontó. Las ventas viejas (sin
       // el flag) mantienen el comportamiento previo para no cambiar su historial.
-      const debeDevolver = v.stockDescontado !== false;
-      if (v.perfumeId && v.perfumeId !== '' && debeDevolver) {
+      // Devolver exactamente las unidades que esta venta descontó
+      const aDevolver = v.unidadesDescontadas !== undefined
+        ? v.unidadesDescontadas
+        : (v.stockDescontado !== false ? 1 : 0);
+      if (v.perfumeId && v.perfumeId !== '' && aDevolver > 0) {
         const p = await this.get('perfumes', v.perfumeId);
         if (p) {
-          p.stock = (p.stock || 0) + 1;
+          p.stock = (p.stock || 0) + aDevolver;
           await this.put('perfumes', p);
         }
       }
@@ -4870,6 +4979,9 @@ const App = {
     const fecha = this.fmtDate(v.fecha);
     const cls = `venta-card${className}`;
     const styleAttr = style ? ` style="${style}"` : '';
+    // Las ventas viejas no tienen `cantidad`: son de 1 unidad
+    const cant = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    const badgeCant = cant > 1 ? `<span class="venta-cant" aria-label="${cant} unidades">×${cant}</span>` : '';
 
     if (compact) {
       return `<div class="${cls}"${styleAttr}>
@@ -4878,6 +4990,7 @@ const App = {
               <div style="display:flex;align-items:center;gap:7px;">
                 <span class="venta-num">#${num}</span>
                 <span class="venta-nombre">${this.esc(v.perfume)}</span>
+                ${badgeCant}
               </div>
             </div>
             <span class="venta-date">${fecha}</span>
@@ -4894,6 +5007,7 @@ const App = {
             <div style="display:flex;align-items:center;gap:7px;">
               <span class="venta-num">#${num}</span>
               <span class="venta-nombre">${this.esc(v.perfume)}</span>
+              ${badgeCant}
             </div>
             <div class="venta-tags">
               <span class="tag">${this.esc(v.vendedor || '—')}</span>
@@ -4910,7 +5024,7 @@ const App = {
         <div class="venta-divider"></div>
         <div class="venta-bottom">
           <div>
-            <div class="venta-precio-label">Precio venta</div>
+            <div class="venta-precio-label">${cant > 1 ? `Precio venta (${cant}u.)` : 'Precio venta'}</div>
             <div class="venta-precio-value">${this.fmt(v.precioVenta)}</div>
           </div>
           <div style="text-align:right;">
@@ -5460,6 +5574,7 @@ const App = {
     document.getElementById('venta-perfume-display').textContent = 'Elegir perfume…';
     document.getElementById('venta-precio').value = '';
     document.getElementById('venta-compra').value = '';
+    document.getElementById('venta-cantidad').value = '1';
     document.getElementById('venta-cliente').value = '';
     document.getElementById('venta-vendedor').value = this._defaultVendedor();
     document.getElementById('venta-proveedor').value = this._defaultProveedor();
@@ -5506,8 +5621,11 @@ const App = {
     document.getElementById('venta-perfume-id').value = v.perfumeId || '';
     document.getElementById('venta-perfume-nombre').value = v.perfume;
     document.getElementById('venta-perfume-display').textContent = v.perfume;
-    document.getElementById('venta-precio').value = v.precioOriginal || v.precioVenta;
-    document.getElementById('venta-compra').value = v.precioCompra;
+    // Precios por unidad (las ventas viejas sin cantidad son de 1 unidad)
+    const cantOrig = v.cantidad || 1;
+    document.getElementById('venta-cantidad').value = cantOrig;
+    document.getElementById('venta-precio').value = v.precioUnitario ?? Math.round((v.precioOriginal || v.precioVenta) / cantOrig);
+    document.getElementById('venta-compra').value = v.precioCompraUnitario ?? Math.round(v.precioCompra / cantOrig);
     document.getElementById('venta-proveedor').value = v.proveedor || '';
     if (v.vendedor) document.getElementById('venta-vendedor').value = v.vendedor;
     if (v.descuento) document.getElementById('venta-descuento').value = v.descuento;
@@ -5523,13 +5641,48 @@ const App = {
     setTimeout(() => document.getElementById('venta-cliente').focus(), 150);
   },
 
+  _getCantidad() {
+    const el = document.getElementById('venta-cantidad');
+    const n = parseInt((el?.value || '1').replace(/[^\d]/g, ''), 10);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, 999) : 1;
+  },
+
+  cambiarCantidad(delta) {
+    const el = document.getElementById('venta-cantidad');
+    if (!el) return;
+    el.value = Math.max(1, Math.min(999, this._getCantidad() + delta));
+    this.calcLiveProfit();
+    this.haptic();
+  },
+
   calcLiveProfit() {
-    const pv = this.parseMonto(document.getElementById('venta-precio').value) || 0;
-    const pc = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    const pvUnit = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const pcUnit = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const desc = parseFloat(document.getElementById('venta-descuento').value) || 0;
+    const cant = this._getCantidad();
+    // Los precios del form son POR UNIDAD; los totales multiplican por cantidad
+    const pv = pvUnit * cant;
+    const pc = pcUnit * cant;
     const pvFinal = desc > 0 ? Math.round(pv * (1 - desc / 100)) : pv;
     const gan = pvFinal - pc;
     const margen = pvFinal > 0 ? Math.round((gan / pvFinal) * 100) : 0;
+
+    // Aviso de stock: cuántas unidades hay disponibles del perfume elegido
+    const hintEl = document.getElementById('venta-cantidad-hint');
+    if (hintEl) {
+      const pid = document.getElementById('venta-perfume-id').value;
+      const perf = pid ? this.perfumes.find(x => String(x.id) === String(pid)) : null;
+      if (perf) {
+        const falta = cant > (perf.stock || 0);
+        hintEl.textContent = falta
+          ? `Solo hay ${perf.stock || 0} en stock`
+          : `${perf.stock} en stock`;
+        hintEl.classList.toggle('alerta', falta);
+      } else {
+        hintEl.textContent = cant > 1 ? `${cant} unidades` : '';
+        hintEl.classList.remove('alerta');
+      }
+    }
 
     const ganEl = document.getElementById('live-ganancia');
     ganEl.textContent = this.fmtSigned(gan);
@@ -5729,8 +5882,13 @@ const App = {
   async _guardarVentaImpl() {
     // BUG-05: trim en textos para no duplicar entidades ("Ana" vs " Ana ")
     const perfume = (document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent).trim();
-    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    const cantidad = this._getCantidad();
+    const precioVentaUnit = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompraUnit = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    // La venta guarda TOTALES (unitario × cantidad): así ganancia, estadísticas
+    // y cuotas siguen calculando sobre el monto real de la operación.
+    const precioVenta = precioVentaUnit * cantidad;
+    const precioCompra = precioCompraUnit * cantidad;
     const cliente = document.getElementById('venta-cliente').value.trim();
     let vendedor = document.getElementById('venta-vendedor').value.trim();
     const proveedor = document.getElementById('venta-proveedor').value.trim();
@@ -5836,6 +5994,9 @@ const App = {
         numCuotas: this.formaPago === 'cuotas' ? numCuotas : 1,
         primeraPagada: this._primeraCuotaPagada,
         primerPago,
+        cantidad,
+        precioUnitario: precioVentaUnit,
+        precioCompraUnitario: precioCompraUnit,
         // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío
         perfumeId: perfumeId ? parseInt(perfumeId, 10) : null
       });
@@ -6211,8 +6372,12 @@ const App = {
     document.getElementById('venta-perfume-display').textContent = v.perfume;
     document.getElementById('venta-perfume-nombre').value = v.perfume;
     document.getElementById('venta-perfume-id').value = v.perfumeId || '';
-    document.getElementById('venta-precio').value = v.precioOriginal || v.precioVenta;
-    document.getElementById('venta-compra').value = v.precioCompra;
+    // El form trabaja con precios POR UNIDAD; la venta guarda totales.
+    // Las ventas viejas (sin `cantidad`) son de 1 unidad.
+    const cantOrig = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    document.getElementById('venta-cantidad').value = cantOrig;
+    document.getElementById('venta-precio').value = v.precioUnitario ?? Math.round((v.precioOriginal || v.precioVenta) / cantOrig);
+    document.getElementById('venta-compra').value = v.precioCompraUnitario ?? Math.round(v.precioCompra / cantOrig);
     document.getElementById('venta-cliente').value = v.cliente || '';
     document.getElementById('venta-vendedor').value = v.vendedor || '';
     document.getElementById('venta-proveedor').value = v.proveedor || '';
@@ -6247,8 +6412,12 @@ const App = {
     if (!id) return;
 
     const perfume = (document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent).trim();
-    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    const cantidad = this._getCantidad();
+    const precioVentaUnit = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompraUnit = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    // Igual que en el alta: se guarda el TOTAL de la operación
+    const precioVenta = precioVentaUnit * cantidad;
+    const precioCompra = precioCompraUnit * cantidad;
     const cliente = document.getElementById('venta-cliente').value.trim();
     let vendedor = document.getElementById('venta-vendedor').value.trim();
     const proveedor = document.getElementById('venta-proveedor').value.trim();
@@ -6298,6 +6467,7 @@ const App = {
       const oldFormaPago = v.formaPago || 'contado';
       Object.assign(v, {
         perfume, precioVenta: pvFinal, precioOriginal: precioVenta, precioCompra,
+        cantidad, precioUnitario: precioVentaUnit, precioCompraUnitario: precioCompraUnit,
         cliente: cliente || 'Anónimo', vendedor: vendedor || 'Anónimo',
         proveedor: proveedor || '', descuento, nota, fecha,
         // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío

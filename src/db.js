@@ -135,18 +135,24 @@
     // Resolver el stock ANTES de insertar para dejar constancia en la venta de
     // si descontó una unidad o no. Sin ese dato, borrar una venta hecha con
     // stock en 0 devolvía al inventario una unidad que nunca existió.
-    let stockDescontado = false;
+    const cantidad = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    let unidadesDescontadas = 0;
     let perfumeADescontar = null;
     if (v.perfumeId && v.perfumeId !== '') {
       const p = await this.get('perfumes', v.perfumeId);
       if (p && p.stock > 0) {
         perfumeADescontar = p;
-        stockDescontado = true;
+        // Nunca dejar el stock en negativo: se descuenta lo que realmente hay
+        unidadesDescontadas = Math.min(cantidad, p.stock);
       }
     }
-    const id = await this.add('ventas', { ...v, fecha: v.fecha || Date.now(), stockDescontado });
-    if (perfumeADescontar) {
-      perfumeADescontar.stock = Math.max(0, perfumeADescontar.stock - 1);
+    const id = await this.add('ventas', {
+      ...v, fecha: v.fecha || Date.now(),
+      stockDescontado: unidadesDescontadas > 0,
+      unidadesDescontadas
+    });
+    if (perfumeADescontar && unidadesDescontadas > 0) {
+      perfumeADescontar.stock = Math.max(0, perfumeADescontar.stock - unidadesDescontadas);
       await this.put('perfumes', perfumeADescontar);
     }
     if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
@@ -203,7 +209,46 @@
   },
 
   async updateVenta(v) {
-    return this.put('ventas', v);
+    const prev = await this.get('ventas', v.id);
+    const norm = (x) => (x === null || x === undefined || x === '' ? null : Number(x));
+    const cantidad = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    const prevCantidad = prev ? Math.max(1, parseInt(prev.cantidad, 10) || 1) : 0;
+    const prevPerfumeId = prev ? norm(prev.perfumeId) : null;
+    const nuevoPerfumeId = norm(v.perfumeId);
+
+    // Solo tocar el inventario si cambió el perfume o la cantidad: si el usuario
+    // edita el cliente o la nota, el stock no se mueve.
+    let unidadesDescontadas = prev
+      ? (prev.unidadesDescontadas !== undefined ? prev.unidadesDescontadas : (prev.stockDescontado !== false ? 1 : 0))
+      : 0;
+    const cambioStock = !prev || prevPerfumeId !== nuevoPerfumeId || prevCantidad !== cantidad;
+
+    if (cambioStock) {
+      // Devolver lo que había descontado la versión anterior…
+      if (prevPerfumeId && unidadesDescontadas > 0) {
+        const p = await this.get('perfumes', prevPerfumeId);
+        if (p) {
+          p.stock = (p.stock || 0) + unidadesDescontadas;
+          await this.put('perfumes', p);
+        }
+      }
+      // …y descontar lo que pide la versión nueva (sin dejar stock negativo)
+      unidadesDescontadas = 0;
+      if (nuevoPerfumeId) {
+        const p = await this.get('perfumes', nuevoPerfumeId);
+        if (p && p.stock > 0) {
+          unidadesDescontadas = Math.min(cantidad, p.stock);
+          p.stock = Math.max(0, p.stock - unidadesDescontadas);
+          await this.put('perfumes', p);
+        }
+      }
+    }
+
+    return this.put('ventas', {
+      ...v,
+      stockDescontado: unidadesDescontadas > 0,
+      unidadesDescontadas
+    });
   },
 
   async deleteVenta(id) {
@@ -211,11 +256,14 @@
     if (v) {
       // Solo devolver stock si esta venta lo descontó. Las ventas viejas (sin
       // el flag) mantienen el comportamiento previo para no cambiar su historial.
-      const debeDevolver = v.stockDescontado !== false;
-      if (v.perfumeId && v.perfumeId !== '' && debeDevolver) {
+      // Devolver exactamente las unidades que esta venta descontó
+      const aDevolver = v.unidadesDescontadas !== undefined
+        ? v.unidadesDescontadas
+        : (v.stockDescontado !== false ? 1 : 0);
+      if (v.perfumeId && v.perfumeId !== '' && aDevolver > 0) {
         const p = await this.get('perfumes', v.perfumeId);
         if (p) {
-          p.stock = (p.stock || 0) + 1;
+          p.stock = (p.stock || 0) + aDevolver;
           await this.put('perfumes', p);
         }
       }
