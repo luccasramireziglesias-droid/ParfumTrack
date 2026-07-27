@@ -2599,6 +2599,97 @@ input[type="date"].form-input {
 .tag-devuelta .ms {
   font-size: 13px;
 }
+/* ====== COMPRAS AL PROVEEDOR (F4) ====== */
+
+.stock-reponer {
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  border-radius: 9px;
+  color: var(--gold2);
+  font: 600 12px 'DM Sans';
+  cursor: pointer;
+}
+
+.stock-reponer .ms { font-size: 15px; }
+.stock-reponer:active { opacity: 0.7; }
+
+.compra-total-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  font: 500 13px 'DM Sans';
+  color: var(--text2);
+}
+
+.compra-total-box strong {
+  font: 700 18px 'DM Sans';
+  color: var(--gold2);
+}
+
+.compra-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
+
+.compra-info { min-width: 0; flex: 1; }
+
+.compra-nombre {
+  font: 600 13px 'DM Sans';
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compra-cant {
+  font: 700 11px 'DM Sans';
+  color: var(--gold2);
+}
+
+.compra-meta {
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compra-total {
+  font: 700 14px 'DM Sans';
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.compra-del {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text3);
+  font-family: 'Material Symbols Rounded';
+  font-size: 16px;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -2945,6 +3036,14 @@ input[type="date"].form-input {
 
       <div id="stock-alerts" class="hidden"></div>
       <div class="stock-grid" id="stock-grid"></div>
+
+      <div id="stock-compras" class="hidden" style="margin-top:20px;">
+        <div class="section-header">
+          <span class="section-title"><span class="ms gold">local_shipping</span>Últimas compras</span>
+          <span class="section-link" id="stock-compras-resumen"></span>
+        </div>
+        <div id="stock-compras-list"></div>
+      </div>
     </div>
   </div>
 
@@ -3406,6 +3505,64 @@ input[type="date"].form-input {
     </div>
   </div>
 
+  <!-- ====== MODAL: COMPRA AL PROVEEDOR (F4) ====== -->
+  <div id="modal-compra" class="modal-overlay hidden" onclick="App.cerrarCompra()" role="dialog" aria-modal="true" aria-label="Registrar compra al proveedor">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Reponer stock</span>
+        <div class="back-btn" onclick="App.cerrarCompra()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
+      </div>
+      <div class="pago-cuota-info">
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Perfume</span>
+          <span class="pago-cuota-value" id="compra-perfume"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Ahora</span>
+          <span class="pago-cuota-value" id="compra-stock-actual"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">CANTIDAD QUE COMPRÁS</label>
+        <div class="cantidad-stepper">
+          <button type="button" class="cant-btn" onclick="App.cambiarCantidadCompra(-1)" aria-label="Restar una unidad"><span class="ms" aria-hidden="true">remove</span></button>
+          <input type="text" class="cant-input" id="compra-cantidad" value="1" inputmode="numeric" autocomplete="off" oninput="App.calcTotalCompra()" aria-label="Cantidad comprada">
+          <button type="button" class="cant-btn" onclick="App.cambiarCantidadCompra(1)" aria-label="Sumar una unidad"><span class="ms" aria-hidden="true">add</span></button>
+          <span class="cant-hint" id="compra-stock-final"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">PRECIO DE COMPRA <span class="muted-label">(por unidad)</span></label>
+        <input type="text" class="form-input" id="compra-precio" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcTotalCompra()">
+      </div>
+      <div class="compra-total-box">
+        <span>Total de la compra</span>
+        <strong id="compra-total">$0</strong>
+      </div>
+      <label class="devolucion-check">
+        <input type="checkbox" id="compra-actualiza-costo" checked>
+        <span>Usar este precio como costo del perfume</span>
+      </label>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">PROVEEDOR</label>
+          <input type="text" class="form-input" id="compra-proveedor" placeholder="Nombre…" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">FECHA</label>
+          <input type="date" class="form-input" id="compra-fecha">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">NOTA (OPCIONAL)</label>
+        <input type="text" class="form-input" id="compra-nota" placeholder="Detalle…" autocomplete="off" maxlength="300">
+      </div>
+      <button class="btn gold-btn" id="compra-confirmar" onclick="App.registrarCompra()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
+        <span class="ms">local_shipping</span> Registrar compra
+      </button>
+    </div>
+  </div>
+
   <!-- ====== MODAL: DEVOLUCIÓN (F3) ====== -->
   <div id="modal-devolucion" class="modal-overlay hidden" onclick="App.cerrarDevolucion()" role="dialog" aria-modal="true" aria-label="Registrar devolución">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -3774,7 +3931,7 @@ input[type="date"].form-input {
 </div>
 <script>
 const DB_NAME = 'ParfumTrackDB';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 let db = null;
 
 function openDB() {
@@ -3816,6 +3973,12 @@ function openDB() {
         const s = d.createObjectStore('gastos', { keyPath: 'id', autoIncrement: true });
         s.createIndex('fecha', 'fecha', { unique: false });
       }
+      // v4: compras al proveedor (reposición de stock con su costo)
+      if (!d.objectStoreNames.contains('compras')) {
+        const s = d.createObjectStore('compras', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('fecha', 'fecha', { unique: false });
+        s.createIndex('perfumeId', 'perfumeId', { unique: false });
+      }
     };
     req.onsuccess = e => { db = e.target.result; resolve(db); };
     req.onerror = e => reject(e.target.error);
@@ -3846,7 +4009,7 @@ const DB = {
     await openDB();
   },
 
-  _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja']),
+  _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja', 'compras']),
 
   _shouldEncrypt(store) {
     return this._encryptedStores.has(store) && localStorage.getItem('pt_license_code');
@@ -4200,6 +4363,55 @@ const DB = {
     delete limpia.cuotasCanceladas;
     delete limpia.montoADevolver;
     return this.put('ventas', limpia);
+  },
+
+  // F4: reposición de stock comprándole al proveedor. Deja registro del
+  // costo real de cada tanda, que es lo que después explica la ganancia.
+  async registrarCompra({ perfumeId, cantidad, precioUnitario, proveedor = '', fecha, nota = '', actualizarCosto = true } = {}) {
+    const cant = Math.max(1, parseInt(cantidad, 10) || 0);
+    if (!cant) throw new Error('CANTIDAD_INVALIDA');
+    const precio = Number(precioUnitario);
+    if (!Number.isFinite(precio) || precio < 0) throw new Error('PRECIO_INVALIDO');
+
+    const p = perfumeId ? await this.get('perfumes', perfumeId) : null;
+    if (!p) throw new Error('PERFUME_NO_ENCONTRADO');
+
+    p.stock = (p.stock || 0) + cant;
+    // El costo de la última tanda pasa a ser el costo de referencia
+    if (actualizarCosto && precio > 0) p.precioCompra = precio;
+    await this.put('perfumes', p);
+
+    const id = await this.add('compras', {
+      perfumeId,
+      perfume: p.nombre,
+      cantidad: cant,
+      precioUnitario: precio,
+      total: precio * cant,
+      proveedor,
+      nota,
+      costoActualizado: !!(actualizarCosto && precio > 0),
+      fecha: fecha || Date.now()
+    });
+    return this.get('compras', id);
+  },
+
+  // Deshacer una compra cargada por error: descuenta lo que había sumado,
+  // sin dejar el stock en negativo (puede haberse vendido parte).
+  async eliminarCompra(id) {
+    const c = await this.get('compras', id);
+    if (c && c.perfumeId) {
+      const p = await this.get('perfumes', c.perfumeId);
+      if (p) {
+        p.stock = Math.max(0, (p.stock || 0) - (c.cantidad || 0));
+        await this.put('perfumes', p);
+      }
+    }
+    return this.delete('compras', id);
+  },
+
+  async getCompras() {
+    const compras = await this.getAll('compras');
+    return compras.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
   },
 
   async getCuotas() {
@@ -4735,6 +4947,7 @@ const App = {
   pedidoPerfumes: [],
   cajaData: [],
   gastosData: [],
+  comprasData: [],
   cajaTipo: 'entrada',
   gastoCat: 'transporte',
 
@@ -5000,6 +5213,7 @@ const App = {
     this.pedidosData = await DB.getPedidos();
     this.cajaData = await DB.getCaja();
     this.gastosData = await DB.getGastos();
+    this.comprasData = await DB.getCompras();
   },
 
   registerSW() {
@@ -5511,6 +5725,7 @@ const App = {
 
     if (items.length === 0) {
       grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span class="ms">inventory_2</span><span>No hay perfumes</span></div>';
+      this.renderCompras();
       return;
     }
 
@@ -5534,10 +5749,14 @@ const App = {
               <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)" aria-label="Sumar stock">add</button>
             </div>
           </div>
+          <button class="stock-reponer" onclick="App.abrirCompra(${p.id})" aria-label="Reponer stock de ${this.esc(p.nombre)}">
+            <span class="ms" aria-hidden="true">local_shipping</span>Reponer
+          </button>
         </div>
       </div>`;
     }).join('');
     this._lazyLoadStockPhotos();
+    this.renderCompras();
   },
 
   _lazyLoadStockPhotos() {
@@ -7499,6 +7718,7 @@ const App = {
       pedidos: this.pedidosData,
       caja: this.cajaData,
       gastos: this.gastosData,
+      compras: this.comprasData,
       config,
       // BUG #18 FIX: No incluir datos sensibles (PIN) en export
       settings: {
@@ -7579,7 +7799,7 @@ const App = {
         data = inner;
       }
     }
-    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'config'];
     for (const s of stores) {
       if (data[s] && !Array.isArray(data[s])) {
         data[s] = Object.values(data[s]);
@@ -7680,7 +7900,7 @@ const App = {
     if (!data || typeof data !== 'object') {
       throw new Error('El archivo no contiene datos válidos');
     }
-    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras'];
     const registros = stores.reduce(
       (n, s) => n + (Array.isArray(data[s]) ? data[s].length : 0), 0
     );
@@ -7694,7 +7914,7 @@ const App = {
     // Si esto lanza, la base local queda intacta (todavía no borramos nada)
     this._assertRestorable(data);
 
-    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'config'];
     let total = 0, skipped = 0;
     for (const store of stores) {
       await DB.clear(store);
@@ -7733,7 +7953,7 @@ const App = {
       const raw = JSON.parse(text);
       const data = this._normalizeBackupData(raw);
 
-      const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+      const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'config'];
       const hasData = stores.some(s => Array.isArray(data[s]) && data[s].length > 0) || data.settings;
       if (!hasData) {
         this.toast('No se encontraron datos válidos en el archivo', 'error');
@@ -8213,6 +8433,7 @@ const App = {
       pedidos: this.pedidosData,
       caja: this.cajaData,
       gastos: this.gastosData,
+      compras: this.comprasData,
       config,
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
@@ -8287,7 +8508,7 @@ const App = {
 
   async clearData() {
     if (!await this.appConfirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.', 'Borrar todo', 'delete_forever')) return;
-    const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos', 'compras'];
     for (const store of stores) {
       await DB.clear(store);
     }
@@ -8740,6 +8961,7 @@ const App = {
       pedidos: this.pedidosData,
       caja: this.cajaData,
       gastos: this.gastosData,
+      compras: this.comprasData,
       config,
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
@@ -9720,6 +9942,168 @@ const App = {
     this.renderAllVentas();
     this.toast('Devolución deshecha', 'undo');
     this._notifyTabs();
+  },
+
+
+  // ====== COMPRAS AL PROVEEDOR (F4) ======
+  // Reponer stock a mano con el botón "+" no dejaba rastro de cuánto costó la
+  // tanda. Sin ese dato, el "precio de compra" del perfume se vuelve un número
+  // viejo y la ganancia deja de ser real.
+
+  _compraPerfumeId: null,
+
+  abrirCompra(perfumeId) {
+    const p = this.perfumes.find(x => x.id === perfumeId);
+    if (!p) {
+      this.toast('No se encontró el perfume', 'error');
+      return;
+    }
+    this._compraPerfumeId = perfumeId;
+
+    document.getElementById('compra-perfume').textContent = p.nombre;
+    document.getElementById('compra-stock-actual').textContent = `${Math.max(0, p.stock || 0)} en stock`;
+    document.getElementById('compra-cantidad').value = '1';
+    // El costo anterior es el mejor punto de partida: normalmente se repite
+    document.getElementById('compra-precio').value = p.precioCompra || '';
+    document.getElementById('compra-proveedor').value = this._defaultProveedor();
+    document.getElementById('compra-fecha').value = new Date().toISOString().split('T')[0];
+    document.getElementById('compra-nota').value = '';
+    document.getElementById('compra-actualiza-costo').checked = true;
+
+    this.calcTotalCompra();
+    document.getElementById('modal-compra').classList.remove('hidden');
+  },
+
+  cerrarCompra() {
+    document.getElementById('modal-compra').classList.add('hidden');
+    this._compraPerfumeId = null;
+  },
+
+  _getCantidadCompra() {
+    const el = document.getElementById('compra-cantidad');
+    const n = parseInt((el?.value || '1').replace(/[^\d]/g, ''), 10);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, 9999) : 1;
+  },
+
+  cambiarCantidadCompra(delta) {
+    const el = document.getElementById('compra-cantidad');
+    if (!el) return;
+    el.value = Math.max(1, Math.min(9999, this._getCantidadCompra() + delta));
+    this.calcTotalCompra();
+    this.haptic();
+  },
+
+  calcTotalCompra() {
+    const cant = this._getCantidadCompra();
+    const precio = this.parseMonto(document.getElementById('compra-precio').value) || 0;
+    const el = document.getElementById('compra-total');
+    if (el) el.textContent = this.fmt(precio * cant);
+
+    // Cuánto queda en stock después de esta compra
+    const p = this.perfumes.find(x => x.id === this._compraPerfumeId);
+    const hint = document.getElementById('compra-stock-final');
+    if (hint && p) hint.textContent = `Queda en ${Math.max(0, p.stock || 0) + cant}`;
+  },
+
+  registrarCompra() {
+    // Anti doble-tap: dos toques sumaban la tanda dos veces al inventario
+    return this._once('compra', () => this._registrarCompraImpl(),
+      document.getElementById('compra-confirmar'));
+  },
+
+  async _registrarCompraImpl() {
+    const perfumeId = this._compraPerfumeId;
+    if (!perfumeId) return;
+
+    const cantidad = this._getCantidadCompra();
+    const precioUnitario = this.parseMonto(document.getElementById('compra-precio').value) || 0;
+    const proveedor = document.getElementById('compra-proveedor').value.trim();
+    const nota = (document.getElementById('compra-nota').value || '').trim().slice(0, 300);
+    const actualizarCosto = document.getElementById('compra-actualiza-costo').checked;
+    const fechaStr = document.getElementById('compra-fecha').value;
+    const fecha = fechaStr ? new Date(fechaStr + 'T00:00:00Z').getTime() : Date.now();
+
+    if (precioUnitario <= 0) {
+      this.toast('Ingresá el precio de compra por unidad', 'warning');
+      return;
+    }
+    if (precioUnitario > 1e9) {
+      this.toast('El monto es demasiado grande (máx mil millones)', 'warning');
+      return;
+    }
+
+    try {
+      await DB.registrarCompra({ perfumeId, cantidad, precioUnitario, proveedor, fecha, nota, actualizarCosto });
+    } catch (e) {
+      this.toast('Error al registrar la compra', 'error');
+      return;
+    }
+
+    if (proveedor) localStorage.setItem('pt_ultimo_proveedor', proveedor);
+    this.cerrarCompra();
+    await this.loadData();
+    this.renderStock();
+    this.renderAll();
+    this.toast(`+${cantidad} al stock por ${this.fmt(precioUnitario * cantidad)}`, 'local_shipping');
+    this.haptic('success');
+    this._notifyTabs();
+  },
+
+  async eliminarCompra(id) {
+    const c = this.comprasData.find(x => x.id === id);
+    if (!c) return;
+    if (!await this.appConfirm(`¿Borrar la compra de ${c.cantidad} × ${c.perfume}? Se descuentan del stock.`, 'Borrar', 'delete')) return;
+    try {
+      await DB.eliminarCompra(id);
+    } catch (e) {
+      this.toast('Error al borrar la compra', 'error');
+      return;
+    }
+    await this.loadData();
+    this.renderStock();
+    this.renderAll();
+    this.toast('Compra borrada', 'delete');
+    this._notifyTabs();
+  },
+
+  _COMPRAS_VISIBLES: 5,
+
+  renderCompras() {
+    const section = document.getElementById('stock-compras');
+    const list = document.getElementById('stock-compras-list');
+    if (!section || !list) return;
+
+    const compras = this.comprasData || [];
+    if (compras.length === 0) {
+      section.classList.add('hidden');
+      list.innerHTML = '';
+      return;
+    }
+
+    // Invertido total del mes: lo que salió de la caja para reponer
+    const ahora = new Date();
+    const delMes = compras.filter(c => {
+      const d = new Date(c.fecha || 0);
+      return d.getMonth() === ahora.getMonth() && d.getFullYear() === ahora.getFullYear();
+    });
+    const totalMes = delMes.reduce((s, c) => s + (c.total || 0), 0);
+    const resumen = document.getElementById('stock-compras-resumen');
+    if (resumen) {
+      resumen.textContent = totalMes > 0
+        ? `${this.fmt(totalMes)} invertidos este mes`
+        : 'Sin compras este mes';
+    }
+
+    section.classList.remove('hidden');
+    list.innerHTML = compras.slice(0, this._COMPRAS_VISIBLES).map(c => `
+      <div class="compra-row">
+        <div class="compra-info">
+          <div class="compra-nombre">${this.esc(c.perfume || '—')} <span class="compra-cant">×${c.cantidad}</span></div>
+          <div class="compra-meta">${this.fmtDate(c.fecha)}${c.proveedor ? ` · ${this.esc(c.proveedor)}` : ''} · ${this.fmt(c.precioUnitario)} c/u</div>
+        </div>
+        <span class="compra-total">${this.fmt(c.total)}</span>
+        <button class="compra-del ms" onclick="App.eliminarCompra(${c.id})" aria-label="Borrar compra">delete</button>
+      </div>`).join('');
   },
 };
 

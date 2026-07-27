@@ -10,6 +10,7 @@
   pedidoPerfumes: [],
   cajaData: [],
   gastosData: [],
+  comprasData: [],
   cajaTipo: 'entrada',
   gastoCat: 'transporte',
 
@@ -275,6 +276,7 @@
     this.pedidosData = await DB.getPedidos();
     this.cajaData = await DB.getCaja();
     this.gastosData = await DB.getGastos();
+    this.comprasData = await DB.getCompras();
   },
 
   registerSW() {

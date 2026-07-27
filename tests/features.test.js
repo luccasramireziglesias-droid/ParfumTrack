@@ -285,3 +285,77 @@ describe('F3 — devoluciones y cambios', () => {
     expect(dev).toMatch(/showScreen\('nueva-venta'\)/);
   });
 });
+
+describe('F4 — compras al proveedor', () => {
+  const compras = read('src/app/23-compras.js');
+  const db = read('src/db.js');
+  const render = read('src/app/02-render.js');
+  const core = read('src/app/00-core.js');
+  const datos = read('src/app/10-data-management.js');
+  const tpl = read('src/index.template.html');
+  const stock = read('src/screens/stock.html');
+  const index = read('index.html');
+
+  it('la base sube a v4 y crea el store compras sin romper los existentes', () => {
+    expect(tpl).toMatch(/const DB_VERSION = 4;/);
+    expect(tpl).toMatch(/if \(!d\.objectStoreNames\.contains\('compras'\)\)/);
+    // La migración es aditiva: ningún store se borra ni se recrea
+    expect(tpl).not.toMatch(/deleteObjectStore/);
+    expect(index).toMatch(/const DB_VERSION = 4;/);
+  });
+
+  it('las compras se guardan encriptadas como el resto de los datos', () => {
+    expect(db).toMatch(/_encryptedStores: new Set\(\[[^\]]*'compras'/);
+  });
+
+  it('registrarCompra valida cantidad y precio antes de tocar el stock', () => {
+    const idx = db.indexOf('async registrarCompra');
+    const cuerpo = db.slice(idx, idx + 900);
+    expect(cuerpo).toMatch(/throw new Error\('CANTIDAD_INVALIDA'\)/);
+    expect(cuerpo).toMatch(/throw new Error\('PRECIO_INVALIDO'\)/);
+    expect(cuerpo).toMatch(/throw new Error\('PERFUME_NO_ENCONTRADO'\)/);
+  });
+
+  it('la compra suma al stock y deja el costo real de la tanda', () => {
+    const idx = db.indexOf('async registrarCompra');
+    const cuerpo = db.slice(idx, idx + 1600);
+    expect(cuerpo).toMatch(/p\.stock = \(p\.stock \|\| 0\) \+ cant/);
+    expect(cuerpo).toMatch(/if \(actualizarCosto && precio > 0\) p\.precioCompra = precio/);
+    expect(cuerpo).toMatch(/total: precio \* cant/);
+  });
+
+  it('borrar una compra no deja el stock en negativo', () => {
+    const idx = db.indexOf('async eliminarCompra');
+    expect(db.slice(idx, idx + 500)).toMatch(/Math\.max\(0, \(p\.stock \|\| 0\) - \(c\.cantidad \|\| 0\)\)/);
+  });
+
+  it('el alta tiene guarda anti doble-tap', () => {
+    expect(compras).toMatch(/_once\('compra'/);
+  });
+
+  it('el modal y el botón Reponer existen y llegan al build', () => {
+    expect(tpl).toContain('id="modal-compra"');
+    expect(tpl).toContain('id="compra-actualiza-costo"');
+    expect(render).toMatch(/App\.abrirCompra\(\$\{p\.id\}\)/);
+    expect(stock).toContain('id="stock-compras-list"');
+    expect(index).toContain('id="modal-compra"');
+    expect(read('src/styles/23-compras.css')).toContain('.stock-reponer');
+  });
+
+  it('las compras se cargan al arrancar y viajan en backup, export y borrado', () => {
+    expect(core).toMatch(/this\.comprasData = await DB\.getCompras\(\)/);
+    expect(datos).toMatch(/compras: this\.comprasData/);
+    // Todas las listas de stores incluyen compras: si no, un restore las perdería
+    const listas = datos.match(/const stores = \[[^\]]+\]/g) || [];
+    expect(listas.length).toBeGreaterThan(0);
+    for (const l of listas) expect(l, l).toContain("'compras'");
+  });
+
+  it('el listado de compras se rinde también con el stock vacío', () => {
+    // La DEFINICIÓN, no la llamada desde renderAll()
+    const idx = render.indexOf('\n  renderStock() {');
+    const cuerpo = render.slice(idx, idx + 3000);
+    // Dos llamadas: la del early-return por lista vacía y la del final
+    expect((cuerpo.match(/this\.renderCompras\(\)/g) || []).length).toBe(2);
+  });
+});

@@ -3,7 +3,7 @@
     await openDB();
   },
 
-  _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja']),
+  _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja', 'compras']),
 
   _shouldEncrypt(store) {
     return this._encryptedStores.has(store) && localStorage.getItem('pt_license_code');
@@ -357,6 +357,55 @@
     delete limpia.cuotasCanceladas;
     delete limpia.montoADevolver;
     return this.put('ventas', limpia);
+  },
+
+  // F4: reposición de stock comprándole al proveedor. Deja registro del
+  // costo real de cada tanda, que es lo que después explica la ganancia.
+  async registrarCompra({ perfumeId, cantidad, precioUnitario, proveedor = '', fecha, nota = '', actualizarCosto = true } = {}) {
+    const cant = Math.max(1, parseInt(cantidad, 10) || 0);
+    if (!cant) throw new Error('CANTIDAD_INVALIDA');
+    const precio = Number(precioUnitario);
+    if (!Number.isFinite(precio) || precio < 0) throw new Error('PRECIO_INVALIDO');
+
+    const p = perfumeId ? await this.get('perfumes', perfumeId) : null;
+    if (!p) throw new Error('PERFUME_NO_ENCONTRADO');
+
+    p.stock = (p.stock || 0) + cant;
+    // El costo de la última tanda pasa a ser el costo de referencia
+    if (actualizarCosto && precio > 0) p.precioCompra = precio;
+    await this.put('perfumes', p);
+
+    const id = await this.add('compras', {
+      perfumeId,
+      perfume: p.nombre,
+      cantidad: cant,
+      precioUnitario: precio,
+      total: precio * cant,
+      proveedor,
+      nota,
+      costoActualizado: !!(actualizarCosto && precio > 0),
+      fecha: fecha || Date.now()
+    });
+    return this.get('compras', id);
+  },
+
+  // Deshacer una compra cargada por error: descuenta lo que había sumado,
+  // sin dejar el stock en negativo (puede haberse vendido parte).
+  async eliminarCompra(id) {
+    const c = await this.get('compras', id);
+    if (c && c.perfumeId) {
+      const p = await this.get('perfumes', c.perfumeId);
+      if (p) {
+        p.stock = Math.max(0, (p.stock || 0) - (c.cantidad || 0));
+        await this.put('perfumes', p);
+      }
+    }
+    return this.delete('compras', id);
+  },
+
+  async getCompras() {
+    const compras = await this.getAll('compras');
+    return compras.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
   },
 
   async getCuotas() {

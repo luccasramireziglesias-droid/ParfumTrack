@@ -366,6 +366,7 @@
 
     if (items.length === 0) {
       grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span class="ms">inventory_2</span><span>No hay perfumes</span></div>';
+      this.renderCompras();
       return;
     }
 
@@ -389,10 +390,14 @@
               <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)" aria-label="Sumar stock">add</button>
             </div>
           </div>
+          <button class="stock-reponer" onclick="App.abrirCompra(${p.id})" aria-label="Reponer stock de ${this.esc(p.nombre)}">
+            <span class="ms" aria-hidden="true">local_shipping</span>Reponer
+          </button>
         </div>
       </div>`;
     }).join('');
     this._lazyLoadStockPhotos();
+    this.renderCompras();
   },
 
   _lazyLoadStockPhotos() {
