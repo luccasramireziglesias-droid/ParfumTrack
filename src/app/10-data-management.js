@@ -184,7 +184,28 @@
     return data;
   },
 
+  // Guarda anti pérdida de datos: _restoreData BORRA los 7 stores antes de
+  // escribir. Si el payload viene vacío o malformado (respuesta rara del
+  // servidor, backup corrupto, JSON de otra app), el usuario perdería TODO
+  // su historial sin recibir nada a cambio. Validamos ANTES de tocar la base.
+  _assertRestorable(data) {
+    if (!data || typeof data !== 'object') {
+      throw new Error('El archivo no contiene datos válidos');
+    }
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos'];
+    const registros = stores.reduce(
+      (n, s) => n + (Array.isArray(data[s]) ? data[s].length : 0), 0
+    );
+    if (registros === 0) {
+      throw new Error('El backup está vacío: no se restauró nada para no borrar tus datos actuales');
+    }
+    return registros;
+  },
+
   async _restoreData(data) {
+    // Si esto lanza, la base local queda intacta (todavía no borramos nada)
+    this._assertRestorable(data);
+
     const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
     let total = 0, skipped = 0;
     for (const store of stores) {
@@ -236,7 +257,9 @@
       this.haptic('success');
       this._notifyTabs();
     } catch (e) {
-      this.toast('Error al leer el archivo', 'error');
+      // Si la guarda de _restoreData abortó, su mensaje explica por qué los
+      // datos locales NO se tocaron
+      this.toast(e && e.message ? e.message : 'Error al leer el archivo', 'error');
     }
   },
 
@@ -762,8 +785,9 @@
       this.toast(`${total} registros restaurados${skipped ? ` (${skipped} omitidos)` : ''}`, 'check_circle');
       this.haptic('success');
       this._notifyTabs();
-    } catch {
-      this.toast('Error de conexión', 'cloud_off');
+    } catch (e) {
+      this.toast(e && e.message && !/fetch|network/i.test(e.message)
+        ? e.message : 'Error de conexión', 'cloud_off');
     }
   },
 

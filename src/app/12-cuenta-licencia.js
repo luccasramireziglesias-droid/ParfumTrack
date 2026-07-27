@@ -313,8 +313,9 @@
       this.toast(`${total} registros restaurados${skipped ? ` (${skipped} omitidos)` : ''}`, 'check_circle');
       this.haptic('success');
       this._notifyTabs();
-    } catch {
-      this.toast('Error de conexión', 'cloud_off');
+    } catch (e) {
+      this.toast(e && e.message && !/fetch|network/i.test(e.message)
+        ? e.message : 'Error de conexión', 'cloud_off');
     }
   },
 

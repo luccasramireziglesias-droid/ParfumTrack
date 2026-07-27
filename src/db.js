@@ -348,8 +348,19 @@
   },
 
   async seedDemo() {
+    // Sembrar SOLO la primera vez en la vida de la instalación. Sin este flag,
+    // borrar los datos (o quedarse sin perfumes) hacía que al reabrir la app
+    // reaparecieran 8 perfumes y 13 ventas de demo mezcladas con las reales.
+    if (localStorage.getItem('pt_demo_seeded') === '1') return;
+
     const perfumes = await this.getPerfumes();
-    if (perfumes.length > 0) return;
+    const ventas = await this.getAll('ventas');
+    if (perfumes.length > 0 || ventas.length > 0) {
+      // Ya hay datos del usuario: marcar como sembrado y no tocar nada nunca más
+      localStorage.setItem('pt_demo_seeded', '1');
+      return;
+    }
+    localStorage.setItem('pt_demo_seeded', '1');
 
     const demoPerf = [
       { nombre: 'Haramain Gold', precioCompra: 2700, precioVenta: 3900, stock: 8, foto: '' },
