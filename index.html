@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="app-version" content="1.7.0">
+<meta name="app-version" content="1.8.0">
 <title>Parfum Track</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -452,6 +452,18 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   max-width: 60%;
 }
 
+/* Badge de cantidad: solo aparece cuando la venta es de más de una unidad */
+.venta-cant {
+  flex-shrink: 0;
+  font: 700 11px 'DM Sans';
+  color: var(--gold2);
+  background: rgba(201, 168, 76, 0.14);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 6px;
+  padding: 1px 6px;
+  line-height: 16px;
+}
+
 .venta-tags {
   display: flex;
   gap: 6px;
@@ -773,6 +785,45 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 }
 .cuotas-plan .ms { font-size: 16px; color: var(--gold); }
 .cuotas-plan strong { color: var(--gold2); font-weight: 700; }
+
+/* Stepper de cantidad en Nueva Venta */
+.cantidad-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cant-btn {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--gold2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.cant-btn:active { opacity: 0.7; }
+.cant-btn .ms { font-size: 20px; }
+.cant-input {
+  width: 68px;
+  text-align: center;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 12px 6px;
+  font: 700 17px 'DM Sans', sans-serif;
+  color: var(--text);
+  outline: none;
+}
+.cant-hint {
+  font: 500 12px 'DM Sans', sans-serif;
+  color: var(--text3);
+  flex: 1;
+}
+.cant-hint.alerta { color: var(--warn); }
 /* ====== BUTTONS ====== */
 .btn-primary {
   display: flex;
@@ -2317,6 +2368,472 @@ input[type="date"].form-input {
   transition: background 0.15s;
 }
 .pin-key:active { background: var(--gold-dim); }
+/* ====== RECORDATORIOS DE COBRO (F2) ====== */
+
+.recordatorios-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+/* Cuando hay algo vencido o venciendo hoy, el borde tira a rojo: es lo
+   único del dashboard que pide acción inmediata */
+.recordatorios-card.urgente {
+  border-color: rgba(224, 112, 112, 0.45);
+  background: linear-gradient(180deg, rgba(224, 112, 112, 0.08), var(--card) 60%);
+}
+
+.recordatorios-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.recordatorios-head > .ms {
+  color: var(--gold);
+  font-size: 20px;
+}
+
+.recordatorios-card.urgente .recordatorios-head > .ms {
+  color: var(--red);
+}
+
+.recordatorios-head > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.recordatorios-titulo {
+  font: 600 14px 'DM Sans';
+  color: var(--text);
+}
+
+.recordatorios-resumen {
+  font: 500 12px 'DM Sans';
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.recordatorio-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.recordatorio-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.recordatorio-cliente {
+  font: 600 13px 'DM Sans';
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recordatorio-meta {
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+.recordatorio-estado {
+  font: 600 11px 'DM Sans';
+  margin-top: 3px;
+}
+
+.recordatorio-estado.vencida { color: var(--red); }
+.recordatorio-estado.hoy { color: var(--gold2); }
+.recordatorio-estado.proxima { color: var(--text3); }
+
+.recordatorio-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.recordatorio-monto {
+  font: 700 14px 'DM Sans';
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.recordatorio-acciones {
+  display: flex;
+  gap: 6px;
+}
+
+/* 40px: mínimo cómodo para el pulgar en mobile */
+.recordatorio-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recordatorio-btn .ms {
+  font-size: 18px;
+}
+
+.recordatorio-vermas {
+  width: 100%;
+  margin-top: 8px;
+  padding: 9px;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--gold2);
+  font: 600 12px 'DM Sans';
+  cursor: pointer;
+}
+
+/* El badge de cuotas solo se pone rojo si hay algo vencido o para hoy */
+.nav-badge {
+  background: var(--gold);
+  color: #0f0f1a;
+}
+
+.nav-badge.urgente {
+  background: var(--red);
+  color: #fff;
+}
+/* ====== DEVOLUCIONES (F3) ====== */
+
+.motivo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.motivo-chip {
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text2);
+  font: 500 13px 'DM Sans';
+  cursor: pointer;
+}
+
+.motivo-chip.active {
+  border-color: var(--gold);
+  background: rgba(201, 168, 76, 0.15);
+  color: var(--gold2);
+  font-weight: 600;
+}
+
+.devolucion-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text2);
+  font: 500 13px 'DM Sans';
+  cursor: pointer;
+}
+
+.devolucion-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gold);
+  cursor: pointer;
+}
+
+.devolucion-check.deshabilitado {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.devolucion-aviso {
+  font: 500 12px 'DM Sans';
+  color: var(--gold2);
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  border-radius: 10px;
+  padding: 10px 12px;
+  line-height: 1.45;
+}
+
+/* La venta devuelta sigue en el historial, pero apagada: se lee de un
+   vistazo que no cuenta para la ganancia */
+.venta-card.devuelta {
+  opacity: 0.72;
+  border-style: dashed;
+}
+
+.venta-card.devuelta .venta-nombre,
+.venta-card.devuelta .venta-precio-value {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.tag-devuelta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(224, 112, 112, 0.15);
+  border: 1px solid rgba(224, 112, 112, 0.35);
+  color: var(--red);
+  font: 600 11px 'DM Sans';
+}
+
+.tag-devuelta .ms {
+  font-size: 13px;
+}
+/* ====== COMPRAS AL PROVEEDOR (F4) ====== */
+
+.stock-reponer {
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  border-radius: 9px;
+  color: var(--gold2);
+  font: 600 12px 'DM Sans';
+  cursor: pointer;
+}
+
+.stock-reponer .ms { font-size: 15px; }
+.stock-reponer:active { opacity: 0.7; }
+
+.compra-total-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  font: 500 13px 'DM Sans';
+  color: var(--text2);
+}
+
+.compra-total-box strong {
+  font: 700 18px 'DM Sans';
+  color: var(--gold2);
+}
+
+.compra-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
+
+.compra-info { min-width: 0; flex: 1; }
+
+.compra-nombre {
+  font: 600 13px 'DM Sans';
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compra-cant {
+  font: 700 11px 'DM Sans';
+  color: var(--gold2);
+}
+
+.compra-meta {
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compra-total {
+  font: 700 14px 'DM Sans';
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.compra-del {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text3);
+  font-family: 'Material Symbols Rounded';
+  font-size: 16px;
+  cursor: pointer;
+}
+/* ====== SEÑAS Y ENCARGOS (F5) ====== */
+
+.reserva-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.reserva-card.cancelada { opacity: 0.65; }
+.reserva-card.entregada { border-color: rgba(112, 201, 160, 0.3); }
+
+.reserva-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.reserva-info { min-width: 0; flex: 1; }
+
+.reserva-cliente {
+  font: 600 14px 'DM Sans';
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reserva-perfume {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--gold2);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reserva-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: 7px;
+  font: 600 11px 'DM Sans';
+}
+
+.reserva-tag .ms { font-size: 13px; }
+
+.reserva-tag.listo {
+  background: rgba(112, 201, 160, 0.15);
+  border: 1px solid rgba(112, 201, 160, 0.35);
+  color: var(--green);
+}
+
+.reserva-tag.esperando {
+  background: rgba(201, 168, 76, 0.13);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  color: var(--gold2);
+}
+
+.reserva-tag.cancelado {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text3);
+}
+
+.reserva-montos {
+  display: flex;
+  gap: 18px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.reserva-montos > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reserva-label {
+  font: 500 10px 'DM Sans';
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.reserva-valor {
+  font: 700 15px 'DM Sans';
+  color: var(--text);
+}
+
+.reserva-valor.gold { color: var(--gold2); }
+
+.reserva-meta {
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+  margin-top: 7px;
+}
+
+.reserva-acciones {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* 38px: mínimo cómodo para el pulgar */
+.reserva-btn {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text2);
+  font-family: 'Material Symbols Rounded';
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.reserva-btn.cancelar { color: var(--red); }
+
+.reserva-btn.entregar {
+  width: auto;
+  flex: 1;
+  gap: 6px;
+  font: 600 13px 'DM Sans';
+  color: #1a1a2e;
+  background: linear-gradient(135deg, #c9a84c, #e8c97e);
+  border: none;
+}
+
+.reserva-btn.entregar .ms { font-size: 17px; }
+.reserva-btn:active { opacity: 0.75; }
 </style>
 </head>
 <body>
@@ -2474,6 +2991,18 @@ input[type="date"].form-input {
         </div>
       </div>
 
+      <div id="dashboard-recordatorios" class="recordatorios-card hidden">
+        <div class="recordatorios-head">
+          <span class="ms">notifications_active</span>
+          <div>
+            <div class="recordatorios-titulo" id="recordatorios-titulo">Cobros de esta semana</div>
+            <div class="recordatorios-resumen" id="recordatorios-resumen"></div>
+          </div>
+          <span class="section-link" onclick="App.showScreen('cuotas')">Ver cuotas</span>
+        </div>
+        <div id="dashboard-recordatorios-list"></div>
+      </div>
+
       <div class="today-strip" id="today-strip">
         <div class="today-left">
           <span class="ms green">today</span>
@@ -2534,13 +3063,23 @@ input[type="date"].form-input {
         <input type="hidden" id="venta-perfume-nombre">
       </div>
 
+      <div class="form-group">
+        <label class="form-label">CANTIDAD</label>
+        <div class="cantidad-stepper">
+          <button type="button" class="cant-btn" onclick="App.cambiarCantidad(-1)" aria-label="Restar una unidad"><span class="ms" aria-hidden="true">remove</span></button>
+          <input type="text" class="cant-input" id="venta-cantidad" value="1" inputmode="numeric" autocomplete="off" oninput="App.calcLiveProfit()" aria-label="Cantidad de unidades">
+          <button type="button" class="cant-btn" onclick="App.cambiarCantidad(1)" aria-label="Sumar una unidad"><span class="ms" aria-hidden="true">add</span></button>
+          <span class="cant-hint" id="venta-cantidad-hint"></span>
+        </div>
+      </div>
+
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">PRECIO VENTA</label>
+          <label class="form-label">PRECIO VENTA <span class="muted-label">(por unidad)</span></label>
           <input type="text" class="form-input" id="venta-precio" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcLiveProfit()">
         </div>
         <div class="form-group">
-          <label class="form-label">PRECIO COMPRA</label>
+          <label class="form-label">PRECIO COMPRA <span class="muted-label">(por unidad)</span></label>
           <input type="text" class="form-input" id="venta-compra" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcLiveProfit()">
         </div>
       </div>
@@ -2641,6 +3180,14 @@ input[type="date"].form-input {
 
       <div id="stock-alerts" class="hidden"></div>
       <div class="stock-grid" id="stock-grid"></div>
+
+      <div id="stock-compras" class="hidden" style="margin-top:20px;">
+        <div class="section-header">
+          <span class="section-title"><span class="ms gold">local_shipping</span>Últimas compras</span>
+          <span class="section-link" id="stock-compras-resumen"></span>
+        </div>
+        <div id="stock-compras-list"></div>
+      </div>
     </div>
   </div>
 
@@ -2758,6 +3305,12 @@ input[type="date"].form-input {
           <span class="ms gold">package_2</span>
           <span>Pedidos</span>
           <span class="nav-badge-inline" id="mas-pedidos-badge" style="display:none;">0</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <div class="mas-item" onclick="App.showScreen('reservas')">
+          <span class="ms gold">bookmark</span>
+          <span>Señas y encargos</span>
+          <span class="nav-badge-inline" id="mas-reservas-badge" style="display:none;">0</span>
           <span class="ms muted chevron">chevron_right</span>
         </div>
         <div class="mas-item" onclick="App.showScreen('cuotas')">
@@ -3102,6 +3655,157 @@ input[type="date"].form-input {
     </div>
   </div>
 
+  <!-- ====== MODAL: SEÑA / ENCARGO (F5) ====== -->
+  <div id="modal-reserva" class="modal-overlay hidden" onclick="App.cerrarReserva()" role="dialog" aria-modal="true" aria-label="Seña o encargo">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title" id="reserva-modal-titulo">Nueva seña / encargo</span>
+        <div class="back-btn" onclick="App.cerrarReserva()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">CLIENTE</label>
+        <input type="text" class="form-input" id="reserva-cliente" placeholder="Nombre…" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label">PERFUME</label>
+        <input type="text" class="form-input" id="reserva-perfume-nombre" placeholder="Qué encargó…" autocomplete="off">
+        <input type="hidden" id="reserva-perfume-id">
+        <div class="motivo-chips" id="reserva-sugerencias" style="margin-top:8px;"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">CANTIDAD</label>
+          <input type="text" class="form-input" id="reserva-cantidad" value="1" inputmode="numeric" autocomplete="off" oninput="App.calcRestaReserva()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">PRECIO ACORDADO <span class="muted-label">(c/u)</span></label>
+          <input type="text" class="form-input" id="reserva-precio" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcRestaReserva()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">SEÑA QUE DEJÓ</label>
+        <input type="text" class="form-input" id="reserva-sena" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcRestaReserva()">
+      </div>
+      <div class="compra-total-box">
+        <span>Cuentas</span>
+        <strong id="reserva-resta">$0</strong>
+      </div>
+      <div class="form-group">
+        <label class="form-label">FECHA ESTIMADA <span class="muted-label">(opcional)</span></label>
+        <input type="date" class="form-input" id="reserva-estimada">
+      </div>
+      <div class="form-group">
+        <label class="form-label">NOTA (OPCIONAL)</label>
+        <input type="text" class="form-input" id="reserva-nota" placeholder="Detalle…" autocomplete="off" maxlength="300">
+      </div>
+      <button class="btn gold-btn" id="reserva-confirmar" onclick="App.guardarReserva()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
+        <span class="ms">bookmark_added</span> Guardar encargo
+      </button>
+    </div>
+  </div>
+
+  <!-- ====== MODAL: COMPRA AL PROVEEDOR (F4) ====== -->
+  <div id="modal-compra" class="modal-overlay hidden" onclick="App.cerrarCompra()" role="dialog" aria-modal="true" aria-label="Registrar compra al proveedor">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Reponer stock</span>
+        <div class="back-btn" onclick="App.cerrarCompra()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
+      </div>
+      <div class="pago-cuota-info">
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Perfume</span>
+          <span class="pago-cuota-value" id="compra-perfume"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Ahora</span>
+          <span class="pago-cuota-value" id="compra-stock-actual"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">CANTIDAD QUE COMPRÁS</label>
+        <div class="cantidad-stepper">
+          <button type="button" class="cant-btn" onclick="App.cambiarCantidadCompra(-1)" aria-label="Restar una unidad"><span class="ms" aria-hidden="true">remove</span></button>
+          <input type="text" class="cant-input" id="compra-cantidad" value="1" inputmode="numeric" autocomplete="off" oninput="App.calcTotalCompra()" aria-label="Cantidad comprada">
+          <button type="button" class="cant-btn" onclick="App.cambiarCantidadCompra(1)" aria-label="Sumar una unidad"><span class="ms" aria-hidden="true">add</span></button>
+          <span class="cant-hint" id="compra-stock-final"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">PRECIO DE COMPRA <span class="muted-label">(por unidad)</span></label>
+        <input type="text" class="form-input" id="compra-precio" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcTotalCompra()">
+      </div>
+      <div class="compra-total-box">
+        <span>Total de la compra</span>
+        <strong id="compra-total">$0</strong>
+      </div>
+      <label class="devolucion-check">
+        <input type="checkbox" id="compra-actualiza-costo" checked>
+        <span>Usar este precio como costo del perfume</span>
+      </label>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">PROVEEDOR</label>
+          <input type="text" class="form-input" id="compra-proveedor" placeholder="Nombre…" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">FECHA</label>
+          <input type="date" class="form-input" id="compra-fecha">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">NOTA (OPCIONAL)</label>
+        <input type="text" class="form-input" id="compra-nota" placeholder="Detalle…" autocomplete="off" maxlength="300">
+      </div>
+      <button class="btn gold-btn" id="compra-confirmar" onclick="App.registrarCompra()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
+        <span class="ms">local_shipping</span> Registrar compra
+      </button>
+    </div>
+  </div>
+
+  <!-- ====== MODAL: DEVOLUCIÓN (F3) ====== -->
+  <div id="modal-devolucion" class="modal-overlay hidden" onclick="App.cerrarDevolucion()" role="dialog" aria-modal="true" aria-label="Registrar devolución">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Registrar devolución</span>
+        <div class="back-btn" onclick="App.cerrarDevolucion()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
+      </div>
+      <div class="pago-cuota-info">
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Perfume</span>
+          <span class="pago-cuota-value" id="devolucion-perfume"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Cliente</span>
+          <span class="pago-cuota-value" id="devolucion-cliente"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Cantidad</span>
+          <span class="pago-cuota-value" id="devolucion-cantidad"></span>
+        </div>
+        <div class="pago-cuota-row">
+          <span class="pago-cuota-label">Monto de la venta</span>
+          <span class="pago-cuota-value gold" id="devolucion-monto"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">MOTIVO</label>
+        <div class="motivo-chips" id="devolucion-motivos"></div>
+      </div>
+      <label class="devolucion-check" id="devolucion-stock-row">
+        <input type="checkbox" id="devolucion-repone-stock" checked>
+        <span id="devolucion-stock-label">Devolver al stock</span>
+      </label>
+      <div class="devolucion-aviso hidden" id="devolucion-aviso-cuotas"></div>
+      <div class="form-group">
+        <label class="form-label">NOTA (OPCIONAL)</label>
+        <input type="text" class="form-input" id="devolucion-nota" placeholder="Detalle…" autocomplete="off" maxlength="300">
+      </div>
+      <button class="btn gold-btn" id="devolucion-confirmar" onclick="App.confirmarDevolucion()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
+        <span class="ms">assignment_return</span> Confirmar devolución
+      </button>
+    </div>
+  </div>
+
   <!-- ====== MODAL: INPUT CUSTOM (PIN, etc.) ====== -->
   <div id="modal-prompt" class="modal-overlay hidden" onclick="App._promptReject&&App._promptReject()">
     <div class="modal-content" onclick="event.stopPropagation()" style="max-width:340px;gap:16px;text-align:center;">
@@ -3360,6 +4064,42 @@ input[type="date"].form-input {
   </div>
 
   <!-- ====== SCREEN: CLIENTES ====== -->
+  <div id="screen-reservas" class="screen">
+    <div class="screen-scroll">
+      <div class="sub-header">
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
+        <span class="sub-title">Señas y encargos</span>
+        <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
+      </div>
+
+      <div class="hero-card" style="padding:16px 18px;margin-bottom:14px;">
+        <div style="display:flex;gap:16px;">
+          <div>
+            <div class="hero-label">Encargos pendientes</div>
+            <div style="font:700 22px 'DM Sans';color:var(--text);" id="reservas-count">0</div>
+          </div>
+          <div style="border-left:1px solid var(--border);padding-left:16px;">
+            <div class="hero-label">Señas cobradas</div>
+            <div style="font:700 22px 'DM Sans';color:var(--gold2);" id="reservas-senas">$0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="seg-control" id="reservas-filter" style="margin-bottom:14px;">
+        <div class="seg-option active" data-estado="pendiente" onclick="App.filterReservas('pendiente')">Pendientes</div>
+        <div class="seg-option" data-estado="entregada" onclick="App.filterReservas('entregada')">Entregados</div>
+        <div class="seg-option" data-estado="cancelada" onclick="App.filterReservas('cancelada')">Cancelados</div>
+      </div>
+
+      <button class="btn-outline-gold" onclick="App.abrirReserva()" style="margin-bottom:14px;">
+        <span class="ms" aria-hidden="true">add</span>Nueva seña / encargo
+      </button>
+
+      <div id="reservas-list"></div>
+    </div>
+  </div>
+
+
   <div id="screen-clientes" class="screen">
     <div class="screen-scroll">
       <div class="sub-header">
@@ -3426,7 +4166,7 @@ input[type="date"].form-input {
 </div>
 <script>
 const DB_NAME = 'ParfumTrackDB';
-const DB_VERSION = 3;
+const DB_VERSION = 5;
 let db = null;
 
 function openDB() {
@@ -3468,6 +4208,19 @@ function openDB() {
         const s = d.createObjectStore('gastos', { keyPath: 'id', autoIncrement: true });
         s.createIndex('fecha', 'fecha', { unique: false });
       }
+      // v4: compras al proveedor (reposición de stock con su costo)
+      if (!d.objectStoreNames.contains('compras')) {
+        const s = d.createObjectStore('compras', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('fecha', 'fecha', { unique: false });
+        s.createIndex('perfumeId', 'perfumeId', { unique: false });
+      }
+      // v5: señas y encargos (reservas con adelanto, incluso sin stock)
+      if (!d.objectStoreNames.contains('reservas')) {
+        const s = d.createObjectStore('reservas', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('fecha', 'fecha', { unique: false });
+        s.createIndex('perfumeId', 'perfumeId', { unique: false });
+        s.createIndex('estado', 'estado', { unique: false });
+      }
     };
     req.onsuccess = e => { db = e.target.result; resolve(db); };
     req.onerror = e => reject(e.target.error);
@@ -3498,7 +4251,7 @@ const DB = {
     await openDB();
   },
 
-  _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja']),
+  _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja', 'compras', 'reservas']),
 
   _shouldEncrypt(store) {
     return this._encryptedStores.has(store) && localStorage.getItem('pt_license_code');
@@ -3630,18 +4383,24 @@ const DB = {
     // Resolver el stock ANTES de insertar para dejar constancia en la venta de
     // si descontó una unidad o no. Sin ese dato, borrar una venta hecha con
     // stock en 0 devolvía al inventario una unidad que nunca existió.
-    let stockDescontado = false;
+    const cantidad = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    let unidadesDescontadas = 0;
     let perfumeADescontar = null;
     if (v.perfumeId && v.perfumeId !== '') {
       const p = await this.get('perfumes', v.perfumeId);
       if (p && p.stock > 0) {
         perfumeADescontar = p;
-        stockDescontado = true;
+        // Nunca dejar el stock en negativo: se descuenta lo que realmente hay
+        unidadesDescontadas = Math.min(cantidad, p.stock);
       }
     }
-    const id = await this.add('ventas', { ...v, fecha: v.fecha || Date.now(), stockDescontado });
-    if (perfumeADescontar) {
-      perfumeADescontar.stock = Math.max(0, perfumeADescontar.stock - 1);
+    const id = await this.add('ventas', {
+      ...v, fecha: v.fecha || Date.now(),
+      stockDescontado: unidadesDescontadas > 0,
+      unidadesDescontadas
+    });
+    if (perfumeADescontar && unidadesDescontadas > 0) {
+      perfumeADescontar.stock = Math.max(0, perfumeADescontar.stock - unidadesDescontadas);
       await this.put('perfumes', perfumeADescontar);
     }
     if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
@@ -3698,7 +4457,46 @@ const DB = {
   },
 
   async updateVenta(v) {
-    return this.put('ventas', v);
+    const prev = await this.get('ventas', v.id);
+    const norm = (x) => (x === null || x === undefined || x === '' ? null : Number(x));
+    const cantidad = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    const prevCantidad = prev ? Math.max(1, parseInt(prev.cantidad, 10) || 1) : 0;
+    const prevPerfumeId = prev ? norm(prev.perfumeId) : null;
+    const nuevoPerfumeId = norm(v.perfumeId);
+
+    // Solo tocar el inventario si cambió el perfume o la cantidad: si el usuario
+    // edita el cliente o la nota, el stock no se mueve.
+    let unidadesDescontadas = prev
+      ? (prev.unidadesDescontadas !== undefined ? prev.unidadesDescontadas : (prev.stockDescontado !== false ? 1 : 0))
+      : 0;
+    const cambioStock = !prev || prevPerfumeId !== nuevoPerfumeId || prevCantidad !== cantidad;
+
+    if (cambioStock) {
+      // Devolver lo que había descontado la versión anterior…
+      if (prevPerfumeId && unidadesDescontadas > 0) {
+        const p = await this.get('perfumes', prevPerfumeId);
+        if (p) {
+          p.stock = (p.stock || 0) + unidadesDescontadas;
+          await this.put('perfumes', p);
+        }
+      }
+      // …y descontar lo que pide la versión nueva (sin dejar stock negativo)
+      unidadesDescontadas = 0;
+      if (nuevoPerfumeId) {
+        const p = await this.get('perfumes', nuevoPerfumeId);
+        if (p && p.stock > 0) {
+          unidadesDescontadas = Math.min(cantidad, p.stock);
+          p.stock = Math.max(0, p.stock - unidadesDescontadas);
+          await this.put('perfumes', p);
+        }
+      }
+    }
+
+    return this.put('ventas', {
+      ...v,
+      stockDescontado: unidadesDescontadas > 0,
+      unidadesDescontadas
+    });
   },
 
   async deleteVenta(id) {
@@ -3706,11 +4504,14 @@ const DB = {
     if (v) {
       // Solo devolver stock si esta venta lo descontó. Las ventas viejas (sin
       // el flag) mantienen el comportamiento previo para no cambiar su historial.
-      const debeDevolver = v.stockDescontado !== false;
-      if (v.perfumeId && v.perfumeId !== '' && debeDevolver) {
+      // Devolver exactamente las unidades que esta venta descontó
+      const aDevolver = v.unidadesDescontadas !== undefined
+        ? v.unidadesDescontadas
+        : (v.stockDescontado !== false ? 1 : 0);
+      if (v.perfumeId && v.perfumeId !== '' && aDevolver > 0) {
         const p = await this.get('perfumes', v.perfumeId);
         if (p) {
-          p.stock = (p.stock || 0) + 1;
+          p.stock = (p.stock || 0) + aDevolver;
           await this.put('perfumes', p);
         }
       }
@@ -3722,6 +4523,218 @@ const DB = {
       }
     }
     return this.delete('ventas', id);
+  },
+
+  // F3: la venta se marca como devuelta en vez de borrarse. Queda en el
+  // historial (con motivo y fecha) pero deja de contar para la ganancia.
+  async devolverVenta(id, { motivo = '', nota = '', reponerStock = true } = {}) {
+    const v = await this.get('ventas', id);
+    if (!v) throw new Error('VENTA_NO_ENCONTRADA');
+    if (v.devuelta) throw new Error('YA_DEVUELTA');
+
+    const unidades = v.unidadesDescontadas !== undefined
+      ? v.unidadesDescontadas
+      : (v.stockDescontado !== false && v.perfumeId ? 1 : 0);
+    let repuestas = 0;
+    if (reponerStock && unidades > 0 && v.perfumeId && v.perfumeId !== '') {
+      const p = await this.get('perfumes', v.perfumeId);
+      if (p) {
+        p.stock = (p.stock || 0) + unidades;
+        await this.put('perfumes', p);
+        repuestas = unidades;
+      }
+    }
+
+    // Las cuotas que nunca se cobraron dejan de ser deuda; las que tienen
+    // plata puesta se conservan porque ese cobro sí ocurrió.
+    let cobrado = 0;
+    let canceladas = 0;
+    if (v.formaPago === 'cuotas') {
+      for (const c of await this.getAll('cuotas')) {
+        if (c.ventaId !== id) continue;
+        const pagado = c.pagado ? (c.montoPagado || c.monto || 0) : (c.montoPagado || 0);
+        if (pagado > 0) {
+          cobrado += pagado;
+        } else {
+          await this.delete('cuotas', c.id);
+          canceladas++;
+        }
+      }
+    } else {
+      cobrado = v.precioVenta || 0;
+    }
+
+    return this.put('ventas', {
+      ...v,
+      devuelta: true,
+      fechaDevolucion: Date.now(),
+      motivoDevolucion: motivo,
+      notaDevolucion: nota,
+      unidadesRepuestas: repuestas,
+      cuotasCanceladas: canceladas,
+      montoADevolver: cobrado
+    });
+  },
+
+  // Deshacer una devolución cargada por error: vuelve a descontar el stock
+  // que se había repuesto. Las cuotas canceladas NO se recrean (el usuario
+  // puede volver a editar la venta si las necesita).
+  async revertirDevolucion(id) {
+    const v = await this.get('ventas', id);
+    if (!v) throw new Error('VENTA_NO_ENCONTRADA');
+    if (!v.devuelta) return v;
+
+    const repuestas = v.unidadesRepuestas || 0;
+    let descontadas = v.unidadesDescontadas !== undefined ? v.unidadesDescontadas : 0;
+    if (repuestas > 0 && v.perfumeId && v.perfumeId !== '') {
+      const p = await this.get('perfumes', v.perfumeId);
+      if (p) {
+        const aDescontar = Math.min(repuestas, p.stock || 0);
+        p.stock = Math.max(0, (p.stock || 0) - aDescontar);
+        await this.put('perfumes', p);
+        descontadas = aDescontar;
+      }
+    }
+
+    const limpia = { ...v, unidadesDescontadas: descontadas, stockDescontado: descontadas > 0 };
+    delete limpia.devuelta;
+    delete limpia.fechaDevolucion;
+    delete limpia.motivoDevolucion;
+    delete limpia.notaDevolucion;
+    delete limpia.unidadesRepuestas;
+    delete limpia.cuotasCanceladas;
+    delete limpia.montoADevolver;
+    return this.put('ventas', limpia);
+  },
+
+  // F4: reposición de stock comprándole al proveedor. Deja registro del
+  // costo real de cada tanda, que es lo que después explica la ganancia.
+  async registrarCompra({ perfumeId, cantidad, precioUnitario, proveedor = '', fecha, nota = '', actualizarCosto = true } = {}) {
+    const cant = Math.max(1, parseInt(cantidad, 10) || 0);
+    if (!cant) throw new Error('CANTIDAD_INVALIDA');
+    const precio = Number(precioUnitario);
+    if (!Number.isFinite(precio) || precio < 0) throw new Error('PRECIO_INVALIDO');
+
+    const p = perfumeId ? await this.get('perfumes', perfumeId) : null;
+    if (!p) throw new Error('PERFUME_NO_ENCONTRADO');
+
+    p.stock = (p.stock || 0) + cant;
+    // El costo de la última tanda pasa a ser el costo de referencia
+    if (actualizarCosto && precio > 0) p.precioCompra = precio;
+    await this.put('perfumes', p);
+
+    const id = await this.add('compras', {
+      perfumeId,
+      perfume: p.nombre,
+      cantidad: cant,
+      precioUnitario: precio,
+      total: precio * cant,
+      proveedor,
+      nota,
+      costoActualizado: !!(actualizarCosto && precio > 0),
+      fecha: fecha || Date.now()
+    });
+    return this.get('compras', id);
+  },
+
+  // Deshacer una compra cargada por error: descuenta lo que había sumado,
+  // sin dejar el stock en negativo (puede haberse vendido parte).
+  async eliminarCompra(id) {
+    const c = await this.get('compras', id);
+    if (c && c.perfumeId) {
+      const p = await this.get('perfumes', c.perfumeId);
+      if (p) {
+        p.stock = Math.max(0, (p.stock || 0) - (c.cantidad || 0));
+        await this.put('perfumes', p);
+      }
+    }
+    return this.delete('compras', id);
+  },
+
+  async getCompras() {
+    const compras = await this.getAll('compras');
+    return compras.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
+  },
+
+  // F5: señas y encargos. Una reserva puede existir sin stock (lista de
+  // espera) — por eso NO descuenta inventario hasta que se entrega.
+  async getReservas() {
+    const r = await this.getAll('reservas');
+    return r.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
+  },
+
+  async addReserva(r) {
+    const cantidad = Math.max(1, parseInt(r.cantidad, 10) || 1);
+    const precio = Number(r.precioAcordado);
+    if (!Number.isFinite(precio) || precio <= 0) throw new Error('PRECIO_INVALIDO');
+    const total = precio * cantidad;
+    // La seña nunca puede superar lo que se va a cobrar
+    const sena = Math.max(0, Math.min(Number(r.sena) || 0, total));
+    const id = await this.add('reservas', {
+      ...r,
+      cantidad,
+      precioAcordado: precio,
+      total,
+      sena,
+      estado: 'pendiente',
+      fecha: r.fecha || Date.now()
+    });
+    return this.get('reservas', id);
+  },
+
+  async updateReserva(r) {
+    return this.put('reservas', r);
+  },
+
+  // Entregar = la reserva se convierte en venta. La seña ya cobrada no se
+  // suma de nuevo: es parte del precio acordado, no un extra.
+  async entregarReserva(id, { precioCompra = 0 } = {}) {
+    const r = await this.get('reservas', id);
+    if (!r) throw new Error('RESERVA_NO_ENCONTRADA');
+    if (r.estado !== 'pendiente') throw new Error('RESERVA_NO_PENDIENTE');
+
+    const cantidad = Math.max(1, parseInt(r.cantidad, 10) || 1);
+    const costoUnit = Number(precioCompra) || 0;
+    const ventaId = await this.addVenta({
+      perfume: r.perfume,
+      perfumeId: r.perfumeId || null,
+      cantidad,
+      precioVenta: r.total,
+      precioOriginal: r.total,
+      precioCompra: costoUnit * cantidad,
+      precioUnitario: r.precioAcordado,
+      precioCompraUnitario: costoUnit,
+      cliente: r.cliente || 'Anónimo',
+      vendedor: r.vendedor || 'Anónimo',
+      proveedor: r.proveedor || '',
+      descuento: 0,
+      nota: r.sena > 0 ? `Seña de ${r.sena} ya cobrada` : '',
+      fecha: Date.now(),
+      formaPago: 'contado',
+      numCuotas: 1,
+      reservaId: id
+    });
+
+    await this.put('reservas', { ...r, estado: 'entregada', fechaEntrega: Date.now(), ventaId });
+    return ventaId;
+  },
+
+  // Cancelar deja constancia de si la seña se devolvió o se retuvo.
+  async cancelarReserva(id, { devolverSena = true, motivo = '' } = {}) {
+    const r = await this.get('reservas', id);
+    if (!r) throw new Error('RESERVA_NO_ENCONTRADA');
+    if (r.estado === 'entregada') throw new Error('RESERVA_YA_ENTREGADA');
+    return this.put('reservas', {
+      ...r,
+      estado: 'cancelada',
+      fechaCancelacion: Date.now(),
+      senaDevuelta: !!devolverSena,
+      motivoCancelacion: motivo
+    });
+  },
+
+  async eliminarReserva(id) {
+    return this.delete('reservas', id);
   },
 
   async getCuotas() {
@@ -4257,6 +5270,8 @@ const App = {
   pedidoPerfumes: [],
   cajaData: [],
   gastosData: [],
+  comprasData: [],
+  reservasData: [],
   cajaTipo: 'entrada',
   gastoCat: 'transporte',
 
@@ -4321,6 +5336,7 @@ const App = {
     this.checkPinOnStart();
     this.checkConsent();
     this.renderAll();
+    this._avisoCobrosDelDia();
     this.registerSW();
     this._initTabSync();
     this._checkPendingLicense();
@@ -4521,6 +5537,8 @@ const App = {
     this.pedidosData = await DB.getPedidos();
     this.cajaData = await DB.getCaja();
     this.gastosData = await DB.getGastos();
+    this.comprasData = await DB.getCompras();
+    this.reservasData = await DB.getReservas();
   },
 
   registerSW() {
@@ -4562,6 +5580,7 @@ const App = {
     if (name === 'nuevo-pedido') this.resetPedidoForm();
     if (name === 'caja') this.renderCaja();
     if (name === 'gastos') this.renderGastos();
+    if (name === 'reservas') this.renderReservas();
     if (name === 'clientes') this.renderClientes();
     if (name === 'cliente-detalle') this.renderClienteDetalle();
     if (name === 'cuenta') this.updateCuentaScreen();
@@ -4689,6 +5708,7 @@ const App = {
       else if (actual === 'stats') this.renderStats();
       else if (actual === 'ventas-all') this.renderAllVentas();
       else if (actual === 'clientes') this.renderClientes();
+      else if (actual === 'reservas') this.renderReservas();
       else if (actual === 'gastos') this.renderGastos();
       else if (actual === 'caja') this.renderCaja();
       else if (actual === 'pedidos') this.renderPedidos();
@@ -4696,6 +5716,7 @@ const App = {
       // Los badges se ven desde cualquier pantalla: siempre actualizados
       this.updateNavBadge();
       this.updatePedidosBadge();
+      this.updateReservasBadge();
     });
   },
 
@@ -4733,7 +5754,8 @@ const App = {
 
     el('hero-month').textContent = monthNames[displayMonth] + ' ' + displayYear;
 
-    const thisMonth = this.ventas.filter(v => {
+    // Las devueltas no cuentan: el dinero volvió al cliente
+    const thisMonth = this._ventasActivas().filter(v => {
       const d = new Date(v.fecha);
       return d.getMonth() === displayMonth && d.getFullYear() === displayYear;
     });
@@ -4767,7 +5789,7 @@ const App = {
     const prevMonthNum = displayMonth === 0 ? 11 : displayMonth - 1;
     const prevMonthYear = displayMonth === 0 ? displayYear - 1 : displayYear;
     const prevMonth = new Date(prevMonthYear, prevMonthNum, 1);
-    const prevVentas = this.ventas.filter(v => {
+    const prevVentas = this._ventasActivas().filter(v => {
       const d = new Date(v.fecha);
       return d.getMonth() === prevMonth.getMonth() && d.getFullYear() === prevMonth.getFullYear();
     });
@@ -4839,7 +5861,7 @@ const App = {
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const todayVentas = this.ventas.filter(v => { const d = new Date(v.fecha); return d >= today && d < tomorrow; });
+    const todayVentas = this._ventasActivas().filter(v => { const d = new Date(v.fecha); return d >= today && d < tomorrow; });
     const todayGan = todayVentas.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
     el('today-amount').textContent = this.fmt(todayGan);
     el('today-count').textContent = todayVentas.length;
@@ -4849,6 +5871,7 @@ const App = {
     if (recientes.length === 0) {
       container.innerHTML = '<div class="empty-state"><span class="ms">receipt_long</span><span>No hay ventas registradas</span></div>';
       this._renderDashboardDeudores();
+      this.renderRecordatorios();
       return;
     }
 
@@ -4859,6 +5882,7 @@ const App = {
     ).join('');
 
     this._renderDashboardDeudores();
+    this.renderRecordatorios();
   },
 
   _renderVentaCard(v, { compact = false, className = '', style = '', index } = {}) {
@@ -4870,14 +5894,21 @@ const App = {
     const fecha = this.fmtDate(v.fecha);
     const cls = `venta-card${className}`;
     const styleAttr = style ? ` style="${style}"` : '';
+    // Las ventas viejas no tienen `cantidad`: son de 1 unidad
+    const cant = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    const badgeCant = cant > 1 ? `<span class="venta-cant" aria-label="${cant} unidades">×${cant}</span>` : '';
+    // Una venta devuelta queda en el historial, apagada y sin contar
+    const devuelta = !!v.devuelta;
+    const clsFinal = devuelta ? `${cls} devuelta` : cls;
 
     if (compact) {
-      return `<div class="${cls}"${styleAttr}>
+      return `<div class="${clsFinal}"${styleAttr}>
           <div class="venta-top">
             <div>
               <div style="display:flex;align-items:center;gap:7px;">
                 <span class="venta-num">#${num}</span>
                 <span class="venta-nombre">${this.esc(v.perfume)}</span>
+                ${badgeCant}
               </div>
             </div>
             <span class="venta-date">${fecha}</span>
@@ -4888,20 +5919,23 @@ const App = {
     // Ganancia REAL = lo cobrado (precioVenta, ya con descuento) menos el costo
     const gan = v.precioVenta - v.precioCompra;
     const esCuotas = v.formaPago === 'cuotas';
-    return `<div class="${cls}"${styleAttr}>
+    return `<div class="${clsFinal}"${styleAttr}>
         <div class="venta-top">
           <div>
             <div style="display:flex;align-items:center;gap:7px;">
               <span class="venta-num">#${num}</span>
               <span class="venta-nombre">${this.esc(v.perfume)}</span>
+              ${badgeCant}
             </div>
             <div class="venta-tags">
               <span class="tag">${this.esc(v.vendedor || '—')}</span>
               ${v.proveedor ? `<span class="tag">${this.esc(v.proveedor)}</span>` : ''}
               ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${Math.round(v.descuento || 0)}%</span>` : ''}
-              ${esCuotas
-                ? `<span class="tag-cuotas">En cuotas</span>`
-                : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
+              ${devuelta
+                ? `<span class="tag-devuelta"><span class="ms" aria-hidden="true">assignment_return</span>Devuelta${v.motivoDevolucion ? ` · ${this.esc(v.motivoDevolucion)}` : ''}</span>`
+                : esCuotas
+                  ? `<span class="tag-cuotas">En cuotas</span>`
+                  : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
               }
             </div>
           </div>
@@ -4910,16 +5944,20 @@ const App = {
         <div class="venta-divider"></div>
         <div class="venta-bottom">
           <div>
-            <div class="venta-precio-label">Precio venta</div>
+            <div class="venta-precio-label">${cant > 1 ? `Precio venta (${cant}u.)` : 'Precio venta'}</div>
             <div class="venta-precio-value">${this.fmt(v.precioVenta)}</div>
           </div>
           <div style="text-align:right;">
             <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">${this.fmtSigned(gan)}</div>
+            <div class="venta-ganancia-value">${devuelta ? '—' : this.fmtSigned(gan)}</div>
           </div>
           <div class="venta-actions">
-            <button class="venta-action-btn ms" onclick="App.repetirVenta(${v.id})" aria-label="Vender de nuevo">repeat</button>
+            ${devuelta
+              ? `<button class="venta-action-btn ms" onclick="App.revertirDevolucion(${v.id})" aria-label="Deshacer la devolución">undo</button>`
+              : `<button class="venta-action-btn ms" onclick="App.repetirVenta(${v.id})" aria-label="Vender de nuevo">repeat</button>
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})" aria-label="Editar venta">edit</button>
+            <button class="venta-action-btn ms" onclick="App.abrirDevolucion(${v.id})" aria-label="Registrar devolución">assignment_return</button>`
+            }
             <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})" aria-label="Eliminar venta">delete</button>
           </div>
         </div>
@@ -5015,6 +6053,7 @@ const App = {
 
     if (items.length === 0) {
       grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span class="ms">inventory_2</span><span>No hay perfumes</span></div>';
+      this.renderCompras();
       return;
     }
 
@@ -5038,10 +6077,14 @@ const App = {
               <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)" aria-label="Sumar stock">add</button>
             </div>
           </div>
+          <button class="stock-reponer" onclick="App.abrirCompra(${p.id})" aria-label="Reponer stock de ${this.esc(p.nombre)}">
+            <span class="ms" aria-hidden="true">local_shipping</span>Reponer
+          </button>
         </div>
       </div>`;
     }).join('');
     this._lazyLoadStockPhotos();
+    this.renderCompras();
   },
 
   _lazyLoadStockPhotos() {
@@ -5074,7 +6117,7 @@ const App = {
 
     const now = Date.now();
     const thirtyDays = 30 * 24 * 60 * 60 * 1000;
-    const salesLast30 = this.ventas.filter(v => now - v.fecha < thirtyDays);
+    const salesLast30 = this._ventasActivas().filter(v => now - v.fecha < thirtyDays);
 
     const salesByPerfume = {};
     salesLast30.forEach(v => {
@@ -5122,11 +6165,8 @@ const App = {
     const totalAdeudado = pendientes.reduce((s, c) => s + c.monto - (c.montoPagado || 0), 0);
     document.getElementById('cuotas-total').textContent = this.fmt(totalAdeudado);
 
-    const badge = document.getElementById('nav-cuotas-badge');
-    if (badge) {
-      badge.textContent = pendientes.length;
-      badge.style.display = pendientes.length > 0 ? 'flex' : 'none';
-    }
+    const { vencidas, hoy } = this._cobrosPendientes();
+    this._actualizarBadgeCuotas(vencidas.length + hoy.length);
 
     const container = document.getElementById('cuotas-list');
     if (pendientes.length === 0) {
@@ -5281,7 +6321,7 @@ const App = {
     const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     document.getElementById('stats-month-label').innerHTML = `${monthNames[now.getMonth()]} ${now.getFullYear()} <span class="ms">expand_more</span>`;
 
-    const thisMonth = this.ventas.filter(v => {
+    const thisMonth = this._ventasActivas().filter(v => {
       const d = new Date(v.fecha);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
@@ -5408,12 +6448,8 @@ const App = {
   },
 
   updateNavBadge() {
-    const pendientes = this.cuotasData.filter(c => !c.pagado);
-    const badge = document.getElementById('nav-cuotas-badge');
-    if (badge) {
-      badge.textContent = pendientes.length;
-      badge.style.display = pendientes.length > 0 ? 'flex' : 'none';
-    }
+    const { vencidas, hoy } = this._cobrosPendientes();
+    this._actualizarBadgeCuotas(vencidas.length + hoy.length);
   },
 
   // ====== NUEVA VENTA ======
@@ -5460,6 +6496,7 @@ const App = {
     document.getElementById('venta-perfume-display').textContent = 'Elegir perfume…';
     document.getElementById('venta-precio').value = '';
     document.getElementById('venta-compra').value = '';
+    document.getElementById('venta-cantidad').value = '1';
     document.getElementById('venta-cliente').value = '';
     document.getElementById('venta-vendedor').value = this._defaultVendedor();
     document.getElementById('venta-proveedor').value = this._defaultProveedor();
@@ -5506,8 +6543,11 @@ const App = {
     document.getElementById('venta-perfume-id').value = v.perfumeId || '';
     document.getElementById('venta-perfume-nombre').value = v.perfume;
     document.getElementById('venta-perfume-display').textContent = v.perfume;
-    document.getElementById('venta-precio').value = v.precioOriginal || v.precioVenta;
-    document.getElementById('venta-compra').value = v.precioCompra;
+    // Precios por unidad (las ventas viejas sin cantidad son de 1 unidad)
+    const cantOrig = v.cantidad || 1;
+    document.getElementById('venta-cantidad').value = cantOrig;
+    document.getElementById('venta-precio').value = v.precioUnitario ?? Math.round((v.precioOriginal || v.precioVenta) / cantOrig);
+    document.getElementById('venta-compra').value = v.precioCompraUnitario ?? Math.round(v.precioCompra / cantOrig);
     document.getElementById('venta-proveedor').value = v.proveedor || '';
     if (v.vendedor) document.getElementById('venta-vendedor').value = v.vendedor;
     if (v.descuento) document.getElementById('venta-descuento').value = v.descuento;
@@ -5523,13 +6563,48 @@ const App = {
     setTimeout(() => document.getElementById('venta-cliente').focus(), 150);
   },
 
+  _getCantidad() {
+    const el = document.getElementById('venta-cantidad');
+    const n = parseInt((el?.value || '1').replace(/[^\d]/g, ''), 10);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, 999) : 1;
+  },
+
+  cambiarCantidad(delta) {
+    const el = document.getElementById('venta-cantidad');
+    if (!el) return;
+    el.value = Math.max(1, Math.min(999, this._getCantidad() + delta));
+    this.calcLiveProfit();
+    this.haptic();
+  },
+
   calcLiveProfit() {
-    const pv = this.parseMonto(document.getElementById('venta-precio').value) || 0;
-    const pc = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    const pvUnit = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const pcUnit = this.parseMonto(document.getElementById('venta-compra').value) || 0;
     const desc = parseFloat(document.getElementById('venta-descuento').value) || 0;
+    const cant = this._getCantidad();
+    // Los precios del form son POR UNIDAD; los totales multiplican por cantidad
+    const pv = pvUnit * cant;
+    const pc = pcUnit * cant;
     const pvFinal = desc > 0 ? Math.round(pv * (1 - desc / 100)) : pv;
     const gan = pvFinal - pc;
     const margen = pvFinal > 0 ? Math.round((gan / pvFinal) * 100) : 0;
+
+    // Aviso de stock: cuántas unidades hay disponibles del perfume elegido
+    const hintEl = document.getElementById('venta-cantidad-hint');
+    if (hintEl) {
+      const pid = document.getElementById('venta-perfume-id').value;
+      const perf = pid ? this.perfumes.find(x => String(x.id) === String(pid)) : null;
+      if (perf) {
+        const falta = cant > (perf.stock || 0);
+        hintEl.textContent = falta
+          ? `Solo hay ${perf.stock || 0} en stock`
+          : `${perf.stock} en stock`;
+        hintEl.classList.toggle('alerta', falta);
+      } else {
+        hintEl.textContent = cant > 1 ? `${cant} unidades` : '';
+        hintEl.classList.remove('alerta');
+      }
+    }
 
     const ganEl = document.getElementById('live-ganancia');
     ganEl.textContent = this.fmtSigned(gan);
@@ -5729,8 +6804,13 @@ const App = {
   async _guardarVentaImpl() {
     // BUG-05: trim en textos para no duplicar entidades ("Ana" vs " Ana ")
     const perfume = (document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent).trim();
-    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    const cantidad = this._getCantidad();
+    const precioVentaUnit = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompraUnit = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    // La venta guarda TOTALES (unitario × cantidad): así ganancia, estadísticas
+    // y cuotas siguen calculando sobre el monto real de la operación.
+    const precioVenta = precioVentaUnit * cantidad;
+    const precioCompra = precioCompraUnit * cantidad;
     const cliente = document.getElementById('venta-cliente').value.trim();
     let vendedor = document.getElementById('venta-vendedor').value.trim();
     const proveedor = document.getElementById('venta-proveedor').value.trim();
@@ -5836,6 +6916,9 @@ const App = {
         numCuotas: this.formaPago === 'cuotas' ? numCuotas : 1,
         primeraPagada: this._primeraCuotaPagada,
         primerPago,
+        cantidad,
+        precioUnitario: precioVentaUnit,
+        precioCompraUnitario: precioCompraUnit,
         // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío
         perfumeId: perfumeId ? parseInt(perfumeId, 10) : null
       });
@@ -6211,8 +7294,12 @@ const App = {
     document.getElementById('venta-perfume-display').textContent = v.perfume;
     document.getElementById('venta-perfume-nombre').value = v.perfume;
     document.getElementById('venta-perfume-id').value = v.perfumeId || '';
-    document.getElementById('venta-precio').value = v.precioOriginal || v.precioVenta;
-    document.getElementById('venta-compra').value = v.precioCompra;
+    // El form trabaja con precios POR UNIDAD; la venta guarda totales.
+    // Las ventas viejas (sin `cantidad`) son de 1 unidad.
+    const cantOrig = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    document.getElementById('venta-cantidad').value = cantOrig;
+    document.getElementById('venta-precio').value = v.precioUnitario ?? Math.round((v.precioOriginal || v.precioVenta) / cantOrig);
+    document.getElementById('venta-compra').value = v.precioCompraUnitario ?? Math.round(v.precioCompra / cantOrig);
     document.getElementById('venta-cliente').value = v.cliente || '';
     document.getElementById('venta-vendedor').value = v.vendedor || '';
     document.getElementById('venta-proveedor').value = v.proveedor || '';
@@ -6247,8 +7334,12 @@ const App = {
     if (!id) return;
 
     const perfume = (document.getElementById('venta-perfume-nombre').value || document.getElementById('venta-perfume-display').textContent).trim();
-    const precioVenta = this.parseMonto(document.getElementById('venta-precio').value) || 0;
-    const precioCompra = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    const cantidad = this._getCantidad();
+    const precioVentaUnit = this.parseMonto(document.getElementById('venta-precio').value) || 0;
+    const precioCompraUnit = this.parseMonto(document.getElementById('venta-compra').value) || 0;
+    // Igual que en el alta: se guarda el TOTAL de la operación
+    const precioVenta = precioVentaUnit * cantidad;
+    const precioCompra = precioCompraUnit * cantidad;
     const cliente = document.getElementById('venta-cliente').value.trim();
     let vendedor = document.getElementById('venta-vendedor').value.trim();
     const proveedor = document.getElementById('venta-proveedor').value.trim();
@@ -6298,6 +7389,7 @@ const App = {
       const oldFormaPago = v.formaPago || 'contado';
       Object.assign(v, {
         perfume, precioVenta: pvFinal, precioOriginal: precioVenta, precioCompra,
+        cantidad, precioUnitario: precioVentaUnit, precioCompraUnitario: precioCompraUnit,
         cliente: cliente || 'Anónimo', vendedor: vendedor || 'Anónimo',
         proveedor: proveedor || '', descuento, nota, fecha,
         // BUG #7 FIX: Usar null en lugar de '' para perfumeId vacío
@@ -6954,6 +8046,8 @@ const App = {
       pedidos: this.pedidosData,
       caja: this.cajaData,
       gastos: this.gastosData,
+      compras: this.comprasData,
+      reservas: this.reservasData,
       config,
       // BUG #18 FIX: No incluir datos sensibles (PIN) en export
       settings: {
@@ -7034,7 +8128,7 @@ const App = {
         data = inner;
       }
     }
-    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'reservas', 'config'];
     for (const s of stores) {
       if (data[s] && !Array.isArray(data[s])) {
         data[s] = Object.values(data[s]);
@@ -7135,7 +8229,7 @@ const App = {
     if (!data || typeof data !== 'object') {
       throw new Error('El archivo no contiene datos válidos');
     }
-    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'reservas'];
     const registros = stores.reduce(
       (n, s) => n + (Array.isArray(data[s]) ? data[s].length : 0), 0
     );
@@ -7149,7 +8243,7 @@ const App = {
     // Si esto lanza, la base local queda intacta (todavía no borramos nada)
     this._assertRestorable(data);
 
-    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'reservas', 'config'];
     let total = 0, skipped = 0;
     for (const store of stores) {
       await DB.clear(store);
@@ -7188,7 +8282,7 @@ const App = {
       const raw = JSON.parse(text);
       const data = this._normalizeBackupData(raw);
 
-      const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+      const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'reservas', 'config'];
       const hasData = stores.some(s => Array.isArray(data[s]) && data[s].length > 0) || data.settings;
       if (!hasData) {
         this.toast('No se encontraron datos válidos en el archivo', 'error');
@@ -7267,8 +8361,10 @@ const App = {
     };
 
     addSection('Resumen');
-    const totalVentas = this.ventas.reduce((s, v) => s + v.precioVenta, 0);
-    const totalGanancia = this.ventas.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
+    // Los totales del reporte excluyen las ventas devueltas
+    const activas = this._ventasActivas();
+    const totalVentas = activas.reduce((s, v) => s + v.precioVenta, 0);
+    const totalGanancia = activas.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
     doc.text(`Ventas: ${this.ventas.length} | Total: ${this.fmt(totalVentas)} | Ganancia: ${this.fmt(totalGanancia)}`, 14, y); y += 6;
     doc.text(`Perfumes en stock: ${this.perfumes.length} | Cuotas pendientes: ${this.cuotasData.filter(c=>!c.pagado).length}`, 14, y); y += 10;
 
@@ -7315,15 +8411,19 @@ const App = {
 
     const wb = XLSX.utils.book_new();
 
+    // El Excel lista TODAS las ventas (las devueltas también, marcadas como
+    // tales y con ganancia 0): el historial completo es el punto del export.
     const ventasRows = this.ventas.map(v => ({
       Fecha: new Date(v.fecha).toLocaleDateString('es-AR'),
       Perfume: v.perfume,
+      Cantidad: Math.max(1, parseInt(v.cantidad, 10) || 1),
       Cliente: v.cliente || '',
       'Precio Compra': v.precioCompra,
       'Precio Venta': v.precioVenta,
-      Ganancia: v.precioVenta - v.precioCompra,
+      Ganancia: v.devuelta ? 0 : v.precioVenta - v.precioCompra,
       Pago: v.formaPago || 'contado',
-      Cuotas: v.numCuotas || 1
+      Cuotas: v.numCuotas || 1,
+      Estado: v.devuelta ? `Devuelta${v.motivoDevolucion ? ' - ' + v.motivoDevolucion : ''}` : 'Activa'
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ventasRows), 'Ventas');
 
@@ -7662,6 +8762,8 @@ const App = {
       pedidos: this.pedidosData,
       caja: this.cajaData,
       gastos: this.gastosData,
+      compras: this.comprasData,
+      reservas: this.reservasData,
       config,
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
@@ -7736,7 +8838,7 @@ const App = {
 
   async clearData() {
     if (!await this.appConfirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.', 'Borrar todo', 'delete_forever')) return;
-    const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos', 'compras', 'reservas'];
     for (const store of stores) {
       await DB.clear(store);
     }
@@ -8189,6 +9291,8 @@ const App = {
       pedidos: this.pedidosData,
       caja: this.cajaData,
       gastos: this.gastosData,
+      compras: this.comprasData,
+      reservas: this.reservasData,
       config,
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
@@ -8695,7 +9799,7 @@ const App = {
 
   _agregarClientes() {
     const mapa = {};
-    for (const v of this.ventas) {
+    for (const v of this._ventasActivas()) {
       const key = this._clienteKey(v.cliente);
       if (!key || key === 'anónimo') continue;
       if (!mapa[key]) mapa[key] = { nombre: (v.cliente || '').trim(), totalComprado: 0, numVentas: 0, ultimaCompra: 0, saldo: 0 };
@@ -8877,6 +9981,758 @@ const App = {
     }
     return out;
   },
+
+
+  // ====== RECORDATORIOS DE COBRO (F2) ======
+  // El problema real del revendedor no es anotar la cuota: es acordarse de
+  // cobrarla. Esto pone arriba del dashboard lo que hay que cobrar hoy, lo
+  // que ya venció y lo que vence en los próximos días, con el WhatsApp
+  // listo para mandar.
+
+  _RECORDATORIO_HORIZONTE: 3,   // días hacia adelante que se consideran "próximas"
+  _RECORDATORIO_MAX_FILAS: 4,   // el resto se ve en la pantalla de Cuotas
+
+  _hoyTs() {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  },
+
+  // Días de diferencia entre una fecha y hoy, ambos a medianoche local.
+  // Negativo = ya venció.
+  _diasHasta(ts) {
+    const d = new Date(ts || 0);
+    d.setHours(0, 0, 0, 0);
+    return Math.round((d.getTime() - this._hoyTs()) / 86400000);
+  },
+
+  // Clasifica las cuotas impagas por urgencia. Devuelve siempre las tres
+  // listas (aunque estén vacías) para que quien la use no tenga que chequear.
+  _cobrosPendientes() {
+    const out = { vencidas: [], hoy: [], proximas: [] };
+    for (const c of this.cuotasData) {
+      if (c.pagado) continue;
+      const resta = (c.monto || 0) - (c.montoPagado || 0);
+      // Una cuota con saldo 0 pero sin marcar como pagada no es un cobro
+      if (resta <= 0) continue;
+      if (!c.vence) continue;
+      const dias = this._diasHasta(c.vence);
+      const item = { cuota: c, resta, dias };
+      if (dias < 0) out.vencidas.push(item);
+      else if (dias === 0) out.hoy.push(item);
+      else if (dias <= this._RECORDATORIO_HORIZONTE) out.proximas.push(item);
+    }
+    const porFecha = (a, b) => (a.cuota.vence || 0) - (b.cuota.vence || 0);
+    out.vencidas.sort(porFecha);
+    out.hoy.sort(porFecha);
+    out.proximas.sort(porFecha);
+    return out;
+  },
+
+  _textoVencimiento(dias) {
+    if (dias < 0) return dias === -1 ? 'Venció ayer' : `Venció hace ${Math.abs(dias)} días`;
+    if (dias === 0) return 'Vence hoy';
+    if (dias === 1) return 'Vence mañana';
+    return `Vence en ${dias} días`;
+  },
+
+  _mensajeRecordatorio({ cuota, resta, dias }) {
+    const nombre = (cuota.cliente || '').trim() || 'Hola';
+    const perfume = cuota.perfume || 'tu pedido';
+    const cuando = dias < 0
+      ? `venció el ${this.fmtDate(cuota.vence)}`
+      : dias === 0 ? 'vence hoy' : `vence el ${this.fmtDate(cuota.vence)}`;
+    return `Hola ${nombre}! 👋 Te recuerdo la cuota ${cuota.numero}/${cuota.total} de *${perfume}* por *${this.fmt(resta)}* que ${cuando}. ¿Cuándo la podés pasar?`;
+  },
+
+  renderRecordatorios() {
+    const section = document.getElementById('dashboard-recordatorios');
+    const list = document.getElementById('dashboard-recordatorios-list');
+    if (!section || !list) return;
+
+    const { vencidas, hoy, proximas } = this._cobrosPendientes();
+    const urgentes = vencidas.length + hoy.length;
+    this._actualizarBadgeCuotas(urgentes);
+
+    const items = [...vencidas, ...hoy, ...proximas];
+    if (items.length === 0) {
+      section.classList.add('hidden');
+      list.innerHTML = '';
+      return;
+    }
+
+    const total = items.reduce((s, i) => s + i.resta, 0);
+    const titulo = document.getElementById('recordatorios-titulo');
+    if (titulo) {
+      titulo.textContent = urgentes > 0
+        ? `${urgentes} cobro${urgentes !== 1 ? 's' : ''} para hoy`
+        : 'Cobros de esta semana';
+    }
+    const resumen = document.getElementById('recordatorios-resumen');
+    if (resumen) resumen.textContent = `${items.length} cuota${items.length !== 1 ? 's' : ''} · ${this.fmt(total)}`;
+
+    section.classList.remove('hidden');
+    section.classList.toggle('urgente', urgentes > 0);
+
+    const visibles = items.slice(0, this._RECORDATORIO_MAX_FILAS);
+    let html = visibles.map((item) => {
+      const { cuota, resta, dias } = item;
+      const estado = dias < 0 ? 'vencida' : dias === 0 ? 'hoy' : 'proxima';
+      const cuotaIdAttr = encodeURIComponent(JSON.stringify(cuota.id));
+      return `<div class="recordatorio-row">
+        <div class="recordatorio-info">
+          <div class="recordatorio-cliente">${this.esc(cuota.cliente || 'Sin nombre')}</div>
+          <div class="recordatorio-meta">${this.esc(cuota.perfume || '—')} · cuota ${cuota.numero}/${cuota.total}</div>
+          <div class="recordatorio-estado ${estado}">${this._textoVencimiento(dias)}</div>
+        </div>
+        <div class="recordatorio-right">
+          <span class="recordatorio-monto">${this.fmt(resta)}</span>
+          <div class="recordatorio-acciones">
+            <button class="btn-whatsapp recordatorio-btn" data-msg="${this.b64Encode(this._mensajeRecordatorio(item))}" aria-label="Recordar a ${this.esc(cuota.cliente || 'cliente')} por WhatsApp"><span class="ms" aria-hidden="true">chat</span></button>
+            <button class="btn-pay recordatorio-btn" data-cuota-id="${cuotaIdAttr}" aria-label="Registrar pago de la cuota"><span class="ms" aria-hidden="true">payments</span></button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    if (items.length > visibles.length) {
+      const resto = items.length - visibles.length;
+      html += `<button class="recordatorio-vermas" onclick="App.showScreen('cuotas')">Ver ${resto} cobro${resto !== 1 ? 's' : ''} más</button>`;
+    }
+
+    list.innerHTML = html;
+  },
+
+  _actualizarBadgeCuotas(urgentes) {
+    const badge = document.getElementById('nav-cuotas-badge');
+    if (!badge) return;
+    const pendientes = this.cuotasData.filter(c => !c.pagado).length;
+    badge.textContent = pendientes;
+    badge.style.display = pendientes > 0 ? 'flex' : 'none';
+    // Rojo cuando hay algo vencido o venciendo hoy; dorado si es a futuro
+    badge.classList.toggle('urgente', (urgentes || 0) > 0);
+  },
+
+  // Aviso al abrir la app, como mucho una vez por día: si no, el revendedor
+  // que entra 10 veces por día termina ignorándolo.
+  _avisoCobrosDelDia() {
+    const hoyClave = new Date(this._hoyTs()).toISOString().split('T')[0];
+    if (localStorage.getItem('pt_recordatorio_visto') === hoyClave) return;
+    const { vencidas, hoy } = this._cobrosPendientes();
+    const urgentes = vencidas.length + hoy.length;
+    if (urgentes === 0) return;
+    localStorage.setItem('pt_recordatorio_visto', hoyClave);
+    const monto = [...vencidas, ...hoy].reduce((s, i) => s + i.resta, 0);
+    setTimeout(() => {
+      this.toast(`Tenés ${urgentes} cobro${urgentes !== 1 ? 's' : ''} pendiente${urgentes !== 1 ? 's' : ''} por ${this.fmt(monto)}`, 'notifications_active');
+    }, 1800);
+  },
+
+
+  // ====== DEVOLUCIONES Y CAMBIOS (F3) ======
+  // Antes, cuando un cliente devolvía un perfume, la única opción era borrar
+  // la venta: desaparecía del historial y no quedaba registro de que hubo una
+  // devolución ni de por qué. Una devolución es un hecho del negocio, no un
+  // error de carga.
+
+  _MOTIVOS_DEVOLUCION: ['No le gustó', 'Falló', 'Se arrepintió', 'Cambio por otro'],
+
+  _devolucionVentaId: null,
+  _devolucionMotivo: '',
+
+  // Las ventas devueltas siguen en el historial pero no cuentan para
+  // ganancia, estadísticas ni totales de cliente.
+  _ventasActivas() {
+    return this.ventas.filter(v => !v.devuelta);
+  },
+
+  abrirDevolucion(id) {
+    const v = this.ventas.find(x => x.id === id);
+    if (!v) {
+      this.toast('No se encontró la venta', 'error');
+      return;
+    }
+    if (v.devuelta) {
+      this.toast('Esta venta ya está devuelta', 'info');
+      return;
+    }
+    this._devolucionVentaId = id;
+    this._devolucionMotivo = '';
+
+    const cant = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    document.getElementById('devolucion-perfume').textContent = v.perfume;
+    document.getElementById('devolucion-cliente').textContent = v.cliente || 'Anónimo';
+    document.getElementById('devolucion-monto').textContent = this.fmt(v.precioVenta);
+    document.getElementById('devolucion-cantidad').textContent = `${cant} unidad${cant !== 1 ? 'es' : ''}`;
+
+    // Solo ofrecer reponer stock si esta venta descontó algo
+    const unidades = v.unidadesDescontadas !== undefined
+      ? v.unidadesDescontadas
+      : (v.stockDescontado !== false && v.perfumeId ? 1 : 0);
+    const stockRow = document.getElementById('devolucion-stock-row');
+    const stockCheck = document.getElementById('devolucion-repone-stock');
+    stockCheck.checked = unidades > 0;
+    stockCheck.disabled = unidades === 0;
+    stockRow.classList.toggle('deshabilitado', unidades === 0);
+    document.getElementById('devolucion-stock-label').textContent = unidades > 0
+      ? `Devolver ${unidades} unidad${unidades !== 1 ? 'es' : ''} al stock`
+      : 'Esta venta no descontó stock';
+
+    // Aviso de cuotas: se cancelan las impagas, se conservan las cobradas
+    const cuotas = this.cuotasData.filter(c => c.ventaId === id);
+    const impagas = cuotas.filter(c => !c.pagado && !(c.montoPagado > 0));
+    const avisoCuotas = document.getElementById('devolucion-aviso-cuotas');
+    if (impagas.length > 0) {
+      avisoCuotas.textContent = `Se cancelan ${impagas.length} cuota${impagas.length !== 1 ? 's' : ''} pendiente${impagas.length !== 1 ? 's' : ''}. Lo ya cobrado queda registrado.`;
+      avisoCuotas.classList.remove('hidden');
+    } else {
+      avisoCuotas.classList.add('hidden');
+    }
+
+    document.getElementById('devolucion-nota').value = '';
+    this._renderMotivosDevolucion();
+    document.getElementById('modal-devolucion').classList.remove('hidden');
+  },
+
+  _renderMotivosDevolucion() {
+    const cont = document.getElementById('devolucion-motivos');
+    if (!cont) return;
+    cont.innerHTML = this._MOTIVOS_DEVOLUCION.map(m => {
+      const activo = m === this._devolucionMotivo ? ' active' : '';
+      return `<button type="button" class="motivo-chip${activo}" onclick="App.elegirMotivoDevolucion(${JSON.stringify(m).replace(/"/g, '&quot;')})">${this.esc(m)}</button>`;
+    }).join('');
+  },
+
+  elegirMotivoDevolucion(motivo) {
+    // Volver a tocar el mismo chip lo deselecciona
+    this._devolucionMotivo = this._devolucionMotivo === motivo ? '' : motivo;
+    this._renderMotivosDevolucion();
+    this.haptic();
+  },
+
+  cerrarDevolucion() {
+    document.getElementById('modal-devolucion').classList.add('hidden');
+    this._devolucionVentaId = null;
+    this._devolucionMotivo = '';
+  },
+
+  confirmarDevolucion() {
+    // Anti doble-tap: dos toques reponían el stock dos veces
+    return this._once('devolucion', () => this._confirmarDevolucionImpl(),
+      document.getElementById('devolucion-confirmar'));
+  },
+
+  async _confirmarDevolucionImpl() {
+    const id = this._devolucionVentaId;
+    if (!id) return;
+    const motivo = this._devolucionMotivo;
+    const nota = (document.getElementById('devolucion-nota').value || '').trim().slice(0, 300);
+    const reponerStock = document.getElementById('devolucion-repone-stock').checked;
+    const esCambio = motivo === 'Cambio por otro';
+    const venta = this.ventas.find(x => x.id === id);
+    const cliente = venta ? venta.cliente : '';
+
+    try {
+      await DB.devolverVenta(id, { motivo, nota, reponerStock });
+    } catch (e) {
+      this.toast(e.message === 'YA_DEVUELTA' ? 'Esta venta ya está devuelta' : 'Error al registrar la devolución', 'error');
+      return;
+    }
+
+    this.cerrarDevolucion();
+    await this.loadData();
+    this.renderAll();
+    this.renderAllVentas();
+    this.haptic('success');
+    this._notifyTabs();
+
+    if (esCambio) {
+      // Un cambio es una devolución + una venta nueva: dejamos el form listo
+      this.toast('Devolución registrada — cargá el cambio', 'swap_horiz');
+      setTimeout(() => {
+        this.showScreen('nueva-venta');
+        if (cliente && cliente !== 'Anónimo') document.getElementById('venta-cliente').value = cliente;
+      }, 400);
+    } else {
+      this.toast('Devolución registrada', 'assignment_return');
+    }
+  },
+
+  async revertirDevolucion(id) {
+    const v = this.ventas.find(x => x.id === id);
+    if (!v || !v.devuelta) return;
+    if (!await this.appConfirm('¿Deshacer la devolución? La venta vuelve a contar y se descuenta el stock otra vez.', 'Deshacer', 'undo')) return;
+    try {
+      await DB.revertirDevolucion(id);
+    } catch (e) {
+      this.toast('Error al deshacer la devolución', 'error');
+      return;
+    }
+    await this.loadData();
+    this.renderAll();
+    this.renderAllVentas();
+    this.toast('Devolución deshecha', 'undo');
+    this._notifyTabs();
+  },
+
+
+  // ====== COMPRAS AL PROVEEDOR (F4) ======
+  // Reponer stock a mano con el botón "+" no dejaba rastro de cuánto costó la
+  // tanda. Sin ese dato, el "precio de compra" del perfume se vuelve un número
+  // viejo y la ganancia deja de ser real.
+
+  _compraPerfumeId: null,
+
+  abrirCompra(perfumeId) {
+    const p = this.perfumes.find(x => x.id === perfumeId);
+    if (!p) {
+      this.toast('No se encontró el perfume', 'error');
+      return;
+    }
+    this._compraPerfumeId = perfumeId;
+
+    document.getElementById('compra-perfume').textContent = p.nombre;
+    document.getElementById('compra-stock-actual').textContent = `${Math.max(0, p.stock || 0)} en stock`;
+    document.getElementById('compra-cantidad').value = '1';
+    // El costo anterior es el mejor punto de partida: normalmente se repite
+    document.getElementById('compra-precio').value = p.precioCompra || '';
+    document.getElementById('compra-proveedor').value = this._defaultProveedor();
+    document.getElementById('compra-fecha').value = new Date().toISOString().split('T')[0];
+    document.getElementById('compra-nota').value = '';
+    document.getElementById('compra-actualiza-costo').checked = true;
+
+    this.calcTotalCompra();
+    document.getElementById('modal-compra').classList.remove('hidden');
+  },
+
+  cerrarCompra() {
+    document.getElementById('modal-compra').classList.add('hidden');
+    this._compraPerfumeId = null;
+  },
+
+  _getCantidadCompra() {
+    const el = document.getElementById('compra-cantidad');
+    const n = parseInt((el?.value || '1').replace(/[^\d]/g, ''), 10);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, 9999) : 1;
+  },
+
+  cambiarCantidadCompra(delta) {
+    const el = document.getElementById('compra-cantidad');
+    if (!el) return;
+    el.value = Math.max(1, Math.min(9999, this._getCantidadCompra() + delta));
+    this.calcTotalCompra();
+    this.haptic();
+  },
+
+  calcTotalCompra() {
+    const cant = this._getCantidadCompra();
+    const precio = this.parseMonto(document.getElementById('compra-precio').value) || 0;
+    const el = document.getElementById('compra-total');
+    if (el) el.textContent = this.fmt(precio * cant);
+
+    // Cuánto queda en stock después de esta compra
+    const p = this.perfumes.find(x => x.id === this._compraPerfumeId);
+    const hint = document.getElementById('compra-stock-final');
+    if (hint && p) hint.textContent = `Queda en ${Math.max(0, p.stock || 0) + cant}`;
+  },
+
+  registrarCompra() {
+    // Anti doble-tap: dos toques sumaban la tanda dos veces al inventario
+    return this._once('compra', () => this._registrarCompraImpl(),
+      document.getElementById('compra-confirmar'));
+  },
+
+  async _registrarCompraImpl() {
+    const perfumeId = this._compraPerfumeId;
+    if (!perfumeId) return;
+
+    const cantidad = this._getCantidadCompra();
+    const precioUnitario = this.parseMonto(document.getElementById('compra-precio').value) || 0;
+    const proveedor = document.getElementById('compra-proveedor').value.trim();
+    const nota = (document.getElementById('compra-nota').value || '').trim().slice(0, 300);
+    const actualizarCosto = document.getElementById('compra-actualiza-costo').checked;
+    const fechaStr = document.getElementById('compra-fecha').value;
+    const fecha = fechaStr ? new Date(fechaStr + 'T00:00:00Z').getTime() : Date.now();
+
+    if (precioUnitario <= 0) {
+      this.toast('Ingresá el precio de compra por unidad', 'warning');
+      return;
+    }
+    if (precioUnitario > 1e9) {
+      this.toast('El monto es demasiado grande (máx mil millones)', 'warning');
+      return;
+    }
+
+    try {
+      await DB.registrarCompra({ perfumeId, cantidad, precioUnitario, proveedor, fecha, nota, actualizarCosto });
+    } catch (e) {
+      this.toast('Error al registrar la compra', 'error');
+      return;
+    }
+
+    if (proveedor) localStorage.setItem('pt_ultimo_proveedor', proveedor);
+    this.cerrarCompra();
+    await this.loadData();
+    this.renderStock();
+    this.renderAll();
+    this.toast(`+${cantidad} al stock por ${this.fmt(precioUnitario * cantidad)}`, 'local_shipping');
+    this.haptic('success');
+    // Si había clientes esperando este perfume, avisarlo ahora
+    this._avisarEncargosPendientes(perfumeId);
+    this._notifyTabs();
+  },
+
+  async eliminarCompra(id) {
+    const c = this.comprasData.find(x => x.id === id);
+    if (!c) return;
+    if (!await this.appConfirm(`¿Borrar la compra de ${c.cantidad} × ${c.perfume}? Se descuentan del stock.`, 'Borrar', 'delete')) return;
+    try {
+      await DB.eliminarCompra(id);
+    } catch (e) {
+      this.toast('Error al borrar la compra', 'error');
+      return;
+    }
+    await this.loadData();
+    this.renderStock();
+    this.renderAll();
+    this.toast('Compra borrada', 'delete');
+    this._notifyTabs();
+  },
+
+  _COMPRAS_VISIBLES: 5,
+
+  renderCompras() {
+    const section = document.getElementById('stock-compras');
+    const list = document.getElementById('stock-compras-list');
+    if (!section || !list) return;
+
+    const compras = this.comprasData || [];
+    if (compras.length === 0) {
+      section.classList.add('hidden');
+      list.innerHTML = '';
+      return;
+    }
+
+    // Invertido total del mes: lo que salió de la caja para reponer
+    const ahora = new Date();
+    const delMes = compras.filter(c => {
+      const d = new Date(c.fecha || 0);
+      return d.getMonth() === ahora.getMonth() && d.getFullYear() === ahora.getFullYear();
+    });
+    const totalMes = delMes.reduce((s, c) => s + (c.total || 0), 0);
+    const resumen = document.getElementById('stock-compras-resumen');
+    if (resumen) {
+      resumen.textContent = totalMes > 0
+        ? `${this.fmt(totalMes)} invertidos este mes`
+        : 'Sin compras este mes';
+    }
+
+    section.classList.remove('hidden');
+    list.innerHTML = compras.slice(0, this._COMPRAS_VISIBLES).map(c => `
+      <div class="compra-row">
+        <div class="compra-info">
+          <div class="compra-nombre">${this.esc(c.perfume || '—')} <span class="compra-cant">×${c.cantidad}</span></div>
+          <div class="compra-meta">${this.fmtDate(c.fecha)}${c.proveedor ? ` · ${this.esc(c.proveedor)}` : ''} · ${this.fmt(c.precioUnitario)} c/u</div>
+        </div>
+        <span class="compra-total">${this.fmt(c.total)}</span>
+        <button class="compra-del ms" onclick="App.eliminarCompra(${c.id})" aria-label="Borrar compra">delete</button>
+      </div>`).join('');
+  },
+
+
+  // ====== SEÑAS Y ENCARGOS (F5) ======
+  // El cliente deja un adelanto para asegurar un perfume que muchas veces
+  // todavía no está en stock. Antes eso vivía en la cabeza del revendedor o
+  // en un chat de WhatsApp: se perdía la seña, el precio acordado y quién
+  // estaba esperando qué.
+
+  _reservaEditId: null,
+  _reservaFiltro: 'pendiente',
+
+  _reservasPorEstado(estado) {
+    return (this.reservasData || []).filter(r => r.estado === estado);
+  },
+
+  // Cuántas unidades están comprometidas de un perfume (encargos sin entregar)
+  _reservadasDe(perfumeId) {
+    return this._reservasPorEstado('pendiente')
+      .filter(r => r.perfumeId === perfumeId)
+      .reduce((n, r) => n + (r.cantidad || 1), 0);
+  },
+
+  abrirReserva(id) {
+    this._reservaEditId = id || null;
+    const r = id ? (this.reservasData || []).find(x => x.id === id) : null;
+
+    document.getElementById('reserva-modal-titulo').textContent = r ? 'Editar encargo' : 'Nueva seña / encargo';
+    document.getElementById('reserva-cliente').value = r ? (r.cliente || '') : '';
+    document.getElementById('reserva-perfume-nombre').value = r ? (r.perfume || '') : '';
+    document.getElementById('reserva-perfume-id').value = r && r.perfumeId ? r.perfumeId : '';
+    document.getElementById('reserva-cantidad').value = r ? (r.cantidad || 1) : 1;
+    document.getElementById('reserva-precio').value = r ? r.precioAcordado : '';
+    document.getElementById('reserva-sena').value = r ? (r.sena || '') : '';
+    document.getElementById('reserva-nota').value = r ? (r.nota || '') : '';
+    const est = r && r.fechaEstimada ? new Date(r.fechaEstimada) : null;
+    document.getElementById('reserva-estimada').value = est && !isNaN(est.getTime())
+      ? est.toISOString().split('T')[0] : '';
+
+    this.calcRestaReserva();
+    this._renderSugerenciasReserva();
+    document.getElementById('modal-reserva').classList.remove('hidden');
+  },
+
+  cerrarReserva() {
+    document.getElementById('modal-reserva').classList.add('hidden');
+    this._reservaEditId = null;
+  },
+
+  // Elegir un perfume del stock completa nombre, id y precio de una
+  _renderSugerenciasReserva() {
+    const cont = document.getElementById('reserva-sugerencias');
+    if (!cont) return;
+    cont.innerHTML = (this.perfumes || []).slice(0, 12).map(p =>
+      `<button type="button" class="motivo-chip" onclick="App.elegirPerfumeReserva(${p.id})">${this.esc(p.nombre)}</button>`
+    ).join('');
+  },
+
+  elegirPerfumeReserva(perfumeId) {
+    const p = this.perfumes.find(x => x.id === perfumeId);
+    if (!p) return;
+    document.getElementById('reserva-perfume-nombre').value = p.nombre;
+    document.getElementById('reserva-perfume-id').value = p.id;
+    const precio = document.getElementById('reserva-precio');
+    if (!precio.value) precio.value = p.precioVenta || '';
+    this.calcRestaReserva();
+    this.haptic();
+  },
+
+  calcRestaReserva() {
+    const cant = Math.max(1, parseInt((document.getElementById('reserva-cantidad').value || '1').replace(/[^\d]/g, ''), 10) || 1);
+    const precio = this.parseMonto(document.getElementById('reserva-precio').value) || 0;
+    const sena = this.parseMonto(document.getElementById('reserva-sena').value) || 0;
+    const total = precio * cant;
+    const resta = Math.max(0, total - sena);
+    const el = document.getElementById('reserva-resta');
+    if (el) el.textContent = `Total ${this.fmt(total)} · resta ${this.fmt(resta)}`;
+  },
+
+  guardarReserva() {
+    return this._once('reserva', () => this._guardarReservaImpl(),
+      document.getElementById('reserva-confirmar'));
+  },
+
+  async _guardarReservaImpl() {
+    const cliente = document.getElementById('reserva-cliente').value.trim();
+    const perfume = document.getElementById('reserva-perfume-nombre').value.trim();
+    const perfumeIdRaw = document.getElementById('reserva-perfume-id').value;
+    const cantidad = Math.max(1, parseInt((document.getElementById('reserva-cantidad').value || '1').replace(/[^\d]/g, ''), 10) || 1);
+    const precioAcordado = this.parseMonto(document.getElementById('reserva-precio').value) || 0;
+    const sena = this.parseMonto(document.getElementById('reserva-sena').value) || 0;
+    const nota = (document.getElementById('reserva-nota').value || '').trim().slice(0, 300);
+    const estimadaStr = document.getElementById('reserva-estimada').value;
+
+    if (!perfume) {
+      this.toast('Poné qué perfume encargó', 'warning');
+      return;
+    }
+    if (precioAcordado <= 0) {
+      this.toast('Ingresá el precio acordado', 'warning');
+      return;
+    }
+    if (precioAcordado > 1e9 || sena > 1e9) {
+      this.toast('El monto es demasiado grande (máx mil millones)', 'warning');
+      return;
+    }
+    if (sena > precioAcordado * cantidad) {
+      this.toast('La seña no puede superar el total', 'warning');
+      return;
+    }
+
+    const datos = {
+      cliente: cliente || 'Anónimo',
+      perfume,
+      perfumeId: perfumeIdRaw ? parseInt(perfumeIdRaw, 10) : null,
+      cantidad,
+      precioAcordado,
+      sena,
+      nota,
+      fechaEstimada: estimadaStr ? new Date(estimadaStr + 'T00:00:00Z').getTime() : null
+    };
+
+    try {
+      if (this._reservaEditId) {
+        const previa = this.reservasData.find(x => x.id === this._reservaEditId);
+        await DB.updateReserva({ ...previa, ...datos, total: precioAcordado * cantidad });
+      } else {
+        await DB.addReserva(datos);
+      }
+    } catch (e) {
+      this.toast('Error al guardar el encargo', 'error');
+      return;
+    }
+
+    this.cerrarReserva();
+    await this.loadData();
+    this.renderReservas();
+    this.renderAll();
+    this.toast(this._reservaEditId ? 'Encargo actualizado' : 'Encargo guardado', 'bookmark_added');
+    this.haptic('success');
+    this._notifyTabs();
+  },
+
+  async entregarReserva(id) {
+    const r = (this.reservasData || []).find(x => x.id === id);
+    if (!r) return;
+    const resta = Math.max(0, (r.total || 0) - (r.sena || 0));
+    const msg = resta > 0
+      ? `¿Entregar el encargo? Se registra la venta por ${this.fmt(r.total)} (resta cobrar ${this.fmt(resta)}).`
+      : `¿Entregar el encargo? Se registra la venta por ${this.fmt(r.total)}.`;
+    if (!await this.appConfirm(msg, 'Entregar', 'check_circle')) return;
+
+    // El costo sale del perfume del stock, si la reserva apunta a uno
+    const p = r.perfumeId ? this.perfumes.find(x => x.id === r.perfumeId) : null;
+    try {
+      await DB.entregarReserva(id, { precioCompra: p ? (p.precioCompra || 0) : 0 });
+    } catch (e) {
+      this.toast('Error al entregar el encargo', 'error');
+      return;
+    }
+    await this.loadData();
+    this.renderReservas();
+    this.renderAll();
+    this.toast('Entregado y registrado como venta', 'check_circle');
+    this.haptic('success');
+    this._notifyTabs();
+  },
+
+  async cancelarReserva(id) {
+    const r = (this.reservasData || []).find(x => x.id === id);
+    if (!r) return;
+    if (!await this.appConfirm('¿Cancelar el encargo?', 'Cancelar encargo', 'cancel')) return;
+    let devolverSena = true;
+    if ((r.sena || 0) > 0) {
+      devolverSena = await this.appConfirm(`¿Le devolvés la seña de ${this.fmt(r.sena)}?`, 'Sí, la devuelvo', 'undo');
+    }
+    try {
+      await DB.cancelarReserva(id, { devolverSena });
+    } catch (e) {
+      this.toast('Error al cancelar el encargo', 'error');
+      return;
+    }
+    await this.loadData();
+    this.renderReservas();
+    this.renderAll();
+    this.toast('Encargo cancelado', 'cancel');
+    this._notifyTabs();
+  },
+
+  async eliminarReserva(id) {
+    if (!await this.appConfirm('¿Borrar este encargo del historial?', 'Borrar', 'delete')) return;
+    try {
+      await DB.eliminarReserva(id);
+    } catch (e) {
+      this.toast('Error al borrar el encargo', 'error');
+      return;
+    }
+    await this.loadData();
+    this.renderReservas();
+    this.renderAll();
+    this.toast('Encargo borrado', 'delete');
+    this._notifyTabs();
+  },
+
+  filterReservas(estado) {
+    this._reservaFiltro = estado;
+    document.querySelectorAll('#reservas-filter .seg-option').forEach(o => {
+      o.classList.toggle('active', o.dataset.estado === estado);
+    });
+    this.renderReservas();
+  },
+
+  renderReservas() {
+    const cont = document.getElementById('reservas-list');
+    if (!cont) return;
+
+    const pendientes = this._reservasPorEstado('pendiente');
+    const totalSenas = pendientes.reduce((s, r) => s + (r.sena || 0), 0);
+    const elCount = document.getElementById('reservas-count');
+    const elSenas = document.getElementById('reservas-senas');
+    if (elCount) elCount.textContent = pendientes.length;
+    if (elSenas) elSenas.textContent = this.fmt(totalSenas);
+
+    const items = this._reservasPorEstado(this._reservaFiltro);
+    if (items.length === 0) {
+      const msg = this._reservaFiltro === 'pendiente'
+        ? 'No hay encargos pendientes. Anotá la seña cuando un cliente aparte un perfume.'
+        : this._reservaFiltro === 'entregada' ? 'Todavía no entregaste ningún encargo' : 'No hay encargos cancelados';
+      cont.innerHTML = `<div class="empty-state"><span class="ms">bookmark</span><span>${msg}</span></div>`;
+      return;
+    }
+
+    cont.innerHTML = items.map(r => {
+      const resta = Math.max(0, (r.total || 0) - (r.sena || 0));
+      const p = r.perfumeId ? this.perfumes.find(x => x.id === r.perfumeId) : null;
+      const stock = p ? Math.max(0, p.stock || 0) : null;
+      const hayStock = stock !== null && stock >= (r.cantidad || 1);
+      const waMsg = hayStock
+        ? `Hola ${r.cliente}! 👋 Ya tengo tu *${r.perfume}*. Te queda por abonar ${this.fmt(resta)}. ¿Cuándo lo pasás a buscar?`
+        : `Hola ${r.cliente}! 👋 Te escribo por tu encargo de *${r.perfume}*. Todavía estoy esperando la reposición, te aviso apenas llegue.`;
+
+      const estadoTag = r.estado === 'pendiente'
+        ? (stock === null
+            ? '<span class="reserva-tag esperando">Sin vincular al stock</span>'
+            : hayStock
+              ? '<span class="reserva-tag listo"><span class="ms" aria-hidden="true">check_circle</span>Hay stock</span>'
+              : '<span class="reserva-tag esperando"><span class="ms" aria-hidden="true">hourglass_top</span>Esperando stock</span>')
+        : r.estado === 'entregada'
+          ? '<span class="reserva-tag listo"><span class="ms" aria-hidden="true">check</span>Entregado</span>'
+          : `<span class="reserva-tag cancelado">Cancelado${r.sena > 0 ? (r.senaDevuelta ? ' · seña devuelta' : ' · seña retenida') : ''}</span>`;
+
+      const acciones = r.estado === 'pendiente'
+        ? `<button class="btn-whatsapp reserva-btn" data-msg="${this.b64Encode(waMsg)}" aria-label="Avisar por WhatsApp"><span class="ms" aria-hidden="true">chat</span></button>
+           <button class="reserva-btn ms" onclick="App.abrirReserva(${r.id})" aria-label="Editar encargo">edit</button>
+           <button class="reserva-btn ms cancelar" onclick="App.cancelarReserva(${r.id})" aria-label="Cancelar encargo">cancel</button>
+           <button class="reserva-btn entregar" onclick="App.entregarReserva(${r.id})" aria-label="Entregar encargo"><span class="ms" aria-hidden="true">check_circle</span>Entregar</button>`
+        : `<button class="reserva-btn ms" onclick="App.eliminarReserva(${r.id})" aria-label="Borrar del historial">delete</button>`;
+
+      return `<div class="reserva-card ${r.estado}">
+        <div class="reserva-top">
+          <div class="reserva-info">
+            <div class="reserva-cliente">${this.esc(r.cliente || 'Anónimo')}</div>
+            <div class="reserva-perfume">${this.esc(r.perfume)}${(r.cantidad || 1) > 1 ? ` <span class="venta-cant">×${r.cantidad}</span>` : ''}</div>
+          </div>
+          ${estadoTag}
+        </div>
+        <div class="reserva-montos">
+          <div><span class="reserva-label">Seña</span><span class="reserva-valor gold">${this.fmt(r.sena || 0)}</span></div>
+          <div><span class="reserva-label">Resta</span><span class="reserva-valor">${this.fmt(resta)}</span></div>
+          <div><span class="reserva-label">Total</span><span class="reserva-valor">${this.fmt(r.total || 0)}</span></div>
+        </div>
+        ${r.fechaEstimada ? `<div class="reserva-meta">Estimado para ${this.fmtDate(r.fechaEstimada)}</div>` : ''}
+        ${r.nota ? `<div class="reserva-meta">${this.esc(r.nota)}</div>` : ''}
+        <div class="reserva-acciones">${acciones}</div>
+      </div>`;
+    }).join('');
+  },
+
+  updateReservasBadge() {
+    const n = this._reservasPorEstado('pendiente').length;
+    const badge = document.getElementById('mas-reservas-badge');
+    if (!badge) return;
+    badge.textContent = n;
+    badge.style.display = n > 0 ? 'inline-flex' : 'none';
+  },
+
+  // Tras reponer stock: avisar si había gente esperando ese perfume
+  _avisarEncargosPendientes(perfumeId) {
+    const esperando = this._reservasPorEstado('pendiente').filter(r => r.perfumeId === perfumeId);
+    if (esperando.length === 0) return;
+    const nombres = esperando.slice(0, 2).map(r => r.cliente).join(', ');
+    const resto = esperando.length - 2;
+    setTimeout(() => {
+      this.toast(`${esperando.length} encargo${esperando.length !== 1 ? 's' : ''} esperando: ${nombres}${resto > 0 ? ` y ${resto} más` : ''}`, 'bookmark');
+    }, 1400);
+  },
 };
 
 document.addEventListener('DOMContentLoaded', () => App.init());
@@ -8884,6 +10740,13 @@ document.addEventListener('DOMContentLoaded', () => App.init());
 // v15: Forzar actualización del Service Worker en cada carga
 // Detectar cambios en index.html e invalidar caché
 if ('serviceWorker' in navigator) {
+  // ¿Ya había un Service Worker manejando esta página ANTES de registrar?
+  // En la primera visita no lo hay: el SW se instala, hace skipWaiting() +
+  // clients.claim() y dispara `controllerchange` igual. Recargar ahí le
+  // regalaba un refresh completo a cada usuario nuevo apenas abría la app.
+  const ptTeniaController = !!navigator.serviceWorker.controller;
+  let ptRecargando = false;
+
   navigator.serviceWorker.ready.then(reg => {
     // Verificar actualizaciones cada 10 segundos (desarrollador puede cambiar backend)
     setInterval(() => {
@@ -8891,8 +10754,14 @@ if ('serviceWorker' in navigator) {
     }, 10000);
   });
 
-  // En caso de actualización, recargar la página
+  // En caso de actualización REAL, recargar la página — pero nunca encima de
+  // alguien que está cargando una venta: perdería lo que estaba escribiendo.
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!ptTeniaController || ptRecargando) return;
+    try {
+      if (window.App && App._hayTrabajoEnCurso && App._hayTrabajoEnCurso()) return;
+    } catch (e) { /* si falla el chequeo, mejor no recargar */ return; }
+    ptRecargando = true;
     window.location.reload();
   });
 }

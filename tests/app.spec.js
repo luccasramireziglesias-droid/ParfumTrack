@@ -3,6 +3,17 @@ const { test, expect } = require('@playwright/test');
 
 const APP_URL = 'http://localhost:8787';
 
+
+// App.ventas ya es [] antes de que init() corra, así que esperarlo no prueba
+// nada: hay que esperar la señal real de que el arranque terminó (el seed) y
+// que la pantalla ya tenga tamaño.
+async function esperarInit(page) {
+  await page.waitForFunction(() => localStorage.getItem('pt_demo_seeded') === '1', { timeout: 20000 });
+  await page.waitForFunction(
+    () => (document.querySelector('.screen.active')?.getBoundingClientRect().height || 0) > 0,
+    { timeout: 20000 });
+}
+
 test.describe('ParfumTrack — 5 tests de verificación', () => {
 
   test.beforeEach(async ({ page }) => {
@@ -15,12 +26,14 @@ test.describe('ParfumTrack — 5 tests de verificación', () => {
     // Desactivar onboarding y PIN antes de cargar
     await page.addInitScript(() => {
       localStorage.setItem('pt_onboarded', '1');
+      // Sin esto el modal de consentimiento tapa la pantalla y todos los
+      // clicks del test se quedan esperando
+      localStorage.setItem('pt_consent_accepted', '1');
       localStorage.removeItem('pt_pin');
     });
 
     await page.goto(APP_URL, { waitUntil: 'domcontentloaded' });
-    // Esperar a que App.init() termine
-    await page.waitForFunction(() => typeof App !== 'undefined' && App.ventas !== undefined, { timeout: 15000 });
+    await esperarInit(page);
   });
 
   // TEST 1: La app carga sin errores JS y el dashboard se renderiza
@@ -29,7 +42,7 @@ test.describe('ParfumTrack — 5 tests de verificación', () => {
     page.on('pageerror', err => errors.push(err.message));
 
     await page.goto(APP_URL, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => typeof App !== 'undefined' && App.ventas !== undefined, { timeout: 15000 });
+    await esperarInit(page);
 
     // Filtrar errores irrelevantes (SW, fonts)
     const realErrors = errors.filter(e =>
@@ -62,7 +75,8 @@ test.describe('ParfumTrack — 5 tests de verificación', () => {
     await page.fill('#venta-precio', '5000');
     await page.fill('#venta-compra', '3000');
     await page.fill('#venta-cliente', 'Cliente Test');
-    await page.fill('#venta-vendedor', 'Vendedor Test');
+    // El vendedor NO se toca: en plan Free el campo está deshabilitado y
+    // colapsado dentro de "Más detalles"; la app lo completa sola.
 
     // Guardar
     await page.locator('#screen-nueva-venta .btn-primary').click();

@@ -14,7 +14,7 @@
 
   _agregarClientes() {
     const mapa = {};
-    for (const v of this.ventas) {
+    for (const v of this._ventasActivas()) {
       const key = this._clienteKey(v.cliente);
       if (!key || key === 'anónimo') continue;
       if (!mapa[key]) mapa[key] = { nombre: (v.cliente || '').trim(), totalComprado: 0, numVentas: 0, ultimaCompra: 0, saldo: 0 };

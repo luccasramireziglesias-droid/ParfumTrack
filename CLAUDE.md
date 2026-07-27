@@ -27,9 +27,10 @@ PWA de gestión de ventas para revendedores de perfumes en LATAM (Argentina, Uru
 - **Frontend:** HTML+CSS+JS vanilla. `index.html` (~6.4K líneas) se genera con `node scripts/build.js` a partir de los módulos fuente en `src/` (sin ES modules — sigue siendo un único `<script>` clásico inline para no romper los `onclick="App.metodo()"`). Editar siempre en `src/`, nunca `index.html` a mano.
 - **Backend:** 10 Cloudflare Worker functions (`worker.js` como router)
 - **Storage:** KV namespace `PT_LICENSES` (trial, rate limit, licencias), R2 bucket `parfumtrack-backups`
-- **Datos usuario:** IndexedDB/localStorage (local, NO en servidores)
+- **Datos usuario:** IndexedDB v5 (local, NO en servidores). Stores: `perfumes`, `ventas`, `cuotas`, `pedidos`, `caja`, `gastos`, `compras` (v4), `reservas` (v5), `config`. Todos encriptados salvo `config`. Al agregar un store hay que sumarlo a `_encryptedStores`, a `loadData()` y a TODAS las listas `const stores = [...]` de `10-data-management.js` (si no, un restore se come los datos).
+- **Versionado:** la versión vive SOLO en `package.json`. `scripts/build.js` la propaga a `index.html` (meta app-version), `sw.js` (`APP_VERSION`) y `functions/version.js`. Nunca editarlas a mano.
 - **CDN lazy-load:** Chart.js 4.4.0, jsPDF 2.5.1, XLSX 0.18.5 (SRI sha384 implementado en `_loadScript()` — F-24 resuelto)
-- **Service Worker:** v14 (`sw.js`), precachea `STATIC_ASSETS` en `install`
+- **Service Worker:** v16 (`sw.js`), precachea `STATIC_ASSETS` en `install`; navegación Network-First. El handler de `controllerchange` solo recarga si ya había un controller (si no, recargaba en la primera visita de cada usuario) y nunca encima de un formulario en curso.
 - **CI/CD:** GitHub Actions → `npm run build` + `npm test` → auto-deploy on push to main
 
 ### Servicios externos
@@ -143,6 +144,22 @@ ParfumTrack/
 
 Reportes en `standalone/auditoria-*.html` (actualizado: `auditoria-360-v4.html`)
 
+## FEATURES F1-F5 (v1.8.0)
+
+| # | Feature | Dónde |
+|---|---------|-------|
+| F1 | Cantidad en la venta (N unidades) | `03-nueva-venta.js`, `db.js` |
+| F2 | Recordatorios de cobro en el dashboard | `20-recordatorios.js` |
+| F3 | Devoluciones y cambios | `22-devoluciones.js` |
+| F4 | Compras al proveedor (reposición con costo) | `23-compras.js` |
+| F5 | Señas y encargos (con lista de espera) | `24-reservas.js` |
+
+**Invariantes que protegen los tests** (`tests/features.test.js`):
+- La venta guarda TOTALES en `precioVenta`/`precioCompra`; el form trabaja por unidad. Las ventas viejas sin `cantidad` valen 1.
+- Toda agregación sobre ventas usa `_ventasActivas()` (excluye devueltas). Un test falla si aparece un `this.ventas.filter(` en `02-render.js`.
+- Toda lista `const stores = [...]` de `10-data-management.js` debe incluir los stores nuevos.
+- Las migraciones de IndexedDB son aditivas: nunca `deleteObjectStore`.
+
 ## PENDIENTES / ROADMAP
 
 ### 7 días
@@ -162,8 +179,12 @@ Reportes en `standalone/auditoria-*.html` (actualizado: `auditoria-360-v4.html`)
 
 ## HECHO RECIENTEMENTE (no en roadmap original)
 
+- F1-F5 completas (ver tabla arriba) — v1.8.0
+- Fix: recarga espuria del Service Worker en la primera visita de cada usuario
+- Fix: `/version` devolvía 1.1.0 fijo, más viejo que la app — el chequeo de actualizaciones nunca disparaba
+- Suite E2E reparada (estaba rota por el modal de consentimiento, una espera de arranque que se cumplía siempre y la recarga del SW): 41/41 en 45s
 - Refactor monolito `index.html` → módulos en `src/` con build script (`scripts/build.js`) — COMPLETADO
-- Tests automatizados: 223 tests Vitest (antes 218), corren en CI antes del deploy
+- Tests automatizados: 505 tests Vitest (CI) + 41 E2E Playwright (`npx playwright test`, no corren en CI)
 - DRY: `_renderVentaCard()` (dashboard + lista de ventas) y `_processPhoto()` (foto de stock + alta de perfume) compartidos
 - Fullscreen demo modal: expandir video a 100vh/100vw, ocultar controles, mantener evento stopPropagation
 - Auditoría 360° completa: 81/100 score, 30 findings analizados, remediation roadmap incluido

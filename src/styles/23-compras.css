@@ -1,0 +1,91 @@
+/* ====== COMPRAS AL PROVEEDOR (F4) ====== */
+
+.stock-reponer {
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  border-radius: 9px;
+  color: var(--gold2);
+  font: 600 12px 'DM Sans';
+  cursor: pointer;
+}
+
+.stock-reponer .ms { font-size: 15px; }
+.stock-reponer:active { opacity: 0.7; }
+
+.compra-total-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  font: 500 13px 'DM Sans';
+  color: var(--text2);
+}
+
+.compra-total-box strong {
+  font: 700 18px 'DM Sans';
+  color: var(--gold2);
+}
+
+.compra-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
+
+.compra-info { min-width: 0; flex: 1; }
+
+.compra-nombre {
+  font: 600 13px 'DM Sans';
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compra-cant {
+  font: 700 11px 'DM Sans';
+  color: var(--gold2);
+}
+
+.compra-meta {
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compra-total {
+  font: 700 14px 'DM Sans';
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.compra-del {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text3);
+  font-family: 'Material Symbols Rounded';
+  font-size: 16px;
+  cursor: pointer;
+}

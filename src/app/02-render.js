@@ -23,6 +23,7 @@
       else if (actual === 'stats') this.renderStats();
       else if (actual === 'ventas-all') this.renderAllVentas();
       else if (actual === 'clientes') this.renderClientes();
+      else if (actual === 'reservas') this.renderReservas();
       else if (actual === 'gastos') this.renderGastos();
       else if (actual === 'caja') this.renderCaja();
       else if (actual === 'pedidos') this.renderPedidos();
@@ -30,6 +31,7 @@
       // Los badges se ven desde cualquier pantalla: siempre actualizados
       this.updateNavBadge();
       this.updatePedidosBadge();
+      this.updateReservasBadge();
     });
   },
 
@@ -67,7 +69,8 @@
 
     el('hero-month').textContent = monthNames[displayMonth] + ' ' + displayYear;
 
-    const thisMonth = this.ventas.filter(v => {
+    // Las devueltas no cuentan: el dinero volvió al cliente
+    const thisMonth = this._ventasActivas().filter(v => {
       const d = new Date(v.fecha);
       return d.getMonth() === displayMonth && d.getFullYear() === displayYear;
     });
@@ -101,7 +104,7 @@
     const prevMonthNum = displayMonth === 0 ? 11 : displayMonth - 1;
     const prevMonthYear = displayMonth === 0 ? displayYear - 1 : displayYear;
     const prevMonth = new Date(prevMonthYear, prevMonthNum, 1);
-    const prevVentas = this.ventas.filter(v => {
+    const prevVentas = this._ventasActivas().filter(v => {
       const d = new Date(v.fecha);
       return d.getMonth() === prevMonth.getMonth() && d.getFullYear() === prevMonth.getFullYear();
     });
@@ -173,7 +176,7 @@
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const todayVentas = this.ventas.filter(v => { const d = new Date(v.fecha); return d >= today && d < tomorrow; });
+    const todayVentas = this._ventasActivas().filter(v => { const d = new Date(v.fecha); return d >= today && d < tomorrow; });
     const todayGan = todayVentas.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
     el('today-amount').textContent = this.fmt(todayGan);
     el('today-count').textContent = todayVentas.length;
@@ -183,6 +186,7 @@
     if (recientes.length === 0) {
       container.innerHTML = '<div class="empty-state"><span class="ms">receipt_long</span><span>No hay ventas registradas</span></div>';
       this._renderDashboardDeudores();
+      this.renderRecordatorios();
       return;
     }
 
@@ -193,6 +197,7 @@
     ).join('');
 
     this._renderDashboardDeudores();
+    this.renderRecordatorios();
   },
 
   _renderVentaCard(v, { compact = false, className = '', style = '', index } = {}) {
@@ -204,14 +209,21 @@
     const fecha = this.fmtDate(v.fecha);
     const cls = `venta-card${className}`;
     const styleAttr = style ? ` style="${style}"` : '';
+    // Las ventas viejas no tienen `cantidad`: son de 1 unidad
+    const cant = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    const badgeCant = cant > 1 ? `<span class="venta-cant" aria-label="${cant} unidades">×${cant}</span>` : '';
+    // Una venta devuelta queda en el historial, apagada y sin contar
+    const devuelta = !!v.devuelta;
+    const clsFinal = devuelta ? `${cls} devuelta` : cls;
 
     if (compact) {
-      return `<div class="${cls}"${styleAttr}>
+      return `<div class="${clsFinal}"${styleAttr}>
           <div class="venta-top">
             <div>
               <div style="display:flex;align-items:center;gap:7px;">
                 <span class="venta-num">#${num}</span>
                 <span class="venta-nombre">${this.esc(v.perfume)}</span>
+                ${badgeCant}
               </div>
             </div>
             <span class="venta-date">${fecha}</span>
@@ -222,20 +234,23 @@
     // Ganancia REAL = lo cobrado (precioVenta, ya con descuento) menos el costo
     const gan = v.precioVenta - v.precioCompra;
     const esCuotas = v.formaPago === 'cuotas';
-    return `<div class="${cls}"${styleAttr}>
+    return `<div class="${clsFinal}"${styleAttr}>
         <div class="venta-top">
           <div>
             <div style="display:flex;align-items:center;gap:7px;">
               <span class="venta-num">#${num}</span>
               <span class="venta-nombre">${this.esc(v.perfume)}</span>
+              ${badgeCant}
             </div>
             <div class="venta-tags">
               <span class="tag">${this.esc(v.vendedor || '—')}</span>
               ${v.proveedor ? `<span class="tag">${this.esc(v.proveedor)}</span>` : ''}
               ${v.descuento ? `<span class="tag" style="color:var(--gold2);">-${Math.round(v.descuento || 0)}%</span>` : ''}
-              ${esCuotas
-                ? `<span class="tag-cuotas">En cuotas</span>`
-                : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
+              ${devuelta
+                ? `<span class="tag-devuelta"><span class="ms" aria-hidden="true">assignment_return</span>Devuelta${v.motivoDevolucion ? ` · ${this.esc(v.motivoDevolucion)}` : ''}</span>`
+                : esCuotas
+                  ? `<span class="tag-cuotas">En cuotas</span>`
+                  : `<span class="tag-ok"><span class="ms">check_circle</span>Completada</span>`
               }
             </div>
           </div>
@@ -244,16 +259,20 @@
         <div class="venta-divider"></div>
         <div class="venta-bottom">
           <div>
-            <div class="venta-precio-label">Precio venta</div>
+            <div class="venta-precio-label">${cant > 1 ? `Precio venta (${cant}u.)` : 'Precio venta'}</div>
             <div class="venta-precio-value">${this.fmt(v.precioVenta)}</div>
           </div>
           <div style="text-align:right;">
             <div class="venta-precio-label">Ganancia</div>
-            <div class="venta-ganancia-value">${this.fmtSigned(gan)}</div>
+            <div class="venta-ganancia-value">${devuelta ? '—' : this.fmtSigned(gan)}</div>
           </div>
           <div class="venta-actions">
-            <button class="venta-action-btn ms" onclick="App.repetirVenta(${v.id})" aria-label="Vender de nuevo">repeat</button>
+            ${devuelta
+              ? `<button class="venta-action-btn ms" onclick="App.revertirDevolucion(${v.id})" aria-label="Deshacer la devolución">undo</button>`
+              : `<button class="venta-action-btn ms" onclick="App.repetirVenta(${v.id})" aria-label="Vender de nuevo">repeat</button>
             <button class="venta-action-btn ms" onclick="App.editVenta(${v.id})" aria-label="Editar venta">edit</button>
+            <button class="venta-action-btn ms" onclick="App.abrirDevolucion(${v.id})" aria-label="Registrar devolución">assignment_return</button>`
+            }
             <button class="venta-action-btn ms" onclick="App.deleteVenta(${v.id})" aria-label="Eliminar venta">delete</button>
           </div>
         </div>
@@ -349,6 +368,7 @@
 
     if (items.length === 0) {
       grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span class="ms">inventory_2</span><span>No hay perfumes</span></div>';
+      this.renderCompras();
       return;
     }
 
@@ -372,10 +392,14 @@
               <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)" aria-label="Sumar stock">add</button>
             </div>
           </div>
+          <button class="stock-reponer" onclick="App.abrirCompra(${p.id})" aria-label="Reponer stock de ${this.esc(p.nombre)}">
+            <span class="ms" aria-hidden="true">local_shipping</span>Reponer
+          </button>
         </div>
       </div>`;
     }).join('');
     this._lazyLoadStockPhotos();
+    this.renderCompras();
   },
 
   _lazyLoadStockPhotos() {
@@ -408,7 +432,7 @@
 
     const now = Date.now();
     const thirtyDays = 30 * 24 * 60 * 60 * 1000;
-    const salesLast30 = this.ventas.filter(v => now - v.fecha < thirtyDays);
+    const salesLast30 = this._ventasActivas().filter(v => now - v.fecha < thirtyDays);
 
     const salesByPerfume = {};
     salesLast30.forEach(v => {
@@ -456,11 +480,8 @@
     const totalAdeudado = pendientes.reduce((s, c) => s + c.monto - (c.montoPagado || 0), 0);
     document.getElementById('cuotas-total').textContent = this.fmt(totalAdeudado);
 
-    const badge = document.getElementById('nav-cuotas-badge');
-    if (badge) {
-      badge.textContent = pendientes.length;
-      badge.style.display = pendientes.length > 0 ? 'flex' : 'none';
-    }
+    const { vencidas, hoy } = this._cobrosPendientes();
+    this._actualizarBadgeCuotas(vencidas.length + hoy.length);
 
     const container = document.getElementById('cuotas-list');
     if (pendientes.length === 0) {
@@ -615,7 +636,7 @@
     const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     document.getElementById('stats-month-label').innerHTML = `${monthNames[now.getMonth()]} ${now.getFullYear()} <span class="ms">expand_more</span>`;
 
-    const thisMonth = this.ventas.filter(v => {
+    const thisMonth = this._ventasActivas().filter(v => {
       const d = new Date(v.fecha);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
@@ -742,10 +763,6 @@
   },
 
   updateNavBadge() {
-    const pendientes = this.cuotasData.filter(c => !c.pagado);
-    const badge = document.getElementById('nav-cuotas-badge');
-    if (badge) {
-      badge.textContent = pendientes.length;
-      badge.style.display = pendientes.length > 0 ? 'flex' : 'none';
-    }
+    const { vencidas, hoy } = this._cobrosPendientes();
+    this._actualizarBadgeCuotas(vencidas.length + hoy.length);
   },

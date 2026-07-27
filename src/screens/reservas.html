@@ -1,0 +1,34 @@
+<div id="screen-reservas" class="screen">
+    <div class="screen-scroll">
+      <div class="sub-header">
+        <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
+        <span class="sub-title">Señas y encargos</span>
+        <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
+      </div>
+
+      <div class="hero-card" style="padding:16px 18px;margin-bottom:14px;">
+        <div style="display:flex;gap:16px;">
+          <div>
+            <div class="hero-label">Encargos pendientes</div>
+            <div style="font:700 22px 'DM Sans';color:var(--text);" id="reservas-count">0</div>
+          </div>
+          <div style="border-left:1px solid var(--border);padding-left:16px;">
+            <div class="hero-label">Señas cobradas</div>
+            <div style="font:700 22px 'DM Sans';color:var(--gold2);" id="reservas-senas">$0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="seg-control" id="reservas-filter" style="margin-bottom:14px;">
+        <div class="seg-option active" data-estado="pendiente" onclick="App.filterReservas('pendiente')">Pendientes</div>
+        <div class="seg-option" data-estado="entregada" onclick="App.filterReservas('entregada')">Entregados</div>
+        <div class="seg-option" data-estado="cancelada" onclick="App.filterReservas('cancelada')">Cancelados</div>
+      </div>
+
+      <button class="btn-outline-gold" onclick="App.abrirReserva()" style="margin-bottom:14px;">
+        <span class="ms" aria-hidden="true">add</span>Nueva seña / encargo
+      </button>
+
+      <div id="reservas-list"></div>
+    </div>
+  </div>

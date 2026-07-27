@@ -10,6 +10,8 @@
   pedidoPerfumes: [],
   cajaData: [],
   gastosData: [],
+  comprasData: [],
+  reservasData: [],
   cajaTipo: 'entrada',
   gastoCat: 'transporte',
 
@@ -74,6 +76,7 @@
     this.checkPinOnStart();
     this.checkConsent();
     this.renderAll();
+    this._avisoCobrosDelDia();
     this.registerSW();
     this._initTabSync();
     this._checkPendingLicense();
@@ -274,6 +277,8 @@
     this.pedidosData = await DB.getPedidos();
     this.cajaData = await DB.getCaja();
     this.gastosData = await DB.getGastos();
+    this.comprasData = await DB.getCompras();
+    this.reservasData = await DB.getReservas();
   },
 
   registerSW() {

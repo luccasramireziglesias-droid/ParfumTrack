@@ -3,7 +3,7 @@
     await openDB();
   },
 
-  _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja']),
+  _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja', 'compras', 'reservas']),
 
   _shouldEncrypt(store) {
     return this._encryptedStores.has(store) && localStorage.getItem('pt_license_code');
@@ -135,18 +135,24 @@
     // Resolver el stock ANTES de insertar para dejar constancia en la venta de
     // si descontó una unidad o no. Sin ese dato, borrar una venta hecha con
     // stock en 0 devolvía al inventario una unidad que nunca existió.
-    let stockDescontado = false;
+    const cantidad = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    let unidadesDescontadas = 0;
     let perfumeADescontar = null;
     if (v.perfumeId && v.perfumeId !== '') {
       const p = await this.get('perfumes', v.perfumeId);
       if (p && p.stock > 0) {
         perfumeADescontar = p;
-        stockDescontado = true;
+        // Nunca dejar el stock en negativo: se descuenta lo que realmente hay
+        unidadesDescontadas = Math.min(cantidad, p.stock);
       }
     }
-    const id = await this.add('ventas', { ...v, fecha: v.fecha || Date.now(), stockDescontado });
-    if (perfumeADescontar) {
-      perfumeADescontar.stock = Math.max(0, perfumeADescontar.stock - 1);
+    const id = await this.add('ventas', {
+      ...v, fecha: v.fecha || Date.now(),
+      stockDescontado: unidadesDescontadas > 0,
+      unidadesDescontadas
+    });
+    if (perfumeADescontar && unidadesDescontadas > 0) {
+      perfumeADescontar.stock = Math.max(0, perfumeADescontar.stock - unidadesDescontadas);
       await this.put('perfumes', perfumeADescontar);
     }
     if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
@@ -203,7 +209,46 @@
   },
 
   async updateVenta(v) {
-    return this.put('ventas', v);
+    const prev = await this.get('ventas', v.id);
+    const norm = (x) => (x === null || x === undefined || x === '' ? null : Number(x));
+    const cantidad = Math.max(1, parseInt(v.cantidad, 10) || 1);
+    const prevCantidad = prev ? Math.max(1, parseInt(prev.cantidad, 10) || 1) : 0;
+    const prevPerfumeId = prev ? norm(prev.perfumeId) : null;
+    const nuevoPerfumeId = norm(v.perfumeId);
+
+    // Solo tocar el inventario si cambió el perfume o la cantidad: si el usuario
+    // edita el cliente o la nota, el stock no se mueve.
+    let unidadesDescontadas = prev
+      ? (prev.unidadesDescontadas !== undefined ? prev.unidadesDescontadas : (prev.stockDescontado !== false ? 1 : 0))
+      : 0;
+    const cambioStock = !prev || prevPerfumeId !== nuevoPerfumeId || prevCantidad !== cantidad;
+
+    if (cambioStock) {
+      // Devolver lo que había descontado la versión anterior…
+      if (prevPerfumeId && unidadesDescontadas > 0) {
+        const p = await this.get('perfumes', prevPerfumeId);
+        if (p) {
+          p.stock = (p.stock || 0) + unidadesDescontadas;
+          await this.put('perfumes', p);
+        }
+      }
+      // …y descontar lo que pide la versión nueva (sin dejar stock negativo)
+      unidadesDescontadas = 0;
+      if (nuevoPerfumeId) {
+        const p = await this.get('perfumes', nuevoPerfumeId);
+        if (p && p.stock > 0) {
+          unidadesDescontadas = Math.min(cantidad, p.stock);
+          p.stock = Math.max(0, p.stock - unidadesDescontadas);
+          await this.put('perfumes', p);
+        }
+      }
+    }
+
+    return this.put('ventas', {
+      ...v,
+      stockDescontado: unidadesDescontadas > 0,
+      unidadesDescontadas
+    });
   },
 
   async deleteVenta(id) {
@@ -211,11 +256,14 @@
     if (v) {
       // Solo devolver stock si esta venta lo descontó. Las ventas viejas (sin
       // el flag) mantienen el comportamiento previo para no cambiar su historial.
-      const debeDevolver = v.stockDescontado !== false;
-      if (v.perfumeId && v.perfumeId !== '' && debeDevolver) {
+      // Devolver exactamente las unidades que esta venta descontó
+      const aDevolver = v.unidadesDescontadas !== undefined
+        ? v.unidadesDescontadas
+        : (v.stockDescontado !== false ? 1 : 0);
+      if (v.perfumeId && v.perfumeId !== '' && aDevolver > 0) {
         const p = await this.get('perfumes', v.perfumeId);
         if (p) {
-          p.stock = (p.stock || 0) + 1;
+          p.stock = (p.stock || 0) + aDevolver;
           await this.put('perfumes', p);
         }
       }
@@ -227,6 +275,218 @@
       }
     }
     return this.delete('ventas', id);
+  },
+
+  // F3: la venta se marca como devuelta en vez de borrarse. Queda en el
+  // historial (con motivo y fecha) pero deja de contar para la ganancia.
+  async devolverVenta(id, { motivo = '', nota = '', reponerStock = true } = {}) {
+    const v = await this.get('ventas', id);
+    if (!v) throw new Error('VENTA_NO_ENCONTRADA');
+    if (v.devuelta) throw new Error('YA_DEVUELTA');
+
+    const unidades = v.unidadesDescontadas !== undefined
+      ? v.unidadesDescontadas
+      : (v.stockDescontado !== false && v.perfumeId ? 1 : 0);
+    let repuestas = 0;
+    if (reponerStock && unidades > 0 && v.perfumeId && v.perfumeId !== '') {
+      const p = await this.get('perfumes', v.perfumeId);
+      if (p) {
+        p.stock = (p.stock || 0) + unidades;
+        await this.put('perfumes', p);
+        repuestas = unidades;
+      }
+    }
+
+    // Las cuotas que nunca se cobraron dejan de ser deuda; las que tienen
+    // plata puesta se conservan porque ese cobro sí ocurrió.
+    let cobrado = 0;
+    let canceladas = 0;
+    if (v.formaPago === 'cuotas') {
+      for (const c of await this.getAll('cuotas')) {
+        if (c.ventaId !== id) continue;
+        const pagado = c.pagado ? (c.montoPagado || c.monto || 0) : (c.montoPagado || 0);
+        if (pagado > 0) {
+          cobrado += pagado;
+        } else {
+          await this.delete('cuotas', c.id);
+          canceladas++;
+        }
+      }
+    } else {
+      cobrado = v.precioVenta || 0;
+    }
+
+    return this.put('ventas', {
+      ...v,
+      devuelta: true,
+      fechaDevolucion: Date.now(),
+      motivoDevolucion: motivo,
+      notaDevolucion: nota,
+      unidadesRepuestas: repuestas,
+      cuotasCanceladas: canceladas,
+      montoADevolver: cobrado
+    });
+  },
+
+  // Deshacer una devolución cargada por error: vuelve a descontar el stock
+  // que se había repuesto. Las cuotas canceladas NO se recrean (el usuario
+  // puede volver a editar la venta si las necesita).
+  async revertirDevolucion(id) {
+    const v = await this.get('ventas', id);
+    if (!v) throw new Error('VENTA_NO_ENCONTRADA');
+    if (!v.devuelta) return v;
+
+    const repuestas = v.unidadesRepuestas || 0;
+    let descontadas = v.unidadesDescontadas !== undefined ? v.unidadesDescontadas : 0;
+    if (repuestas > 0 && v.perfumeId && v.perfumeId !== '') {
+      const p = await this.get('perfumes', v.perfumeId);
+      if (p) {
+        const aDescontar = Math.min(repuestas, p.stock || 0);
+        p.stock = Math.max(0, (p.stock || 0) - aDescontar);
+        await this.put('perfumes', p);
+        descontadas = aDescontar;
+      }
+    }
+
+    const limpia = { ...v, unidadesDescontadas: descontadas, stockDescontado: descontadas > 0 };
+    delete limpia.devuelta;
+    delete limpia.fechaDevolucion;
+    delete limpia.motivoDevolucion;
+    delete limpia.notaDevolucion;
+    delete limpia.unidadesRepuestas;
+    delete limpia.cuotasCanceladas;
+    delete limpia.montoADevolver;
+    return this.put('ventas', limpia);
+  },
+
+  // F4: reposición de stock comprándole al proveedor. Deja registro del
+  // costo real de cada tanda, que es lo que después explica la ganancia.
+  async registrarCompra({ perfumeId, cantidad, precioUnitario, proveedor = '', fecha, nota = '', actualizarCosto = true } = {}) {
+    const cant = Math.max(1, parseInt(cantidad, 10) || 0);
+    if (!cant) throw new Error('CANTIDAD_INVALIDA');
+    const precio = Number(precioUnitario);
+    if (!Number.isFinite(precio) || precio < 0) throw new Error('PRECIO_INVALIDO');
+
+    const p = perfumeId ? await this.get('perfumes', perfumeId) : null;
+    if (!p) throw new Error('PERFUME_NO_ENCONTRADO');
+
+    p.stock = (p.stock || 0) + cant;
+    // El costo de la última tanda pasa a ser el costo de referencia
+    if (actualizarCosto && precio > 0) p.precioCompra = precio;
+    await this.put('perfumes', p);
+
+    const id = await this.add('compras', {
+      perfumeId,
+      perfume: p.nombre,
+      cantidad: cant,
+      precioUnitario: precio,
+      total: precio * cant,
+      proveedor,
+      nota,
+      costoActualizado: !!(actualizarCosto && precio > 0),
+      fecha: fecha || Date.now()
+    });
+    return this.get('compras', id);
+  },
+
+  // Deshacer una compra cargada por error: descuenta lo que había sumado,
+  // sin dejar el stock en negativo (puede haberse vendido parte).
+  async eliminarCompra(id) {
+    const c = await this.get('compras', id);
+    if (c && c.perfumeId) {
+      const p = await this.get('perfumes', c.perfumeId);
+      if (p) {
+        p.stock = Math.max(0, (p.stock || 0) - (c.cantidad || 0));
+        await this.put('perfumes', p);
+      }
+    }
+    return this.delete('compras', id);
+  },
+
+  async getCompras() {
+    const compras = await this.getAll('compras');
+    return compras.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
+  },
+
+  // F5: señas y encargos. Una reserva puede existir sin stock (lista de
+  // espera) — por eso NO descuenta inventario hasta que se entrega.
+  async getReservas() {
+    const r = await this.getAll('reservas');
+    return r.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
+  },
+
+  async addReserva(r) {
+    const cantidad = Math.max(1, parseInt(r.cantidad, 10) || 1);
+    const precio = Number(r.precioAcordado);
+    if (!Number.isFinite(precio) || precio <= 0) throw new Error('PRECIO_INVALIDO');
+    const total = precio * cantidad;
+    // La seña nunca puede superar lo que se va a cobrar
+    const sena = Math.max(0, Math.min(Number(r.sena) || 0, total));
+    const id = await this.add('reservas', {
+      ...r,
+      cantidad,
+      precioAcordado: precio,
+      total,
+      sena,
+      estado: 'pendiente',
+      fecha: r.fecha || Date.now()
+    });
+    return this.get('reservas', id);
+  },
+
+  async updateReserva(r) {
+    return this.put('reservas', r);
+  },
+
+  // Entregar = la reserva se convierte en venta. La seña ya cobrada no se
+  // suma de nuevo: es parte del precio acordado, no un extra.
+  async entregarReserva(id, { precioCompra = 0 } = {}) {
+    const r = await this.get('reservas', id);
+    if (!r) throw new Error('RESERVA_NO_ENCONTRADA');
+    if (r.estado !== 'pendiente') throw new Error('RESERVA_NO_PENDIENTE');
+
+    const cantidad = Math.max(1, parseInt(r.cantidad, 10) || 1);
+    const costoUnit = Number(precioCompra) || 0;
+    const ventaId = await this.addVenta({
+      perfume: r.perfume,
+      perfumeId: r.perfumeId || null,
+      cantidad,
+      precioVenta: r.total,
+      precioOriginal: r.total,
+      precioCompra: costoUnit * cantidad,
+      precioUnitario: r.precioAcordado,
+      precioCompraUnitario: costoUnit,
+      cliente: r.cliente || 'Anónimo',
+      vendedor: r.vendedor || 'Anónimo',
+      proveedor: r.proveedor || '',
+      descuento: 0,
+      nota: r.sena > 0 ? `Seña de ${r.sena} ya cobrada` : '',
+      fecha: Date.now(),
+      formaPago: 'contado',
+      numCuotas: 1,
+      reservaId: id
+    });
+
+    await this.put('reservas', { ...r, estado: 'entregada', fechaEntrega: Date.now(), ventaId });
+    return ventaId;
+  },
+
+  // Cancelar deja constancia de si la seña se devolvió o se retuvo.
+  async cancelarReserva(id, { devolverSena = true, motivo = '' } = {}) {
+    const r = await this.get('reservas', id);
+    if (!r) throw new Error('RESERVA_NO_ENCONTRADA');
+    if (r.estado === 'entregada') throw new Error('RESERVA_YA_ENTREGADA');
+    return this.put('reservas', {
+      ...r,
+      estado: 'cancelada',
+      fechaCancelacion: Date.now(),
+      senaDevuelta: !!devolverSena,
+      motivoCancelacion: motivo
+    });
+  },
+
+  async eliminarReserva(id) {
+    return this.delete('reservas', id);
   },
 
   async getCuotas() {

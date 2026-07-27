@@ -11,6 +11,8 @@
       pedidos: this.pedidosData,
       caja: this.cajaData,
       gastos: this.gastosData,
+      compras: this.comprasData,
+      reservas: this.reservasData,
       config,
       // BUG #18 FIX: No incluir datos sensibles (PIN) en export
       settings: {
@@ -91,7 +93,7 @@
         data = inner;
       }
     }
-    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'reservas', 'config'];
     for (const s of stores) {
       if (data[s] && !Array.isArray(data[s])) {
         data[s] = Object.values(data[s]);
@@ -192,7 +194,7 @@
     if (!data || typeof data !== 'object') {
       throw new Error('El archivo no contiene datos válidos');
     }
-    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'reservas'];
     const registros = stores.reduce(
       (n, s) => n + (Array.isArray(data[s]) ? data[s].length : 0), 0
     );
@@ -206,7 +208,7 @@
     // Si esto lanza, la base local queda intacta (todavía no borramos nada)
     this._assertRestorable(data);
 
-    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'reservas', 'config'];
     let total = 0, skipped = 0;
     for (const store of stores) {
       await DB.clear(store);
@@ -245,7 +247,7 @@
       const raw = JSON.parse(text);
       const data = this._normalizeBackupData(raw);
 
-      const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
+      const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'reservas', 'config'];
       const hasData = stores.some(s => Array.isArray(data[s]) && data[s].length > 0) || data.settings;
       if (!hasData) {
         this.toast('No se encontraron datos válidos en el archivo', 'error');
@@ -324,8 +326,10 @@
     };
 
     addSection('Resumen');
-    const totalVentas = this.ventas.reduce((s, v) => s + v.precioVenta, 0);
-    const totalGanancia = this.ventas.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
+    // Los totales del reporte excluyen las ventas devueltas
+    const activas = this._ventasActivas();
+    const totalVentas = activas.reduce((s, v) => s + v.precioVenta, 0);
+    const totalGanancia = activas.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
     doc.text(`Ventas: ${this.ventas.length} | Total: ${this.fmt(totalVentas)} | Ganancia: ${this.fmt(totalGanancia)}`, 14, y); y += 6;
     doc.text(`Perfumes en stock: ${this.perfumes.length} | Cuotas pendientes: ${this.cuotasData.filter(c=>!c.pagado).length}`, 14, y); y += 10;
 
@@ -372,15 +376,19 @@
 
     const wb = XLSX.utils.book_new();
 
+    // El Excel lista TODAS las ventas (las devueltas también, marcadas como
+    // tales y con ganancia 0): el historial completo es el punto del export.
     const ventasRows = this.ventas.map(v => ({
       Fecha: new Date(v.fecha).toLocaleDateString('es-AR'),
       Perfume: v.perfume,
+      Cantidad: Math.max(1, parseInt(v.cantidad, 10) || 1),
       Cliente: v.cliente || '',
       'Precio Compra': v.precioCompra,
       'Precio Venta': v.precioVenta,
-      Ganancia: v.precioVenta - v.precioCompra,
+      Ganancia: v.devuelta ? 0 : v.precioVenta - v.precioCompra,
       Pago: v.formaPago || 'contado',
-      Cuotas: v.numCuotas || 1
+      Cuotas: v.numCuotas || 1,
+      Estado: v.devuelta ? `Devuelta${v.motivoDevolucion ? ' - ' + v.motivoDevolucion : ''}` : 'Activa'
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ventasRows), 'Ventas');
 
@@ -719,6 +727,8 @@
       pedidos: this.pedidosData,
       caja: this.cajaData,
       gastos: this.gastosData,
+      compras: this.comprasData,
+      reservas: this.reservasData,
       config,
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
@@ -793,7 +803,7 @@
 
   async clearData() {
     if (!await this.appConfirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.', 'Borrar todo', 'delete_forever')) return;
-    const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos', 'compras', 'reservas'];
     for (const store of stores) {
       await DB.clear(store);
     }

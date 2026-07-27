@@ -21,7 +21,7 @@ export default {
 
     // Devolver versión actual
     // En producción, esto podría venir de un KV store para poder hacer rollbacks sin redeploy
-    const version = '1.1.0';
+    const version = '1.8.0';
     const hash = 'default'; // Placeholder para integridad futura
     const timestamp = new Date().toISOString();
 
