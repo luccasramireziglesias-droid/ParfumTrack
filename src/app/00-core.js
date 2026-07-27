@@ -14,7 +14,48 @@
   gastoCat: 'transporte',
 
   async init() {
+    try {
+      await this._initInterno();
+    } catch (e) {
+      console.error('Fallo al iniciar la app:', e);
+      this._mostrarErrorArranque(e);
+    }
+  },
+
+  // Pide al navegador que NO borre los datos bajo presión de almacenamiento.
+  // Los datos del usuario viven SOLO acá: sin esto, el navegador puede
+  // desalojar IndexedDB y llevarse todo el historial de ventas.
+  async _pedirPersistencia() {
+    try {
+      if (navigator.storage && navigator.storage.persist) {
+        const yaEsPersistente = await navigator.storage.persisted();
+        if (!yaEsPersistente) await navigator.storage.persist();
+      }
+    } catch (_) { /* no soportado: seguimos igual */ }
+  },
+
+  _mostrarErrorArranque(e) {
+    // Sin esto, un fallo de IndexedDB dejaba la pantalla en blanco sin
+    // explicación ni salida.
+    const cont = document.getElementById('app') || document.body;
+    cont.innerHTML = `
+      <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;gap:16px;">
+        <span class="ms" style="font-size:48px;color:var(--gold2,#e8c97e);">error_outline</span>
+        <h1 style="font:700 22px 'Cormorant Garamond',serif;color:var(--gold2,#e8c97e);">No pudimos abrir tus datos</h1>
+        <p style="font:500 14px 'DM Sans',sans-serif;color:var(--text2,#b8b4a8);max-width:320px;line-height:1.6;">
+          Puede ser por falta de espacio o porque el navegador está en modo privado.
+          Tus datos no se borraron: probá cerrar y volver a abrir la app.
+        </p>
+        <button onclick="location.reload()" style="background:linear-gradient(135deg,#c9a84c,#e8c97e);color:#1a1a2e;border:none;padding:13px 26px;border-radius:10px;font:700 14px 'DM Sans',sans-serif;cursor:pointer;">
+          Reintentar
+        </button>
+        <p style="font:500 11px 'DM Sans',sans-serif;color:var(--text3,#7a7870);max-width:320px;">${(e && e.message ? String(e.message) : '').slice(0, 120)}</p>
+      </div>`;
+  },
+
+  async _initInterno() {
     await DB.init();
+    this._pedirPersistencia();
     await DB.seedDemo();
     await DB.dedupEncryptedRecords();
     await this._fixCorruptDates();

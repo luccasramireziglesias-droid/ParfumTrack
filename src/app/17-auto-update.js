@@ -117,10 +117,30 @@
 
     document.body.appendChild(banner);
 
-    // Recargar automáticamente después de 10 segundos si el usuario no lo hace
+    // Recargar automáticamente pasado un rato, PERO nunca encima de alguien que
+    // está cargando datos: perdería la venta a medio escribir. Si hay trabajo
+    // en curso, se deja el aviso y que recargue cuando quiera.
     setTimeout(() => {
+      if (this._hayTrabajoEnCurso()) return;
       window.location.reload();
-    }, 10000);
+    }, 30000);
+  },
+
+  // ¿El usuario está en medio de algo que se perdería con una recarga?
+  _hayTrabajoEnCurso() {
+    // Un formulario con datos escritos, o un modal abierto
+    const camposConTexto = ['venta-perfume-nombre', 'venta-precio', 'venta-cliente',
+      'gasto-monto', 'gasto-desc', 'caja-monto', 'add-perfume-nombre', 'pedido-nombre'];
+    for (const id of camposConTexto) {
+      const el = document.getElementById(id);
+      if (el && String(el.value || '').trim() !== '') return true;
+    }
+    const modalAbierto = [...document.querySelectorAll('.modal-overlay')]
+      .some(m => !m.classList.contains('hidden'));
+    if (modalAbierto) return true;
+    // También si está tipeando ahora mismo
+    const a = document.activeElement;
+    return !!(a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'));
   },
 
   // Limpiar interval al desmontar
