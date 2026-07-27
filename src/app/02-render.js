@@ -183,6 +183,7 @@
     if (recientes.length === 0) {
       container.innerHTML = '<div class="empty-state"><span class="ms">receipt_long</span><span>No hay ventas registradas</span></div>';
       this._renderDashboardDeudores();
+      this.renderRecordatorios();
       return;
     }
 
@@ -193,6 +194,7 @@
     ).join('');
 
     this._renderDashboardDeudores();
+    this.renderRecordatorios();
   },
 
   _renderVentaCard(v, { compact = false, className = '', style = '', index } = {}) {
@@ -461,11 +463,8 @@
     const totalAdeudado = pendientes.reduce((s, c) => s + c.monto - (c.montoPagado || 0), 0);
     document.getElementById('cuotas-total').textContent = this.fmt(totalAdeudado);
 
-    const badge = document.getElementById('nav-cuotas-badge');
-    if (badge) {
-      badge.textContent = pendientes.length;
-      badge.style.display = pendientes.length > 0 ? 'flex' : 'none';
-    }
+    const { vencidas, hoy } = this._cobrosPendientes();
+    this._actualizarBadgeCuotas(vencidas.length + hoy.length);
 
     const container = document.getElementById('cuotas-list');
     if (pendientes.length === 0) {
@@ -747,10 +746,6 @@
   },
 
   updateNavBadge() {
-    const pendientes = this.cuotasData.filter(c => !c.pagado);
-    const badge = document.getElementById('nav-cuotas-badge');
-    if (badge) {
-      badge.textContent = pendientes.length;
-      badge.style.display = pendientes.length > 0 ? 'flex' : 'none';
-    }
+    const { vencidas, hoy } = this._cobrosPendientes();
+    this._actualizarBadgeCuotas(vencidas.length + hoy.length);
   },

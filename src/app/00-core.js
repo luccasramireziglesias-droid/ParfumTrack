@@ -74,6 +74,7 @@
     this.checkPinOnStart();
     this.checkConsent();
     this.renderAll();
+    this._avisoCobrosDelDia();
     this.registerSW();
     this._initTabSync();
     this._checkPendingLicense();

@@ -420,6 +420,13 @@ document.addEventListener('DOMContentLoaded', () => App.init());
 // v15: Forzar actualización del Service Worker en cada carga
 // Detectar cambios en index.html e invalidar caché
 if ('serviceWorker' in navigator) {
+  // ¿Ya había un Service Worker manejando esta página ANTES de registrar?
+  // En la primera visita no lo hay: el SW se instala, hace skipWaiting() +
+  // clients.claim() y dispara `controllerchange` igual. Recargar ahí le
+  // regalaba un refresh completo a cada usuario nuevo apenas abría la app.
+  const ptTeniaController = !!navigator.serviceWorker.controller;
+  let ptRecargando = false;
+
   navigator.serviceWorker.ready.then(reg => {
     // Verificar actualizaciones cada 10 segundos (desarrollador puede cambiar backend)
     setInterval(() => {
@@ -427,8 +434,14 @@ if ('serviceWorker' in navigator) {
     }, 10000);
   });
 
-  // En caso de actualización, recargar la página
+  // En caso de actualización REAL, recargar la página — pero nunca encima de
+  // alguien que está cargando una venta: perdería lo que estaba escribiendo.
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!ptTeniaController || ptRecargando) return;
+    try {
+      if (window.App && App._hayTrabajoEnCurso && App._hayTrabajoEnCurso()) return;
+    } catch (e) { /* si falla el chequeo, mejor no recargar */ return; }
+    ptRecargando = true;
     window.location.reload();
   });
 }

@@ -2368,6 +2368,149 @@ input[type="date"].form-input {
   transition: background 0.15s;
 }
 .pin-key:active { background: var(--gold-dim); }
+/* ====== RECORDATORIOS DE COBRO (F2) ====== */
+
+.recordatorios-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+/* Cuando hay algo vencido o venciendo hoy, el borde tira a rojo: es lo
+   único del dashboard que pide acción inmediata */
+.recordatorios-card.urgente {
+  border-color: rgba(224, 112, 112, 0.45);
+  background: linear-gradient(180deg, rgba(224, 112, 112, 0.08), var(--card) 60%);
+}
+
+.recordatorios-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.recordatorios-head > .ms {
+  color: var(--gold);
+  font-size: 20px;
+}
+
+.recordatorios-card.urgente .recordatorios-head > .ms {
+  color: var(--red);
+}
+
+.recordatorios-head > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.recordatorios-titulo {
+  font: 600 14px 'DM Sans';
+  color: var(--text);
+}
+
+.recordatorios-resumen {
+  font: 500 12px 'DM Sans';
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.recordatorio-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.recordatorio-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.recordatorio-cliente {
+  font: 600 13px 'DM Sans';
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recordatorio-meta {
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+.recordatorio-estado {
+  font: 600 11px 'DM Sans';
+  margin-top: 3px;
+}
+
+.recordatorio-estado.vencida { color: var(--red); }
+.recordatorio-estado.hoy { color: var(--gold2); }
+.recordatorio-estado.proxima { color: var(--text3); }
+
+.recordatorio-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.recordatorio-monto {
+  font: 700 14px 'DM Sans';
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.recordatorio-acciones {
+  display: flex;
+  gap: 6px;
+}
+
+/* 40px: mínimo cómodo para el pulgar en mobile */
+.recordatorio-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recordatorio-btn .ms {
+  font-size: 18px;
+}
+
+.recordatorio-vermas {
+  width: 100%;
+  margin-top: 8px;
+  padding: 9px;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--gold2);
+  font: 600 12px 'DM Sans';
+  cursor: pointer;
+}
+
+/* El badge de cuotas solo se pone rojo si hay algo vencido o para hoy */
+.nav-badge {
+  background: var(--gold);
+  color: #0f0f1a;
+}
+
+.nav-badge.urgente {
+  background: var(--red);
+  color: #fff;
+}
 </style>
 </head>
 <body>
@@ -2523,6 +2666,18 @@ input[type="date"].form-input {
           <div class="stat-header-sm"><span class="ms gold">confirmation_number</span>Ticket prom.</div>
           <div class="stat-value-sm" id="stat-ticket">$0</div>
         </div>
+      </div>
+
+      <div id="dashboard-recordatorios" class="recordatorios-card hidden">
+        <div class="recordatorios-head">
+          <span class="ms">notifications_active</span>
+          <div>
+            <div class="recordatorios-titulo" id="recordatorios-titulo">Cobros de esta semana</div>
+            <div class="recordatorios-resumen" id="recordatorios-resumen"></div>
+          </div>
+          <span class="section-link" onclick="App.showScreen('cuotas')">Ver cuotas</span>
+        </div>
+        <div id="dashboard-recordatorios-list"></div>
       </div>
 
       <div class="today-strip" id="today-strip">
@@ -4430,6 +4585,7 @@ const App = {
     this.checkPinOnStart();
     this.checkConsent();
     this.renderAll();
+    this._avisoCobrosDelDia();
     this.registerSW();
     this._initTabSync();
     this._checkPendingLicense();
@@ -4958,6 +5114,7 @@ const App = {
     if (recientes.length === 0) {
       container.innerHTML = '<div class="empty-state"><span class="ms">receipt_long</span><span>No hay ventas registradas</span></div>';
       this._renderDashboardDeudores();
+      this.renderRecordatorios();
       return;
     }
 
@@ -4968,6 +5125,7 @@ const App = {
     ).join('');
 
     this._renderDashboardDeudores();
+    this.renderRecordatorios();
   },
 
   _renderVentaCard(v, { compact = false, className = '', style = '', index } = {}) {
@@ -5236,11 +5394,8 @@ const App = {
     const totalAdeudado = pendientes.reduce((s, c) => s + c.monto - (c.montoPagado || 0), 0);
     document.getElementById('cuotas-total').textContent = this.fmt(totalAdeudado);
 
-    const badge = document.getElementById('nav-cuotas-badge');
-    if (badge) {
-      badge.textContent = pendientes.length;
-      badge.style.display = pendientes.length > 0 ? 'flex' : 'none';
-    }
+    const { vencidas, hoy } = this._cobrosPendientes();
+    this._actualizarBadgeCuotas(vencidas.length + hoy.length);
 
     const container = document.getElementById('cuotas-list');
     if (pendientes.length === 0) {
@@ -5522,12 +5677,8 @@ const App = {
   },
 
   updateNavBadge() {
-    const pendientes = this.cuotasData.filter(c => !c.pagado);
-    const badge = document.getElementById('nav-cuotas-badge');
-    if (badge) {
-      badge.textContent = pendientes.length;
-      badge.style.display = pendientes.length > 0 ? 'flex' : 'none';
-    }
+    const { vencidas, hoy } = this._cobrosPendientes();
+    this._actualizarBadgeCuotas(vencidas.length + hoy.length);
   },
 
   // ====== NUEVA VENTA ======
@@ -9047,6 +9198,152 @@ const App = {
     }
     return out;
   },
+
+
+  // ====== RECORDATORIOS DE COBRO (F2) ======
+  // El problema real del revendedor no es anotar la cuota: es acordarse de
+  // cobrarla. Esto pone arriba del dashboard lo que hay que cobrar hoy, lo
+  // que ya venció y lo que vence en los próximos días, con el WhatsApp
+  // listo para mandar.
+
+  _RECORDATORIO_HORIZONTE: 3,   // días hacia adelante que se consideran "próximas"
+  _RECORDATORIO_MAX_FILAS: 4,   // el resto se ve en la pantalla de Cuotas
+
+  _hoyTs() {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  },
+
+  // Días de diferencia entre una fecha y hoy, ambos a medianoche local.
+  // Negativo = ya venció.
+  _diasHasta(ts) {
+    const d = new Date(ts || 0);
+    d.setHours(0, 0, 0, 0);
+    return Math.round((d.getTime() - this._hoyTs()) / 86400000);
+  },
+
+  // Clasifica las cuotas impagas por urgencia. Devuelve siempre las tres
+  // listas (aunque estén vacías) para que quien la use no tenga que chequear.
+  _cobrosPendientes() {
+    const out = { vencidas: [], hoy: [], proximas: [] };
+    for (const c of this.cuotasData) {
+      if (c.pagado) continue;
+      const resta = (c.monto || 0) - (c.montoPagado || 0);
+      // Una cuota con saldo 0 pero sin marcar como pagada no es un cobro
+      if (resta <= 0) continue;
+      if (!c.vence) continue;
+      const dias = this._diasHasta(c.vence);
+      const item = { cuota: c, resta, dias };
+      if (dias < 0) out.vencidas.push(item);
+      else if (dias === 0) out.hoy.push(item);
+      else if (dias <= this._RECORDATORIO_HORIZONTE) out.proximas.push(item);
+    }
+    const porFecha = (a, b) => (a.cuota.vence || 0) - (b.cuota.vence || 0);
+    out.vencidas.sort(porFecha);
+    out.hoy.sort(porFecha);
+    out.proximas.sort(porFecha);
+    return out;
+  },
+
+  _textoVencimiento(dias) {
+    if (dias < 0) return dias === -1 ? 'Venció ayer' : `Venció hace ${Math.abs(dias)} días`;
+    if (dias === 0) return 'Vence hoy';
+    if (dias === 1) return 'Vence mañana';
+    return `Vence en ${dias} días`;
+  },
+
+  _mensajeRecordatorio({ cuota, resta, dias }) {
+    const nombre = (cuota.cliente || '').trim() || 'Hola';
+    const perfume = cuota.perfume || 'tu pedido';
+    const cuando = dias < 0
+      ? `venció el ${this.fmtDate(cuota.vence)}`
+      : dias === 0 ? 'vence hoy' : `vence el ${this.fmtDate(cuota.vence)}`;
+    return `Hola ${nombre}! 👋 Te recuerdo la cuota ${cuota.numero}/${cuota.total} de *${perfume}* por *${this.fmt(resta)}* que ${cuando}. ¿Cuándo la podés pasar?`;
+  },
+
+  renderRecordatorios() {
+    const section = document.getElementById('dashboard-recordatorios');
+    const list = document.getElementById('dashboard-recordatorios-list');
+    if (!section || !list) return;
+
+    const { vencidas, hoy, proximas } = this._cobrosPendientes();
+    const urgentes = vencidas.length + hoy.length;
+    this._actualizarBadgeCuotas(urgentes);
+
+    const items = [...vencidas, ...hoy, ...proximas];
+    if (items.length === 0) {
+      section.classList.add('hidden');
+      list.innerHTML = '';
+      return;
+    }
+
+    const total = items.reduce((s, i) => s + i.resta, 0);
+    const titulo = document.getElementById('recordatorios-titulo');
+    if (titulo) {
+      titulo.textContent = urgentes > 0
+        ? `${urgentes} cobro${urgentes !== 1 ? 's' : ''} para hoy`
+        : 'Cobros de esta semana';
+    }
+    const resumen = document.getElementById('recordatorios-resumen');
+    if (resumen) resumen.textContent = `${items.length} cuota${items.length !== 1 ? 's' : ''} · ${this.fmt(total)}`;
+
+    section.classList.remove('hidden');
+    section.classList.toggle('urgente', urgentes > 0);
+
+    const visibles = items.slice(0, this._RECORDATORIO_MAX_FILAS);
+    let html = visibles.map((item) => {
+      const { cuota, resta, dias } = item;
+      const estado = dias < 0 ? 'vencida' : dias === 0 ? 'hoy' : 'proxima';
+      const cuotaIdAttr = encodeURIComponent(JSON.stringify(cuota.id));
+      return `<div class="recordatorio-row">
+        <div class="recordatorio-info">
+          <div class="recordatorio-cliente">${this.esc(cuota.cliente || 'Sin nombre')}</div>
+          <div class="recordatorio-meta">${this.esc(cuota.perfume || '—')} · cuota ${cuota.numero}/${cuota.total}</div>
+          <div class="recordatorio-estado ${estado}">${this._textoVencimiento(dias)}</div>
+        </div>
+        <div class="recordatorio-right">
+          <span class="recordatorio-monto">${this.fmt(resta)}</span>
+          <div class="recordatorio-acciones">
+            <button class="btn-whatsapp recordatorio-btn" data-msg="${this.b64Encode(this._mensajeRecordatorio(item))}" aria-label="Recordar a ${this.esc(cuota.cliente || 'cliente')} por WhatsApp"><span class="ms" aria-hidden="true">chat</span></button>
+            <button class="btn-pay recordatorio-btn" data-cuota-id="${cuotaIdAttr}" aria-label="Registrar pago de la cuota"><span class="ms" aria-hidden="true">payments</span></button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    if (items.length > visibles.length) {
+      const resto = items.length - visibles.length;
+      html += `<button class="recordatorio-vermas" onclick="App.showScreen('cuotas')">Ver ${resto} cobro${resto !== 1 ? 's' : ''} más</button>`;
+    }
+
+    list.innerHTML = html;
+  },
+
+  _actualizarBadgeCuotas(urgentes) {
+    const badge = document.getElementById('nav-cuotas-badge');
+    if (!badge) return;
+    const pendientes = this.cuotasData.filter(c => !c.pagado).length;
+    badge.textContent = pendientes;
+    badge.style.display = pendientes > 0 ? 'flex' : 'none';
+    // Rojo cuando hay algo vencido o venciendo hoy; dorado si es a futuro
+    badge.classList.toggle('urgente', (urgentes || 0) > 0);
+  },
+
+  // Aviso al abrir la app, como mucho una vez por día: si no, el revendedor
+  // que entra 10 veces por día termina ignorándolo.
+  _avisoCobrosDelDia() {
+    const hoyClave = new Date(this._hoyTs()).toISOString().split('T')[0];
+    if (localStorage.getItem('pt_recordatorio_visto') === hoyClave) return;
+    const { vencidas, hoy } = this._cobrosPendientes();
+    const urgentes = vencidas.length + hoy.length;
+    if (urgentes === 0) return;
+    localStorage.setItem('pt_recordatorio_visto', hoyClave);
+    const monto = [...vencidas, ...hoy].reduce((s, i) => s + i.resta, 0);
+    setTimeout(() => {
+      this.toast(`Tenés ${urgentes} cobro${urgentes !== 1 ? 's' : ''} pendiente${urgentes !== 1 ? 's' : ''} por ${this.fmt(monto)}`, 'notifications_active');
+    }, 1800);
+  },
 };
 
 document.addEventListener('DOMContentLoaded', () => App.init());
@@ -9054,6 +9351,13 @@ document.addEventListener('DOMContentLoaded', () => App.init());
 // v15: Forzar actualización del Service Worker en cada carga
 // Detectar cambios en index.html e invalidar caché
 if ('serviceWorker' in navigator) {
+  // ¿Ya había un Service Worker manejando esta página ANTES de registrar?
+  // En la primera visita no lo hay: el SW se instala, hace skipWaiting() +
+  // clients.claim() y dispara `controllerchange` igual. Recargar ahí le
+  // regalaba un refresh completo a cada usuario nuevo apenas abría la app.
+  const ptTeniaController = !!navigator.serviceWorker.controller;
+  let ptRecargando = false;
+
   navigator.serviceWorker.ready.then(reg => {
     // Verificar actualizaciones cada 10 segundos (desarrollador puede cambiar backend)
     setInterval(() => {
@@ -9061,8 +9365,14 @@ if ('serviceWorker' in navigator) {
     }, 10000);
   });
 
-  // En caso de actualización, recargar la página
+  // En caso de actualización REAL, recargar la página — pero nunca encima de
+  // alguien que está cargando una venta: perdería lo que estaba escribiendo.
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!ptTeniaController || ptRecargando) return;
+    try {
+      if (window.App && App._hayTrabajoEnCurso && App._hayTrabajoEnCurso()) return;
+    } catch (e) { /* si falla el chequeo, mejor no recargar */ return; }
+    ptRecargando = true;
     window.location.reload();
   });
 }

@@ -99,3 +99,103 @@ describe('F1 — cantidad en la venta', () => {
     expect(read('src/styles/07-venta-card.css')).toContain('.venta-cant');
   });
 });
+
+describe('F2 — recordatorios de cobro', () => {
+  const rec = read('src/app/20-recordatorios.js');
+  const render = read('src/app/02-render.js');
+  const core = read('src/app/00-core.js');
+  const inicio = read('src/screens/inicio.html');
+  const index = read('index.html');
+
+  it('la tarjeta de recordatorios está en el dashboard y en el build', () => {
+    expect(inicio).toContain('id="dashboard-recordatorios"');
+    expect(inicio).toContain('id="dashboard-recordatorios-list"');
+    expect(index).toContain('id="dashboard-recordatorios"');
+    expect(index).toContain('.recordatorios-card');
+  });
+
+  it('clasifica por vencidas / hoy / próximas dentro del horizonte', () => {
+    const idx = rec.indexOf('_cobrosPendientes()');
+    const cuerpo = rec.slice(idx, idx + 1200);
+    expect(cuerpo).toMatch(/dias < 0/);
+    expect(cuerpo).toMatch(/dias === 0/);
+    expect(cuerpo).toMatch(/dias <= this\._RECORDATORIO_HORIZONTE/);
+  });
+
+  it('ignora las cuotas pagadas y las que ya no tienen saldo', () => {
+    const idx = rec.indexOf('_cobrosPendientes()');
+    const cuerpo = rec.slice(idx, idx + 1200);
+    expect(cuerpo).toMatch(/if \(c\.pagado\) continue/);
+    expect(cuerpo).toMatch(/if \(resta <= 0\) continue/);
+  });
+
+  it('compara fechas a medianoche local (no cuenta horas de diferencia)', () => {
+    const idx = rec.indexOf('_diasHasta(ts)');
+    const cuerpo = rec.slice(idx, idx + 250);
+    expect(cuerpo).toMatch(/setHours\(0, 0, 0, 0\)/);
+    expect(rec).toMatch(/_hoyTs\(\)[\s\S]{0,150}setHours\(0, 0, 0, 0\)/);
+  });
+
+  it('ordena por vencimiento y muestra primero lo vencido', () => {
+    expect(rec).toMatch(/out\.vencidas\.sort\(porFecha\)/);
+    expect(rec).toMatch(/\[\.\.\.vencidas, \.\.\.hoy, \.\.\.proximas\]/);
+  });
+
+  it('cada fila trae WhatsApp y cobro con los handlers delegados existentes', () => {
+    expect(rec).toMatch(/class="btn-whatsapp recordatorio-btn" data-msg=/);
+    expect(rec).toMatch(/class="btn-pay recordatorio-btn" data-cuota-id=/);
+    // El id viaja percent-encoded, igual que en la pantalla de cuotas
+    expect(rec).toMatch(/encodeURIComponent\(JSON\.stringify\(cuota\.id\)\)/);
+  });
+
+  it('el mensaje de WhatsApp se escapa vía base64 UTF-8 (soporta emojis)', () => {
+    expect(rec).toMatch(/this\.b64Encode\(this\._mensajeRecordatorio\(item\)\)/);
+  });
+
+  it('el badge del nav se marca urgente solo con vencidas o de hoy', () => {
+    // La DEFINICIÓN, no la llamada desde renderRecordatorios
+    const idx = rec.indexOf('\n  _actualizarBadgeCuotas(urgentes) {');
+    const cuerpo = rec.slice(idx, idx + 500);
+    expect(cuerpo).toMatch(/classList\.toggle\('urgente'/);
+    expect(read('src/styles/21-recordatorios.css')).toContain('.nav-badge.urgente');
+    // Un solo lugar actualiza el badge: no hay copias desincronizadas
+    expect(render).not.toMatch(/badge\.textContent = pendientes\.length/);
+  });
+
+  it('el dashboard y la pantalla de cuotas usan el mismo cálculo', () => {
+    expect(render).toMatch(/this\.renderRecordatorios\(\)/);
+    expect(render).toMatch(/this\._cobrosPendientes\(\)/);
+  });
+
+  it('el aviso del día se muestra una sola vez por jornada', () => {
+    const idx = rec.indexOf('_avisoCobrosDelDia()');
+    const cuerpo = rec.slice(idx, idx + 700);
+    expect(cuerpo).toMatch(/pt_recordatorio_visto/);
+    expect(cuerpo).toMatch(/=== hoyClave\) return/);
+    expect(core).toMatch(/this\._avisoCobrosDelDia\(\)/);
+  });
+});
+
+describe('Service Worker — recarga por actualización', () => {
+  const tpl = read('src/index.template.html');
+  const index = read('index.html');
+
+  it('no recarga en la primera visita (cuando el SW recién hace claim)', () => {
+    const idx = tpl.indexOf("addEventListener('controllerchange'");
+    expect(idx, 'handler de controllerchange').toBeGreaterThan(-1);
+    const cuerpo = tpl.slice(idx, idx + 500);
+    expect(cuerpo).toMatch(/!ptTeniaController/);
+    expect(tpl).toMatch(/const ptTeniaController = !!navigator\.serviceWorker\.controller/);
+    // Se evalúa ANTES de registrar el SW, si no siempre daría true
+    expect(tpl.indexOf('ptTeniaController =')).toBeLessThan(tpl.indexOf("addEventListener('controllerchange'"));
+  });
+
+  it('no recarga encima de un formulario a medio llenar', () => {
+    const idx = tpl.indexOf("addEventListener('controllerchange'");
+    expect(tpl.slice(idx, idx + 500)).toMatch(/_hayTrabajoEnCurso\(\)/);
+  });
+
+  it('el build incorpora la guarda', () => {
+    expect(index).toMatch(/ptTeniaController/);
+  });
+});
