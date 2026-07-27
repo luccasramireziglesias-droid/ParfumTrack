@@ -68,6 +68,23 @@
 
     el('hero-ganancia').textContent = this.fmt(ganancia);
     el('hero-ventas-count').textContent = totalVentas + ' ventas registradas';
+
+    // Ganancia NETA = bruta − gastos del negocio del mismo mes (transporte,
+    // embalaje, publicidad...). Sin esto el número grande ignora plata que
+    // el revendedor sí gastó.
+    const gastosMes = (this.gastosData || []).filter(g => {
+      const d = new Date(g.fecha);
+      return d.getMonth() === displayMonth && d.getFullYear() === displayYear;
+    }).reduce((s, g) => s + (g.monto || 0), 0);
+    const netaEl = el('hero-neta');
+    if (netaEl) {
+      if (gastosMes > 0) {
+        netaEl.classList.remove('hidden');
+        netaEl.innerHTML = `<span class="ms" aria-hidden="true">receipt_long</span>Neta <strong>${this.fmt(ganancia - gastosMes)}</strong> <span class="hero-neta-detail">− ${this.fmt(gastosMes)} de gastos</span>`;
+      } else {
+        netaEl.classList.add('hidden');
+      }
+    }
     el('stat-ventas').textContent = totalVentas;
 
     const prevMonthNum = displayMonth === 0 ? 11 : displayMonth - 1;
@@ -557,7 +574,12 @@
 
     // Ganancia REAL = lo cobrado (precioVenta, ya con descuento) menos el costo
     const ganancia = thisMonth.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
-    const gastos = thisMonth.reduce((s, v) => s + v.precioCompra, 0);
+    // Gastos REALES del negocio del mes (antes usaba precioCompra, que es el
+    // costo de mercadería — la barra 'Gastos' nunca reflejaba los gastos)
+    const gastos = (this.gastosData || []).filter(g => {
+      const d = new Date(g.fecha);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).reduce((s, g) => s + (g.monto || 0), 0);
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 
     // Show charts only if Pro; hide bars for Free

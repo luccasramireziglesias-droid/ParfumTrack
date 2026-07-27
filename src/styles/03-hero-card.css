@@ -67,3 +67,19 @@
   color: var(--text3);
 }
 
+
+/* Ganancia neta (bruta − gastos del negocio) */
+.hero-neta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font: 500 12px 'DM Sans';
+  color: var(--text3);
+  cursor: pointer;
+}
+.hero-neta .ms { font-size: 15px; color: var(--gold); }
+.hero-neta strong { color: var(--text); font-weight: 700; }
+.hero-neta-detail { color: var(--red); }

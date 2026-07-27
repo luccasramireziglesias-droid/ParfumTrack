@@ -7,11 +7,35 @@
   },
   _pinBuffer: '',
 
+  // El hash (SHA-256, nunca el PIN en claro) vive en localStorage para que
+  // sobreviva al cierre de la app. Solo la verificación de la sesión actual
+  // va en sessionStorage, así vuelve a pedir el PIN en cada apertura.
+  _getPinHash() {
+    // Migración: versiones viejas guardaban el hash en sessionStorage
+    const legacy = sessionStorage.getItem('pt_pin_hash');
+    const stored = localStorage.getItem('pt_pin_hash');
+    if (!stored && legacy) {
+      localStorage.setItem('pt_pin_hash', legacy);
+      return legacy;
+    }
+    return stored;
+  },
+
   checkPinOnStart() {
     // Verificar si PIN está ACTIVADO (guardado en localStorage)
     const pinEnabled = localStorage.getItem('pt_pin_enabled') === '1';
     // Verificar si ya ingresó PIN en ESTA sesión (sessionStorage)
     const pinVerified = sessionStorage.getItem('pt_pin_verified') === '1';
+    const savedHash = this._getPinHash();
+
+    // FAIL-OPEN: si el PIN figura activado pero no hay hash recuperable, el
+    // usuario quedaría encerrado para siempre (ningún PIN podría coincidir).
+    // Preferimos abrir la app y desactivar el PIN antes que perder sus datos.
+    if (pinEnabled && !savedHash) {
+      localStorage.removeItem('pt_pin_enabled');
+      setTimeout(() => this.toast('El PIN se desactivó por seguridad. Volvé a activarlo si querés.', 'lock_open'), 1200);
+      return;
+    }
 
     if (pinEnabled && !pinVerified) {
       // PIN activado pero no verificado en esta sesión → mostrar lock screen
@@ -34,8 +58,8 @@
     this._pinBuffer += n;
     this._updatePinDots();
     if (this._pinBuffer.length === 4) {
-      // Obtener PIN hasheado guardado (en sessionStorage si existe, o comparar con input)
-      const savedHash = sessionStorage.getItem('pt_pin_hash');
+      // Obtener PIN hasheado guardado (localStorage: sobrevive al cierre de la app)
+      const savedHash = this._getPinHash();
       const hashed = await this._hashPin(this._pinBuffer);
 
       // Comparar: hash de entrada vs hash guardado
@@ -75,10 +99,11 @@
       const pin = await this.appPrompt('Creá un PIN de 4 dígitos:', { inputMode: 'numeric', maxLength: 4, pattern: '\\d{4}' });
       if (pin && /^\d{4}$/.test(pin)) {
         const hashed = await this._hashPin(pin);
-        // Guardar en localStorage: que PIN está ACTIVADO (boolean)
+        // Ambos en localStorage: el flag y el hash SHA-256 (nunca el PIN en
+        // claro). Si el hash fuera a sessionStorage, al reabrir la app no
+        // habría con qué comparar y el usuario quedaría bloqueado.
         localStorage.setItem('pt_pin_enabled', '1');
-        // Guardar en sessionStorage: el hash (se borra al cerrar navegador)
-        sessionStorage.setItem('pt_pin_hash', hashed);
+        localStorage.setItem('pt_pin_hash', hashed);
         sessionStorage.setItem('pt_pin_verified', '1');
         knob.style.left = '23px';
         knob.style.background = 'var(--gold2)';
@@ -91,6 +116,7 @@
     } else {
       // Desactivar PIN
       localStorage.removeItem('pt_pin_enabled');
+      localStorage.removeItem('pt_pin_hash');
       sessionStorage.removeItem('pt_pin_hash');
       sessionStorage.removeItem('pt_pin_verified');
       knob.style.left = '3px';

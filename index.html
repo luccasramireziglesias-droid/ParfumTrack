@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="app-version" content="1.5.3">
+<meta name="app-version" content="1.6.0">
 <title>Parfum Track</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -278,6 +278,22 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   color: var(--text3);
 }
 
+
+/* Ganancia neta (bruta − gastos del negocio) */
+.hero-neta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font: 500 12px 'DM Sans';
+  color: var(--text3);
+  cursor: pointer;
+}
+.hero-neta .ms { font-size: 15px; color: var(--gold); }
+.hero-neta strong { color: var(--text); font-weight: 700; }
+.hero-neta-detail { color: var(--red); }
 /* ====== STAT CARDS ====== */
 .stat-pair {
   display: flex;
@@ -2386,6 +2402,7 @@ input[type="date"].form-input {
           <div class="hero-badge" id="hero-trend"><span class="ms">trending_up</span>+0%</div>
         </div>
         <div class="hero-sub" id="hero-ventas-count">0 ventas registradas</div>
+        <div class="hero-neta hidden" id="hero-neta" role="button" tabindex="0" onclick="App.showScreen('gastos')" aria-label="Ver gastos del negocio"></div>
         <div style="font-size:11px;color:var(--text3);margin-top:12px;padding-top:12px;border-top:1px solid var(--border);line-height:1.4;">
           <span class="ms" style="font-size:12px;vertical-align:middle;">info</span> Los cálculos son informativos. Verificá siempre tus registros.
         </div>
@@ -3782,8 +3799,19 @@ const DB = {
   },
 
   async seedDemo() {
+    // Sembrar SOLO la primera vez en la vida de la instalación. Sin este flag,
+    // borrar los datos (o quedarse sin perfumes) hacía que al reabrir la app
+    // reaparecieran 8 perfumes y 13 ventas de demo mezcladas con las reales.
+    if (localStorage.getItem('pt_demo_seeded') === '1') return;
+
     const perfumes = await this.getPerfumes();
-    if (perfumes.length > 0) return;
+    const ventas = await this.getAll('ventas');
+    if (perfumes.length > 0 || ventas.length > 0) {
+      // Ya hay datos del usuario: marcar como sembrado y no tocar nada nunca más
+      localStorage.setItem('pt_demo_seeded', '1');
+      return;
+    }
+    localStorage.setItem('pt_demo_seeded', '1');
 
     const demoPerf = [
       { nombre: 'Haramain Gold', precioCompra: 2700, precioVenta: 3900, stock: 8, foto: '' },
@@ -4571,6 +4599,23 @@ const App = {
 
     el('hero-ganancia').textContent = this.fmt(ganancia);
     el('hero-ventas-count').textContent = totalVentas + ' ventas registradas';
+
+    // Ganancia NETA = bruta − gastos del negocio del mismo mes (transporte,
+    // embalaje, publicidad...). Sin esto el número grande ignora plata que
+    // el revendedor sí gastó.
+    const gastosMes = (this.gastosData || []).filter(g => {
+      const d = new Date(g.fecha);
+      return d.getMonth() === displayMonth && d.getFullYear() === displayYear;
+    }).reduce((s, g) => s + (g.monto || 0), 0);
+    const netaEl = el('hero-neta');
+    if (netaEl) {
+      if (gastosMes > 0) {
+        netaEl.classList.remove('hidden');
+        netaEl.innerHTML = `<span class="ms" aria-hidden="true">receipt_long</span>Neta <strong>${this.fmt(ganancia - gastosMes)}</strong> <span class="hero-neta-detail">− ${this.fmt(gastosMes)} de gastos</span>`;
+      } else {
+        netaEl.classList.add('hidden');
+      }
+    }
     el('stat-ventas').textContent = totalVentas;
 
     const prevMonthNum = displayMonth === 0 ? 11 : displayMonth - 1;
@@ -5060,7 +5105,12 @@ const App = {
 
     // Ganancia REAL = lo cobrado (precioVenta, ya con descuento) menos el costo
     const ganancia = thisMonth.reduce((s, v) => s + (v.precioVenta - v.precioCompra), 0);
-    const gastos = thisMonth.reduce((s, v) => s + v.precioCompra, 0);
+    // Gastos REALES del negocio del mes (antes usaba precioCompra, que es el
+    // costo de mercadería — la barra 'Gastos' nunca reflejaba los gastos)
+    const gastos = (this.gastosData || []).filter(g => {
+      const d = new Date(g.fecha);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).reduce((s, g) => s + (g.monto || 0), 0);
     const totalVenta = thisMonth.reduce((s, v) => s + v.precioVenta, 0);
 
     // Show charts only if Pro; hide bars for Free
@@ -6841,7 +6891,28 @@ const App = {
     return data;
   },
 
+  // Guarda anti pérdida de datos: _restoreData BORRA los 7 stores antes de
+  // escribir. Si el payload viene vacío o malformado (respuesta rara del
+  // servidor, backup corrupto, JSON de otra app), el usuario perdería TODO
+  // su historial sin recibir nada a cambio. Validamos ANTES de tocar la base.
+  _assertRestorable(data) {
+    if (!data || typeof data !== 'object') {
+      throw new Error('El archivo no contiene datos válidos');
+    }
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos'];
+    const registros = stores.reduce(
+      (n, s) => n + (Array.isArray(data[s]) ? data[s].length : 0), 0
+    );
+    if (registros === 0) {
+      throw new Error('El backup está vacío: no se restauró nada para no borrar tus datos actuales');
+    }
+    return registros;
+  },
+
   async _restoreData(data) {
+    // Si esto lanza, la base local queda intacta (todavía no borramos nada)
+    this._assertRestorable(data);
+
     const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'config'];
     let total = 0, skipped = 0;
     for (const store of stores) {
@@ -6893,7 +6964,9 @@ const App = {
       this.haptic('success');
       this._notifyTabs();
     } catch (e) {
-      this.toast('Error al leer el archivo', 'error');
+      // Si la guarda de _restoreData abortó, su mensaje explica por qué los
+      // datos locales NO se tocaron
+      this.toast(e && e.message ? e.message : 'Error al leer el archivo', 'error');
     }
   },
 
@@ -7419,8 +7492,9 @@ const App = {
       this.toast(`${total} registros restaurados${skipped ? ` (${skipped} omitidos)` : ''}`, 'check_circle');
       this.haptic('success');
       this._notifyTabs();
-    } catch {
-      this.toast('Error de conexión', 'cloud_off');
+    } catch (e) {
+      this.toast(e && e.message && !/fetch|network/i.test(e.message)
+        ? e.message : 'Error de conexión', 'cloud_off');
     }
   },
 
@@ -7928,8 +8002,9 @@ const App = {
       this.toast(`${total} registros restaurados${skipped ? ` (${skipped} omitidos)` : ''}`, 'check_circle');
       this.haptic('success');
       this._notifyTabs();
-    } catch {
-      this.toast('Error de conexión', 'cloud_off');
+    } catch (e) {
+      this.toast(e && e.message && !/fetch|network/i.test(e.message)
+        ? e.message : 'Error de conexión', 'cloud_off');
     }
   },
 
@@ -8016,11 +8091,35 @@ const App = {
   },
   _pinBuffer: '',
 
+  // El hash (SHA-256, nunca el PIN en claro) vive en localStorage para que
+  // sobreviva al cierre de la app. Solo la verificación de la sesión actual
+  // va en sessionStorage, así vuelve a pedir el PIN en cada apertura.
+  _getPinHash() {
+    // Migración: versiones viejas guardaban el hash en sessionStorage
+    const legacy = sessionStorage.getItem('pt_pin_hash');
+    const stored = localStorage.getItem('pt_pin_hash');
+    if (!stored && legacy) {
+      localStorage.setItem('pt_pin_hash', legacy);
+      return legacy;
+    }
+    return stored;
+  },
+
   checkPinOnStart() {
     // Verificar si PIN está ACTIVADO (guardado en localStorage)
     const pinEnabled = localStorage.getItem('pt_pin_enabled') === '1';
     // Verificar si ya ingresó PIN en ESTA sesión (sessionStorage)
     const pinVerified = sessionStorage.getItem('pt_pin_verified') === '1';
+    const savedHash = this._getPinHash();
+
+    // FAIL-OPEN: si el PIN figura activado pero no hay hash recuperable, el
+    // usuario quedaría encerrado para siempre (ningún PIN podría coincidir).
+    // Preferimos abrir la app y desactivar el PIN antes que perder sus datos.
+    if (pinEnabled && !savedHash) {
+      localStorage.removeItem('pt_pin_enabled');
+      setTimeout(() => this.toast('El PIN se desactivó por seguridad. Volvé a activarlo si querés.', 'lock_open'), 1200);
+      return;
+    }
 
     if (pinEnabled && !pinVerified) {
       // PIN activado pero no verificado en esta sesión → mostrar lock screen
@@ -8043,8 +8142,8 @@ const App = {
     this._pinBuffer += n;
     this._updatePinDots();
     if (this._pinBuffer.length === 4) {
-      // Obtener PIN hasheado guardado (en sessionStorage si existe, o comparar con input)
-      const savedHash = sessionStorage.getItem('pt_pin_hash');
+      // Obtener PIN hasheado guardado (localStorage: sobrevive al cierre de la app)
+      const savedHash = this._getPinHash();
       const hashed = await this._hashPin(this._pinBuffer);
 
       // Comparar: hash de entrada vs hash guardado
@@ -8084,10 +8183,11 @@ const App = {
       const pin = await this.appPrompt('Creá un PIN de 4 dígitos:', { inputMode: 'numeric', maxLength: 4, pattern: '\\d{4}' });
       if (pin && /^\d{4}$/.test(pin)) {
         const hashed = await this._hashPin(pin);
-        // Guardar en localStorage: que PIN está ACTIVADO (boolean)
+        // Ambos en localStorage: el flag y el hash SHA-256 (nunca el PIN en
+        // claro). Si el hash fuera a sessionStorage, al reabrir la app no
+        // habría con qué comparar y el usuario quedaría bloqueado.
         localStorage.setItem('pt_pin_enabled', '1');
-        // Guardar en sessionStorage: el hash (se borra al cerrar navegador)
-        sessionStorage.setItem('pt_pin_hash', hashed);
+        localStorage.setItem('pt_pin_hash', hashed);
         sessionStorage.setItem('pt_pin_verified', '1');
         knob.style.left = '23px';
         knob.style.background = 'var(--gold2)';
@@ -8100,6 +8200,7 @@ const App = {
     } else {
       // Desactivar PIN
       localStorage.removeItem('pt_pin_enabled');
+      localStorage.removeItem('pt_pin_hash');
       sessionStorage.removeItem('pt_pin_hash');
       sessionStorage.removeItem('pt_pin_verified');
       knob.style.left = '3px';
