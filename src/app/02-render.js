@@ -437,11 +437,22 @@
       grouped[c.ventaId].push(c);
     });
 
-    container.innerHTML = Object.entries(grouped).map(([ventaId, cuotas]) => {
+    // Ordenar por la cuota pendiente más próxima a vencer: lo que hay que
+    // cobrar primero va arriba (antes quedaba en orden de inserción)
+    const gruposOrdenados = Object.entries(grouped).sort((a, b) => {
+      const proxA = a[1].filter(c => !c.pagado).sort((x, y) => (x.vence || 0) - (y.vence || 0))[0];
+      const proxB = b[1].filter(c => !c.pagado).sort((x, y) => (x.vence || 0) - (y.vence || 0))[0];
+      return (proxA ? proxA.vence || 0 : Infinity) - (proxB ? proxB.vence || 0 : Infinity);
+    });
+
+    container.innerHTML = gruposOrdenados.map(([ventaId, cuotas]) => {
       const pendientesGrupo = cuotas.filter(c => !c.pagado);
       if (pendientesGrupo.length === 0) return '';
 
-      const proxima = pendientesGrupo[0];
+      // La próxima a cobrar es la que vence antes, no la primera cargada
+      const proxima = pendientesGrupo.slice().sort((a, b) => (a.vence || 0) - (b.vence || 0))[0];
+      const estaVencida = (proxima.vence || 0) < Date.now();
+      const diasVencida = estaVencida ? Math.floor((Date.now() - proxima.vence) / 86400000) : 0;
       const pagadas = cuotas.filter(c => c.pagado).length;
       const totalPagado = cuotas.reduce((s, c) => s + (c.pagado ? c.monto : (c.montoPagado || 0)), 0);
       const montoTotal = proxima.montoTotal;
@@ -468,7 +479,7 @@
           </div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pctPagado}%"></div></div>
         </div>
-        <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
+        <div class="cuota-due ${estaVencida ? 'vencida' : ''}"><span class="ms" aria-hidden="true">${estaVencida ? 'error' : 'event'}</span>${estaVencida ? `<strong>Vencida hace ${diasVencida} día${diasVencida !== 1 ? 's' : ''}</strong>` : `Vence el ${venceDate}`} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
           <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
           <button class="btn-pay" data-cuota-id="${encodeURIComponent(JSON.stringify(proxima.id))}" aria-label="Registrar pago"><span class="ms" aria-hidden="true">add_card</span></button>

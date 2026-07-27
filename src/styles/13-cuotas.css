@@ -326,3 +326,8 @@
 }
 .wa-meta .ms { font-size: 14px; color: #53bdeb; }
 
+
+/* Cuota vencida: que se note de un vistazo cuál hay que cobrar ya */
+.cuota-due.vencida { color: var(--red); }
+.cuota-due.vencida .ms { color: var(--red); }
+.cuota-due.vencida strong { color: var(--red); font-weight: 700; }
