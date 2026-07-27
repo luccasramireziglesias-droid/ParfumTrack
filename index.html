@@ -698,6 +698,9 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .form-row {
   display: flex;
   gap: 11px;
+  /* Alinear por abajo: si un label ocupa dos líneas (PRECIO COMPRA (c/u)),
+     los inputs quedaban a distinta altura */
+  align-items: flex-end;
 }
 .form-row .form-group { flex: 1; }
 
@@ -791,6 +794,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .cant-btn {
   width: 44px;
@@ -808,7 +812,8 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .cant-btn:active { opacity: 0.7; }
 .cant-btn .ms { font-size: 20px; }
 .cant-input {
-  width: 68px;
+  flex: 1;
+  min-width: 68px;
   text-align: center;
   background: var(--bg3);
   border: 1px solid var(--border);
@@ -821,9 +826,21 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .cant-hint {
   font: 500 12px 'DM Sans', sans-serif;
   color: var(--text3);
-  flex: 1;
+  /* Línea propia debajo del stepper: al costado dejaba un hueco vacío
+     mientras no hubiera perfume elegido */
+  flex-basis: 100%;
 }
+.cant-hint:empty { display: none; }
 .cant-hint.alerta { color: var(--warn); }
+
+/* Los paneles colapsables son un nivel más abajo que .screen-scroll, así que
+   el gap de 13px del contenedor no llegaba a sus campos: PROVEEDOR, VENDEDOR
+   y NOTA quedaban pegados uno al otro. */
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
 /* ====== BUTTONS ====== */
 .btn-primary {
   display: flex;
@@ -3075,11 +3092,11 @@ input[type="date"].form-input {
 
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">PRECIO VENTA <span class="muted-label">(por unidad)</span></label>
+          <label class="form-label">PRECIO VENTA <span class="muted-label">(c/u)</span></label>
           <input type="text" class="form-input" id="venta-precio" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcLiveProfit()">
         </div>
         <div class="form-group">
-          <label class="form-label">PRECIO COMPRA <span class="muted-label">(por unidad)</span></label>
+          <label class="form-label">PRECIO COMPRA <span class="muted-label">(c/u)</span></label>
           <input type="text" class="form-input" id="venta-compra" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcLiveProfit()">
         </div>
       </div>
@@ -3121,7 +3138,7 @@ input[type="date"].form-input {
         <span class="ms detalles-chevron" id="venta-detalles-chevron">expand_more</span>
       </button>
 
-      <div class="hidden" id="venta-detalles">
+      <div class="form-stack hidden" id="venta-detalles">
         <div class="form-group">
           <label class="form-label">PROVEEDOR</label>
           <input type="text" class="form-input" id="venta-proveedor" placeholder="Nombre del proveedor…" autocomplete="off">

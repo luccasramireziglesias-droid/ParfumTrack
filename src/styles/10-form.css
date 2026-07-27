@@ -40,6 +40,9 @@
 .form-row {
   display: flex;
   gap: 11px;
+  /* Alinear por abajo: si un label ocupa dos líneas (PRECIO COMPRA (c/u)),
+     los inputs quedaban a distinta altura */
+  align-items: flex-end;
 }
 .form-row .form-group { flex: 1; }
 
@@ -133,6 +136,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .cant-btn {
   width: 44px;
@@ -150,7 +154,8 @@
 .cant-btn:active { opacity: 0.7; }
 .cant-btn .ms { font-size: 20px; }
 .cant-input {
-  width: 68px;
+  flex: 1;
+  min-width: 68px;
   text-align: center;
   background: var(--bg3);
   border: 1px solid var(--border);
@@ -163,6 +168,18 @@
 .cant-hint {
   font: 500 12px 'DM Sans', sans-serif;
   color: var(--text3);
-  flex: 1;
+  /* Línea propia debajo del stepper: al costado dejaba un hueco vacío
+     mientras no hubiera perfume elegido */
+  flex-basis: 100%;
 }
+.cant-hint:empty { display: none; }
 .cant-hint.alerta { color: var(--warn); }
+
+/* Los paneles colapsables son un nivel más abajo que .screen-scroll, así que
+   el gap de 13px del contenedor no llegaba a sus campos: PROVEEDOR, VENDEDOR
+   y NOTA quedaban pegados uno al otro. */
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
