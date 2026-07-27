@@ -3870,10 +3870,33 @@ const ENCRYPTION = {
   keyVersion: 1,
   lastKeyRotation: null,
 
+  // Caché de claves derivadas. PBKDF2 con 100.000 iteraciones tarda ~50ms y
+  // se llamaba en CADA registro cifrado/descifrado: con 300 ventas + 200
+  // cuotas eran ~500 derivaciones = decenas de segundos de UI congelada al
+  // abrir la app. La derivación es determinística (mismo código + mismo salt
+  // → misma clave), así que cachearla no cambia la seguridad.
+  _keyCache: {},
+
   // F-35: PBKDF2 key derivation from license code
   async deriveKeyFromLicense(licenseCode) {
     if (!licenseCode) return null;
+    if (this._keyCache[licenseCode]) return this._keyCache[licenseCode];
+    // Coalescer llamadas concurrentes: si ya hay una derivación en curso para
+    // este código, esperar esa misma promesa en vez de lanzar otra
+    if (this._keyCache['__p_' + licenseCode]) return this._keyCache['__p_' + licenseCode];
+    const promesa = this._deriveKeyUncached(licenseCode).then((k) => {
+      if (k) this._keyCache[licenseCode] = k;
+      delete this._keyCache['__p_' + licenseCode];
+      return k;
+    }).catch((e) => {
+      delete this._keyCache['__p_' + licenseCode];
+      throw e;
+    });
+    this._keyCache['__p_' + licenseCode] = promesa;
+    return promesa;
+  },
 
+  async _deriveKeyUncached(licenseCode) {
     const salt = await this.getSaltForKey(licenseCode);
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
@@ -4159,6 +4182,9 @@ const ENCRYPTION = {
   // Lock master key
   lockMasterKey() {
     this.masterKey = null;
+    // Al bloquear también se descarta la clave cacheada: si no, seguiría
+    // siendo posible descifrar sin desbloquear
+    this._keyCache = {};
     sessionStorage.removeItem('pt_pin_unlocked_at');
   },
 };
@@ -4183,8 +4209,11 @@ const App = {
     await DB.seedDemo();
     await DB.dedupEncryptedRecords();
     await this._fixCorruptDates();
-    await this._fixStringCuotaIds();
-    await this._fixCuotasSaldadas();
+    // Una sola lectura de cuotas para ambas migraciones (antes: 3 lecturas +
+    // descifrado completo de la tabla en cada arranque)
+    const cuotasInit = await DB.getAll('cuotas');
+    const huboCambioIds = await this._fixStringCuotaIds(cuotasInit);
+    await this._fixCuotasSaldadas(huboCambioIds ? null : cuotasInit);
     await this.loadData();
     this._initLang();
     this.loadMoneda();
@@ -4319,23 +4348,27 @@ const App = {
 
   // Sin flag one-time: los imports pueden reintroducir ids string en
   // cualquier momento. Idempotente — solo escribe si encuentra ids string.
-  async _fixStringCuotaIds() {
-    const cuotas = await DB.getAll('cuotas');
+  async _fixStringCuotaIds(cuotasPre) {
+    // Recibe las cuotas ya leídas para no volver a leer+descifrar toda la tabla
+    const cuotas = cuotasPre || await DB.getAll('cuotas');
+    let cambio = false;
     for (const c of cuotas) {
       if (typeof c.id === 'string') {
         const copy = Object.assign({}, c);
         delete copy.id;
         await DB.delete('cuotas', c.id);
         await DB.add('cuotas', copy);
+        cambio = true;
       }
     }
+    return cambio;
   },
 
   // Sana cuotas que quedaron "atrapadas" como pendientes aunque la deuda ya
   // está cubierta (data vieja, imports duplicados). Corre en cada init: es
   // idempotente y solo escribe cuando encuentra algo que corregir.
-  async _fixCuotasSaldadas() {
-    const cuotas = await DB.getAll('cuotas');
+  async _fixCuotasSaldadas(cuotasPre) {
+    const cuotas = cuotasPre || await DB.getAll('cuotas');
 
     // BUG-03: acotar montoPagado > monto (datos viejos o backups adulterados)
     // que dejan el total "a cobrar" en negativo
@@ -4360,8 +4393,13 @@ const App = {
     //    cuotas duplicadas por un import): marcar las pendientes como pagadas
     const grupos = {};
     for (const c of cuotas) {
-      if (!grupos[c.ventaId]) grupos[c.ventaId] = [];
-      grupos[c.ventaId].push(c);
+      // Sin ventaId no se puede saber a qué venta pertenece: agruparlas todas
+      // bajo "undefined" mezclaría deudas de clientes distintos y podría
+      // condonar plata que el usuario sí tiene que cobrar.
+      if (c.ventaId === undefined || c.ventaId === null || c.ventaId === '') continue;
+      const k = String(c.ventaId);
+      if (!grupos[k]) grupos[k] = [];
+      grupos[k].push(c);
     }
     for (const grupo of Object.values(grupos)) {
       const montoTotal = grupo[0].montoTotal || 0;
