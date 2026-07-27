@@ -25,9 +25,11 @@ describe('F1 — cantidad en la venta', () => {
     expect(index).toContain('id="venta-cantidad"');
   });
 
-  it('los precios del form son por unidad', () => {
-    expect(screen).toMatch(/PRECIO VENTA[\s\S]{0,80}por unidad/);
-    expect(screen).toMatch(/PRECIO COMPRA[\s\S]{0,80}por unidad/);
+  it('los precios del form se muestran por unidad', () => {
+    // "(por unidad)" partía el label de PRECIO COMPRA en dos líneas y
+    // desalineaba los inputs; se abrevió a "(c/u)"
+    expect(screen).toMatch(/PRECIO VENTA[\s\S]{0,80}c\/u/);
+    expect(screen).toMatch(/PRECIO COMPRA[\s\S]{0,80}c\/u/);
   });
 
   it('la cantidad se sanitiza (entero, 1..999)', () => {
@@ -468,5 +470,31 @@ describe('Versionado — una sola fuente de verdad', () => {
     const [a1, a2, a3] = num(endpoint);
     const [b1, b2, b3] = num(pkg.version);
     expect(a1 * 1e6 + a2 * 1e3 + a3).toBeGreaterThanOrEqual(b1 * 1e6 + b2 * 1e3 + b3);
+  });
+});
+
+describe('Layout del form de venta', () => {
+  const css = read('src/styles/10-form.css');
+  const screen = read('src/screens/nueva-venta.html');
+
+  it('los campos de una fila se alinean por abajo aunque el label sea largo', () => {
+    const idx = css.indexOf('.form-row {');
+    expect(css.slice(idx, idx + 300)).toMatch(/align-items: flex-end/);
+  });
+
+  it('el panel colapsable separa sus campos (el gap del scroll no le llega)', () => {
+    expect(screen).toMatch(/class="form-stack hidden" id="venta-detalles"/);
+    const idx = css.indexOf('.form-stack {');
+    expect(idx, 'regla .form-stack').toBeGreaterThan(-1);
+    expect(css.slice(idx, idx + 150)).toMatch(/gap: 13px/);
+  });
+
+  it('el stepper de cantidad usa el ancho completo y el hint va debajo', () => {
+    const idx = css.indexOf('.cant-input {');
+    expect(css.slice(idx, idx + 200)).toMatch(/flex: 1/);
+    const hint = css.indexOf('.cant-hint {');
+    expect(css.slice(hint, hint + 250)).toMatch(/flex-basis: 100%/);
+    // Sin perfume elegido el hint está vacío: no debe ocupar lugar
+    expect(css).toMatch(/\.cant-hint:empty \{ display: none; \}/);
   });
 });

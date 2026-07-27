@@ -42,11 +42,11 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">PRECIO VENTA <span class="muted-label">(por unidad)</span></label>
+          <label class="form-label">PRECIO VENTA <span class="muted-label">(c/u)</span></label>
           <input type="text" class="form-input" id="venta-precio" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcLiveProfit()">
         </div>
         <div class="form-group">
-          <label class="form-label">PRECIO COMPRA <span class="muted-label">(por unidad)</span></label>
+          <label class="form-label">PRECIO COMPRA <span class="muted-label">(c/u)</span></label>
           <input type="text" class="form-input" id="venta-compra" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcLiveProfit()">
         </div>
       </div>
@@ -88,7 +88,7 @@
         <span class="ms detalles-chevron" id="venta-detalles-chevron">expand_more</span>
       </button>
 
-      <div class="hidden" id="venta-detalles">
+      <div class="form-stack hidden" id="venta-detalles">
         <div class="form-group">
           <label class="form-label">PROVEEDOR</label>
           <input type="text" class="form-input" id="venta-proveedor" placeholder="Nombre del proveedor…" autocomplete="off">
