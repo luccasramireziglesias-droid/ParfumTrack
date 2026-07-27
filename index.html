@@ -3052,7 +3052,7 @@ input[type="date"].form-input {
         <label class="form-label">MONTO QUE PAGA</label>
         <input type="text" class="form-input" id="pago-cuota-input" placeholder="0" inputmode="decimal" autocomplete="off">
       </div>
-      <button class="btn gold-btn" onclick="App.confirmarPagoCuota()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
+      <button class="btn gold-btn" id="pago-cuota-confirmar" onclick="App.confirmarPagoCuota()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
         <span class="ms">check_circle</span> Registrar pago
       </button>
     </div>
@@ -3583,13 +3583,22 @@ const DB = {
   },
 
   async addVenta(v) {
-    const id = await this.add('ventas', { ...v, fecha: v.fecha || Date.now() });
+    // Resolver el stock ANTES de insertar para dejar constancia en la venta de
+    // si descontó una unidad o no. Sin ese dato, borrar una venta hecha con
+    // stock en 0 devolvía al inventario una unidad que nunca existió.
+    let stockDescontado = false;
+    let perfumeADescontar = null;
     if (v.perfumeId && v.perfumeId !== '') {
       const p = await this.get('perfumes', v.perfumeId);
       if (p && p.stock > 0) {
-        p.stock = Math.max(0, p.stock - 1);
-        await this.put('perfumes', p);
+        perfumeADescontar = p;
+        stockDescontado = true;
       }
+    }
+    const id = await this.add('ventas', { ...v, fecha: v.fecha || Date.now(), stockDescontado });
+    if (perfumeADescontar) {
+      perfumeADescontar.stock = Math.max(0, perfumeADescontar.stock - 1);
+      await this.put('perfumes', perfumeADescontar);
     }
     if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
       // BUG #12 FIX: Limitar número de cuotas a máximo 12
@@ -3651,7 +3660,10 @@ const DB = {
   async deleteVenta(id) {
     const v = await this.get('ventas', id);
     if (v) {
-      if (v.perfumeId && v.perfumeId !== '') {
+      // Solo devolver stock si esta venta lo descontó. Las ventas viejas (sin
+      // el flag) mantienen el comportamiento previo para no cambiar su historial.
+      const debeDevolver = v.stockDescontado !== false;
+      if (v.perfumeId && v.perfumeId !== '' && debeDevolver) {
         const p = await this.get('perfumes', v.perfumeId);
         if (p) {
           p.stock = (p.stock || 0) + 1;
@@ -5978,7 +5990,14 @@ const App = {
     this._pagoCuotaId = null;
   },
 
-  async confirmarPagoCuota() {
+  confirmarPagoCuota() {
+    // Anti doble-tap: sin esta guarda, dos toques rápidos hacían dos ciclos
+    // read-modify-write sobre la misma cuota y un pago se perdía
+    return this._once('pago-cuota', () => this._confirmarPagoCuotaImpl(),
+      document.getElementById('pago-cuota-confirmar'));
+  },
+
+  async _confirmarPagoCuotaImpl() {
     const id = this._pagoCuotaId;
     if (!id) return;
     const input = document.getElementById('pago-cuota-input');
@@ -6093,6 +6112,26 @@ const App = {
     }
 
     const numCuotas = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
+
+    // Mismas validaciones que al crear: editar no puede ser una puerta trasera
+    // para meter datos que el alta rechaza (precio 0, descuento >100%, montos
+    // imposibles o un plan de cuotas inválido).
+    if (precioVenta <= 0) {
+      this.toast('Ingresá el precio de venta', 'warning');
+      return;
+    }
+    if (precioVenta > 1e9 || precioCompra > 1e9) {
+      this.toast('El monto es demasiado grande (máx mil millones)', 'warning');
+      return;
+    }
+    if (descuento < 0 || descuento > 100) {
+      this.toast('Descuento debe estar entre 0 y 100%', 'warning');
+      return;
+    }
+    if (this.formaPago === 'cuotas' && (numCuotas < 1 || numCuotas > 12)) {
+      this.toast('Cuotas debe estar entre 1 y 12', 'warning');
+      return;
+    }
     const newFormaPago = this.formaPago;
 
     const v = this.ventas.find(x => x.id === id);

@@ -132,13 +132,22 @@
   },
 
   async addVenta(v) {
-    const id = await this.add('ventas', { ...v, fecha: v.fecha || Date.now() });
+    // Resolver el stock ANTES de insertar para dejar constancia en la venta de
+    // si descontó una unidad o no. Sin ese dato, borrar una venta hecha con
+    // stock en 0 devolvía al inventario una unidad que nunca existió.
+    let stockDescontado = false;
+    let perfumeADescontar = null;
     if (v.perfumeId && v.perfumeId !== '') {
       const p = await this.get('perfumes', v.perfumeId);
       if (p && p.stock > 0) {
-        p.stock = Math.max(0, p.stock - 1);
-        await this.put('perfumes', p);
+        perfumeADescontar = p;
+        stockDescontado = true;
       }
+    }
+    const id = await this.add('ventas', { ...v, fecha: v.fecha || Date.now(), stockDescontado });
+    if (perfumeADescontar) {
+      perfumeADescontar.stock = Math.max(0, perfumeADescontar.stock - 1);
+      await this.put('perfumes', perfumeADescontar);
     }
     if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
       // BUG #12 FIX: Limitar número de cuotas a máximo 12
@@ -200,7 +209,10 @@
   async deleteVenta(id) {
     const v = await this.get('ventas', id);
     if (v) {
-      if (v.perfumeId && v.perfumeId !== '') {
+      // Solo devolver stock si esta venta lo descontó. Las ventas viejas (sin
+      // el flag) mantienen el comportamiento previo para no cambiar su historial.
+      const debeDevolver = v.stockDescontado !== false;
+      if (v.perfumeId && v.perfumeId !== '' && debeDevolver) {
         const p = await this.get('perfumes', v.perfumeId);
         if (p) {
           p.stock = (p.stock || 0) + 1;

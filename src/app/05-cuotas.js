@@ -29,7 +29,14 @@
     this._pagoCuotaId = null;
   },
 
-  async confirmarPagoCuota() {
+  confirmarPagoCuota() {
+    // Anti doble-tap: sin esta guarda, dos toques rápidos hacían dos ciclos
+    // read-modify-write sobre la misma cuota y un pago se perdía
+    return this._once('pago-cuota', () => this._confirmarPagoCuotaImpl(),
+      document.getElementById('pago-cuota-confirmar'));
+  },
+
+  async _confirmarPagoCuotaImpl() {
     const id = this._pagoCuotaId;
     if (!id) return;
     const input = document.getElementById('pago-cuota-input');
