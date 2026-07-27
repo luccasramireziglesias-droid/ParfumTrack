@@ -73,7 +73,8 @@
   },
 
   filterClientes() {
-    this.renderClientes();
+    // Debounce: evita recalcular la agregación de clientes en cada tecla
+    this.debounce('buscar-clientes', () => this.renderClientes(), 150);
   },
 
   abrirClienteDetalle(key) {

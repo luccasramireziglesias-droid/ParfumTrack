@@ -19,7 +19,9 @@
   },
 
   filterStock() {
-    this.renderStock();
+    // Debounce: sin esto cada tecla disparaba un re-render completo de la
+    // grilla (con muchos perfumes, la escritura se sentía trabada)
+    this.debounce('buscar-stock', () => this.renderStock(), 150);
   },
 
   filterStockBy(filter) {
