@@ -73,6 +73,26 @@
     }
 
     const numCuotas = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
+
+    // Mismas validaciones que al crear: editar no puede ser una puerta trasera
+    // para meter datos que el alta rechaza (precio 0, descuento >100%, montos
+    // imposibles o un plan de cuotas inválido).
+    if (precioVenta <= 0) {
+      this.toast('Ingresá el precio de venta', 'warning');
+      return;
+    }
+    if (precioVenta > 1e9 || precioCompra > 1e9) {
+      this.toast('El monto es demasiado grande (máx mil millones)', 'warning');
+      return;
+    }
+    if (descuento < 0 || descuento > 100) {
+      this.toast('Descuento debe estar entre 0 y 100%', 'warning');
+      return;
+    }
+    if (this.formaPago === 'cuotas' && (numCuotas < 1 || numCuotas > 12)) {
+      this.toast('Cuotas debe estar entre 1 y 12', 'warning');
+      return;
+    }
     const newFormaPago = this.formaPago;
 
     const v = this.ventas.find(x => x.id === id);

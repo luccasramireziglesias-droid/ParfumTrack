@@ -19,13 +19,18 @@
   },
 
   filterStock() {
-    this.renderStock();
+    // Debounce: sin esto cada tecla disparaba un re-render completo de la
+    // grilla (con muchos perfumes, la escritura se sentía trabada)
+    this.debounce('buscar-stock', () => this.renderStock(), 150);
   },
 
   filterStockBy(filter) {
     this.stockFilter = filter;
-    document.querySelectorAll('.filter-chips .chip').forEach(c => c.classList.remove('active'));
-    if (filter === 'todos') document.querySelectorAll('.filter-chips .chip')[0]?.classList.add('active');
+    // Marcar el chip activo sea cual sea (antes solo 'todos' quedaba marcado:
+    // al filtrar por "Sin stock" o "Bajo" no se veía cuál estaba aplicado)
+    const chips = document.querySelectorAll('#screen-stock .filter-chips .chip');
+    const orden = { todos: 0, sin: 1, bajo: 2 };
+    chips.forEach((c, i) => c.classList.toggle('active', i === (orden[filter] ?? 0)));
     this.renderStock();
   },
 

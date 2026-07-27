@@ -16,10 +16,33 @@ const ENCRYPTION = {
   keyVersion: 1,
   lastKeyRotation: null,
 
+  // Caché de claves derivadas. PBKDF2 con 100.000 iteraciones tarda ~50ms y
+  // se llamaba en CADA registro cifrado/descifrado: con 300 ventas + 200
+  // cuotas eran ~500 derivaciones = decenas de segundos de UI congelada al
+  // abrir la app. La derivación es determinística (mismo código + mismo salt
+  // → misma clave), así que cachearla no cambia la seguridad.
+  _keyCache: {},
+
   // F-35: PBKDF2 key derivation from license code
   async deriveKeyFromLicense(licenseCode) {
     if (!licenseCode) return null;
+    if (this._keyCache[licenseCode]) return this._keyCache[licenseCode];
+    // Coalescer llamadas concurrentes: si ya hay una derivación en curso para
+    // este código, esperar esa misma promesa en vez de lanzar otra
+    if (this._keyCache['__p_' + licenseCode]) return this._keyCache['__p_' + licenseCode];
+    const promesa = this._deriveKeyUncached(licenseCode).then((k) => {
+      if (k) this._keyCache[licenseCode] = k;
+      delete this._keyCache['__p_' + licenseCode];
+      return k;
+    }).catch((e) => {
+      delete this._keyCache['__p_' + licenseCode];
+      throw e;
+    });
+    this._keyCache['__p_' + licenseCode] = promesa;
+    return promesa;
+  },
 
+  async _deriveKeyUncached(licenseCode) {
     const salt = await this.getSaltForKey(licenseCode);
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
@@ -305,6 +328,9 @@ const ENCRYPTION = {
   // Lock master key
   lockMasterKey() {
     this.masterKey = null;
+    // Al bloquear también se descarta la clave cacheada: si no, seguiría
+    // siendo posible descifrar sin desbloquear
+    this._keyCache = {};
     sessionStorage.removeItem('pt_pin_unlocked_at');
   },
 };

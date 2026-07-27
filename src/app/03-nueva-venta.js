@@ -115,16 +115,35 @@
     const gan = pvFinal - pc;
     const margen = pvFinal > 0 ? Math.round((gan / pvFinal) * 100) : 0;
 
-    document.getElementById('live-ganancia').textContent = this.fmtSigned(gan);
+    const ganEl = document.getElementById('live-ganancia');
+    ganEl.textContent = this.fmtSigned(gan);
+    // En rojo si es pérdida: mostrar "-$400" en verde inducía a error
+    ganEl.classList.toggle('negativa', gan < 0);
     document.getElementById('live-venta').textContent = this.fmt(pvFinal);
     document.getElementById('live-compra').textContent = this.fmt(pc);
     document.getElementById('live-margen').textContent = margen + '%';
 
     // Sugerir el valor de la 1ª cuota como placeholder del primer pago
     const primerPagoInput = document.getElementById('venta-primer-pago');
+    const n = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
     if (primerPagoInput) {
-      const n = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
       primerPagoInput.placeholder = pvFinal > 0 ? this.fmt(Math.round(pvFinal / n)) : '';
+    }
+
+    // Plan de cuotas a la vista: cuánto es cada una y cuándo vence la última.
+    // Antes había que guardar la venta para recién enterarse.
+    const planEl = document.getElementById('cuotas-plan');
+    if (planEl) {
+      if (this.formaPago === 'cuotas' && pvFinal > 0 && n > 1) {
+        const cuota = Math.round(pvFinal / n);
+        const ultima = new Date();
+        ultima.setMonth(ultima.getMonth() + (n - 1));
+        const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+        planEl.classList.remove('hidden');
+        planEl.innerHTML = `<span class="ms" aria-hidden="true">event_repeat</span>${n} cuotas de <strong>${this.fmt(cuota)}</strong> · última vence ${ultima.getDate()} ${meses[ultima.getMonth()]}`;
+      } else {
+        planEl.classList.add('hidden');
+      }
     }
   },
 
@@ -183,6 +202,8 @@
       o.classList.toggle('active', o.textContent.trim().toLowerCase() === tipo);
     });
     document.getElementById('cuotas-config').classList.toggle('hidden', tipo !== 'cuotas');
+    // Refrescar el plan de cuotas al cambiar de forma de pago
+    if (this.calcLiveProfit) this.calcLiveProfit();
   },
 
   _primeraCuotaPagada: true,

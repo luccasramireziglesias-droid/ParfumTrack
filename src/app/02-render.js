@@ -13,10 +13,21 @@
 
   renderAll() {
     this.debounce('renderAll', () => {
-      this.renderDashboard();
-      this.renderStock();
-      this.renderCuotas();
-      this.renderStats();
+      // Solo la pantalla visible: renderizar las 4 en cada cambio de datos
+      // hacía trabajo invisible (con 2000 ventas, 4 recorridos completos).
+      // Al navegar, showScreen() ya rinde la pantalla destino.
+      const actual = this.currentScreen;
+      if (actual === 'inicio') this.renderDashboard();
+      else if (actual === 'stock') this.renderStock();
+      else if (actual === 'cuotas') this.renderCuotas();
+      else if (actual === 'stats') this.renderStats();
+      else if (actual === 'ventas-all') this.renderAllVentas();
+      else if (actual === 'clientes') this.renderClientes();
+      else if (actual === 'gastos') this.renderGastos();
+      else if (actual === 'caja') this.renderCaja();
+      else if (actual === 'pedidos') this.renderPedidos();
+      else this.renderDashboard();
+      // Los badges se ven desde cualquier pantalla: siempre actualizados
       this.updateNavBadge();
       this.updatePedidosBadge();
     });
@@ -177,15 +188,19 @@
 
     container.innerHTML = recientes.map((v, i) =>
       i > 0
-        ? this._renderVentaCard(v, { compact: true, className: ' faded', style: 'margin-top:8px;' })
-        : this._renderVentaCard(v)
+        ? this._renderVentaCard(v, { compact: true, className: ' faded', style: 'margin-top:8px;', index: i })
+        : this._renderVentaCard(v, { index: i })
     ).join('');
 
     this._renderDashboardDeudores();
   },
 
-  _renderVentaCard(v, { compact = false, className = '', style = '' } = {}) {
-    const num = this.ventas.length - this.ventas.indexOf(v);
+  _renderVentaCard(v, { compact = false, className = '', style = '', index } = {}) {
+    // El número de venta se calcula con el índice recibido. Antes usaba
+    // this.ventas.indexOf(v) DENTRO del map de cada card: O(n²) — con 2000
+    // ventas eran 4 millones de comparaciones por render.
+    const idx = index !== undefined ? index : this.ventas.indexOf(v);
+    const num = this.ventas.length - idx;
     const fecha = this.fmtDate(v.fecha);
     const cls = `venta-card${className}`;
     const styleAttr = style ? ` style="${style}"` : '';
@@ -280,16 +295,38 @@
     }).join('');
   },
 
-  renderAllVentas() {
+  _ventasVisibles: 50,
+  _VENTAS_PAGINA: 50,
+
+  renderAllVentas(reset = true) {
     const container = document.getElementById('ventas-all-list');
+    if (reset) this._ventasVisibles = this._VENTAS_PAGINA;
+
     if (this.ventas.length === 0) {
       container.innerHTML = '<div class="empty-state"><span class="ms">receipt_long</span><span>No hay ventas registradas</span></div>';
       return;
     }
 
-    container.innerHTML = this.ventas.map((v) =>
-      this._renderVentaCard(v, { style: 'margin-bottom:8px;' })
+    // Paginado: volcar 2000 cards en un innerHTML congelaba la pantalla casi
+    // medio segundo. Se muestran de a 50 con un botón para seguir cargando.
+    const total = this.ventas.length;
+    const hasta = Math.min(this._ventasVisibles, total);
+    let html = this.ventas.slice(0, hasta).map((v, i) =>
+      this._renderVentaCard(v, { style: 'margin-bottom:8px;', index: i })
     ).join('');
+
+    if (hasta < total) {
+      const restantes = total - hasta;
+      html += `<button class="btn-ver-mas" onclick="App.verMasVentas()">
+        <span class="ms" aria-hidden="true">expand_more</span>Ver más (${restantes} venta${restantes !== 1 ? 's' : ''} más)
+      </button>`;
+    }
+    container.innerHTML = html;
+  },
+
+  verMasVentas() {
+    this._ventasVisibles += this._VENTAS_PAGINA;
+    this.renderAllVentas(false);
   },
 
   renderStock() {
@@ -437,11 +474,22 @@
       grouped[c.ventaId].push(c);
     });
 
-    container.innerHTML = Object.entries(grouped).map(([ventaId, cuotas]) => {
+    // Ordenar por la cuota pendiente más próxima a vencer: lo que hay que
+    // cobrar primero va arriba (antes quedaba en orden de inserción)
+    const gruposOrdenados = Object.entries(grouped).sort((a, b) => {
+      const proxA = a[1].filter(c => !c.pagado).sort((x, y) => (x.vence || 0) - (y.vence || 0))[0];
+      const proxB = b[1].filter(c => !c.pagado).sort((x, y) => (x.vence || 0) - (y.vence || 0))[0];
+      return (proxA ? proxA.vence || 0 : Infinity) - (proxB ? proxB.vence || 0 : Infinity);
+    });
+
+    container.innerHTML = gruposOrdenados.map(([ventaId, cuotas]) => {
       const pendientesGrupo = cuotas.filter(c => !c.pagado);
       if (pendientesGrupo.length === 0) return '';
 
-      const proxima = pendientesGrupo[0];
+      // La próxima a cobrar es la que vence antes, no la primera cargada
+      const proxima = pendientesGrupo.slice().sort((a, b) => (a.vence || 0) - (b.vence || 0))[0];
+      const estaVencida = (proxima.vence || 0) < Date.now();
+      const diasVencida = estaVencida ? Math.floor((Date.now() - proxima.vence) / 86400000) : 0;
       const pagadas = cuotas.filter(c => c.pagado).length;
       const totalPagado = cuotas.reduce((s, c) => s + (c.pagado ? c.monto : (c.montoPagado || 0)), 0);
       const montoTotal = proxima.montoTotal;
@@ -468,7 +516,7 @@
           </div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pctPagado}%"></div></div>
         </div>
-        <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
+        <div class="cuota-due ${estaVencida ? 'vencida' : ''}"><span class="ms" aria-hidden="true">${estaVencida ? 'error' : 'event'}</span>${estaVencida ? `<strong>Vencida hace ${diasVencida} día${diasVencida !== 1 ? 's' : ''}</strong>` : `Vence el ${venceDate}`} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
           <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
           <button class="btn-pay" data-cuota-id="${encodeURIComponent(JSON.stringify(proxima.id))}" aria-label="Registrar pago"><span class="ms" aria-hidden="true">add_card</span></button>

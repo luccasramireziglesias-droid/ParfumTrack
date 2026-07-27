@@ -14,12 +14,56 @@
   gastoCat: 'transporte',
 
   async init() {
+    try {
+      await this._initInterno();
+    } catch (e) {
+      console.error('Fallo al iniciar la app:', e);
+      this._mostrarErrorArranque(e);
+    }
+  },
+
+  // Pide al navegador que NO borre los datos bajo presión de almacenamiento.
+  // Los datos del usuario viven SOLO acá: sin esto, el navegador puede
+  // desalojar IndexedDB y llevarse todo el historial de ventas.
+  async _pedirPersistencia() {
+    try {
+      if (navigator.storage && navigator.storage.persist) {
+        const yaEsPersistente = await navigator.storage.persisted();
+        if (!yaEsPersistente) await navigator.storage.persist();
+      }
+    } catch (_) { /* no soportado: seguimos igual */ }
+  },
+
+  _mostrarErrorArranque(e) {
+    // Sin esto, un fallo de IndexedDB dejaba la pantalla en blanco sin
+    // explicación ni salida.
+    const cont = document.getElementById('app') || document.body;
+    cont.innerHTML = `
+      <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;gap:16px;">
+        <span class="ms" style="font-size:48px;color:var(--gold2,#e8c97e);">error_outline</span>
+        <h1 style="font:700 22px 'Cormorant Garamond',serif;color:var(--gold2,#e8c97e);">No pudimos abrir tus datos</h1>
+        <p style="font:500 14px 'DM Sans',sans-serif;color:var(--text2,#b8b4a8);max-width:320px;line-height:1.6;">
+          Puede ser por falta de espacio o porque el navegador está en modo privado.
+          Tus datos no se borraron: probá cerrar y volver a abrir la app.
+        </p>
+        <button onclick="location.reload()" style="background:linear-gradient(135deg,#c9a84c,#e8c97e);color:#1a1a2e;border:none;padding:13px 26px;border-radius:10px;font:700 14px 'DM Sans',sans-serif;cursor:pointer;">
+          Reintentar
+        </button>
+        <p style="font:500 11px 'DM Sans',sans-serif;color:var(--text3,#7a7870);max-width:320px;">${(e && e.message ? String(e.message) : '').slice(0, 120)}</p>
+      </div>`;
+  },
+
+  async _initInterno() {
     await DB.init();
+    this._pedirPersistencia();
     await DB.seedDemo();
     await DB.dedupEncryptedRecords();
     await this._fixCorruptDates();
-    await this._fixStringCuotaIds();
-    await this._fixCuotasSaldadas();
+    // Una sola lectura de cuotas para ambas migraciones (antes: 3 lecturas +
+    // descifrado completo de la tabla en cada arranque)
+    const cuotasInit = await DB.getAll('cuotas');
+    const huboCambioIds = await this._fixStringCuotaIds(cuotasInit);
+    await this._fixCuotasSaldadas(huboCambioIds ? null : cuotasInit);
     await this.loadData();
     this._initLang();
     this.loadMoneda();
@@ -154,23 +198,27 @@
 
   // Sin flag one-time: los imports pueden reintroducir ids string en
   // cualquier momento. Idempotente — solo escribe si encuentra ids string.
-  async _fixStringCuotaIds() {
-    const cuotas = await DB.getAll('cuotas');
+  async _fixStringCuotaIds(cuotasPre) {
+    // Recibe las cuotas ya leídas para no volver a leer+descifrar toda la tabla
+    const cuotas = cuotasPre || await DB.getAll('cuotas');
+    let cambio = false;
     for (const c of cuotas) {
       if (typeof c.id === 'string') {
         const copy = Object.assign({}, c);
         delete copy.id;
         await DB.delete('cuotas', c.id);
         await DB.add('cuotas', copy);
+        cambio = true;
       }
     }
+    return cambio;
   },
 
   // Sana cuotas que quedaron "atrapadas" como pendientes aunque la deuda ya
   // está cubierta (data vieja, imports duplicados). Corre en cada init: es
   // idempotente y solo escribe cuando encuentra algo que corregir.
-  async _fixCuotasSaldadas() {
-    const cuotas = await DB.getAll('cuotas');
+  async _fixCuotasSaldadas(cuotasPre) {
+    const cuotas = cuotasPre || await DB.getAll('cuotas');
 
     // BUG-03: acotar montoPagado > monto (datos viejos o backups adulterados)
     // que dejan el total "a cobrar" en negativo
@@ -195,8 +243,13 @@
     //    cuotas duplicadas por un import): marcar las pendientes como pagadas
     const grupos = {};
     for (const c of cuotas) {
-      if (!grupos[c.ventaId]) grupos[c.ventaId] = [];
-      grupos[c.ventaId].push(c);
+      // Sin ventaId no se puede saber a qué venta pertenece: agruparlas todas
+      // bajo "undefined" mezclaría deudas de clientes distintos y podría
+      // condonar plata que el usuario sí tiene que cobrar.
+      if (c.ventaId === undefined || c.ventaId === null || c.ventaId === '') continue;
+      const k = String(c.ventaId);
+      if (!grupos[k]) grupos[k] = [];
+      grupos[k].push(c);
     }
     for (const grupo of Object.values(grupos)) {
       const montoTotal = grupo[0].montoTotal || 0;

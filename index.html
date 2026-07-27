@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="app-version" content="1.6.0">
+<meta name="app-version" content="1.7.0">
 <title>Parfum Track</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -544,6 +544,25 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 }
 .venta-action-btn:active { background: rgba(255,255,255,0.12); }
 
+
+/* Botón "Ver más" del listado paginado */
+.btn-ver-mas {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 13px;
+  margin-top: 4px;
+  color: var(--gold2);
+  font: 600 13px 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+.btn-ver-mas:active { opacity: 0.8; }
+.btn-ver-mas .ms { font-size: 18px; }
 /* ====== SUB HEADER ====== */
 .sub-header {
   display: flex;
@@ -622,6 +641,9 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   color: var(--text3);
 }
 
+
+/* Pérdida: el número no puede seguir en verde */
+.live-profit-amount.negativa { color: var(--red); }
 /* ====== FORM ====== */
 .form-group {
   display: flex;
@@ -735,6 +757,22 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   transition: transform 0.2s;
 }
 .detalles-toggle.open .detalles-chevron { transform: rotate(180deg); }
+
+/* Plan de cuotas resultante, visible antes de guardar */
+.cuotas-plan {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(201,168,76,0.07);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 10px;
+  font: 500 12px 'DM Sans', sans-serif;
+  color: var(--text2);
+}
+.cuotas-plan .ms { font-size: 16px; color: var(--gold); }
+.cuotas-plan strong { color: var(--gold2); font-weight: 700; }
 /* ====== BUTTONS ====== */
 .btn-primary {
   display: flex;
@@ -1387,6 +1425,11 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 }
 .wa-meta .ms { font-size: 14px; color: #53bdeb; }
 
+
+/* Cuota vencida: que se note de un vistazo cuál hay que cobrar ya */
+.cuota-due.vencida { color: var(--red); }
+.cuota-due.vencida .ms { color: var(--red); }
+.cuota-due.vencida strong { color: var(--red); font-weight: 700; }
 /* ====== STATS ====== */
 .stats-header {
   display: flex;
@@ -2521,6 +2564,7 @@ input[type="date"].form-input {
         <div class="form-row">
           <input type="number" class="form-input" id="venta-num-cuotas" value="2" min="2" max="12" placeholder="2" oninput="App.calcLiveProfit()">
         </div>
+        <div class="cuotas-plan hidden" id="cuotas-plan"></div>
         <label class="form-label" style="margin-top:12px;">PRIMERA CUOTA</label>
         <div class="segmented" id="seg-primera-cuota">
           <div class="seg-option active" onclick="App.setPrimeraCuota(true)">Cobrada ahora</div>
@@ -3052,7 +3096,7 @@ input[type="date"].form-input {
         <label class="form-label">MONTO QUE PAGA</label>
         <input type="text" class="form-input" id="pago-cuota-input" placeholder="0" inputmode="decimal" autocomplete="off">
       </div>
-      <button class="btn gold-btn" onclick="App.confirmarPagoCuota()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
+      <button class="btn gold-btn" id="pago-cuota-confirmar" onclick="App.confirmarPagoCuota()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
         <span class="ms">check_circle</span> Registrar pago
       </button>
     </div>
@@ -3583,13 +3627,22 @@ const DB = {
   },
 
   async addVenta(v) {
-    const id = await this.add('ventas', { ...v, fecha: v.fecha || Date.now() });
+    // Resolver el stock ANTES de insertar para dejar constancia en la venta de
+    // si descontó una unidad o no. Sin ese dato, borrar una venta hecha con
+    // stock en 0 devolvía al inventario una unidad que nunca existió.
+    let stockDescontado = false;
+    let perfumeADescontar = null;
     if (v.perfumeId && v.perfumeId !== '') {
       const p = await this.get('perfumes', v.perfumeId);
       if (p && p.stock > 0) {
-        p.stock = Math.max(0, p.stock - 1);
-        await this.put('perfumes', p);
+        perfumeADescontar = p;
+        stockDescontado = true;
       }
+    }
+    const id = await this.add('ventas', { ...v, fecha: v.fecha || Date.now(), stockDescontado });
+    if (perfumeADescontar) {
+      perfumeADescontar.stock = Math.max(0, perfumeADescontar.stock - 1);
+      await this.put('perfumes', perfumeADescontar);
     }
     if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
       // BUG #12 FIX: Limitar número de cuotas a máximo 12
@@ -3651,7 +3704,10 @@ const DB = {
   async deleteVenta(id) {
     const v = await this.get('ventas', id);
     if (v) {
-      if (v.perfumeId && v.perfumeId !== '') {
+      // Solo devolver stock si esta venta lo descontó. Las ventas viejas (sin
+      // el flag) mantienen el comportamiento previo para no cambiar su historial.
+      const debeDevolver = v.stockDescontado !== false;
+      if (v.perfumeId && v.perfumeId !== '' && debeDevolver) {
         const p = await this.get('perfumes', v.perfumeId);
         if (p) {
           p.stock = (p.stock || 0) + 1;
@@ -3870,10 +3926,33 @@ const ENCRYPTION = {
   keyVersion: 1,
   lastKeyRotation: null,
 
+  // Caché de claves derivadas. PBKDF2 con 100.000 iteraciones tarda ~50ms y
+  // se llamaba en CADA registro cifrado/descifrado: con 300 ventas + 200
+  // cuotas eran ~500 derivaciones = decenas de segundos de UI congelada al
+  // abrir la app. La derivación es determinística (mismo código + mismo salt
+  // → misma clave), así que cachearla no cambia la seguridad.
+  _keyCache: {},
+
   // F-35: PBKDF2 key derivation from license code
   async deriveKeyFromLicense(licenseCode) {
     if (!licenseCode) return null;
+    if (this._keyCache[licenseCode]) return this._keyCache[licenseCode];
+    // Coalescer llamadas concurrentes: si ya hay una derivación en curso para
+    // este código, esperar esa misma promesa en vez de lanzar otra
+    if (this._keyCache['__p_' + licenseCode]) return this._keyCache['__p_' + licenseCode];
+    const promesa = this._deriveKeyUncached(licenseCode).then((k) => {
+      if (k) this._keyCache[licenseCode] = k;
+      delete this._keyCache['__p_' + licenseCode];
+      return k;
+    }).catch((e) => {
+      delete this._keyCache['__p_' + licenseCode];
+      throw e;
+    });
+    this._keyCache['__p_' + licenseCode] = promesa;
+    return promesa;
+  },
 
+  async _deriveKeyUncached(licenseCode) {
     const salt = await this.getSaltForKey(licenseCode);
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
@@ -4159,6 +4238,9 @@ const ENCRYPTION = {
   // Lock master key
   lockMasterKey() {
     this.masterKey = null;
+    // Al bloquear también se descarta la clave cacheada: si no, seguiría
+    // siendo posible descifrar sin desbloquear
+    this._keyCache = {};
     sessionStorage.removeItem('pt_pin_unlocked_at');
   },
 };
@@ -4179,12 +4261,56 @@ const App = {
   gastoCat: 'transporte',
 
   async init() {
+    try {
+      await this._initInterno();
+    } catch (e) {
+      console.error('Fallo al iniciar la app:', e);
+      this._mostrarErrorArranque(e);
+    }
+  },
+
+  // Pide al navegador que NO borre los datos bajo presión de almacenamiento.
+  // Los datos del usuario viven SOLO acá: sin esto, el navegador puede
+  // desalojar IndexedDB y llevarse todo el historial de ventas.
+  async _pedirPersistencia() {
+    try {
+      if (navigator.storage && navigator.storage.persist) {
+        const yaEsPersistente = await navigator.storage.persisted();
+        if (!yaEsPersistente) await navigator.storage.persist();
+      }
+    } catch (_) { /* no soportado: seguimos igual */ }
+  },
+
+  _mostrarErrorArranque(e) {
+    // Sin esto, un fallo de IndexedDB dejaba la pantalla en blanco sin
+    // explicación ni salida.
+    const cont = document.getElementById('app') || document.body;
+    cont.innerHTML = `
+      <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;gap:16px;">
+        <span class="ms" style="font-size:48px;color:var(--gold2,#e8c97e);">error_outline</span>
+        <h1 style="font:700 22px 'Cormorant Garamond',serif;color:var(--gold2,#e8c97e);">No pudimos abrir tus datos</h1>
+        <p style="font:500 14px 'DM Sans',sans-serif;color:var(--text2,#b8b4a8);max-width:320px;line-height:1.6;">
+          Puede ser por falta de espacio o porque el navegador está en modo privado.
+          Tus datos no se borraron: probá cerrar y volver a abrir la app.
+        </p>
+        <button onclick="location.reload()" style="background:linear-gradient(135deg,#c9a84c,#e8c97e);color:#1a1a2e;border:none;padding:13px 26px;border-radius:10px;font:700 14px 'DM Sans',sans-serif;cursor:pointer;">
+          Reintentar
+        </button>
+        <p style="font:500 11px 'DM Sans',sans-serif;color:var(--text3,#7a7870);max-width:320px;">${(e && e.message ? String(e.message) : '').slice(0, 120)}</p>
+      </div>`;
+  },
+
+  async _initInterno() {
     await DB.init();
+    this._pedirPersistencia();
     await DB.seedDemo();
     await DB.dedupEncryptedRecords();
     await this._fixCorruptDates();
-    await this._fixStringCuotaIds();
-    await this._fixCuotasSaldadas();
+    // Una sola lectura de cuotas para ambas migraciones (antes: 3 lecturas +
+    // descifrado completo de la tabla en cada arranque)
+    const cuotasInit = await DB.getAll('cuotas');
+    const huboCambioIds = await this._fixStringCuotaIds(cuotasInit);
+    await this._fixCuotasSaldadas(huboCambioIds ? null : cuotasInit);
     await this.loadData();
     this._initLang();
     this.loadMoneda();
@@ -4319,23 +4445,27 @@ const App = {
 
   // Sin flag one-time: los imports pueden reintroducir ids string en
   // cualquier momento. Idempotente — solo escribe si encuentra ids string.
-  async _fixStringCuotaIds() {
-    const cuotas = await DB.getAll('cuotas');
+  async _fixStringCuotaIds(cuotasPre) {
+    // Recibe las cuotas ya leídas para no volver a leer+descifrar toda la tabla
+    const cuotas = cuotasPre || await DB.getAll('cuotas');
+    let cambio = false;
     for (const c of cuotas) {
       if (typeof c.id === 'string') {
         const copy = Object.assign({}, c);
         delete copy.id;
         await DB.delete('cuotas', c.id);
         await DB.add('cuotas', copy);
+        cambio = true;
       }
     }
+    return cambio;
   },
 
   // Sana cuotas que quedaron "atrapadas" como pendientes aunque la deuda ya
   // está cubierta (data vieja, imports duplicados). Corre en cada init: es
   // idempotente y solo escribe cuando encuentra algo que corregir.
-  async _fixCuotasSaldadas() {
-    const cuotas = await DB.getAll('cuotas');
+  async _fixCuotasSaldadas(cuotasPre) {
+    const cuotas = cuotasPre || await DB.getAll('cuotas');
 
     // BUG-03: acotar montoPagado > monto (datos viejos o backups adulterados)
     // que dejan el total "a cobrar" en negativo
@@ -4360,8 +4490,13 @@ const App = {
     //    cuotas duplicadas por un import): marcar las pendientes como pagadas
     const grupos = {};
     for (const c of cuotas) {
-      if (!grupos[c.ventaId]) grupos[c.ventaId] = [];
-      grupos[c.ventaId].push(c);
+      // Sin ventaId no se puede saber a qué venta pertenece: agruparlas todas
+      // bajo "undefined" mezclaría deudas de clientes distintos y podría
+      // condonar plata que el usuario sí tiene que cobrar.
+      if (c.ventaId === undefined || c.ventaId === null || c.ventaId === '') continue;
+      const k = String(c.ventaId);
+      if (!grupos[k]) grupos[k] = [];
+      grupos[k].push(c);
     }
     for (const grupo of Object.values(grupos)) {
       const montoTotal = grupo[0].montoTotal || 0;
@@ -4544,10 +4679,21 @@ const App = {
 
   renderAll() {
     this.debounce('renderAll', () => {
-      this.renderDashboard();
-      this.renderStock();
-      this.renderCuotas();
-      this.renderStats();
+      // Solo la pantalla visible: renderizar las 4 en cada cambio de datos
+      // hacía trabajo invisible (con 2000 ventas, 4 recorridos completos).
+      // Al navegar, showScreen() ya rinde la pantalla destino.
+      const actual = this.currentScreen;
+      if (actual === 'inicio') this.renderDashboard();
+      else if (actual === 'stock') this.renderStock();
+      else if (actual === 'cuotas') this.renderCuotas();
+      else if (actual === 'stats') this.renderStats();
+      else if (actual === 'ventas-all') this.renderAllVentas();
+      else if (actual === 'clientes') this.renderClientes();
+      else if (actual === 'gastos') this.renderGastos();
+      else if (actual === 'caja') this.renderCaja();
+      else if (actual === 'pedidos') this.renderPedidos();
+      else this.renderDashboard();
+      // Los badges se ven desde cualquier pantalla: siempre actualizados
       this.updateNavBadge();
       this.updatePedidosBadge();
     });
@@ -4708,15 +4854,19 @@ const App = {
 
     container.innerHTML = recientes.map((v, i) =>
       i > 0
-        ? this._renderVentaCard(v, { compact: true, className: ' faded', style: 'margin-top:8px;' })
-        : this._renderVentaCard(v)
+        ? this._renderVentaCard(v, { compact: true, className: ' faded', style: 'margin-top:8px;', index: i })
+        : this._renderVentaCard(v, { index: i })
     ).join('');
 
     this._renderDashboardDeudores();
   },
 
-  _renderVentaCard(v, { compact = false, className = '', style = '' } = {}) {
-    const num = this.ventas.length - this.ventas.indexOf(v);
+  _renderVentaCard(v, { compact = false, className = '', style = '', index } = {}) {
+    // El número de venta se calcula con el índice recibido. Antes usaba
+    // this.ventas.indexOf(v) DENTRO del map de cada card: O(n²) — con 2000
+    // ventas eran 4 millones de comparaciones por render.
+    const idx = index !== undefined ? index : this.ventas.indexOf(v);
+    const num = this.ventas.length - idx;
     const fecha = this.fmtDate(v.fecha);
     const cls = `venta-card${className}`;
     const styleAttr = style ? ` style="${style}"` : '';
@@ -4811,16 +4961,38 @@ const App = {
     }).join('');
   },
 
-  renderAllVentas() {
+  _ventasVisibles: 50,
+  _VENTAS_PAGINA: 50,
+
+  renderAllVentas(reset = true) {
     const container = document.getElementById('ventas-all-list');
+    if (reset) this._ventasVisibles = this._VENTAS_PAGINA;
+
     if (this.ventas.length === 0) {
       container.innerHTML = '<div class="empty-state"><span class="ms">receipt_long</span><span>No hay ventas registradas</span></div>';
       return;
     }
 
-    container.innerHTML = this.ventas.map((v) =>
-      this._renderVentaCard(v, { style: 'margin-bottom:8px;' })
+    // Paginado: volcar 2000 cards en un innerHTML congelaba la pantalla casi
+    // medio segundo. Se muestran de a 50 con un botón para seguir cargando.
+    const total = this.ventas.length;
+    const hasta = Math.min(this._ventasVisibles, total);
+    let html = this.ventas.slice(0, hasta).map((v, i) =>
+      this._renderVentaCard(v, { style: 'margin-bottom:8px;', index: i })
     ).join('');
+
+    if (hasta < total) {
+      const restantes = total - hasta;
+      html += `<button class="btn-ver-mas" onclick="App.verMasVentas()">
+        <span class="ms" aria-hidden="true">expand_more</span>Ver más (${restantes} venta${restantes !== 1 ? 's' : ''} más)
+      </button>`;
+    }
+    container.innerHTML = html;
+  },
+
+  verMasVentas() {
+    this._ventasVisibles += this._VENTAS_PAGINA;
+    this.renderAllVentas(false);
   },
 
   renderStock() {
@@ -4968,11 +5140,22 @@ const App = {
       grouped[c.ventaId].push(c);
     });
 
-    container.innerHTML = Object.entries(grouped).map(([ventaId, cuotas]) => {
+    // Ordenar por la cuota pendiente más próxima a vencer: lo que hay que
+    // cobrar primero va arriba (antes quedaba en orden de inserción)
+    const gruposOrdenados = Object.entries(grouped).sort((a, b) => {
+      const proxA = a[1].filter(c => !c.pagado).sort((x, y) => (x.vence || 0) - (y.vence || 0))[0];
+      const proxB = b[1].filter(c => !c.pagado).sort((x, y) => (x.vence || 0) - (y.vence || 0))[0];
+      return (proxA ? proxA.vence || 0 : Infinity) - (proxB ? proxB.vence || 0 : Infinity);
+    });
+
+    container.innerHTML = gruposOrdenados.map(([ventaId, cuotas]) => {
       const pendientesGrupo = cuotas.filter(c => !c.pagado);
       if (pendientesGrupo.length === 0) return '';
 
-      const proxima = pendientesGrupo[0];
+      // La próxima a cobrar es la que vence antes, no la primera cargada
+      const proxima = pendientesGrupo.slice().sort((a, b) => (a.vence || 0) - (b.vence || 0))[0];
+      const estaVencida = (proxima.vence || 0) < Date.now();
+      const diasVencida = estaVencida ? Math.floor((Date.now() - proxima.vence) / 86400000) : 0;
       const pagadas = cuotas.filter(c => c.pagado).length;
       const totalPagado = cuotas.reduce((s, c) => s + (c.pagado ? c.monto : (c.montoPagado || 0)), 0);
       const montoTotal = proxima.montoTotal;
@@ -4999,7 +5182,7 @@ const App = {
           </div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pctPagado}%"></div></div>
         </div>
-        <div class="cuota-due"><span class="ms">event</span>Vence el ${venceDate} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
+        <div class="cuota-due ${estaVencida ? 'vencida' : ''}"><span class="ms" aria-hidden="true">${estaVencida ? 'error' : 'event'}</span>${estaVencida ? `<strong>Vencida hace ${diasVencida} día${diasVencida !== 1 ? 's' : ''}</strong>` : `Vence el ${venceDate}`} · resta <span class="danger bold">${this.fmt(resta)}</span>${parcialProxima > 0 ? `<span class="cuota-partial-badge">Pagó ${this.fmt(parcialProxima)} de ${this.fmt(proxima.monto)}</span>` : ''}</div>
         <div class="cuota-actions">
           <button class="btn-whatsapp" data-msg="${this.b64Encode(waMsg)}" data-type="whatsapp"><span class="ms">chat</span>Cobrar por WhatsApp</button>
           <button class="btn-pay" data-cuota-id="${encodeURIComponent(JSON.stringify(proxima.id))}" aria-label="Registrar pago"><span class="ms" aria-hidden="true">add_card</span></button>
@@ -5348,16 +5531,35 @@ const App = {
     const gan = pvFinal - pc;
     const margen = pvFinal > 0 ? Math.round((gan / pvFinal) * 100) : 0;
 
-    document.getElementById('live-ganancia').textContent = this.fmtSigned(gan);
+    const ganEl = document.getElementById('live-ganancia');
+    ganEl.textContent = this.fmtSigned(gan);
+    // En rojo si es pérdida: mostrar "-$400" en verde inducía a error
+    ganEl.classList.toggle('negativa', gan < 0);
     document.getElementById('live-venta').textContent = this.fmt(pvFinal);
     document.getElementById('live-compra').textContent = this.fmt(pc);
     document.getElementById('live-margen').textContent = margen + '%';
 
     // Sugerir el valor de la 1ª cuota como placeholder del primer pago
     const primerPagoInput = document.getElementById('venta-primer-pago');
+    const n = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
     if (primerPagoInput) {
-      const n = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
       primerPagoInput.placeholder = pvFinal > 0 ? this.fmt(Math.round(pvFinal / n)) : '';
+    }
+
+    // Plan de cuotas a la vista: cuánto es cada una y cuándo vence la última.
+    // Antes había que guardar la venta para recién enterarse.
+    const planEl = document.getElementById('cuotas-plan');
+    if (planEl) {
+      if (this.formaPago === 'cuotas' && pvFinal > 0 && n > 1) {
+        const cuota = Math.round(pvFinal / n);
+        const ultima = new Date();
+        ultima.setMonth(ultima.getMonth() + (n - 1));
+        const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+        planEl.classList.remove('hidden');
+        planEl.innerHTML = `<span class="ms" aria-hidden="true">event_repeat</span>${n} cuotas de <strong>${this.fmt(cuota)}</strong> · última vence ${ultima.getDate()} ${meses[ultima.getMonth()]}`;
+      } else {
+        planEl.classList.add('hidden');
+      }
     }
   },
 
@@ -5416,6 +5618,8 @@ const App = {
       o.classList.toggle('active', o.textContent.trim().toLowerCase() === tipo);
     });
     document.getElementById('cuotas-config').classList.toggle('hidden', tipo !== 'cuotas');
+    // Refrescar el plan de cuotas al cambiar de forma de pago
+    if (this.calcLiveProfit) this.calcLiveProfit();
   },
 
   _primeraCuotaPagada: true,
@@ -5680,13 +5884,18 @@ const App = {
   },
 
   filterStock() {
-    this.renderStock();
+    // Debounce: sin esto cada tecla disparaba un re-render completo de la
+    // grilla (con muchos perfumes, la escritura se sentía trabada)
+    this.debounce('buscar-stock', () => this.renderStock(), 150);
   },
 
   filterStockBy(filter) {
     this.stockFilter = filter;
-    document.querySelectorAll('.filter-chips .chip').forEach(c => c.classList.remove('active'));
-    if (filter === 'todos') document.querySelectorAll('.filter-chips .chip')[0]?.classList.add('active');
+    // Marcar el chip activo sea cual sea (antes solo 'todos' quedaba marcado:
+    // al filtrar por "Sin stock" o "Bajo" no se veía cuál estaba aplicado)
+    const chips = document.querySelectorAll('#screen-stock .filter-chips .chip');
+    const orden = { todos: 0, sin: 1, bajo: 2 };
+    chips.forEach((c, i) => c.classList.toggle('active', i === (orden[filter] ?? 0)));
     this.renderStock();
   },
 
@@ -5940,7 +6149,14 @@ const App = {
     this._pagoCuotaId = null;
   },
 
-  async confirmarPagoCuota() {
+  confirmarPagoCuota() {
+    // Anti doble-tap: sin esta guarda, dos toques rápidos hacían dos ciclos
+    // read-modify-write sobre la misma cuota y un pago se perdía
+    return this._once('pago-cuota', () => this._confirmarPagoCuotaImpl(),
+      document.getElementById('pago-cuota-confirmar'));
+  },
+
+  async _confirmarPagoCuotaImpl() {
     const id = this._pagoCuotaId;
     if (!id) return;
     const input = document.getElementById('pago-cuota-input');
@@ -6055,6 +6271,26 @@ const App = {
     }
 
     const numCuotas = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
+
+    // Mismas validaciones que al crear: editar no puede ser una puerta trasera
+    // para meter datos que el alta rechaza (precio 0, descuento >100%, montos
+    // imposibles o un plan de cuotas inválido).
+    if (precioVenta <= 0) {
+      this.toast('Ingresá el precio de venta', 'warning');
+      return;
+    }
+    if (precioVenta > 1e9 || precioCompra > 1e9) {
+      this.toast('El monto es demasiado grande (máx mil millones)', 'warning');
+      return;
+    }
+    if (descuento < 0 || descuento > 100) {
+      this.toast('Descuento debe estar entre 0 y 100%', 'warning');
+      return;
+    }
+    if (this.formaPago === 'cuotas' && (numCuotas < 1 || numCuotas > 12)) {
+      this.toast('Cuotas debe estar entre 1 y 12', 'warning');
+      return;
+    }
     const newFormaPago = this.formaPago;
 
     const v = this.ventas.find(x => x.id === id);
@@ -8410,10 +8646,30 @@ const App = {
 
     document.body.appendChild(banner);
 
-    // Recargar automáticamente después de 10 segundos si el usuario no lo hace
+    // Recargar automáticamente pasado un rato, PERO nunca encima de alguien que
+    // está cargando datos: perdería la venta a medio escribir. Si hay trabajo
+    // en curso, se deja el aviso y que recargue cuando quiera.
     setTimeout(() => {
+      if (this._hayTrabajoEnCurso()) return;
       window.location.reload();
-    }, 10000);
+    }, 30000);
+  },
+
+  // ¿El usuario está en medio de algo que se perdería con una recarga?
+  _hayTrabajoEnCurso() {
+    // Un formulario con datos escritos, o un modal abierto
+    const camposConTexto = ['venta-perfume-nombre', 'venta-precio', 'venta-cliente',
+      'gasto-monto', 'gasto-desc', 'caja-monto', 'add-perfume-nombre', 'pedido-nombre'];
+    for (const id of camposConTexto) {
+      const el = document.getElementById(id);
+      if (el && String(el.value || '').trim() !== '') return true;
+    }
+    const modalAbierto = [...document.querySelectorAll('.modal-overlay')]
+      .some(m => !m.classList.contains('hidden'));
+    if (modalAbierto) return true;
+    // También si está tipeando ahora mismo
+    const a = document.activeElement;
+    return !!(a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'));
   },
 
   // Limpiar interval al desmontar
@@ -8498,7 +8754,8 @@ const App = {
   },
 
   filterClientes() {
-    this.renderClientes();
+    // Debounce: evita recalcular la agregación de clientes en cada tecla
+    this.debounce('buscar-clientes', () => this.renderClientes(), 150);
   },
 
   abrirClienteDetalle(key) {

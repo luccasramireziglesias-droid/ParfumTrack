@@ -46,3 +46,6 @@
   color: var(--text3);
 }
 
+
+/* Pérdida: el número no puede seguir en verde */
+.live-profit-amount.negativa { color: var(--red); }

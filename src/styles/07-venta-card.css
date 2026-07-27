@@ -127,3 +127,22 @@
 }
 .venta-action-btn:active { background: rgba(255,255,255,0.12); }
 
+
+/* Botón "Ver más" del listado paginado */
+.btn-ver-mas {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 13px;
+  margin-top: 4px;
+  color: var(--gold2);
+  font: 600 13px 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+.btn-ver-mas:active { opacity: 0.8; }
+.btn-ver-mas .ms { font-size: 18px; }
