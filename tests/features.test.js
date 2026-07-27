@@ -296,12 +296,13 @@ describe('F4 — compras al proveedor', () => {
   const stock = read('src/screens/stock.html');
   const index = read('index.html');
 
-  it('la base sube a v4 y crea el store compras sin romper los existentes', () => {
-    expect(tpl).toMatch(/const DB_VERSION = 4;/);
+  it('la base crea el store compras sin romper los existentes', () => {
+    const version = Number((tpl.match(/const DB_VERSION = (\d+);/) || [])[1]);
+    expect(version).toBeGreaterThanOrEqual(4);
     expect(tpl).toMatch(/if \(!d\.objectStoreNames\.contains\('compras'\)\)/);
     // La migración es aditiva: ningún store se borra ni se recrea
     expect(tpl).not.toMatch(/deleteObjectStore/);
-    expect(index).toMatch(/const DB_VERSION = 4;/);
+    expect(index).toMatch(new RegExp(`const DB_VERSION = ${version};`));
   });
 
   it('las compras se guardan encriptadas como el resto de los datos', () => {
@@ -357,5 +358,115 @@ describe('F4 — compras al proveedor', () => {
     const cuerpo = render.slice(idx, idx + 3000);
     // Dos llamadas: la del early-return por lista vacía y la del final
     expect((cuerpo.match(/this\.renderCompras\(\)/g) || []).length).toBe(2);
+  });
+});
+
+describe('F5 — señas y encargos', () => {
+  const res = read('src/app/24-reservas.js');
+  const db = read('src/db.js');
+  const compras = read('src/app/23-compras.js');
+  const core = read('src/app/00-core.js');
+  const nav = read('src/app/01-navigation.js');
+  const render = read('src/app/02-render.js');
+  const datos = read('src/app/10-data-management.js');
+  const tpl = read('src/index.template.html');
+  const pantalla = read('src/screens/reservas.html');
+  const mas = read('src/screens/mas.html');
+  const index = read('index.html');
+
+  it('la base crea el store reservas de forma aditiva', () => {
+    const version = Number((tpl.match(/const DB_VERSION = (\d+);/) || [])[1]);
+    expect(version).toBeGreaterThanOrEqual(5);
+    expect(tpl).toMatch(/if \(!d\.objectStoreNames\.contains\('reservas'\)\)/);
+    expect(tpl).not.toMatch(/deleteObjectStore/);
+    expect(db).toMatch(/_encryptedStores: new Set\(\[[^\]]*'reservas'/);
+  });
+
+  it('la pantalla, el modal y la entrada en Más llegan al build', () => {
+    expect(pantalla).toContain('id="screen-reservas"');
+    expect(pantalla).toContain('id="reservas-list"');
+    expect(mas).toMatch(/App\.showScreen\('reservas'\)/);
+    expect(tpl).toContain('id="modal-reserva"');
+    expect(index).toContain('id="screen-reservas"');
+    expect(index).toContain('id="modal-reserva"');
+    expect(read('src/styles/24-reservas.css')).toContain('.reserva-card');
+    // showScreen y renderAll saben rendirla
+    expect(nav).toMatch(/name === 'reservas'\) this\.renderReservas\(\)/);
+    expect(render).toMatch(/actual === 'reservas'\) this\.renderReservas\(\)/);
+  });
+
+  it('una reserva NO descuenta stock: puede existir sin inventario', () => {
+    const idx = db.indexOf('async addReserva');
+    const cuerpo = db.slice(idx, idx + 900);
+    expect(cuerpo).not.toMatch(/p\.stock/);
+    expect(cuerpo).toMatch(/estado: 'pendiente'/);
+  });
+
+  it('la seña nunca puede superar el total', () => {
+    const idx = db.indexOf('async addReserva');
+    expect(db.slice(idx, idx + 900)).toMatch(/Math\.min\(Number\(r\.sena\) \|\| 0, total\)/);
+    expect(res).toMatch(/sena > precioAcordado \* cantidad/);
+  });
+
+  it('entregar crea la venta con el total acordado y la seña como nota', () => {
+    const idx = db.indexOf('async entregarReserva');
+    const cuerpo = db.slice(idx, idx + 1800);
+    expect(cuerpo).toMatch(/this\.addVenta\(/);
+    expect(cuerpo).toMatch(/precioVenta: r\.total/);
+    expect(cuerpo).toMatch(/Seña de \$\{r\.sena\} ya cobrada/);
+    expect(cuerpo).toMatch(/estado: 'entregada'/);
+    expect(cuerpo).toMatch(/ventaId/);
+  });
+
+  it('no se puede entregar dos veces el mismo encargo', () => {
+    const idx = db.indexOf('async entregarReserva');
+    expect(db.slice(idx, idx + 400)).toMatch(/throw new Error\('RESERVA_NO_PENDIENTE'\)/);
+    expect(res).toMatch(/_once\('reserva'/);
+  });
+
+  it('cancelar registra si la seña se devolvió o se retuvo', () => {
+    const idx = db.indexOf('async cancelarReserva');
+    const cuerpo = db.slice(idx, idx + 800);
+    expect(cuerpo).toMatch(/senaDevuelta: !!devolverSena/);
+    expect(cuerpo).toMatch(/throw new Error\('RESERVA_YA_ENTREGADA'\)/);
+    expect(res).toMatch(/¿Le devolvés la seña/);
+  });
+
+  it('reponer stock avisa a quién estaba esperando ese perfume', () => {
+    expect(compras).toMatch(/this\._avisarEncargosPendientes\(perfumeId\)/);
+    const idx = res.indexOf('_avisarEncargosPendientes(perfumeId)');
+    expect(res.slice(idx, idx + 600)).toMatch(/_reservasPorEstado\('pendiente'\)/);
+  });
+
+  it('las reservas se cargan al arrancar y viajan en backup y export', () => {
+    expect(core).toMatch(/this\.reservasData = await DB\.getReservas\(\)/);
+    expect(datos).toMatch(/reservas: this\.reservasData/);
+    const listas = datos.match(/const stores = \[[^\]]+\]/g) || [];
+    expect(listas.length).toBeGreaterThan(0);
+    for (const l of listas) expect(l, l).toContain("'reservas'");
+  });
+});
+
+describe('Versionado — una sola fuente de verdad', () => {
+  const pkg = JSON.parse(read('package.json'));
+  const build = read('scripts/build.js');
+
+  it('sw.js y /version se generan desde package.json', () => {
+    expect(build).toMatch(/syncVersion\('sw\.js'/);
+    expect(build).toMatch(/syncVersion\('functions\/version\.js'/);
+  });
+
+  it('las tres copias de la versión coinciden', () => {
+    expect(read('sw.js')).toContain(`const APP_VERSION = "${pkg.version}";`);
+    expect(read('functions/version.js')).toContain(`const version = '${pkg.version}';`);
+    expect(read('index.html')).toContain(`content="${pkg.version}"`);
+  });
+
+  it('/version no puede quedar por detrás de la app (rompía el auto-update)', () => {
+    const endpoint = (read('functions/version.js').match(/const version = '([^']*)';/) || [])[1];
+    const num = (v) => v.split('.').map(Number);
+    const [a1, a2, a3] = num(endpoint);
+    const [b1, b2, b3] = num(pkg.version);
+    expect(a1 * 1e6 + a2 * 1e3 + a3).toBeGreaterThanOrEqual(b1 * 1e6 + b2 * 1e3 + b3);
   });
 });

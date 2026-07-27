@@ -101,6 +101,8 @@
     this.renderAll();
     this.toast(`+${cantidad} al stock por ${this.fmt(precioUnitario * cantidad)}`, 'local_shipping');
     this.haptic('success');
+    // Si había clientes esperando este perfume, avisarlo ahora
+    this._avisarEncargosPendientes(perfumeId);
     this._notifyTabs();
   },
 

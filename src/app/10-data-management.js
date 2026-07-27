@@ -12,6 +12,7 @@
       caja: this.cajaData,
       gastos: this.gastosData,
       compras: this.comprasData,
+      reservas: this.reservasData,
       config,
       // BUG #18 FIX: No incluir datos sensibles (PIN) en export
       settings: {
@@ -92,7 +93,7 @@
         data = inner;
       }
     }
-    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'config'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'reservas', 'config'];
     for (const s of stores) {
       if (data[s] && !Array.isArray(data[s])) {
         data[s] = Object.values(data[s]);
@@ -193,7 +194,7 @@
     if (!data || typeof data !== 'object') {
       throw new Error('El archivo no contiene datos válidos');
     }
-    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'reservas'];
     const registros = stores.reduce(
       (n, s) => n + (Array.isArray(data[s]) ? data[s].length : 0), 0
     );
@@ -207,7 +208,7 @@
     // Si esto lanza, la base local queda intacta (todavía no borramos nada)
     this._assertRestorable(data);
 
-    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'config'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'reservas', 'config'];
     let total = 0, skipped = 0;
     for (const store of stores) {
       await DB.clear(store);
@@ -246,7 +247,7 @@
       const raw = JSON.parse(text);
       const data = this._normalizeBackupData(raw);
 
-      const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'config'];
+      const stores = ['perfumes', 'ventas', 'cuotas', 'pedidos', 'caja', 'gastos', 'compras', 'reservas', 'config'];
       const hasData = stores.some(s => Array.isArray(data[s]) && data[s].length > 0) || data.settings;
       if (!hasData) {
         this.toast('No se encontraron datos válidos en el archivo', 'error');
@@ -727,6 +728,7 @@
       caja: this.cajaData,
       gastos: this.gastosData,
       compras: this.comprasData,
+      reservas: this.reservasData,
       config,
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
@@ -801,7 +803,7 @@
 
   async clearData() {
     if (!await this.appConfirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.', 'Borrar todo', 'delete_forever')) return;
-    const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos', 'compras'];
+    const stores = ['perfumes', 'ventas', 'cuotas', 'config', 'pedidos', 'caja', 'gastos', 'compras', 'reservas'];
     for (const store of stores) {
       await DB.clear(store);
     }

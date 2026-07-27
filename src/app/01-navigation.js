@@ -33,6 +33,7 @@
     if (name === 'nuevo-pedido') this.resetPedidoForm();
     if (name === 'caja') this.renderCaja();
     if (name === 'gastos') this.renderGastos();
+    if (name === 'reservas') this.renderReservas();
     if (name === 'clientes') this.renderClientes();
     if (name === 'cliente-detalle') this.renderClienteDetalle();
     if (name === 'cuenta') this.updateCuentaScreen();

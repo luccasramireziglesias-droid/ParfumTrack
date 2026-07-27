@@ -23,6 +23,7 @@
       else if (actual === 'stats') this.renderStats();
       else if (actual === 'ventas-all') this.renderAllVentas();
       else if (actual === 'clientes') this.renderClientes();
+      else if (actual === 'reservas') this.renderReservas();
       else if (actual === 'gastos') this.renderGastos();
       else if (actual === 'caja') this.renderCaja();
       else if (actual === 'pedidos') this.renderPedidos();
@@ -30,6 +31,7 @@
       // Los badges se ven desde cualquier pantalla: siempre actualizados
       this.updateNavBadge();
       this.updatePedidosBadge();
+      this.updateReservasBadge();
     });
   },
 

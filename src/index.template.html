@@ -196,6 +196,55 @@
     </div>
   </div>
 
+  <!-- ====== MODAL: SEÑA / ENCARGO (F5) ====== -->
+  <div id="modal-reserva" class="modal-overlay hidden" onclick="App.cerrarReserva()" role="dialog" aria-modal="true" aria-label="Seña o encargo">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title" id="reserva-modal-titulo">Nueva seña / encargo</span>
+        <div class="back-btn" onclick="App.cerrarReserva()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">CLIENTE</label>
+        <input type="text" class="form-input" id="reserva-cliente" placeholder="Nombre…" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label">PERFUME</label>
+        <input type="text" class="form-input" id="reserva-perfume-nombre" placeholder="Qué encargó…" autocomplete="off">
+        <input type="hidden" id="reserva-perfume-id">
+        <div class="motivo-chips" id="reserva-sugerencias" style="margin-top:8px;"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">CANTIDAD</label>
+          <input type="text" class="form-input" id="reserva-cantidad" value="1" inputmode="numeric" autocomplete="off" oninput="App.calcRestaReserva()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">PRECIO ACORDADO <span class="muted-label">(c/u)</span></label>
+          <input type="text" class="form-input" id="reserva-precio" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcRestaReserva()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">SEÑA QUE DEJÓ</label>
+        <input type="text" class="form-input" id="reserva-sena" placeholder="0" inputmode="decimal" autocomplete="off" oninput="App.calcRestaReserva()">
+      </div>
+      <div class="compra-total-box">
+        <span>Cuentas</span>
+        <strong id="reserva-resta">$0</strong>
+      </div>
+      <div class="form-group">
+        <label class="form-label">FECHA ESTIMADA <span class="muted-label">(opcional)</span></label>
+        <input type="date" class="form-input" id="reserva-estimada">
+      </div>
+      <div class="form-group">
+        <label class="form-label">NOTA (OPCIONAL)</label>
+        <input type="text" class="form-input" id="reserva-nota" placeholder="Detalle…" autocomplete="off" maxlength="300">
+      </div>
+      <button class="btn gold-btn" id="reserva-confirmar" onclick="App.guardarReserva()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
+        <span class="ms">bookmark_added</span> Guardar encargo
+      </button>
+    </div>
+  </div>
+
   <!-- ====== MODAL: COMPRA AL PROVEEDOR (F4) ====== -->
   <div id="modal-compra" class="modal-overlay hidden" onclick="App.cerrarCompra()" role="dialog" aria-modal="true" aria-label="Registrar compra al proveedor">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -413,6 +462,8 @@
   <!--PT:SCREEN:catalogo-->
 
   <!-- ====== SCREEN: CLIENTES ====== -->
+  <!--PT:SCREEN:reservas-->
+
   <!--PT:SCREEN:clientes-->
 
   <!-- ====== SCREEN: CLIENTE DETALLE ====== -->
@@ -446,7 +497,7 @@
 </div>
 <script>
 const DB_NAME = 'ParfumTrackDB';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 let db = null;
 
 function openDB() {
@@ -493,6 +544,13 @@ function openDB() {
         const s = d.createObjectStore('compras', { keyPath: 'id', autoIncrement: true });
         s.createIndex('fecha', 'fecha', { unique: false });
         s.createIndex('perfumeId', 'perfumeId', { unique: false });
+      }
+      // v5: señas y encargos (reservas con adelanto, incluso sin stock)
+      if (!d.objectStoreNames.contains('reservas')) {
+        const s = d.createObjectStore('reservas', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('fecha', 'fecha', { unique: false });
+        s.createIndex('perfumeId', 'perfumeId', { unique: false });
+        s.createIndex('estado', 'estado', { unique: false });
       }
     };
     req.onsuccess = e => { db = e.target.result; resolve(db); };

@@ -265,6 +265,7 @@
       caja: this.cajaData,
       gastos: this.gastosData,
       compras: this.comprasData,
+      reservas: this.reservasData,
       config,
       settings: {
         moneda: localStorage.getItem('pt_moneda'),

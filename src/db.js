@@ -3,7 +3,7 @@
     await openDB();
   },
 
-  _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja', 'compras']),
+  _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja', 'compras', 'reservas']),
 
   _shouldEncrypt(store) {
     return this._encryptedStores.has(store) && localStorage.getItem('pt_license_code');
@@ -406,6 +406,87 @@
   async getCompras() {
     const compras = await this.getAll('compras');
     return compras.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
+  },
+
+  // F5: señas y encargos. Una reserva puede existir sin stock (lista de
+  // espera) — por eso NO descuenta inventario hasta que se entrega.
+  async getReservas() {
+    const r = await this.getAll('reservas');
+    return r.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
+  },
+
+  async addReserva(r) {
+    const cantidad = Math.max(1, parseInt(r.cantidad, 10) || 1);
+    const precio = Number(r.precioAcordado);
+    if (!Number.isFinite(precio) || precio <= 0) throw new Error('PRECIO_INVALIDO');
+    const total = precio * cantidad;
+    // La seña nunca puede superar lo que se va a cobrar
+    const sena = Math.max(0, Math.min(Number(r.sena) || 0, total));
+    const id = await this.add('reservas', {
+      ...r,
+      cantidad,
+      precioAcordado: precio,
+      total,
+      sena,
+      estado: 'pendiente',
+      fecha: r.fecha || Date.now()
+    });
+    return this.get('reservas', id);
+  },
+
+  async updateReserva(r) {
+    return this.put('reservas', r);
+  },
+
+  // Entregar = la reserva se convierte en venta. La seña ya cobrada no se
+  // suma de nuevo: es parte del precio acordado, no un extra.
+  async entregarReserva(id, { precioCompra = 0 } = {}) {
+    const r = await this.get('reservas', id);
+    if (!r) throw new Error('RESERVA_NO_ENCONTRADA');
+    if (r.estado !== 'pendiente') throw new Error('RESERVA_NO_PENDIENTE');
+
+    const cantidad = Math.max(1, parseInt(r.cantidad, 10) || 1);
+    const costoUnit = Number(precioCompra) || 0;
+    const ventaId = await this.addVenta({
+      perfume: r.perfume,
+      perfumeId: r.perfumeId || null,
+      cantidad,
+      precioVenta: r.total,
+      precioOriginal: r.total,
+      precioCompra: costoUnit * cantidad,
+      precioUnitario: r.precioAcordado,
+      precioCompraUnitario: costoUnit,
+      cliente: r.cliente || 'Anónimo',
+      vendedor: r.vendedor || 'Anónimo',
+      proveedor: r.proveedor || '',
+      descuento: 0,
+      nota: r.sena > 0 ? `Seña de ${r.sena} ya cobrada` : '',
+      fecha: Date.now(),
+      formaPago: 'contado',
+      numCuotas: 1,
+      reservaId: id
+    });
+
+    await this.put('reservas', { ...r, estado: 'entregada', fechaEntrega: Date.now(), ventaId });
+    return ventaId;
+  },
+
+  // Cancelar deja constancia de si la seña se devolvió o se retuvo.
+  async cancelarReserva(id, { devolverSena = true, motivo = '' } = {}) {
+    const r = await this.get('reservas', id);
+    if (!r) throw new Error('RESERVA_NO_ENCONTRADA');
+    if (r.estado === 'entregada') throw new Error('RESERVA_YA_ENTREGADA');
+    return this.put('reservas', {
+      ...r,
+      estado: 'cancelada',
+      fechaCancelacion: Date.now(),
+      senaDevuelta: !!devolverSena,
+      motivoCancelacion: motivo
+    });
+  },
+
+  async eliminarReserva(id) {
+    return this.delete('reservas', id);
   },
 
   async getCuotas() {

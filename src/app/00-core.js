@@ -11,6 +11,7 @@
   cajaData: [],
   gastosData: [],
   comprasData: [],
+  reservasData: [],
   cajaTipo: 'entrada',
   gastoCat: 'transporte',
 
@@ -277,6 +278,7 @@
     this.cajaData = await DB.getCaja();
     this.gastosData = await DB.getGastos();
     this.comprasData = await DB.getCompras();
+    this.reservasData = await DB.getReservas();
   },
 
   registerSW() {

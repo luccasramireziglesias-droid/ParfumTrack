@@ -57,3 +57,20 @@ if (/PT:(CSS|DB|APP|ENCRYPTION|VERSION)|PT:SCREEN:/.test(html)) {
 
 fs.writeFileSync(path.join(ROOT, 'index.html'), html);
 console.log(`build.js: wrote index.html (${html.length} chars) — version ${version}`);
+
+// La versión vive en package.json y se propaga desde acá. Antes había tres
+// copias a mano: sw.js decía 1.7.0, functions/version.js decía 1.1.0 (más
+// vieja que la app, así que el chequeo de actualizaciones nunca disparaba).
+function syncVersion(file, regex, replacement) {
+  const full = path.join(ROOT, file);
+  const before = fs.readFileSync(full, 'utf8');
+  if (!regex.test(before)) throw new Error(`build.js: no encontré la versión en ${file}`);
+  const after = before.replace(regex, replacement);
+  if (after !== before) {
+    fs.writeFileSync(full, after);
+    console.log(`build.js: sincronizó ${file} a ${version}`);
+  }
+}
+
+syncVersion('sw.js', /const APP_VERSION = "[^"]*";/, `const APP_VERSION = "${version}";`);
+syncVersion('functions/version.js', /const version = '[^']*';/, `const version = '${version}';`);
