@@ -221,6 +221,54 @@
     </div>
   </div>
 
+  <!-- ====== MODAL: IMPORTAR DESDE EXCEL ====== -->
+  <div id="modal-importar" class="modal-overlay hidden" onclick="App.cerrarImportador()" role="dialog" aria-modal="true" aria-label="Importar desde Excel">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Importar de una planilla</span>
+        <div class="back-btn" onclick="App.cerrarImportador()" role="button" aria-label="Cerrar"><span class="ms">close</span></div>
+      </div>
+
+      <div class="imp-archivo-box">
+        <span class="ms gold" aria-hidden="true">table_view</span>
+        <div>
+          <div class="imp-archivo-nombre" id="imp-archivo"></div>
+          <div class="imp-archivo-meta" id="imp-filas"></div>
+        </div>
+      </div>
+
+      <div class="form-group hidden" id="imp-hoja-wrap">
+        <label class="form-label" for="imp-hoja">HOJA</label>
+        <select class="form-input" id="imp-hoja" onchange="App.cambiarHojaImport(this.value)"></select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">¿QUÉ ESTÁS IMPORTANDO?</label>
+        <div class="segmented" id="imp-destino">
+          <div class="seg-option active" data-destino="perfumes" onclick="App.cambiarDestinoImport('perfumes')">Perfumes</div>
+          <div class="seg-option" data-destino="ventas" onclick="App.cambiarDestinoImport('ventas')">Ventas</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">COLUMNAS <span class="muted-label">(corregí lo que no haya detectado bien)</span></label>
+        <div id="imp-mapeo"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">VISTA PREVIA</label>
+        <div id="imp-preview"></div>
+      </div>
+
+      <div class="imp-resumen" id="imp-resumen"></div>
+
+      <button class="btn gold-btn" id="imp-confirmar" onclick="App.confirmarImportExcel()" style="width:100%;padding:14px;font-size:15px;border-radius:12px;">
+        <span class="ms">playlist_add</span> Agregar
+      </button>
+      <div class="imp-nota">Se agregan a lo que ya tenés. No se borra nada.</div>
+    </div>
+  </div>
+
   <!-- ====== MODAL: SEÑA / ENCARGO (F5) ====== -->
   <div id="modal-reserva" class="modal-overlay hidden" onclick="App.cerrarReserva()" role="dialog" aria-modal="true" aria-label="Seña o encargo">
     <div class="modal-content" onclick="event.stopPropagation()">

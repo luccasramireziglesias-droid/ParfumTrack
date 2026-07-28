@@ -617,3 +617,72 @@ describe('Pantalla de carga', () => {
     expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)/);
   });
 });
+
+describe('Importar desde Excel', () => {
+  const imp = read('src/app/26-importar-excel.js');
+  const tpl = read('src/index.template.html');
+  const mas = read('src/screens/mas.html');
+  const index = read('index.html');
+
+  it('acepta xlsx y también csv/ods, y el modal llega al build', () => {
+    expect(mas).toMatch(/accept="\.xlsx,\.xls,\.csv,\.ods"/);
+    expect(mas).toMatch(/App\.abrirImportarExcel\(\)/);
+    expect(tpl).toContain('id="modal-importar"');
+    expect(index).toContain('id="modal-importar"');
+    expect(read('src/styles/26-importar.css')).toContain('.imp-fila-mapeo');
+  });
+
+  it('reusa el cargador con SRI en vez de traer el script suelto', () => {
+    expect(imp).toMatch(/this\._loadScript\('https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/xlsx\/0\.18\.5/);
+  });
+
+  it('lee las fechas como Date y no como número de serie de Excel', () => {
+    expect(imp).toMatch(/cellDates: true/);
+  });
+
+  it('los montos pasan por parseMonto (entiende "1.250,50")', () => {
+    expect(imp).toMatch(/campo\.tipo === 'monto'\) return this\.parseMonto\(bruto\)/);
+  });
+
+  it('normaliza las cabeceras sin tildes para autodetectar columnas', () => {
+    const idx = imp.indexOf('_impNormalizar(txt)');
+    const cuerpo = imp.slice(idx, idx + 400);
+    expect(cuerpo).toMatch(/normalize\('NFD'\)/);
+    expect(cuerpo).toMatch(/toLowerCase\(\)/);
+  });
+
+  it('prioriza la coincidencia exacta sobre la parcial al mapear', () => {
+    // Si no, "Precio" le gana a "Precio de venta" cuando están las dos
+    const idx = imp.indexOf('_impAutoMapear(cabeceras, destino)');
+    const cuerpo = imp.slice(idx, idx + 900);
+    expect(cuerpo).toMatch(/campo\.alias\.includes\(this\._impNormalizar\(c\)\)/);
+    expect(cuerpo).toMatch(/n\.includes\(a\)/);
+    // Una columna no se puede usar para dos campos distintos
+    expect(cuerpo).toMatch(/usadas\.add\(idx\)/);
+  });
+
+  it('AGREGA, no reemplaza: nunca borra ni limpia stores', () => {
+    expect(imp).toMatch(/DB\.addPerfume\(/);
+    expect(imp).toMatch(/DB\.addVenta\(/);
+    expect(imp).not.toMatch(/DB\.clear\(/);
+    expect(imp).not.toMatch(/_restoreData/);
+    expect(imp).toMatch(/No se borra nada/);
+  });
+
+  it('las ventas importadas no descuentan stock', () => {
+    // Son ventas ya ocurridas: el stock de la planilla ya las tiene restadas
+    const idx = imp.indexOf('perfumeId: null');
+    expect(idx, 'las ventas importadas van sin perfumeId').toBeGreaterThan(-1);
+    expect(imp.slice(Math.max(0, idx - 400), idx)).toMatch(/ya las tiene descontadas/);
+  });
+
+  it('valida antes de tocar la base y tiene guarda anti doble-tap', () => {
+    expect(imp).toMatch(/_once\('import-excel'/);
+    // El resumen dice cuántas se omiten ANTES de confirmar
+    expect(imp).toMatch(/sin datos obligatorios se omiten/);
+  });
+
+  it('el botón queda deshabilitado si no hay nada válido para importar', () => {
+    expect(imp).toMatch(/btn\.disabled = validos\.length === 0/);
+  });
+});

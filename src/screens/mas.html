@@ -54,9 +54,15 @@
           <span>Exportar datos (JSON)</span>
           <span class="ms muted chevron">chevron_right</span>
         </div>
+        <div class="mas-item" onclick="App.abrirImportarExcel()">
+          <span class="ms gold">table_view</span>
+          <span>Importar de Excel</span>
+          <span class="ms muted chevron">chevron_right</span>
+        </div>
+        <input type="file" id="import-excel-input" accept=".xlsx,.xls,.csv,.ods" style="display:none" onchange="App._leerArchivoExcel(this)">
         <div class="mas-item" onclick="App.importData()">
           <span class="ms gold">upload</span>
-          <span>Importar datos (JSON)</span>
+          <span>Restaurar backup (JSON)</span>
           <span class="ms muted chevron">chevron_right</span>
         </div>
         <input type="file" id="import-file-input" accept=".json,application/json" style="display:none" onchange="App._handleImportFile(this)">

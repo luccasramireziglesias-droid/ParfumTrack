@@ -1,0 +1,105 @@
+/* ====== IMPORTAR DESDE EXCEL ====== */
+
+.imp-archivo-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(201, 168, 76, 0.08);
+  border: 1px solid rgba(201, 168, 76, 0.22);
+}
+
+.imp-archivo-box .ms { font-size: 24px; }
+
+.imp-archivo-nombre {
+  font: 600 13px 'DM Sans';
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240px;
+}
+
+.imp-archivo-meta {
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+/* Cada campo destino con su columna de origen */
+.imp-fila-mapeo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.imp-label {
+  flex: 0 0 42%;
+  font: 500 12px 'DM Sans';
+  color: var(--text2);
+}
+
+.imp-req { color: var(--gold2); }
+
+.imp-select {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 10px;
+  font-size: 13px;
+}
+
+.imp-prev-row {
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
+.imp-prev-nombre {
+  display: block;
+  font: 600 13px 'DM Sans';
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.imp-prev-meta {
+  display: block;
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.imp-vacio {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(224, 112, 112, 0.1);
+  border: 1px solid rgba(224, 112, 112, 0.3);
+  font: 500 12px 'DM Sans';
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+.imp-resumen {
+  font: 600 13px 'DM Sans';
+  color: var(--green);
+  text-align: center;
+}
+
+.imp-resumen.con-omitidas { color: var(--gold2); }
+
+.imp-nota {
+  font: 500 11px 'DM Sans';
+  color: var(--text3);
+  text-align: center;
+  margin-top: -4px;
+}
+
+#imp-confirmar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
