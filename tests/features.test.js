@@ -253,7 +253,7 @@ describe('F3 — devoluciones y cambios', () => {
 
   it('deshacer la devolución vuelve a descontar sin dejar stock negativo', () => {
     const idx = db.indexOf('async revertirDevolucion');
-    const cuerpo = db.slice(idx, idx + 1200);
+    const cuerpo = db.slice(idx, idx + 2500);
     expect(cuerpo).toMatch(/Math\.min\(repuestas, p\.stock \|\| 0\)/);
     expect(cuerpo).toMatch(/delete limpia\.devuelta/);
     expect(dev).toMatch(/revertirDevolucion\(id\)/);
@@ -755,5 +755,92 @@ describe('Importar Excel — planillas del mundo real', () => {
     const cuerpo = imp.slice(idx, idx + 1200);
     expect(cuerpo).toMatch(/faltan === obligatorios\.length\) relleno\+\+/);
     expect(cuerpo).toMatch(/else omitidas\+\+/);
+  });
+});
+
+describe('Alertas de stock', () => {
+  const render = read('src/app/02-render.js');
+  const css = read('src/styles/12-stock.css');
+
+  it('no pinta una tarjeta por perfume: resume y deja expandir', () => {
+    // Con 14 agotados la lista tapaba el inventario entero
+    expect(render).toMatch(/_ALERTAS_VISIBLES: 3/);
+    expect(render).toMatch(/alerts\.slice\(0, this\._ALERTAS_VISIBLES\)/);
+    expect(render).toMatch(/toggleAlertasStock\(\)/);
+    expect(render).toMatch(/más para reponer/);
+  });
+
+  it('el encabezado dice cuántos hay sin tener que contarlos', () => {
+    const idx = render.indexOf('const sinStock = alerts.filter');
+    expect(idx, 'total de agotados').toBeGreaterThan(-1);
+    expect(render).toMatch(/sin stock\$\{alerts\.length > sinStock/);
+  });
+
+  it('ordena por urgencia y, a igual urgencia, por rotación', () => {
+    expect(render).toMatch(/\(a\.monthsLeft - b\.monthsLeft\) \|\| \(b\.sold - a\.sold\)/);
+  });
+
+  it('"Reponer" es un botón que abre la compra, no un texto muerto', () => {
+    expect(render).toMatch(/class="stock-alert-btn" onclick="App\.abrirCompra\(\$\{a\.id\}\)"/);
+    expect(css).toContain('.stock-alert-btn');
+  });
+
+  it('la rotación se mide en unidades, no en cantidad de ventas', () => {
+    const idx = render.indexOf('const salesByPerfume = {}');
+    const cuerpo = render.slice(idx, idx + 600);
+    expect(cuerpo).toMatch(/parseInt\(v\.cantidad, 10\) \|\| 1/);
+  });
+
+  it('el nombre y el detalle van en líneas separadas', () => {
+    // Compartiendo línea, el texto se cortaba con puntos suspensivos
+    expect(render).toMatch(/class="stock-alert-nombre"/);
+    expect(render).toMatch(/class="stock-alert-detalle"/);
+    expect(css).toContain('.stock-alert-detalle');
+  });
+});
+
+describe('Devolver y deshacer no pierde deuda', () => {
+  const db = read('src/db.js');
+
+  it('al deshacer una devolución se recrean las cuotas canceladas', () => {
+    // Sin esto la venta volvía a contar para la ganancia pero el cliente
+    // quedaba debiendo sin que la app lo mostrara
+    const idx = db.indexOf('async revertirDevolucion');
+    const cuerpo = db.slice(idx, idx + 2000);
+    expect(cuerpo).toMatch(/v\.formaPago === 'cuotas' && v\.numCuotas > 1/);
+    expect(cuerpo).toMatch(/numeros\.has\(i\)\) continue/);
+    expect(cuerpo).toMatch(/this\.add\('cuotas'/);
+    // Las ya cobradas no se tocan
+    expect(cuerpo).toMatch(/existentes\.map\(c => c\.numero\)/);
+  });
+});
+
+describe('Fuzz de integridad', () => {
+  const fuzz = read('tests/fuzz.spec.js');
+
+  it('usa semilla fija para que una falla se pueda reproducir', () => {
+    expect(fuzz).toMatch(/const rng = \(semilla\)/);
+    expect(fuzz).toMatch(/semilla = 1000 \+ corrida \* 7919/);
+    // Imprime la secuencia que llevó a la falla
+    expect(fuzz).toMatch(/historia: historia\.slice\(-6\)/);
+  });
+
+  it('cubre las invariantes de plata y de stock', () => {
+    for (const regla of [
+      'stock negativo',
+      'pagada de más',
+      'cuotas huérfanas',
+      'sigue contando como activa',
+      'seña .* mayor al total',
+      'entregada sin venta asociada',
+    ]) {
+      expect(fuzz, regla).toMatch(new RegExp(regla));
+    }
+  });
+
+  it('distingue un rechazo legítimo de una excepción inesperada', () => {
+    // Que la app rechace un sobrepago está bien; un TypeError no
+    expect(fuzz).toMatch(/SOBREPAGO\|Sobrepago\|YA_DEVUELTA/);
+    expect(fuzz).toMatch(/excepción inesperada/);
   });
 });

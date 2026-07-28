@@ -139,40 +139,80 @@
 .stock-badge.low { background: var(--warn); color: #1a1a2e; }
 .stock-badge.zero { background: var(--red); color: #fff; }
 
-.stock-alert-card {
-  background: rgba(224,176,96,0.08);
-  border: 1px solid rgba(224,176,96,0.15);
-  border-radius: 14px;
-  padding: 12px 14px;
-  margin-bottom: 6px;
+/* Encabezado: el total pesa más que la lista completa */
+.stock-alert-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
+  padding: 0 2px 8px;
 }
-.stock-alert-card .ms { font-size: 18px; color: var(--warn); }
-.stock-alert-card.critical { background: rgba(224,112,112,0.08); border-color: rgba(224,112,112,0.15); }
-.stock-alert-card.critical .ms { color: var(--red); }
-.stock-alert-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.stock-alert-head .ms { font-size: 18px; color: var(--gold); }
+.stock-alert-titulo {
+  font: 600 13px 'DM Sans';
+  color: var(--text);
   flex: 1;
   min-width: 0;
 }
-.stock-alert-text {
-  font: 500 12px 'DM Sans';
-  color: var(--text2);
+.stock-alert-toggle,
+.stock-alert-mas {
+  background: none;
+  border: none;
+  color: var(--gold2);
+  font: 600 12px 'DM Sans';
+  cursor: pointer;
+  padding: 4px 2px;
+}
+.stock-alert-mas {
+  width: 100%;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 9px;
+  margin-top: 2px;
+}
+
+.stock-alert-card {
+  background: rgba(224,176,96,0.08);
+  border: 1px solid rgba(224,176,96,0.15);
+  border-radius: 12px;
+  padding: 9px 12px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.stock-alert-card > .ms { font-size: 17px; color: var(--warn); flex-shrink: 0; }
+.stock-alert-card.critical { background: rgba(224,112,112,0.08); border-color: rgba(224,112,112,0.15); }
+.stock-alert-card.critical > .ms { color: var(--red); }
+
+.stock-alert-left { flex: 1; min-width: 0; }
+.stock-alert-nombre {
+  font: 600 13px 'DM Sans';
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.stock-alert-text strong { color: var(--text); font-weight: 600; }
-.stock-alert-velocity {
-  font: 600 11px 'DM Sans';
+/* En su propia línea: antes el nombre y el detalle competían por el ancho
+   y el texto terminaba cortado con puntos suspensivos */
+.stock-alert-detalle {
+  font: 500 11px 'DM Sans';
   color: var(--text3);
-  white-space: nowrap;
+  margin-top: 1px;
 }
+
+/* Antes era un texto muerto que decía "Reponer" sin hacer nada */
+.stock-alert-btn {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: 9px;
+  border: 1px solid rgba(201,168,76,0.3);
+  background: rgba(201,168,76,0.12);
+  color: var(--gold2);
+  font: 600 12px 'DM Sans';
+  cursor: pointer;
+}
+.stock-alert-btn:active { opacity: 0.7; }
+
 #stock-alerts { margin-bottom: 12px; }
 
 .stock-info {

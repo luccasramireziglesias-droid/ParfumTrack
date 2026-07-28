@@ -184,4 +184,44 @@ test.describe('F3 — devoluciones', () => {
     const despues = await page.evaluate(() => App._agregarClientes().find(c => c.nombre === 'Ana'));
     expect(despues).toBeUndefined();
   });
+
+  test('deshacer devuelve también la deuda pendiente', async ({ page }) => {
+    // Lo encontró el fuzzer: la venta volvía a contar para la ganancia pero
+    // las cuotas canceladas no se recreaban, así que el cliente quedaba
+    // debiendo y la app mostraba 0 por cobrar.
+    const ventaId = await page.evaluate(async () => {
+      const p = App.perfumes[0];
+      const vid = await DB.addVenta({
+        perfume: p.nombre, perfumeId: p.id, cantidad: 1,
+        precioVenta: 3000, precioCompra: 500, precioUnitario: 3000,
+        cliente: 'Ana', vendedor: 'Yo', formaPago: 'cuotas', numCuotas: 3, fecha: Date.now(),
+      });
+      await App.loadData();
+      return vid;
+    });
+
+    const deuda = () => page.evaluate(async (id) => {
+      const cs = (await DB.getAll('cuotas')).filter(c => c.ventaId === id);
+      return { cuotas: cs.length, debe: cs.filter(c => !c.pagado).reduce((s, c) => s + (c.monto - (c.montoPagado || 0)), 0) };
+    }, ventaId);
+
+    // Al vender: 3 cuotas de 1000, la primera cobrada -> debe 2000
+    expect(await deuda()).toEqual({ cuotas: 3, debe: 2000 });
+
+    await page.evaluate(async (id) => {
+      await DB.devolverVenta(id, { motivo: 'Falló', reponerStock: true });
+      await App.loadData();
+    }, ventaId);
+    // Devuelta: se cancela lo impago y queda solo lo cobrado
+    expect(await deuda()).toEqual({ cuotas: 1, debe: 0 });
+
+    await page.evaluate(async (id) => {
+      await DB.revertirDevolucion(id);
+      await App.loadData();
+    }, ventaId);
+    // Y al deshacer tiene que volver la deuda, no solo la venta
+    expect(await deuda()).toEqual({ cuotas: 3, debe: 2000 });
+    const v = await page.evaluate((id) => App.ventas.find(x => x.id === id), ventaId);
+    expect(v.devuelta).toBeUndefined();
+  });
 });

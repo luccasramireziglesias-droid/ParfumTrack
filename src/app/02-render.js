@@ -426,6 +426,16 @@
     targets.forEach(el => this._stockPhotoObserver.observe(el));
   },
 
+  // Cuántas alertas se ven sin desplegar. Con 14 perfumes sin stock, una
+  // tarjeta por cada uno tapaba el inventario entero.
+  _ALERTAS_VISIBLES: 3,
+  _alertasExpandidas: false,
+
+  toggleAlertasStock() {
+    this._alertasExpandidas = !this._alertasExpandidas;
+    this._renderStockAlerts();
+  },
+
   _renderStockAlerts() {
     const container = document.getElementById('stock-alerts');
     if (!container) return;
@@ -437,7 +447,9 @@
     const salesByPerfume = {};
     salesLast30.forEach(v => {
       const name = (v.perfume || '').trim();
-      if (name) salesByPerfume[name] = (salesByPerfume[name] || 0) + 1;
+      // Por unidades y no por ventas: vender 3 de una en una sola operación
+      // consume el mismo stock que tres ventas sueltas
+      if (name) salesByPerfume[name] = (salesByPerfume[name] || 0) + Math.max(1, parseInt(v.cantidad, 10) || 1);
     });
 
     const alerts = [];
@@ -446,33 +458,62 @@
       if (sold <= 0) return;
       const monthsLeft = p.stock > 0 ? p.stock / sold : 0;
       if (p.stock === 0) {
-        alerts.push({ perfume: p.nombre, stock: 0, sold, monthsLeft: 0, critical: true });
+        alerts.push({ id: p.id, perfume: p.nombre, stock: 0, sold, monthsLeft: 0, critical: true });
       } else if (monthsLeft <= 1) {
-        alerts.push({ perfume: p.nombre, stock: p.stock, sold, monthsLeft, critical: false });
+        alerts.push({ id: p.id, perfume: p.nombre, stock: p.stock, sold, monthsLeft, critical: false });
       }
     });
 
     if (alerts.length === 0) {
       container.classList.add('hidden');
+      container.innerHTML = '';
+      this._alertasExpandidas = false;
       return;
     }
 
-    alerts.sort((a, b) => a.monthsLeft - b.monthsLeft);
+    // Lo más urgente arriba; a igual urgencia, lo que más rota
+    alerts.sort((a, b) => (a.monthsLeft - b.monthsLeft) || (b.sold - a.sold));
     container.classList.remove('hidden');
-    container.innerHTML = alerts.map(a => {
+
+    const sinStock = alerts.filter(a => a.critical).length;
+    const mostrar = this._alertasExpandidas ? alerts : alerts.slice(0, this._ALERTAS_VISIBLES);
+    const ocultas = alerts.length - mostrar.length;
+
+    const fila = (a) => {
       const cls = a.critical ? 'critical' : '';
       const icon = a.critical ? 'error' : 'trending_down';
-      const msg = a.critical
-        ? `<strong>${this.esc(a.perfume)}</strong> sin stock — vendés ${a.sold}/mes`
-        : `<strong>${this.esc(a.perfume)}</strong> quedan ${a.stock} — vendés ${a.sold}/mes`;
+      const detalle = a.critical
+        ? `sin stock · vendés ${a.sold}/mes`
+        : `quedan ${a.stock} · vendés ${a.sold}/mes`;
       return `<div class="stock-alert-card ${cls}">
+        <span class="ms" aria-hidden="true">${icon}</span>
         <div class="stock-alert-left">
-          <span class="ms">${icon}</span>
-          <span class="stock-alert-text">${msg}</span>
+          <div class="stock-alert-nombre">${this.esc(a.perfume)}</div>
+          <div class="stock-alert-detalle">${detalle}</div>
         </div>
-        <span class="stock-alert-velocity">${a.critical ? 'Reponer' : `~${Math.round(a.monthsLeft * 30)}d`}</span>
+        <button class="stock-alert-btn" onclick="App.abrirCompra(${a.id})" aria-label="Reponer ${this.esc(a.perfume)}">
+          ${a.critical ? 'Reponer' : `~${Math.round(a.monthsLeft * 30)}d`}
+        </button>
       </div>`;
-    }).join('');
+    };
+
+    // Un encabezado con el total: el número importa más que la lista entera
+    const titulo = sinStock > 0
+      ? `${sinStock} sin stock${alerts.length > sinStock ? ` · ${alerts.length - sinStock} por agotarse` : ''}`
+      : `${alerts.length} por agotarse`;
+
+    container.innerHTML = `
+      <div class="stock-alert-head">
+        <span class="ms" aria-hidden="true">inventory</span>
+        <span class="stock-alert-titulo">${titulo}</span>
+        ${alerts.length > this._ALERTAS_VISIBLES
+          ? `<button class="stock-alert-toggle" onclick="App.toggleAlertasStock()">${this._alertasExpandidas ? 'Ver menos' : 'Ver todos'}</button>`
+          : ''}
+      </div>
+      ${mostrar.map(fila).join('')}
+      ${ocultas > 0
+        ? `<button class="stock-alert-mas" onclick="App.toggleAlertasStock()">y ${ocultas} más para reponer</button>`
+        : ''}`;
   },
 
   renderCuotas() {
