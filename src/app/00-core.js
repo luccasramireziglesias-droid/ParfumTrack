@@ -21,7 +21,27 @@
     } catch (e) {
       console.error('Fallo al iniciar la app:', e);
       this._mostrarErrorArranque(e);
+    } finally {
+      // En el finally y no en el try: si el arranque falla, el splash taparía
+      // la pantalla de error y el usuario se quedaría mirando el logo.
+      this._ocultarSplash();
     }
+  },
+
+  // Un mínimo en pantalla para que no sea un flash cuando la base abre rápido
+  _SPLASH_MINIMO_MS: 420,
+  _splashDesde: Date.now(),
+
+  _ocultarSplash() {
+    const el = document.getElementById('splash');
+    if (!el || el.classList.contains('oculto')) return;
+    const transcurrido = Date.now() - this._splashDesde;
+    const esperar = Math.max(0, this._SPLASH_MINIMO_MS - transcurrido);
+    setTimeout(() => {
+      el.classList.add('oculto');
+      // Sacarlo del DOM al terminar el fundido: si queda, intercepta toques
+      setTimeout(() => el.remove(), 400);
+    }, esperar);
   },
 
   // Pide al navegador que NO borre los datos bajo presión de almacenamiento.
