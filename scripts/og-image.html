@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<!--
+  Fuente de la imagen OG (1200x630). Se rasteriza con:
+      node scripts/build-og.js
+  Se renderiza en Chromium en vez de rasterizar el SVG a mano porque el
+  rasterizador anterior perdía las fuentes y superponía las dos líneas del
+  titular.
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="/fonts/fonts.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+    position: relative;
+    font-family: 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Resplandor ambiental, igual que el hero de la app */
+  .glow {
+    position: absolute;
+    width: 900px; height: 900px;
+    left: 150px; top: -135px;
+    background: radial-gradient(circle, rgba(201,168,76,0.13) 0%, rgba(201,168,76,0) 65%);
+  }
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(201,168,76,0.07);
+  }
+  .orb-1 { width: 160px; height: 160px; right: 70px; top: 0; }
+  .orb-2 { width: 120px; height: 120px; right: 90px; top: 20px; background: rgba(201,168,76,0.05); }
+
+  .content {
+    position: absolute;
+    left: 96px; top: 104px;
+    width: 1010px;
+  }
+
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 92px;
+    line-height: 1.04;
+    letter-spacing: -1.5px;
+    color: #f0ece4;
+    margin-bottom: 26px;
+  }
+  h1 .gold {
+    background: linear-gradient(135deg, #f5dfa0 0%, #c9a84c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .sub {
+    font-size: 25px;
+    font-weight: 400;
+    color: #b8b5d0;
+    letter-spacing: -0.2px;
+    margin-bottom: 40px;
+  }
+
+  .badges { display: flex; gap: 14px; }
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 22px;
+    border-radius: 999px;
+    background: rgba(27,27,48,0.85);
+    border: 1px solid rgba(201,168,76,0.22);
+    font-size: 18px;
+    font-weight: 500;
+    color: #f0ece4;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #70c9a0; }
+
+  /* Marca abajo a la izquierda, alineada con el resto del contenido */
+  .brand {
+    position: absolute;
+    left: 96px; bottom: 60px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .drop {
+    width: 46px; height: 46px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    background: linear-gradient(135deg, #f5dfa0 0%, #c9a84c 100%);
+  }
+  .brand-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 32px;
+    color: #e8c97e;
+    line-height: 1.15;
+  }
+  .brand-sub { font-size: 15px; font-weight: 500; color: #9a97c0; }
+
+  .cta {
+    position: absolute;
+    right: 96px; bottom: 60px;
+    padding: 18px 34px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #f5dfa0 0%, #c9a84c 100%);
+    color: #1a1a2e;
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+
+  .edge {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #c9a84c, #e8c97e);
+    opacity: 0.55;
+  }
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="content">
+    <h1>Dejá de adivinar<br><span class="gold">cuánto ganás</span></h1>
+    <div class="sub">Registrá tus ventas en segundos · Controlá tu stock · Sabé tu ganancia real</div>
+    <div class="badges">
+      <div class="badge"><span class="dot"></span>Sin descarga</div>
+      <div class="badge"><span class="dot"></span>100% offline</div>
+      <div class="badge"><span class="dot"></span>Gratis para siempre</div>
+    </div>
+  </div>
+
+  <div class="brand">
+    <div class="drop"></div>
+    <div>
+      <div class="brand-name">Parfum Track</div>
+      <div class="brand-sub">Para revendedores de LATAM</div>
+    </div>
+  </div>
+
+  <div class="cta">Empezar gratis →</div>
+  <div class="edge"></div>
+</body>
+</html>

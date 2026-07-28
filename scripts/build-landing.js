@@ -58,13 +58,20 @@ try {
   html += '<meta name="description" content="App gratis para revendedores de perfumes en Argentina, Uruguay, Colombia y México. Controlá ventas, cuotas, stock y ganancia real desde el celular. Sin descargar, funciona offline.">\n';
   html += '<meta property="og:title" content="Parfum Track — Dejá de adivinar cuánto ganás">\n';
   html += '<meta property="og:description" content="Parfum Track calcula tu ganancia real, avisa de cobros pendientes y organiza tu negocio de perfumes. Empezá gratis, sin tarjeta, sin compromiso.">\n';
-  html += '<meta property="og:image" content="https://parfumtrack.luccasramireziglesias.workers.dev/icon-512.png">\n';
+  // La placa 1200x630, no el ícono cuadrado (que se veía recortado al
+  // compartir el link). Ancho/alto declarados para que el scraper no tenga
+  // que bajar la imagen antes de saber que entra como preview grande.
+  html += '<meta property="og:image" content="https://parfumtrack.luccasramireziglesias.workers.dev/og-image.jpg">\n';
+  html += '<meta property="og:image:type" content="image/jpeg">\n';
+  html += '<meta property="og:image:width" content="1200">\n';
+  html += '<meta property="og:image:height" content="630">\n';
+  html += '<meta property="og:image:alt" content="Parfum Track — Dejá de adivinar cuánto ganás">\n';
   html += '<meta property="og:type" content="website">\n';
   html += '<meta property="og:url" content="https://parfumtrack.luccasramireziglesias.workers.dev/landing.html">\n';
   html += '<meta name="twitter:card" content="summary_large_image">\n';
   html += '<meta name="twitter:title" content="Parfum Track — Dejá de adivinar cuánto ganás">\n';
   html += '<meta name="twitter:description" content="App para revendedores de perfumes. Ventas, cuotas, stock y cobros en tu celular. Gratis para siempre.">\n';
-  html += '<meta name="twitter:image" content="https://parfumtrack.luccasramireziglesias.workers.dev/icon-512.png">\n';
+  html += '<meta name="twitter:image" content="https://parfumtrack.luccasramireziglesias.workers.dev/og-image.jpg">\n';
   html += '<link rel="canonical" href="https://parfumtrack.luccasramireziglesias.workers.dev/landing.html">\n';
   html += '<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">\n';
   html += '<link rel="icon" type="image/svg+xml" href="/favicon.svg">\n';

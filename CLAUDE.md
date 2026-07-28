@@ -163,7 +163,6 @@ Reportes en `standalone/auditoria-*.html` (actualizado: `auditoria-360-v4.html`)
 ## PENDIENTES / ROADMAP
 
 ### 7 días
-- Imagen OG profesional 1200x630 para sharing en redes (LP-M02)
 - 12 ads Meta/IG (plan detallado existe en plans/)
 - Testimonios reales con foto/nombre
 
@@ -182,9 +181,11 @@ Reportes en `standalone/auditoria-*.html` (actualizado: `auditoria-360-v4.html`)
 - F1-F5 completas (ver tabla arriba) — v1.8.0
 - Fix: recarga espuria del Service Worker en la primera visita de cada usuario
 - Fix: `/version` devolvía 1.1.0 fijo, más viejo que la app — el chequeo de actualizaciones nunca disparaba
+- Imagen OG 1200x630: se regenera con `npm run build:og` (Chromium rasteriza `scripts/og-image.html`). El PNG anterior tenía el titular superpuesto y la landing ni siquiera lo usaba
+- E2E incorporados a CI: el deploy ahora espera `[test, e2e]`
 - Suite E2E reparada (estaba rota por el modal de consentimiento, una espera de arranque que se cumplía siempre y la recarga del SW): 41/41 en 45s
 - Refactor monolito `index.html` → módulos en `src/` con build script (`scripts/build.js`) — COMPLETADO
-- Tests automatizados: 505 tests Vitest (CI) + 41 E2E Playwright (`npx playwright test`, no corren en CI)
+- Tests automatizados: 514 Vitest + 41 E2E Playwright — **los dos corren en CI** y frenan el deploy
 - DRY: `_renderVentaCard()` (dashboard + lista de ventas) y `_processPhoto()` (foto de stock + alta de perfume) compartidos
 - Fullscreen demo modal: expandir video a 100vh/100vw, ocultar controles, mantener evento stopPropagation
 - Auditoría 360° completa: 81/100 score, 30 findings analizados, remediation roadmap incluido

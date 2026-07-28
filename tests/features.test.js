@@ -2,7 +2,7 @@
 // diseño concreta: si alguien la revierte, CI falla.
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 
 const root = path.join(import.meta.dirname, '..');
@@ -496,5 +496,77 @@ describe('Layout del form de venta', () => {
     expect(css.slice(hint, hint + 250)).toMatch(/flex-basis: 100%/);
     // Sin perfume elegido el hint está vacío: no debe ocupar lugar
     expect(css).toMatch(/\.cant-hint:empty \{ display: none; \}/);
+  });
+});
+
+describe('Preview al compartir el link (Open Graph)', () => {
+  const app = read('index.html');
+  const landing = read('landing.html');
+  const buildLanding = read('scripts/build-landing.js');
+  const BASE = 'https://parfumtrack.luccasramireziglesias.workers.dev';
+
+  it('la placa 1200x630 existe y pesa poco (WhatsApp corta el preview grande)', () => {
+    const bytes = readFileSync(path.join(root, 'og-image.jpg'));
+    expect(bytes.length).toBeLessThan(300 * 1024);
+    // Cabecera JPEG + dimensiones del marker SOF0/SOF2
+    expect(bytes[0]).toBe(0xFF);
+    expect(bytes[1]).toBe(0xD8);
+    let i = 2, alto = 0, ancho = 0;
+    while (i < bytes.length - 9) {
+      if (bytes[i] !== 0xFF) { i++; continue; }
+      const marker = bytes[i + 1];
+      if (marker >= 0xC0 && marker <= 0xCF && ![0xC4, 0xC8, 0xCC].includes(marker)) {
+        alto = bytes.readUInt16BE(i + 5);
+        ancho = bytes.readUInt16BE(i + 7);
+        break;
+      }
+      i += 2 + bytes.readUInt16BE(i + 2);
+    }
+    expect({ ancho, alto }).toEqual({ ancho: 1200, alto: 630 });
+  });
+
+  it('la landing y la app apuntan a la placa, no al ícono cuadrado', () => {
+    for (const [nombre, html] of [['app', app], ['landing', landing]]) {
+      expect(html, nombre).toContain(`<meta property="og:image" content="${BASE}/og-image.jpg">`);
+      expect(html, nombre).toContain(`<meta name="twitter:image" content="${BASE}/og-image.jpg">`);
+      expect(html, nombre).toContain('<meta name="twitter:card" content="summary_large_image">');
+      // El ícono cuadrado se recortaba al compartir
+      expect(html, nombre).not.toMatch(/og:image" content="[^"]*icon-512/);
+    }
+  });
+
+  it('declara tamaño y tipo para que el scraper no tenga que bajar la imagen', () => {
+    for (const [nombre, html] of [['app', app], ['landing', landing]]) {
+      expect(html, nombre).toContain('<meta property="og:image:width" content="1200">');
+      expect(html, nombre).toContain('<meta property="og:image:height" content="630">');
+      expect(html, nombre).toContain('<meta property="og:image:type" content="image/jpeg">');
+      expect(html, nombre).toMatch(/og:image:alt" content="[^"]+"/);
+    }
+  });
+
+  it('el head de la landing se arma en build-landing.js (no hay template huérfano)', () => {
+    expect(buildLanding).toContain('og-image.jpg');
+    expect(
+      existsSync(path.join(root, 'src/landing/landing.template.html')),
+      'landing.template.html ya no se usa: build-landing.js arma el head'
+    ).toBe(false);
+  });
+});
+
+describe('E2E en CI', () => {
+  const wf = read('.github/workflows/deploy.yml');
+  const pw = read('playwright.config.js');
+
+  it('el deploy espera a los E2E, no solo a los unitarios', () => {
+    expect(wf).toMatch(/needs: \[test, e2e\]/);
+    expect(wf).toMatch(/npx playwright test/);
+    expect(wf).toMatch(/playwright install --with-deps chromium/);
+  });
+
+  it('el binario de Chromium no está clavado al entorno de desarrollo', () => {
+    // Hardcodearlo hacía fallar cualquier corrida fuera de este contenedor
+    expect(pw).toMatch(/PLAYWRIGHT_CHROMIUM_PATH/);
+    expect(pw).toMatch(/fs\.existsSync\(CHROME_DEV\)/);
+    expect(pw).toMatch(/executablePath \? \{ executablePath \} : \{\}/);
   });
 });
