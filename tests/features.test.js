@@ -844,3 +844,42 @@ describe('Fuzz de integridad', () => {
     expect(fuzz).toMatch(/excepción inesperada/);
   });
 });
+
+describe('Sondas de riesgo de datos', () => {
+  const r = read('tests/riesgos.spec.js');
+
+  it('verifica que el backup vuelva idéntico campo por campo', () => {
+    expect(r).toMatch(/el backup vuelve exactamente igual/);
+    expect(r).toMatch(/JSON\.stringify\(a\[k\]\) !== JSON\.stringify\(b\[k\]\)/);
+    // Incluye los stores que casi nunca se prueban
+    expect(r).toMatch(/'gastos', 'caja'/);
+  });
+
+  it('prueba que un nombre con HTML no se ejecute', () => {
+    expect(r).toMatch(/<script>window\.__hackeado/);
+    expect(r).toMatch(/onerror=/);
+    expect(r).toMatch(/scriptsInyectados/);
+  });
+
+  it('comprueba que no aparezca NaN ni Infinity en los totales', () => {
+    expect(r).toMatch(/NaN\|undefined\|Infinity/);
+  });
+
+  it('cubre la app con la encriptación activa', () => {
+    expect(r).toMatch(/pt_license_code/);
+    // Que esté cifrado de verdad en disco, no solo que la app no falle
+    expect(r).toMatch(/crudo\[0\]\._encrypted/);
+    expect(r).toMatch(/el nombre del cliente quedó en claro en disco/);
+    // El bug histórico de duplicados al cifrar
+    expect(r).toMatch(/se duplicaron registros al cifrar/);
+  });
+
+  it('cubre la migración de una base vieja', () => {
+    expect(r).toMatch(/indexedDB\.open\('ParfumTrackDB', 3\)/);
+    expect(r).toMatch(/toBeGreaterThanOrEqual\(5\)/);
+    // La base se prepara desde una URL que no levanta la app: si no,
+    // deleteDatabase queda bloqueado por la conexión abierta
+    expect(r).toMatch(/manifest\.json/);
+    expect(r).toMatch(/onblocked/);
+  });
+});
