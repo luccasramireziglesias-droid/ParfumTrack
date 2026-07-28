@@ -570,3 +570,50 @@ describe('E2E en CI', () => {
     expect(pw).toMatch(/executablePath \? \{ executablePath \} : \{\}/);
   });
 });
+
+describe('Pantalla de carga', () => {
+  const tpl = read('src/index.template.html');
+  const core = read('src/app/00-core.js');
+  const css = read('src/styles/25-splash.css');
+  const index = read('index.html');
+
+  it('está en el HTML, no la inyecta el JS (se pinta antes de que corra nada)', () => {
+    expect(tpl).toContain('id="splash"');
+    expect(index).toContain('id="splash"');
+    // Primero en el body, antes del lock de PIN
+    expect(index.indexOf('id="splash"')).toBeLessThan(index.indexOf('id="lock-screen"'));
+    expect(tpl).toMatch(/role="status"/);
+  });
+
+  it('se oculta en el finally: si init falla, no tapa la pantalla de error', () => {
+    const idx = core.indexOf('async init()');
+    const cuerpo = core.slice(idx, idx + 500);
+    expect(cuerpo).toMatch(/finally \{[\s\S]{0,200}_ocultarSplash\(\)/);
+  });
+
+  it('se saca del DOM al terminar (si queda, intercepta los toques)', () => {
+    const idx = core.indexOf('_ocultarSplash()');
+    const cuerpo = core.slice(idx, idx + 600);
+    expect(cuerpo).toMatch(/el\.remove\(\)/);
+    expect(cuerpo).toMatch(/_SPLASH_MINIMO_MS/);
+  });
+
+  it('tiene una salida de emergencia por CSS si el JS nunca corre', () => {
+    expect(css).toMatch(/animation: splash-rescate/);
+    expect(css).toMatch(/@keyframes splash-rescate[\s\S]{0,120}visibility: hidden/);
+  });
+
+  it('queda por encima del lock de PIN y del consentimiento', () => {
+    // lock-screen usa 9999 y el consentimiento 9997
+    const z = Number((css.match(/#splash \{[\s\S]*?z-index: (\d+)/) || [])[1]);
+    expect(z).toBeGreaterThan(9999);
+  });
+
+  it('el nombre no depende de que haya cargado la webfont', () => {
+    expect(css).toMatch(/font-family: 'Cormorant Garamond', Georgia, serif/);
+  });
+
+  it('respeta prefers-reduced-motion', () => {
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)/);
+  });
+});
