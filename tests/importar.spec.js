@@ -36,9 +36,57 @@ function crearPlanilla() {
   return ruta;
 }
 
-let planilla;
-test.beforeAll(() => { planilla = crearPlanilla(); });
-test.afterAll(() => { try { fs.unlinkSync(planilla); } catch { /* ya no está */ } });
+// Planilla real de un revendedor: título fusionado arriba, columna de
+// cuotas "1/3", fechas en mes/día, filas prenumeradas de relleno y totales
+function crearPlanillaConTitulo() {
+  const f = [
+    ['VIP PARFUMS JUNIO', '', '', '', '', '', '', '', '', '', '', ''],
+    ['Nº VENTAS', 'FECHA', 'PERFUME', 'PRECIO VENTA', 'CUOTAS', 'DEBE DE CUOTA',
+     'PAGO', 'COMPRA', 'GANANCIA', 'PROVEEDOR', 'VENDEDOR', 'CLIENTE'],
+    [1, '7/2/2026', 'BOSS PARFUM', 5890, '1/3', 3890, 2000, 4200, 1690, 'EMMA', 'LUCCAS', 'SASHA'],
+    [4, '7/8/2026', 'SUAVAGE EDT', 5300, 1, '-', 5300, 4690, 610, 'EMMA', 'NACHO', ''],
+    [14, '7/20/2026', 'YARA ROSA', 2900, '1/2', '-', 1500, 1800, 1100, 'EMMA', 'LUCCAS', 'MARIA'],
+  ];
+  for (let n = 15; n <= 30; n++) f.push([n, '', '', '', '', '-', '', '', '-', 'EMMA', '', '']);
+  f.push(['', '', '', 14090, '', 3890, 8800, 10690, 3400, '', '', '']);   // totales
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(f), 'JUNIO');
+  const ruta = path.join(os.tmpdir(), `pt-vip-${process.pid}.xlsx`);
+  XLSX.writeFile(wb, ruta);
+  return ruta;
+}
+
+// El numerador de la columna CUOTAS es cuántas YA pagó: "1/2" son dos
+// cuotas con una paga, "0/2" ninguna, "2/2" saldada y "1/1" pago directo.
+function crearPlanillaCuotas() {
+  const f = [
+    ['VIP PARFUMS TEST', '', '', '', '', '', ''],
+    ['FECHA', 'PERFUME', 'PRECIO VENTA', 'CUOTAS', 'PAGO', 'COMPRA', 'CLIENTE'],
+    ['7/2/2026', 'DIRECTO 1-1', 3000, '1/1', '', 1000, 'ANA'],
+    ['7/3/2026', 'DIRECTO SUELTO', 2000, 1, '', 800, 'BRUNO'],
+    ['7/4/2026', 'CERO DE DOS', 4000, '0/2', '', 1500, 'CARO'],
+    ['7/5/2026', 'UNA DE DOS', 2900, '1/2', '', 1800, 'DANI'],
+    ['7/6/2026', 'DOS DE DOS', 2600, '2/2', '', 1600, 'ELI'],
+    ['7/7/2026', 'UNA DE TRES PAGO', 5890, '1/3', 2000, 4200, 'FEDE'],
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(f), 'CASOS');
+  const ruta = path.join(os.tmpdir(), `pt-cuotas-${process.pid}.xlsx`);
+  XLSX.writeFile(wb, ruta);
+  return ruta;
+}
+
+let planilla, planillaTitulo, planillaCuotas;
+test.beforeAll(() => {
+  planilla = crearPlanilla();
+  planillaTitulo = crearPlanillaConTitulo();
+  planillaCuotas = crearPlanillaCuotas();
+});
+test.afterAll(() => {
+  for (const f of [planilla, planillaTitulo, planillaCuotas]) {
+    try { fs.unlinkSync(f); } catch { /* ya no está */ }
+  }
+});
 
 test.describe('Importar desde Excel', () => {
   test.beforeEach(async ({ page }) => {
@@ -60,8 +108,11 @@ test.describe('Importar desde Excel', () => {
     await page.waitForFunction(() => localStorage.getItem('pt_demo_seeded') === '1', { timeout: 20000 });
     await page.waitForTimeout(1200);
     await page.evaluate(async () => {
+      // También las cuotas: si no, las del demo suman a "Por cobrar" y el
+      // total deja de ser el de lo importado
       for (const p of await DB.getAll('perfumes')) await DB.delete('perfumes', p.id);
       for (const v of await DB.getAll('ventas')) await DB.delete('ventas', v.id);
+      for (const c of await DB.getAll('cuotas')) await DB.delete('cuotas', c.id);
       await App.loadData();
     });
   });
@@ -84,7 +135,7 @@ test.describe('Importar desde Excel', () => {
       precioVenta: 'PRECIO VENTA',
     });
     // La fila totalmente vacía no cuenta
-    await expect(page.locator('#imp-filas')).toHaveText('4 filas · 4 columnas');
+    await expect(page.locator('#imp-filas')).toHaveText('4 filas con datos · 4 columnas');
   });
 
   test('importa perfumes entendiendo los montos con formato de acá', async ({ page }) => {
@@ -168,5 +219,135 @@ test.describe('Importar desde Excel', () => {
     await page.selectOption('#imp-map-nombre', '');
     await expect(page.locator('#imp-confirmar')).toBeDisabled();
     await expect(page.locator('#imp-preview')).toContainText('Ninguna fila tiene los datos obligatorios');
+  });
+
+  test('encuentra los títulos aunque la primera fila sea el nombre del negocio', async ({ page }) => {
+    await page.setInputFiles('#import-excel-input', planillaTitulo);
+    await page.waitForSelector('#modal-importar:not(.hidden)', { timeout: 20000 });
+    await page.click('#imp-destino .seg-option[data-destino="ventas"]');
+    await page.waitForTimeout(200);
+
+    await expect(page.locator('#imp-filas')).toContainText('títulos en la fila 2');
+    const mapeo = await page.evaluate(() => {
+      const r = {};
+      document.querySelectorAll('#imp-mapeo select').forEach(s => {
+        r[s.id.replace('imp-map-', '')] = s.options[s.selectedIndex].text;
+      });
+      return r;
+    });
+    expect(mapeo.perfume).toBe('PERFUME');
+    expect(mapeo.precioVenta).toBe('PRECIO VENTA');
+    expect(mapeo.precioCompra).toBe('COMPRA');
+    expect(mapeo.cuotas).toBe('CUOTAS');
+    expect(mapeo.vendedor).toBe('VENDEDOR');
+    expect(mapeo.proveedor).toBe('PROVEEDOR');
+  });
+
+  test('las filas prenumeradas de relleno no cuentan como error', async ({ page }) => {
+    await page.setInputFiles('#import-excel-input', planillaTitulo);
+    await page.waitForSelector('#modal-importar:not(.hidden)', { timeout: 20000 });
+    await page.click('#imp-destino .seg-option[data-destino="ventas"]');
+    await page.waitForTimeout(200);
+    // 3 ventas + la de totales; las 16 vacías ni se mencionan
+    await expect(page.locator('#imp-resumen')).toHaveText('Se van a agregar 3 · 1 sin datos obligatorios se omiten');
+  });
+
+  test('respeta el formato de fecha de la planilla (mes/día)', async ({ page }) => {
+    await page.setInputFiles('#import-excel-input', planillaTitulo);
+    await page.waitForSelector('#modal-importar:not(.hidden)', { timeout: 20000 });
+    await page.click('#imp-destino .seg-option[data-destino="ventas"]');
+    await page.click('#imp-confirmar');
+    await page.click('#confirm-ok');
+    await page.waitForFunction(() => App.ventas.length === 3, { timeout: 15000 });
+
+    const f = await page.evaluate(() => {
+      const r = {};
+      App.ventas.forEach(v => { r[v.perfume] = new Date(v.fecha).toISOString().slice(0, 10); });
+      return r;
+    });
+    // "7/20/2026" es el 20 de julio. Leído como día/mes daba mes 20:
+    // un salto silencioso a agosto de 2027.
+    expect(f['YARA ROSA']).toBe('2026-07-20');
+    expect(f['BOSS PARFUM']).toBe('2026-07-02');
+    expect(f['SUAVAGE EDT']).toBe('2026-07-08');
+  });
+
+  test('la columna "1/3" arma la venta en cuotas con lo ya cobrado', async ({ page }) => {
+    await page.setInputFiles('#import-excel-input', planillaTitulo);
+    await page.waitForSelector('#modal-importar:not(.hidden)', { timeout: 20000 });
+    await page.click('#imp-destino .seg-option[data-destino="ventas"]');
+    await page.click('#imp-confirmar');
+    await page.click('#confirm-ok');
+    await page.waitForFunction(() => App.ventas.length === 3, { timeout: 15000 });
+
+    const boss = await page.evaluate(() => App.ventas.find(v => v.perfume === 'BOSS PARFUM'));
+    expect(boss.formaPago).toBe('cuotas');
+    expect(boss.numCuotas).toBe(3);
+    expect(boss.vendedor).toBe('LUCCAS');
+    expect(boss.proveedor).toBe('EMMA');
+
+    // Pagó 2000 de 5890 en 3 cuotas: cubre la primera y deja el resto a cuenta
+    const cuotas = await page.evaluate(async (id) =>
+      (await DB.getAll('cuotas')).filter(c => c.ventaId === id)
+        .sort((a, b) => a.numero - b.numero)
+        .map(c => ({ pagado: c.pagado, puesto: c.montoPagado })), boss.id);
+    expect(cuotas).toHaveLength(3);
+    expect(cuotas[0].pagado).toBe(true);
+    expect(cuotas.reduce((s, c) => s + c.puesto, 0)).toBe(2000);
+
+    // "1" sin barra es contado, no una cuota
+    const edt = await page.evaluate(() => App.ventas.find(v => v.perfume === 'SUAVAGE EDT'));
+    expect(edt.formaPago).toBe('contado');
+  });
+
+  test('el numerador de la columna cuotas es cuántas ya pagó', async ({ page }) => {
+    await page.setInputFiles('#import-excel-input', planillaCuotas);
+    await page.waitForSelector('#modal-importar:not(.hidden)', { timeout: 20000 });
+    await page.click('#imp-destino .seg-option[data-destino="ventas"]');
+    await page.click('#imp-confirmar');
+    await page.click('#confirm-ok');
+    await page.waitForFunction(() => App.ventas.length === 6, { timeout: 20000 });
+
+    const r = await page.evaluate(async () => {
+      const cs = await DB.getAll('cuotas');
+      const out = {};
+      for (const v of App.ventas) {
+        const mias = cs.filter(c => c.ventaId === v.id);
+        out[v.perfume] = {
+          forma: v.formaPago,
+          nc: v.numCuotas,
+          pagas: mias.filter(c => c.pagado).length,
+          deuda: mias.filter(c => !c.pagado).reduce((s, c) => s + (c.monto - (c.montoPagado || 0)), 0),
+        };
+      }
+      return out;
+    });
+
+    // "1/1" y "1" son pago directo, no un plan de una cuota
+    expect(r['DIRECTO 1-1']).toEqual({ forma: 'contado', nc: 1, pagas: 0, deuda: 0 });
+    expect(r['DIRECTO SUELTO']).toEqual({ forma: 'contado', nc: 1, pagas: 0, deuda: 0 });
+    // "0/2": dos cuotas, ninguna paga -> debe todo
+    expect(r['CERO DE DOS']).toEqual({ forma: 'cuotas', nc: 2, pagas: 0, deuda: 4000 });
+    // "1/2" sin columna de pago: se deduce media venta cobrada
+    expect(r['UNA DE DOS']).toEqual({ forma: 'cuotas', nc: 2, pagas: 1, deuda: 1450 });
+    // "2/2": las dos pagas, sin deuda
+    expect(r['DOS DE DOS']).toEqual({ forma: 'cuotas', nc: 2, pagas: 2, deuda: 0 });
+    // Con monto explícito manda el monto, que puede no ser una cuota exacta
+    expect(r['UNA DE TRES PAGO'].nc).toBe(3);
+    expect(r['UNA DE TRES PAGO'].deuda).toBe(3890);
+  });
+
+  test('la deuda importada aparece en el dashboard', async ({ page }) => {
+    await page.setInputFiles('#import-excel-input', planillaCuotas);
+    await page.waitForSelector('#modal-importar:not(.hidden)', { timeout: 20000 });
+    await page.click('#imp-destino .seg-option[data-destino="ventas"]');
+    await page.click('#imp-confirmar');
+    await page.click('#confirm-ok');
+    await page.waitForFunction(() => App.ventas.length === 6, { timeout: 20000 });
+    await page.evaluate(() => App.renderDashboard());
+
+    // 4000 + 1450 + 3890
+    await expect(page.locator('#stat-cobrar')).toHaveText('$9.340');
+    await expect(page.locator('#stat-deudas')).toHaveText('3 deudas activas');
   });
 });

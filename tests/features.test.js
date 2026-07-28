@@ -673,7 +673,8 @@ describe('Importar desde Excel', () => {
     // Son ventas ya ocurridas: el stock de la planilla ya las tiene restadas
     const idx = imp.indexOf('perfumeId: null');
     expect(idx, 'las ventas importadas van sin perfumeId').toBeGreaterThan(-1);
-    expect(imp.slice(Math.max(0, idx - 400), idx)).toMatch(/ya las tiene descontadas/);
+    // El porqué queda escrito arriba del alta, no en cualquier lado
+    expect(imp).toMatch(/ya las tiene descontadas/);
   });
 
   it('valida antes de tocar la base y tiene guarda anti doble-tap', () => {
@@ -684,5 +685,75 @@ describe('Importar desde Excel', () => {
 
   it('el botón queda deshabilitado si no hay nada válido para importar', () => {
     expect(imp).toMatch(/btn\.disabled = validos\.length === 0/);
+  });
+});
+
+describe('Importar Excel — planillas del mundo real', () => {
+  const imp = read('src/app/26-importar-excel.js');
+
+  it('busca la fila de títulos: la primera suele ser el nombre del negocio', () => {
+    const idx = imp.indexOf('_impDetectarCabecera(filas)');
+    expect(idx, 'detección de cabecera').toBeGreaterThan(-1);
+    const cuerpo = imp.slice(idx, idx + 900);
+    // Puntúa texto contra números: una fila de datos tiene números
+    expect(cuerpo).toMatch(/texto - numeros \* 2/);
+    expect(cuerpo).toMatch(/Math\.min\(filas\.length, 10\)/);
+    // Y la hoja se corta desde ahí, no desde la fila 0
+    expect(imp).toMatch(/filas\.slice\(iCab \+ 1\)/);
+  });
+
+  it('deduce si la planilla escribe día/mes o mes/día mirando la columna', () => {
+    // "7/20/2026" leído como día/mes daba mes 20: saltaba a 2027 en silencio
+    const idx = imp.indexOf('_impDetectarFormatoFecha(filas, idx)');
+    const cuerpo = imp.slice(idx, idx + 800);
+    expect(cuerpo).toMatch(/if \(\+m\[1\] > 12\) primero\+\+/);
+    expect(cuerpo).toMatch(/if \(\+m\[2\] > 12\) segundo\+\+/);
+    expect(cuerpo).toMatch(/segundo > primero\) return 'mdy'/);
+    // Sin pistas, día/mes: es como se escribe acá
+    expect(cuerpo).toMatch(/return 'dmy'/);
+  });
+
+  it('descarta fechas con mes fuera de rango en vez de correr el año', () => {
+    const idx = imp.indexOf("campo.tipo === 'fecha'");
+    const cuerpo = imp.slice(idx, idx + 900);
+    expect(cuerpo).toMatch(/mes >= 1 && mes <= 12/);
+    // Mediodía: un huso horario no puede correr la fecha un día
+    expect(cuerpo).toMatch(/new Date\(anio, mes - 1, d, 12\)/);
+  });
+
+  it('el numerador de "1/3" es cuántas cuotas ya pagó, no cuál va', () => {
+    const idx = imp.indexOf("campo.tipo === 'cuotas'");
+    const cuerpo = imp.slice(idx, idx + 800);
+    // Se guardan las dos cosas: total y cuántas están saldadas
+    expect(cuerpo).toMatch(/const total = /);
+    expect(cuerpo).toMatch(/const pagadas = /);
+    expect(cuerpo).toMatch(/return \{ total, pagadas \}/);
+    // "1" suelto es pago directo, no un plan de una cuota
+    expect(cuerpo).toMatch(/pago directo/);
+  });
+
+  it('sin columna de pago, deduce lo cobrado del numerador', () => {
+    // "1/2" de una venta de 2900 son 1450 ya cobrados
+    const idx = imp.indexOf('const cobrado =');
+    expect(idx, 'cálculo de lo cobrado').toBeGreaterThan(-1);
+    const cuerpo = imp.slice(idx, idx + 300);
+    expect(cuerpo).toMatch(/r\.pago \|\| 0\) > 0/);
+    expect(cuerpo).toMatch(/r\.precioVenta \/ numCuotas\) \* \(plan\.pagadas/);
+  });
+
+  it('la venta importada en cuotas arrastra lo ya cobrado', () => {
+    expect(imp).toMatch(/formaPago: enCuotas \? 'cuotas' : 'contado'/);
+    expect(imp).toMatch(/primerPago: enCuotas \? \(cobrado > 0 \? cobrado : null\) : undefined/);
+    expect(imp).toMatch(/vendedor: r\.vendedor \|\| this\._defaultVendedor\(\)/);
+    expect(imp).toMatch(/proveedor: r\.proveedor \|\| ''/);
+  });
+
+  it('separa filas de relleno de filas con datos incompletos', () => {
+    // Las planillas traen renglones prenumerados vacíos y una fila de totales:
+    // contarlos como "omitidos" asustaba sin motivo
+    const idx = imp.indexOf('_impProcesar()');
+    const cuerpo = imp.slice(idx, idx + 1200);
+    expect(cuerpo).toMatch(/faltan === obligatorios\.length\) relleno\+\+/);
+    expect(cuerpo).toMatch(/else omitidas\+\+/);
   });
 });
