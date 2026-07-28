@@ -673,7 +673,8 @@ describe('Importar desde Excel', () => {
     // Son ventas ya ocurridas: el stock de la planilla ya las tiene restadas
     const idx = imp.indexOf('perfumeId: null');
     expect(idx, 'las ventas importadas van sin perfumeId').toBeGreaterThan(-1);
-    expect(imp.slice(Math.max(0, idx - 400), idx)).toMatch(/ya las tiene descontadas/);
+    // El porqué queda escrito arriba del alta, no en cualquier lado
+    expect(imp).toMatch(/ya las tiene descontadas/);
   });
 
   it('valida antes de tocar la base y tiene guarda anti doble-tap', () => {
@@ -720,17 +721,29 @@ describe('Importar Excel — planillas del mundo real', () => {
     expect(cuerpo).toMatch(/new Date\(anio, mes - 1, d, 12\)/);
   });
 
-  it('entiende la columna de cuotas en formato "1/3"', () => {
+  it('el numerador de "1/3" es cuántas cuotas ya pagó, no cuál va', () => {
     const idx = imp.indexOf("campo.tipo === 'cuotas'");
-    const cuerpo = imp.slice(idx, idx + 500);
-    // Del "1/3" interesa el total (3), no cuál va pagando
-    expect(cuerpo).toMatch(/m\[2\]/);
-    expect(cuerpo).toMatch(/Math\.min\(n, 12\)/);
+    const cuerpo = imp.slice(idx, idx + 800);
+    // Se guardan las dos cosas: total y cuántas están saldadas
+    expect(cuerpo).toMatch(/const total = /);
+    expect(cuerpo).toMatch(/const pagadas = /);
+    expect(cuerpo).toMatch(/return \{ total, pagadas \}/);
+    // "1" suelto es pago directo, no un plan de una cuota
+    expect(cuerpo).toMatch(/pago directo/);
+  });
+
+  it('sin columna de pago, deduce lo cobrado del numerador', () => {
+    // "1/2" de una venta de 2900 son 1450 ya cobrados
+    const idx = imp.indexOf('const cobrado =');
+    expect(idx, 'cálculo de lo cobrado').toBeGreaterThan(-1);
+    const cuerpo = imp.slice(idx, idx + 300);
+    expect(cuerpo).toMatch(/r\.pago \|\| 0\) > 0/);
+    expect(cuerpo).toMatch(/r\.precioVenta \/ numCuotas\) \* \(plan\.pagadas/);
   });
 
   it('la venta importada en cuotas arrastra lo ya cobrado', () => {
     expect(imp).toMatch(/formaPago: enCuotas \? 'cuotas' : 'contado'/);
-    expect(imp).toMatch(/primerPago: enCuotas \? \(r\.pago \|\| null\) : undefined/);
+    expect(imp).toMatch(/primerPago: enCuotas \? \(cobrado > 0 \? cobrado : null\) : undefined/);
     expect(imp).toMatch(/vendedor: r\.vendedor \|\| this\._defaultVendedor\(\)/);
     expect(imp).toMatch(/proveedor: r\.proveedor \|\| ''/);
   });

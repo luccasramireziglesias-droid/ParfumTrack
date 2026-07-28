@@ -56,10 +56,34 @@ function crearPlanillaConTitulo() {
   return ruta;
 }
 
-let planilla, planillaTitulo;
-test.beforeAll(() => { planilla = crearPlanilla(); planillaTitulo = crearPlanillaConTitulo(); });
+// El numerador de la columna CUOTAS es cuántas YA pagó: "1/2" son dos
+// cuotas con una paga, "0/2" ninguna, "2/2" saldada y "1/1" pago directo.
+function crearPlanillaCuotas() {
+  const f = [
+    ['VIP PARFUMS TEST', '', '', '', '', '', ''],
+    ['FECHA', 'PERFUME', 'PRECIO VENTA', 'CUOTAS', 'PAGO', 'COMPRA', 'CLIENTE'],
+    ['7/2/2026', 'DIRECTO 1-1', 3000, '1/1', '', 1000, 'ANA'],
+    ['7/3/2026', 'DIRECTO SUELTO', 2000, 1, '', 800, 'BRUNO'],
+    ['7/4/2026', 'CERO DE DOS', 4000, '0/2', '', 1500, 'CARO'],
+    ['7/5/2026', 'UNA DE DOS', 2900, '1/2', '', 1800, 'DANI'],
+    ['7/6/2026', 'DOS DE DOS', 2600, '2/2', '', 1600, 'ELI'],
+    ['7/7/2026', 'UNA DE TRES PAGO', 5890, '1/3', 2000, 4200, 'FEDE'],
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(f), 'CASOS');
+  const ruta = path.join(os.tmpdir(), `pt-cuotas-${process.pid}.xlsx`);
+  XLSX.writeFile(wb, ruta);
+  return ruta;
+}
+
+let planilla, planillaTitulo, planillaCuotas;
+test.beforeAll(() => {
+  planilla = crearPlanilla();
+  planillaTitulo = crearPlanillaConTitulo();
+  planillaCuotas = crearPlanillaCuotas();
+});
 test.afterAll(() => {
-  for (const f of [planilla, planillaTitulo]) {
+  for (const f of [planilla, planillaTitulo, planillaCuotas]) {
     try { fs.unlinkSync(f); } catch { /* ya no está */ }
   }
 });
@@ -84,8 +108,11 @@ test.describe('Importar desde Excel', () => {
     await page.waitForFunction(() => localStorage.getItem('pt_demo_seeded') === '1', { timeout: 20000 });
     await page.waitForTimeout(1200);
     await page.evaluate(async () => {
+      // También las cuotas: si no, las del demo suman a "Por cobrar" y el
+      // total deja de ser el de lo importado
       for (const p of await DB.getAll('perfumes')) await DB.delete('perfumes', p.id);
       for (const v of await DB.getAll('ventas')) await DB.delete('ventas', v.id);
+      for (const c of await DB.getAll('cuotas')) await DB.delete('cuotas', c.id);
       await App.loadData();
     });
   });
@@ -271,5 +298,56 @@ test.describe('Importar desde Excel', () => {
     // "1" sin barra es contado, no una cuota
     const edt = await page.evaluate(() => App.ventas.find(v => v.perfume === 'SUAVAGE EDT'));
     expect(edt.formaPago).toBe('contado');
+  });
+
+  test('el numerador de la columna cuotas es cuántas ya pagó', async ({ page }) => {
+    await page.setInputFiles('#import-excel-input', planillaCuotas);
+    await page.waitForSelector('#modal-importar:not(.hidden)', { timeout: 20000 });
+    await page.click('#imp-destino .seg-option[data-destino="ventas"]');
+    await page.click('#imp-confirmar');
+    await page.click('#confirm-ok');
+    await page.waitForFunction(() => App.ventas.length === 6, { timeout: 20000 });
+
+    const r = await page.evaluate(async () => {
+      const cs = await DB.getAll('cuotas');
+      const out = {};
+      for (const v of App.ventas) {
+        const mias = cs.filter(c => c.ventaId === v.id);
+        out[v.perfume] = {
+          forma: v.formaPago,
+          nc: v.numCuotas,
+          pagas: mias.filter(c => c.pagado).length,
+          deuda: mias.filter(c => !c.pagado).reduce((s, c) => s + (c.monto - (c.montoPagado || 0)), 0),
+        };
+      }
+      return out;
+    });
+
+    // "1/1" y "1" son pago directo, no un plan de una cuota
+    expect(r['DIRECTO 1-1']).toEqual({ forma: 'contado', nc: 1, pagas: 0, deuda: 0 });
+    expect(r['DIRECTO SUELTO']).toEqual({ forma: 'contado', nc: 1, pagas: 0, deuda: 0 });
+    // "0/2": dos cuotas, ninguna paga -> debe todo
+    expect(r['CERO DE DOS']).toEqual({ forma: 'cuotas', nc: 2, pagas: 0, deuda: 4000 });
+    // "1/2" sin columna de pago: se deduce media venta cobrada
+    expect(r['UNA DE DOS']).toEqual({ forma: 'cuotas', nc: 2, pagas: 1, deuda: 1450 });
+    // "2/2": las dos pagas, sin deuda
+    expect(r['DOS DE DOS']).toEqual({ forma: 'cuotas', nc: 2, pagas: 2, deuda: 0 });
+    // Con monto explícito manda el monto, que puede no ser una cuota exacta
+    expect(r['UNA DE TRES PAGO'].nc).toBe(3);
+    expect(r['UNA DE TRES PAGO'].deuda).toBe(3890);
+  });
+
+  test('la deuda importada aparece en el dashboard', async ({ page }) => {
+    await page.setInputFiles('#import-excel-input', planillaCuotas);
+    await page.waitForSelector('#modal-importar:not(.hidden)', { timeout: 20000 });
+    await page.click('#imp-destino .seg-option[data-destino="ventas"]');
+    await page.click('#imp-confirmar');
+    await page.click('#confirm-ok');
+    await page.waitForFunction(() => App.ventas.length === 6, { timeout: 20000 });
+    await page.evaluate(() => App.renderDashboard());
+
+    // 4000 + 1450 + 3890
+    await expect(page.locator('#stat-cobrar')).toHaveText('$9.340');
+    await expect(page.locator('#stat-deudas')).toHaveText('3 deudas activas');
   });
 });

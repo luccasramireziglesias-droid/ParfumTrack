@@ -181,13 +181,13 @@ Reportes en `standalone/auditoria-*.html` (actualizado: `auditoria-360-v4.html`)
 - F1-F5 completas (ver tabla arriba) — v1.8.0
 - Fix: recarga espuria del Service Worker en la primera visita de cada usuario
 - Fix: `/version` devolvía 1.1.0 fijo, más viejo que la app — el chequeo de actualizaciones nunca disparaba
-- Importador de Excel (`26-importar-excel.js`): lee .xlsx/.csv/.ods con SheetJS, detecta la fila de títulos (la primera suele ser el nombre del negocio), auto-detecta las columnas, deduce si la planilla usa día/mes o mes/día, entiende la columna de cuotas "1/3", deja corregir el mapeo y AGREGA (no reemplaza, a diferencia del restore de JSON). Las ventas importadas van sin `perfumeId` a propósito: son históricas y el stock de la planilla ya las tiene descontadas
+- Importador de Excel (`26-importar-excel.js`): lee .xlsx/.csv/.ods con SheetJS, detecta la fila de títulos (la primera suele ser el nombre del negocio), auto-detecta las columnas, deduce si la planilla usa día/mes o mes/día, entiende la columna de cuotas "1/3" (tres cuotas, una paga), deja corregir el mapeo y AGREGA (no reemplaza, a diferencia del restore de JSON). Las ventas importadas van sin `perfumeId` a propósito: son históricas y el stock de la planilla ya las tiene descontadas
 - Pantalla de carga al arrancar (`#splash`): está en el HTML para pintarse antes que el JS, y se oculta en el `finally` de `init()` para no tapar la pantalla de error ni el lock de PIN
 - Imagen OG 1200x630: se regenera con `npm run build:og` (Chromium rasteriza `scripts/og-image.html`). El PNG anterior tenía el titular superpuesto y la landing ni siquiera lo usaba
 - E2E incorporados a CI: el deploy ahora espera `[test, e2e]`
 - Suite E2E reparada (estaba rota por el modal de consentimiento, una espera de arranque que se cumplía siempre y la recarga del SW): 41/41 en 45s
 - Refactor monolito `index.html` → módulos en `src/` con build script (`scripts/build.js`) — COMPLETADO
-- Tests automatizados: 537 Vitest + 54 E2E Playwright — **los dos corren en CI** y frenan el deploy
+- Tests automatizados: 538 Vitest + 56 E2E Playwright — **los dos corren en CI** y frenan el deploy
 - DRY: `_renderVentaCard()` (dashboard + lista de ventas) y `_processPhoto()` (foto de stock + alta de perfume) compartidos
 - Fullscreen demo modal: expandir video a 100vh/100vw, ocultar controles, mantener evento stopPropagation
 - Auditoría 360° completa: 81/100 score, 30 findings analizados, remediation roadmap incluido
