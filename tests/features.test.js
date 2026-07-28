@@ -757,3 +757,44 @@ describe('Importar Excel — planillas del mundo real', () => {
     expect(cuerpo).toMatch(/else omitidas\+\+/);
   });
 });
+
+describe('Alertas de stock', () => {
+  const render = read('src/app/02-render.js');
+  const css = read('src/styles/12-stock.css');
+
+  it('no pinta una tarjeta por perfume: resume y deja expandir', () => {
+    // Con 14 agotados la lista tapaba el inventario entero
+    expect(render).toMatch(/_ALERTAS_VISIBLES: 3/);
+    expect(render).toMatch(/alerts\.slice\(0, this\._ALERTAS_VISIBLES\)/);
+    expect(render).toMatch(/toggleAlertasStock\(\)/);
+    expect(render).toMatch(/más para reponer/);
+  });
+
+  it('el encabezado dice cuántos hay sin tener que contarlos', () => {
+    const idx = render.indexOf('const sinStock = alerts.filter');
+    expect(idx, 'total de agotados').toBeGreaterThan(-1);
+    expect(render).toMatch(/sin stock\$\{alerts\.length > sinStock/);
+  });
+
+  it('ordena por urgencia y, a igual urgencia, por rotación', () => {
+    expect(render).toMatch(/\(a\.monthsLeft - b\.monthsLeft\) \|\| \(b\.sold - a\.sold\)/);
+  });
+
+  it('"Reponer" es un botón que abre la compra, no un texto muerto', () => {
+    expect(render).toMatch(/class="stock-alert-btn" onclick="App\.abrirCompra\(\$\{a\.id\}\)"/);
+    expect(css).toContain('.stock-alert-btn');
+  });
+
+  it('la rotación se mide en unidades, no en cantidad de ventas', () => {
+    const idx = render.indexOf('const salesByPerfume = {}');
+    const cuerpo = render.slice(idx, idx + 600);
+    expect(cuerpo).toMatch(/parseInt\(v\.cantidad, 10\) \|\| 1/);
+  });
+
+  it('el nombre y el detalle van en líneas separadas', () => {
+    // Compartiendo línea, el texto se cortaba con puntos suspensivos
+    expect(render).toMatch(/class="stock-alert-nombre"/);
+    expect(render).toMatch(/class="stock-alert-detalle"/);
+    expect(css).toContain('.stock-alert-detalle');
+  });
+});
