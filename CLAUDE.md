@@ -181,6 +181,7 @@ Reportes en `standalone/auditoria-*.html` (actualizado: `auditoria-360-v4.html`)
 - F1-F5 completas (ver tabla arriba) — v1.8.0
 - Fix: recarga espuria del Service Worker en la primera visita de cada usuario
 - Fix: `/version` devolvía 1.1.0 fijo, más viejo que la app — el chequeo de actualizaciones nunca disparaba
+- Fuzzer de invariantes: encontró que deshacer una devolución no recreaba las cuotas canceladas (la venta volvía a contar pero la deuda del cliente desaparecía)
 - Alertas de stock: resumen colapsable (3 visibles + "Ver todos"). Con 14 perfumes agotados la lista tapaba el inventario entero
 - Importador de Excel (`26-importar-excel.js`): lee .xlsx/.csv/.ods con SheetJS, detecta la fila de títulos (la primera suele ser el nombre del negocio), auto-detecta las columnas, deduce si la planilla usa día/mes o mes/día, entiende la columna de cuotas "1/3" (tres cuotas, una paga), deja corregir el mapeo y AGREGA (no reemplaza, a diferencia del restore de JSON). Las ventas importadas van sin `perfumeId` a propósito: son históricas y el stock de la planilla ya las tiene descontadas
 - Pantalla de carga al arrancar (`#splash`): está en el HTML para pintarse antes que el JS, y se oculta en el `finally` de `init()` para no tapar la pantalla de error ni el lock de PIN
@@ -188,7 +189,7 @@ Reportes en `standalone/auditoria-*.html` (actualizado: `auditoria-360-v4.html`)
 - E2E incorporados a CI: el deploy ahora espera `[test, e2e]`
 - Suite E2E reparada (estaba rota por el modal de consentimiento, una espera de arranque que se cumplía siempre y la recarga del SW): 41/41 en 45s
 - Refactor monolito `index.html` → módulos en `src/` con build script (`scripts/build.js`) — COMPLETADO
-- Tests automatizados: 544 Vitest + 62 E2E Playwright — **los dos corren en CI** y frenan el deploy
+- Tests automatizados: 548 Vitest + 64 E2E Playwright (incluye `tests/fuzz.spec.js`: secuencias aleatorias con semilla fija que verifican invariantes de stock, cuotas, devoluciones, compras y reservas — subir volumen con `FUZZ_CORRIDAS=30 FUZZ_OPS=120`) — **los dos corren en CI** y frenan el deploy
 - DRY: `_renderVentaCard()` (dashboard + lista de ventas) y `_processPhoto()` (foto de stock + alta de perfume) compartidos
 - Fullscreen demo modal: expandir video a 100vh/100vw, ocultar controles, mantener evento stopPropagation
 - Auditoría 360° completa: 81/100 score, 30 findings analizados, remediation roadmap incluido

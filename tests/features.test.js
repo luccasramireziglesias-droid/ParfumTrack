@@ -253,7 +253,7 @@ describe('F3 — devoluciones y cambios', () => {
 
   it('deshacer la devolución vuelve a descontar sin dejar stock negativo', () => {
     const idx = db.indexOf('async revertirDevolucion');
-    const cuerpo = db.slice(idx, idx + 1200);
+    const cuerpo = db.slice(idx, idx + 2500);
     expect(cuerpo).toMatch(/Math\.min\(repuestas, p\.stock \|\| 0\)/);
     expect(cuerpo).toMatch(/delete limpia\.devuelta/);
     expect(dev).toMatch(/revertirDevolucion\(id\)/);
@@ -796,5 +796,51 @@ describe('Alertas de stock', () => {
     expect(render).toMatch(/class="stock-alert-nombre"/);
     expect(render).toMatch(/class="stock-alert-detalle"/);
     expect(css).toContain('.stock-alert-detalle');
+  });
+});
+
+describe('Devolver y deshacer no pierde deuda', () => {
+  const db = read('src/db.js');
+
+  it('al deshacer una devolución se recrean las cuotas canceladas', () => {
+    // Sin esto la venta volvía a contar para la ganancia pero el cliente
+    // quedaba debiendo sin que la app lo mostrara
+    const idx = db.indexOf('async revertirDevolucion');
+    const cuerpo = db.slice(idx, idx + 2000);
+    expect(cuerpo).toMatch(/v\.formaPago === 'cuotas' && v\.numCuotas > 1/);
+    expect(cuerpo).toMatch(/numeros\.has\(i\)\) continue/);
+    expect(cuerpo).toMatch(/this\.add\('cuotas'/);
+    // Las ya cobradas no se tocan
+    expect(cuerpo).toMatch(/existentes\.map\(c => c\.numero\)/);
+  });
+});
+
+describe('Fuzz de integridad', () => {
+  const fuzz = read('tests/fuzz.spec.js');
+
+  it('usa semilla fija para que una falla se pueda reproducir', () => {
+    expect(fuzz).toMatch(/const rng = \(semilla\)/);
+    expect(fuzz).toMatch(/semilla = 1000 \+ corrida \* 7919/);
+    // Imprime la secuencia que llevó a la falla
+    expect(fuzz).toMatch(/historia: historia\.slice\(-6\)/);
+  });
+
+  it('cubre las invariantes de plata y de stock', () => {
+    for (const regla of [
+      'stock negativo',
+      'pagada de más',
+      'cuotas huérfanas',
+      'sigue contando como activa',
+      'seña .* mayor al total',
+      'entregada sin venta asociada',
+    ]) {
+      expect(fuzz, regla).toMatch(new RegExp(regla));
+    }
+  });
+
+  it('distingue un rechazo legítimo de una excepción inesperada', () => {
+    // Que la app rechace un sobrepago está bien; un TypeError no
+    expect(fuzz).toMatch(/SOBREPAGO\|Sobrepago\|YA_DEVUELTA/);
+    expect(fuzz).toMatch(/excepción inesperada/);
   });
 });

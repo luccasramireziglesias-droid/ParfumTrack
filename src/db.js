@@ -348,6 +348,35 @@
       }
     }
 
+    // Recrear las cuotas que la devolución canceló. Sin esto la venta volvía
+    // a contar para la ganancia pero la deuda del cliente desaparecía: una
+    // venta de 3000 en 3 cuotas con una paga quedaba con 0 por cobrar en vez
+    // de 2000. Las ya cobradas se dejan como están.
+    if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
+      const existentes = (await this.getAll('cuotas')).filter(c => c.ventaId === id);
+      const numeros = new Set(existentes.map(c => c.numero));
+      const montoCuota = Math.round(v.precioVenta / v.numCuotas);
+      const ultima = v.precioVenta - montoCuota * (v.numCuotas - 1);
+      for (let i = 1; i <= v.numCuotas; i++) {
+        if (numeros.has(i)) continue;
+        const vence = new Date();
+        vence.setMonth(vence.getMonth() + (i - 1));
+        await this.add('cuotas', {
+          ventaId: id,
+          perfume: v.perfume,
+          cliente: v.cliente,
+          numero: i,
+          total: v.numCuotas,
+          monto: i === v.numCuotas ? ultima : montoCuota,
+          montoTotal: v.precioVenta,
+          pagado: false,
+          montoPagado: 0,
+          pagos: [],
+          vence: vence.getTime(),
+        });
+      }
+    }
+
     const limpia = { ...v, unidadesDescontadas: descontadas, stockDescontado: descontadas > 0 };
     delete limpia.devuelta;
     delete limpia.fechaDevolucion;
