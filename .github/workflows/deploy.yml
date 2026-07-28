@@ -29,9 +29,43 @@ jobs:
       - name: Verify build is committed (no drift)
         run: git diff --exit-code index.html || (echo "::error::index.html is out of sync with src/ — run 'npm run build' and commit the result" && exit 1)
 
+  e2e:
+    runs-on: ubuntu-latest
+    name: E2E (Playwright)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build index.html from src/
+        run: npm run build
+
+      # Estos 41 tests existían pero no corrían en ningún lado: estuvieron
+      # rotos sin que nadie se enterara. Ahora frenan el deploy.
+      - name: Run E2E
+        run: npx playwright test
+
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
+
   deploy:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, e2e]
     name: Deploy Worker
     steps:
       - uses: actions/checkout@v4

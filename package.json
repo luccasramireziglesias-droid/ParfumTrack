@@ -6,6 +6,7 @@
   "main": "worker.js",
   "scripts": {
     "build": "node scripts/build.js && node scripts/build-landing.js",
+    "build:og": "node scripts/build-og.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

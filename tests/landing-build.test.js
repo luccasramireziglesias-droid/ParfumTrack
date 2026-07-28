@@ -5,11 +5,17 @@ import path from 'path';
 
 describe('Landing Build Process', () => {
   const landingPath = path.join(process.cwd(), 'landing.html');
-  const templatePath = path.join(process.cwd(), 'src', 'landing', 'landing.template.html');
+  const sectionsDir = path.join(process.cwd(), 'src', 'landing', 'sections');
+  const stylesDir = path.join(process.cwd(), 'src', 'landing', 'styles');
 
-  it('landing.template.html exists in src/landing/', () => {
-    expect(fs.existsSync(templatePath)).toBe(true);
-    console.log('✅ Template file exists');
+  // Antes este test verificaba que existiera landing.template.html, pero
+  // build-landing.js nunca lo leía: armaba el <head> a mano. Comprobar la
+  // existencia de un archivo huérfano no protegía nada.
+  it('las fuentes reales de la landing existen (sections/ + styles/)', () => {
+    expect(fs.existsSync(sectionsDir)).toBe(true);
+    expect(fs.existsSync(stylesDir)).toBe(true);
+    expect(fs.readdirSync(sectionsDir).length).toBeGreaterThan(0);
+    expect(fs.readdirSync(stylesDir).length).toBeGreaterThan(0);
   });
 
   it('landing.html exists in root', () => {
