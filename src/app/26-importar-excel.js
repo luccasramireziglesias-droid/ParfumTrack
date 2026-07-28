@@ -35,8 +35,17 @@
           alias: ['precioventa', 'venta', 'precio', 'total', 'importe', 'monto', 'valor'] },
         { id: 'precioCompra', label: 'Precio de compra', tipo: 'monto',
           alias: ['preciocompra', 'compra', 'costo', 'preciocosto'] },
+        // "1/3" es la primera de tres: interesa el total, no cuál va
+        { id: 'cuotas', label: 'Cuotas', tipo: 'cuotas',
+          alias: ['cuotas', 'cuota', 'plan', 'planes'] },
+        { id: 'pago', label: 'Ya cobrado', tipo: 'monto',
+          alias: ['pago', 'pagado', 'cobrado', 'entrega', 'sena', 'adelanto'] },
         { id: 'cliente', label: 'Cliente', tipo: 'texto',
           alias: ['cliente', 'comprador', 'nombrecliente', 'apellido'] },
+        { id: 'vendedor', label: 'Vendedor', tipo: 'texto',
+          alias: ['vendedor', 'vendio', 'responsable'] },
+        { id: 'proveedor', label: 'Proveedor', tipo: 'texto',
+          alias: ['proveedor', 'distribuidor', 'mayorista'] },
         { id: 'fecha', label: 'Fecha', tipo: 'fecha',
           alias: ['fecha', 'dia', 'date', 'fechaventa'] },
       ],
@@ -116,16 +125,70 @@
     }
   },
 
+  // Las planillas suelen arrancar con un título fusionado ("VIP PARFUMS
+  // JUNIO") ocupando la primera fila. Tomar la fila 0 como cabecera dejaba
+  // todo sin mapear, así que se busca la fila que más parece una cabecera:
+  // la que tiene más celdas con texto (no números) entre las primeras.
+  _impDetectarCabecera(filas) {
+    let mejor = 0, mejorPuntaje = -1;
+    for (let i = 0; i < Math.min(filas.length, 10); i++) {
+      const fila = filas[i] || [];
+      let texto = 0, numeros = 0;
+      for (const celda of fila) {
+        const v = String(celda ?? '').trim();
+        if (!v) continue;
+        if (celda instanceof Date || /^[$\s]*-?[\d.,]+\s*$/.test(v)) numeros++;
+        else texto++;
+      }
+      // Una fila de datos tiene números; una de título, una sola celda
+      const puntaje = texto - numeros * 2;
+      if (puntaje > mejorPuntaje) { mejorPuntaje = puntaje; mejor = i; }
+    }
+    return mejor;
+  },
+
+  // Las fechas escritas a mano son ambiguas: "7/2/2026" puede ser el 7 de
+  // febrero o el 2 de julio. Se mira TODA la columna: si en algún renglón el
+  // primer número pasa de 12 es día/mes; si el que pasa de 12 es el segundo,
+  // la planilla está en mes/día (lo que hace Excel en inglés). Sin ninguna
+  // pista se asume día/mes, que es como se escribe acá.
+  _impDetectarFormatoFecha(filas, idx) {
+    if (idx === undefined) return 'dmy';
+    let primero = 0, segundo = 0;
+    for (const fila of filas) {
+      const v = fila[idx];
+      if (v instanceof Date) continue;               // ya viene sin ambigüedad
+      const m = String(v ?? '').trim().match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+      if (!m) continue;
+      if (+m[1] > 12) primero++;
+      if (+m[2] > 12) segundo++;
+    }
+    if (segundo > primero) return 'mdy';
+    return 'dmy';
+  },
+
   _impCargarHoja() {
     const s = this._imp;
     const hoja = s.libro.Sheets[s.hoja];
     // header:1 devuelve arrays por fila, que es lo que necesitamos para
     // mostrar las cabeceras tal cual vinieron
     const filas = XLSX.utils.sheet_to_json(hoja, { header: 1, blankrows: false, defval: '' });
-    s.cabeceras = (filas[0] || []).map(c => String(c || '').trim());
-    s.filas = filas.slice(1).filter(f => f.some(c => String(c ?? '').trim() !== ''));
+    const iCab = this._impDetectarCabecera(filas);
+    s.filaCabecera = iCab;
+    s.cabeceras = (filas[iCab] || []).map(c => String(c || '').trim());
+    s.filas = filas.slice(iCab + 1).filter(f => f.some(c => String(c ?? '').trim() !== ''));
     s.mapeo = this._impAutoMapear(s.cabeceras, s.destino);
+    this._impActualizarFormatoFecha();
     this._renderImportador();
+  },
+
+  // El formato depende de qué columna se eligió como fecha
+  _impActualizarFormatoFecha() {
+    const s = this._imp;
+    const campoFecha = this._impDestinos[s.destino].campos.find(c => c.tipo === 'fecha');
+    s.formatoFecha = campoFecha
+      ? this._impDetectarFormatoFecha(s.filas || [], s.mapeo[campoFecha.id])
+      : 'dmy';
   },
 
   cambiarHojaImport(nombre) {
@@ -138,6 +201,7 @@
     if (!this._imp) return;
     this._imp.destino = destino;
     this._imp.mapeo = this._impAutoMapear(this._imp.cabeceras, destino);
+    this._impActualizarFormatoFecha();
     this._renderImportador();
   },
 
@@ -145,6 +209,7 @@
     if (!this._imp) return;
     if (valor === '') delete this._imp.mapeo[campoId];
     else this._imp.mapeo[campoId] = parseInt(valor, 10);
+    this._impActualizarFormatoFecha();
     this._renderImportador();
   },
 
@@ -161,8 +226,24 @@
       const n = parseInt(String(bruto).replace(/[^\d-]/g, ''), 10);
       return Number.isFinite(n) ? Math.max(0, n) : null;
     }
+    if (campo.tipo === 'cuotas') {
+      // "1/3" (la primera de tres), "2/2" o un número suelto
+      const m = String(bruto).match(/(\d+)\s*\/\s*(\d+)/);
+      const n = m ? parseInt(m[2], 10) : parseInt(String(bruto).replace(/[^\d]/g, ''), 10);
+      return Number.isFinite(n) && n >= 1 ? Math.min(n, 12) : null;
+    }
     if (campo.tipo === 'fecha') {
       if (bruto instanceof Date && !isNaN(bruto.getTime())) return bruto.getTime();
+      const m = String(bruto).trim().match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+      if (m) {
+        const [d, mes] = s.formatoFecha === 'mdy' ? [+m[2], +m[1]] : [+m[1], +m[2]];
+        const anio = +m[3] < 100 ? 2000 + +m[3] : +m[3];
+        // Mediodía: evita que un cambio de huso corra la fecha un día
+        const ts = new Date(anio, mes - 1, d, 12).getTime();
+        // Un mes fuera de rango daría un salto de año en silencio
+        if (!isNaN(ts) && mes >= 1 && mes <= 12 && d >= 1 && d <= 31) return ts;
+        return null;
+      }
       return this._parseDate(bruto, null);
     }
     return String(bruto).trim().slice(0, 120);
@@ -173,31 +254,35 @@
   _impProcesar() {
     const s = this._imp;
     const def = this._impDestinos[s.destino];
+    const obligatorios = def.campos.filter(c => c.obligatorio);
     const validos = [];
-    let omitidas = 0;
+    let omitidas = 0, relleno = 0;
 
     for (const fila of (s.filas || [])) {
       const reg = {};
-      let sirve = true;
+      let faltan = 0;
       for (const campo of def.campos) {
         const v = this._impValor(fila, campo);
         if (campo.obligatorio && (v === null || v === '' || (campo.tipo === 'monto' && !(v > 0)))) {
-          sirve = false;
-          break;
+          faltan++;
         }
         reg[campo.id] = v;
       }
-      if (sirve) validos.push(reg);
+      if (faltan === 0) validos.push(reg);
+      // Sin NINGÚN dato obligatorio es una fila de relleno: las planillas
+      // vienen con filas prenumeradas al final y con la fila de totales.
+      // Contarlas como "omitidas" asustaba sin motivo.
+      else if (faltan === obligatorios.length) relleno++;
       else omitidas++;
     }
-    return { validos, omitidas };
+    return { validos, omitidas, relleno };
   },
 
   _renderImportador() {
     const s = this._imp;
     if (!s) return;
     const def = this._impDestinos[s.destino];
-    const { validos, omitidas } = this._impProcesar();
+    const { validos, omitidas, relleno } = this._impProcesar();
 
     // Selector de hoja: solo si el libro tiene más de una
     const selHoja = document.getElementById('imp-hoja-wrap');
@@ -210,8 +295,10 @@
     }
 
     document.getElementById('imp-archivo').textContent = s.archivo;
+    const utiles = s.filas.length - relleno;
     document.getElementById('imp-filas').textContent =
-      `${s.filas.length} fila${s.filas.length !== 1 ? 's' : ''} · ${s.cabeceras.length} columna${s.cabeceras.length !== 1 ? 's' : ''}`;
+      `${utiles} fila${utiles !== 1 ? 's' : ''} con datos · ${s.cabeceras.length} columnas`
+      + (s.filaCabecera > 0 ? ` · títulos en la fila ${s.filaCabecera + 1}` : '');
 
     document.querySelectorAll('#imp-destino .seg-option').forEach(o => {
       o.classList.toggle('active', o.dataset.destino === s.destino);
@@ -243,7 +330,7 @@
            </div>`
         : `<div class="imp-prev-row">
              <span class="imp-prev-nombre">${this.esc(r.perfume)}${(r.cantidad || 1) > 1 ? ` ×${r.cantidad}` : ''}</span>
-             <span class="imp-prev-meta">${this.fmt(r.precioVenta)}${r.cliente ? ` · ${this.esc(r.cliente)}` : ''}${r.fecha ? ` · ${this.fmtDate(r.fecha)}` : ''}</span>
+             <span class="imp-prev-meta">${this.fmt(r.precioVenta)}${(r.cuotas || 1) > 1 ? ` en ${r.cuotas} cuotas` : ''}${r.cliente ? ` · ${this.esc(r.cliente)}` : ''}${r.fecha ? ` · ${this.fmtDate(r.fecha)}` : ''}</span>
            </div>`).join('');
     }
 
@@ -295,6 +382,8 @@
           // stock actual de la planilla ya las tiene descontadas. Vincularlas
           // haría que addVenta las descuente de nuevo.
           const cantidad = Math.max(1, r.cantidad || 1);
+          const numCuotas = Math.max(1, Math.min(r.cuotas || 1, 12));
+          const enCuotas = numCuotas > 1;
           await DB.addVenta({
             perfume: r.perfume,
             perfumeId: null,
@@ -305,13 +394,17 @@
             precioUnitario: Math.round(r.precioVenta / cantidad),
             precioCompraUnitario: Math.round((r.precioCompra || 0) / cantidad),
             cliente: r.cliente || 'Anónimo',
-            vendedor: this._defaultVendedor(),
-            proveedor: '',
+            vendedor: r.vendedor || this._defaultVendedor(),
+            proveedor: r.proveedor || '',
             descuento: 0,
             nota: 'Importado de planilla',
             fecha: r.fecha || Date.now(),
-            formaPago: 'contado',
-            numCuotas: 1,
+            formaPago: enCuotas ? 'cuotas' : 'contado',
+            numCuotas: enCuotas ? numCuotas : 1,
+            // Lo que ya cobró se aplica sobre las cuotas en orden; el resto
+            // queda como deuda pendiente, que es lo que se quiere ver
+            primeraPagada: enCuotas ? (r.pago || 0) > 0 : undefined,
+            primerPago: enCuotas ? (r.pago || null) : undefined,
           });
         }
         creados++;

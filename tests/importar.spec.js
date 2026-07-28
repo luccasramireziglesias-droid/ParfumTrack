@@ -36,9 +36,33 @@ function crearPlanilla() {
   return ruta;
 }
 
-let planilla;
-test.beforeAll(() => { planilla = crearPlanilla(); });
-test.afterAll(() => { try { fs.unlinkSync(planilla); } catch { /* ya no está */ } });
+// Planilla real de un revendedor: título fusionado arriba, columna de
+// cuotas "1/3", fechas en mes/día, filas prenumeradas de relleno y totales
+function crearPlanillaConTitulo() {
+  const f = [
+    ['VIP PARFUMS JUNIO', '', '', '', '', '', '', '', '', '', '', ''],
+    ['Nº VENTAS', 'FECHA', 'PERFUME', 'PRECIO VENTA', 'CUOTAS', 'DEBE DE CUOTA',
+     'PAGO', 'COMPRA', 'GANANCIA', 'PROVEEDOR', 'VENDEDOR', 'CLIENTE'],
+    [1, '7/2/2026', 'BOSS PARFUM', 5890, '1/3', 3890, 2000, 4200, 1690, 'EMMA', 'LUCCAS', 'SASHA'],
+    [4, '7/8/2026', 'SUAVAGE EDT', 5300, 1, '-', 5300, 4690, 610, 'EMMA', 'NACHO', ''],
+    [14, '7/20/2026', 'YARA ROSA', 2900, '1/2', '-', 1500, 1800, 1100, 'EMMA', 'LUCCAS', 'MARIA'],
+  ];
+  for (let n = 15; n <= 30; n++) f.push([n, '', '', '', '', '-', '', '', '-', 'EMMA', '', '']);
+  f.push(['', '', '', 14090, '', 3890, 8800, 10690, 3400, '', '', '']);   // totales
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(f), 'JUNIO');
+  const ruta = path.join(os.tmpdir(), `pt-vip-${process.pid}.xlsx`);
+  XLSX.writeFile(wb, ruta);
+  return ruta;
+}
+
+let planilla, planillaTitulo;
+test.beforeAll(() => { planilla = crearPlanilla(); planillaTitulo = crearPlanillaConTitulo(); });
+test.afterAll(() => {
+  for (const f of [planilla, planillaTitulo]) {
+    try { fs.unlinkSync(f); } catch { /* ya no está */ }
+  }
+});
 
 test.describe('Importar desde Excel', () => {
   test.beforeEach(async ({ page }) => {
@@ -84,7 +108,7 @@ test.describe('Importar desde Excel', () => {
       precioVenta: 'PRECIO VENTA',
     });
     // La fila totalmente vacía no cuenta
-    await expect(page.locator('#imp-filas')).toHaveText('4 filas · 4 columnas');
+    await expect(page.locator('#imp-filas')).toHaveText('4 filas con datos · 4 columnas');
   });
 
   test('importa perfumes entendiendo los montos con formato de acá', async ({ page }) => {
@@ -168,5 +192,84 @@ test.describe('Importar desde Excel', () => {
     await page.selectOption('#imp-map-nombre', '');
     await expect(page.locator('#imp-confirmar')).toBeDisabled();
     await expect(page.locator('#imp-preview')).toContainText('Ninguna fila tiene los datos obligatorios');
+  });
+
+  test('encuentra los títulos aunque la primera fila sea el nombre del negocio', async ({ page }) => {
+    await page.setInputFiles('#import-excel-input', planillaTitulo);
+    await page.waitForSelector('#modal-importar:not(.hidden)', { timeout: 20000 });
+    await page.click('#imp-destino .seg-option[data-destino="ventas"]');
+    await page.waitForTimeout(200);
+
+    await expect(page.locator('#imp-filas')).toContainText('títulos en la fila 2');
+    const mapeo = await page.evaluate(() => {
+      const r = {};
+      document.querySelectorAll('#imp-mapeo select').forEach(s => {
+        r[s.id.replace('imp-map-', '')] = s.options[s.selectedIndex].text;
+      });
+      return r;
+    });
+    expect(mapeo.perfume).toBe('PERFUME');
+    expect(mapeo.precioVenta).toBe('PRECIO VENTA');
+    expect(mapeo.precioCompra).toBe('COMPRA');
+    expect(mapeo.cuotas).toBe('CUOTAS');
+    expect(mapeo.vendedor).toBe('VENDEDOR');
+    expect(mapeo.proveedor).toBe('PROVEEDOR');
+  });
+
+  test('las filas prenumeradas de relleno no cuentan como error', async ({ page }) => {
+    await page.setInputFiles('#import-excel-input', planillaTitulo);
+    await page.waitForSelector('#modal-importar:not(.hidden)', { timeout: 20000 });
+    await page.click('#imp-destino .seg-option[data-destino="ventas"]');
+    await page.waitForTimeout(200);
+    // 3 ventas + la de totales; las 16 vacías ni se mencionan
+    await expect(page.locator('#imp-resumen')).toHaveText('Se van a agregar 3 · 1 sin datos obligatorios se omiten');
+  });
+
+  test('respeta el formato de fecha de la planilla (mes/día)', async ({ page }) => {
+    await page.setInputFiles('#import-excel-input', planillaTitulo);
+    await page.waitForSelector('#modal-importar:not(.hidden)', { timeout: 20000 });
+    await page.click('#imp-destino .seg-option[data-destino="ventas"]');
+    await page.click('#imp-confirmar');
+    await page.click('#confirm-ok');
+    await page.waitForFunction(() => App.ventas.length === 3, { timeout: 15000 });
+
+    const f = await page.evaluate(() => {
+      const r = {};
+      App.ventas.forEach(v => { r[v.perfume] = new Date(v.fecha).toISOString().slice(0, 10); });
+      return r;
+    });
+    // "7/20/2026" es el 20 de julio. Leído como día/mes daba mes 20:
+    // un salto silencioso a agosto de 2027.
+    expect(f['YARA ROSA']).toBe('2026-07-20');
+    expect(f['BOSS PARFUM']).toBe('2026-07-02');
+    expect(f['SUAVAGE EDT']).toBe('2026-07-08');
+  });
+
+  test('la columna "1/3" arma la venta en cuotas con lo ya cobrado', async ({ page }) => {
+    await page.setInputFiles('#import-excel-input', planillaTitulo);
+    await page.waitForSelector('#modal-importar:not(.hidden)', { timeout: 20000 });
+    await page.click('#imp-destino .seg-option[data-destino="ventas"]');
+    await page.click('#imp-confirmar');
+    await page.click('#confirm-ok');
+    await page.waitForFunction(() => App.ventas.length === 3, { timeout: 15000 });
+
+    const boss = await page.evaluate(() => App.ventas.find(v => v.perfume === 'BOSS PARFUM'));
+    expect(boss.formaPago).toBe('cuotas');
+    expect(boss.numCuotas).toBe(3);
+    expect(boss.vendedor).toBe('LUCCAS');
+    expect(boss.proveedor).toBe('EMMA');
+
+    // Pagó 2000 de 5890 en 3 cuotas: cubre la primera y deja el resto a cuenta
+    const cuotas = await page.evaluate(async (id) =>
+      (await DB.getAll('cuotas')).filter(c => c.ventaId === id)
+        .sort((a, b) => a.numero - b.numero)
+        .map(c => ({ pagado: c.pagado, puesto: c.montoPagado })), boss.id);
+    expect(cuotas).toHaveLength(3);
+    expect(cuotas[0].pagado).toBe(true);
+    expect(cuotas.reduce((s, c) => s + c.puesto, 0)).toBe(2000);
+
+    // "1" sin barra es contado, no una cuota
+    const edt = await page.evaluate(() => App.ventas.find(v => v.perfume === 'SUAVAGE EDT'));
+    expect(edt.formaPago).toBe('contado');
   });
 });

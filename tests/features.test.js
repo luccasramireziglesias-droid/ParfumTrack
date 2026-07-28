@@ -686,3 +686,61 @@ describe('Importar desde Excel', () => {
     expect(imp).toMatch(/btn\.disabled = validos\.length === 0/);
   });
 });
+
+describe('Importar Excel — planillas del mundo real', () => {
+  const imp = read('src/app/26-importar-excel.js');
+
+  it('busca la fila de títulos: la primera suele ser el nombre del negocio', () => {
+    const idx = imp.indexOf('_impDetectarCabecera(filas)');
+    expect(idx, 'detección de cabecera').toBeGreaterThan(-1);
+    const cuerpo = imp.slice(idx, idx + 900);
+    // Puntúa texto contra números: una fila de datos tiene números
+    expect(cuerpo).toMatch(/texto - numeros \* 2/);
+    expect(cuerpo).toMatch(/Math\.min\(filas\.length, 10\)/);
+    // Y la hoja se corta desde ahí, no desde la fila 0
+    expect(imp).toMatch(/filas\.slice\(iCab \+ 1\)/);
+  });
+
+  it('deduce si la planilla escribe día/mes o mes/día mirando la columna', () => {
+    // "7/20/2026" leído como día/mes daba mes 20: saltaba a 2027 en silencio
+    const idx = imp.indexOf('_impDetectarFormatoFecha(filas, idx)');
+    const cuerpo = imp.slice(idx, idx + 800);
+    expect(cuerpo).toMatch(/if \(\+m\[1\] > 12\) primero\+\+/);
+    expect(cuerpo).toMatch(/if \(\+m\[2\] > 12\) segundo\+\+/);
+    expect(cuerpo).toMatch(/segundo > primero\) return 'mdy'/);
+    // Sin pistas, día/mes: es como se escribe acá
+    expect(cuerpo).toMatch(/return 'dmy'/);
+  });
+
+  it('descarta fechas con mes fuera de rango en vez de correr el año', () => {
+    const idx = imp.indexOf("campo.tipo === 'fecha'");
+    const cuerpo = imp.slice(idx, idx + 900);
+    expect(cuerpo).toMatch(/mes >= 1 && mes <= 12/);
+    // Mediodía: un huso horario no puede correr la fecha un día
+    expect(cuerpo).toMatch(/new Date\(anio, mes - 1, d, 12\)/);
+  });
+
+  it('entiende la columna de cuotas en formato "1/3"', () => {
+    const idx = imp.indexOf("campo.tipo === 'cuotas'");
+    const cuerpo = imp.slice(idx, idx + 500);
+    // Del "1/3" interesa el total (3), no cuál va pagando
+    expect(cuerpo).toMatch(/m\[2\]/);
+    expect(cuerpo).toMatch(/Math\.min\(n, 12\)/);
+  });
+
+  it('la venta importada en cuotas arrastra lo ya cobrado', () => {
+    expect(imp).toMatch(/formaPago: enCuotas \? 'cuotas' : 'contado'/);
+    expect(imp).toMatch(/primerPago: enCuotas \? \(r\.pago \|\| null\) : undefined/);
+    expect(imp).toMatch(/vendedor: r\.vendedor \|\| this\._defaultVendedor\(\)/);
+    expect(imp).toMatch(/proveedor: r\.proveedor \|\| ''/);
+  });
+
+  it('separa filas de relleno de filas con datos incompletos', () => {
+    // Las planillas traen renglones prenumerados vacíos y una fila de totales:
+    // contarlos como "omitidos" asustaba sin motivo
+    const idx = imp.indexOf('_impProcesar()');
+    const cuerpo = imp.slice(idx, idx + 1200);
+    expect(cuerpo).toMatch(/faltan === obligatorios\.length\) relleno\+\+/);
+    expect(cuerpo).toMatch(/else omitidas\+\+/);
+  });
+});
