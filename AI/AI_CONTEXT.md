@@ -67,7 +67,7 @@ Si te salteás esta sección vas a romper algo. En orden de gravedad:
 | **Datos del usuario** | IndexedDB v5, local, cifrado con AES-GCM cuando hay licencia. |
 | **Datos del servidor** | KV `PT_LICENSES` (licencias, trial, rate limit) + R2 `parfumtrack-backups`. |
 | **Offline** | Service Worker v16. Precache de estáticos, navegación Network-First. |
-| **Tests** | 560 Vitest (unit/estáticos) + 72 Playwright (E2E). Los dos corren en CI. |
+| **Tests** | 592 Vitest (unit/estáticos) + 87 Playwright (E2E). Los dos corren en CI. |
 | **CI/CD** | GitHub Actions: `npm run build` + `npm test` + E2E → deploy automático en push a `main`. |
 | **Android** | Capacitor con `server.url` — la app nativa carga la web remota, no la empaqueta. |
 
@@ -132,6 +132,7 @@ Están protegidas por tests. Si tu cambio las viola, CI te frena.
 | Nunca se puede pagar una cuota de más | `db.js pagarCuota` lanza `Sobrepago` |
 | La seña nunca supera el total de la reserva | `db.js addReserva` |
 | El total adeudado suma TODAS las cuotas, no solo las visibles | `02-render.js renderCuotas` |
+| Las operaciones que tocan stock están serializadas (Web Locks) | `db.js _conLockStock` |
 | Una reserva no descuenta stock hasta entregarse | `db.js entregarReserva` |
 
 ---
@@ -158,8 +159,8 @@ Están protegidas por tests. Si tu cambio las viola, CI te frena.
 ```bash
 node scripts/build.js      # regenera index.html desde src/  ← SIEMPRE tras tocar src/
 npm run build              # build.js + build-landing.js
-npm test                   # 560 tests Vitest
-npx playwright test        # 72 tests E2E (necesita la app servida en :8787)
+npm test                   # 592 tests Vitest
+npx playwright test        # 87 tests E2E (necesita la app servida en :8787)
 npm run build:og           # regenera la imagen Open Graph con Chromium
 ```
 
@@ -177,21 +178,18 @@ VOL_VENTAS=5000 npx playwright test tests/volumen.spec.js
 
 Hallazgos abiertos que importan (detalle y prioridad en [TODO.md](TODO.md)):
 
-1. 🔴 **`/version` no está ruteado en `worker.js`** → el chequeo de actualizaciones
-   automáticas nunca dispara. `functions/version.js` existe y `build.js` le sincroniza la
-   versión, pero el router no lo importa ni lo lista en `GET_ROUTES`, así que la request
-   cae en `env.ASSETS.fetch()` y devuelve 404. *(Verificado leyendo el código; no
-   confirmado contra producción.)*
-2. 🟠 Comentario obsoleto en `db.js:331` — dice que las cuotas canceladas *no* se recrean
-   al deshacer una devolución, pero el código sí las recrea desde que el fuzzer encontró
-   ese bug.
-3. 🟠 Validación de CSRF: la infraestructura está (header aceptado, cookies `SameSite=Strict`,
-   token generado en el cliente) pero `worker.js` **no bloquea** requests sin token.
-4. 🟡 `fmt()` puede mostrar hasta 3 decimales en algunos montos.
-5. 🟡 No hay deduplicación de perfumes por nombre — se pueden crear dos "Yara Rosa".
+1. 🟡 `/force-update` borra IndexedDB (`Clear-Site-Data: "cache", "storage"`) sin advertirle
+   al usuario. Es una escotilla de emergencia que destruye datos.
+2. 🟡 Las reservas y los pedidos no tienen aviso de duplicado (los perfumes y el importador
+   de Excel sí).
+3. 🟢 `'unsafe-inline'` en la CSP — inherente a la arquitectura de un solo archivo (D-01).
 
-**Sin cubrir por tests:** concurrencia multi-pestaña real, interrupción a mitad de una
-operación, y los clicks de la UI del importador de Excel (la lógica sí está cubierta).
+**Cerrados recientemente:** `/version` ruteado (la actualización automática ya dispara),
+CSRF bloqueando de verdad, rate limits fail-closed en rutas críticas, y el race de stock
+entre pestañas que inventaba inventario.
+
+**Sin cubrir por tests:** los clicks de la UI del importador de Excel (la lógica sí está
+cubierta) y el flujo completo de Mercado Pago punta a punta.
 
 ---
 

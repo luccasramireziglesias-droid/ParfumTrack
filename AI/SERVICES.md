@@ -165,22 +165,25 @@ la línea de comandos.
 
 ---
 
-## 4. 🔴 `/version` — existe pero NO está ruteado
+## 4. `/version` — GET
 
-`functions/version.js` existe, `build.js` le sincroniza la versión desde `package.json`,
-y `17-auto-update.js` hace `fetch('/version')` al arrancar y cada 5 minutos.
+Devuelve `{ ok, version, hash, timestamp, minVersion }`. Lo consulta `17-auto-update.js`
+al arrancar y cada 5 minutos; si la versión es mayor a la del meta `app-version`, la app se
+recarga sola.
 
-**Pero `worker.js` no lo importa ni lo lista en `GET_ROUTES`.** La request cae en
-`env.ASSETS.fetch()`, que busca un archivo llamado `version` en la raíz y devuelve 404.
-El `catch` de `_checkForUpdates()` se lo come con un `console.warn`.
+**La versión no se edita en el archivo:** vive en `package.json` y `build.js` la propaga.
+La línea `const version = '…';` tiene que mantener ese formato o el build falla.
 
-**Consecuencia: la actualización automática nunca dispara.**
+**Sin rate limit propio, a propósito.** No lee KV ni toca secretos, y lo pollea cada cliente
+cada 5 minutos: un contador en KV costaría más que la respuesta y se comería la cuota de
+escrituras. Lo cubre el límite global por IP del router. `Cache-Control: public, max-age=60`
+mantiene la carga fuera del origen.
 
-Además `version.js` exporta `export default { fetch }` (formato Worker), mientras que el
-resto exporta `onRequestGet`/`onRequestPost`. Rutearlo requiere adaptar la firma.
-
-*Verificado leyendo el código. **No confirmado contra producción** — este entorno no tiene
-red saliente.* Ver [TODO.md](TODO.md) §T-01.
+> **Historia.** Estuvo ~3 semanas devolviendo 404: el archivo existía y `build.js` le
+> sincronizaba la versión, pero `worker.js` no lo importaba ni lo listaba en `GET_ROUTES`,
+> así que caía en `ASSETS.fetch()`. Además exportaba `export default { fetch }` en vez de
+> `onRequestGet`. La app no tuvo canal de actualización en todo ese tiempo.
+> Ver [BUG_HISTORY.md](BUG_HISTORY.md) §BUG-08.
 
 ---
 
@@ -236,7 +239,7 @@ No hay proveedor de respaldo para ninguno de los dos.
 
 1. Crear `functions/mi-endpoint.js` exportando `onRequestPost` y/o `onRequestGet`.
 2. Importarlo en `worker.js`.
-3. Sumar la ruta a `POST_ROUTES` y/o `GET_ROUTES`.
+3. Sumar la ruta a `POST_ROUTES` y/o `GET_ROUTES`. 🔴 **El paso que más se olvida.**
 4. Agregar el `if (path === '/mi-endpoint')` en el bloque del método.
 5. Si es sensible, sumarla a `CRITICAL_ROUTES` (límite de concurrencia).
 6. 🔴 Usar `checkRateLimit()` de `_shared.js` — **fail-closed**, es regla del proyecto.
@@ -245,5 +248,7 @@ No hay proveedor de respaldo para ninguno de los dos.
 9. 🔴 Loguear con `log()`, que pasa por `sanitizeData()`.
 10. Escribir el test en `tests/`.
 
+6. Si muta estado y la llama la app, sumarla a `CSRF_ROUTES`.
+
 **El paso 3 es el que más se olvida.** Sin él, el endpoint responde 404 aunque el archivo
-exista y esté importado — que es exactamente lo que le pasa a `/version`.
+exista y esté importado — que es exactamente lo que le pasó a `/version` durante 3 semanas.

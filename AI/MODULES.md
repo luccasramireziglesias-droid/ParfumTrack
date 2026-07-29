@@ -42,7 +42,7 @@ silenciosamente**, porque el HTML es texto.
 | `_fixCuotasSaldadas(cuotasPre)` | **Idempotente** — sana deuda fantasma y `montoPagado > monto` |
 | `_initEventDelegation()` | Clicks delegados en `document` para WhatsApp y pago de cuota |
 | `_initTabSync()` / `_notifyTabs()` | `BroadcastChannel('pt_sync')` |
-| `_initCsrfToken()` / `_rotateCsrfToken()` | Token CSRF en localStorage |
+| `_initCsrfToken()` / `_getCsrfToken()` / `_rotateCsrfToken()` | Token CSRF. 🔴 **Síncronos**: el backend rechaza sin token, y una generación async era un 403 en la cara del usuario. `_getCsrfToken()` se cura solo |
 
 **Dependencias.** `DB` (todo), `ENCRYPTION` (indirecto), `02-render` (`renderAll`),
 `19-i18n`, `13-onboarding`, `14-pin-lock`, `17-auto-update`.
@@ -173,10 +173,12 @@ reabrir el formulario. Las ventas viejas sin `cantidad` valen 1.
 **Nota.** `_processPhoto()` está **compartido** con el alta de perfume (DRY): redimensiona
 y comprime antes de guardar la imagen en IndexedDB.
 
-**Riesgos.**
-- 🟠 No hay deduplicación por nombre: se pueden crear dos "Yara Rosa" y el stock queda
-  partido. Ver [TODO.md](TODO.md).
-- 🟡 Las fotos van a IndexedDB como data URL. Muchas fotos grandes inflan el backup.
+**Duplicados.** `_mismoNombre()` compara ignorando mayúsculas, tildes y espacios de más.
+Al crear uno que ya existe **avisa** (no bloquea) diciendo cuánto stock tiene el existente
+y ofrece editarlo; si el usuario insiste lo crea igual, porque puede ser a propósito (otro
+tamaño, otro proveedor).
+
+**Riesgo.** 🟡 Las fotos van a IndexedDB como data URL. Muchas fotos grandes inflan el backup.
 
 ---
 
@@ -271,7 +273,7 @@ Si te olvidás de una, **un restore borra los datos de ese store**. Hay un test 
 | Método | Qué hace |
 |---|---|
 | `_once(key, fn, btnEl)` | 🔴 Guarda anti doble-tap. Envolvé **todo** guardado async |
-| `fmt(n, forceAbs)` / `fmtSigned(n)` | Formato de moneda |
+| `fmt(n, forceAbs)` / `fmtSigned(n)` | Formato de moneda. Tope de **2 decimales** (`_MONTO_OPTS`); los dos comparten `_abs()` |
 | `esc(s)` | 🔴 Escape HTML. **Obligatorio** para datos del usuario |
 | `parseMonto(str)` | Tolera `1.500`, `1,500`, `1500`, `$1.500` |
 | `fmtDate(ts)` | Fecha legible |
@@ -282,7 +284,8 @@ Si te olvidás de una, **un restore borra los datos de ese store**. Hay un test 
 | `track(event, props)` | Plausible |
 | `setMoneda` / `loadMoneda` / `setNombreNegocio` / `loadNombreNegocio` | Preferencias |
 
-**Riesgo.** 🟡 `fmt()` puede mostrar hasta 3 decimales en algunos montos. Pendiente.
+**Nota.** `fmt()` mostraba hasta 3 decimales (`toLocaleString` sin opciones): `$1.234,567`
+se lee como un error en una app de plata. Ahora tope de 2 y los enteros sin coma.
 
 ---
 
@@ -346,10 +349,9 @@ cada 5 minutos → si la remota es mayor, recarga.
 **Métodos.** `_initAutoUpdate()`, `_checkForUpdates()`, `_isNewerVersion(a, b)`,
 `_reloadWithNewVersion()`, `_hayTrabajoEnCurso()`.
 
-**🔴 Estado actual: no funciona.** `/version` **no está ruteado en `worker.js`** — no
-figura en `GET_ROUTES` ni se importa `functions/version.js`, así que la request cae en
-`env.ASSETS.fetch()` y devuelve 404. El `catch` se lo come con un `console.warn`.
-*(Verificado leyendo el código; no confirmado contra producción.)* Ver [TODO.md](TODO.md) §T-01.
+**Estado: funcionando.** Estuvo ~3 semanas roto porque `/version` no estaba ruteado en
+`worker.js` y devolvía 404 (el `catch` se lo comía con un `console.warn`). Ver
+[BUG_HISTORY.md](BUG_HISTORY.md) §BUG-08.
 
 **Salvaguarda que sí funciona.** `_hayTrabajoEnCurso()` impide recargar encima de un
 formulario en curso o un modal abierto. Hay un test que lo protege.
@@ -481,6 +483,10 @@ viene de Excel quiere **sumar** lo que ya tenía. Son operaciones opuestas.
 a propósito: son históricas y el stock de la planilla ya las tiene descontadas. Ponerles
 `perfumeId` haría que descuenten stock dos veces.
 
+**Reimportación.** `_impYaImportados()` detecta las filas que ya están cargadas y ofrece
+agregar solo las nuevas. Dos ventas son la misma si coinciden cliente, perfume, monto y
+**día** — no timestamp, porque las planillas traen fechas sin hora.
+
 **Riesgo.** 🟡 La lógica está bien cubierta por tests; los **clicks de la UI** del
 importador no. Ver [TESTING.md](TESTING.md).
 
@@ -492,7 +498,7 @@ importador no. Ver [TESTING.md](TESTING.md).
 
 | Grupo | Métodos |
 |---|---|
-| Infra | `init()`, `_shouldEncrypt()`, `_encryptBeforeStore()`, `_decryptAfterRetrieve()`, `dedupEncryptedRecords()` |
+| Infra | `init()`, `_shouldEncrypt()`, `_encryptBeforeStore()`, `_decryptAfterRetrieve()`, `dedupEncryptedRecords()`, `_conLockStock()` |
 | CRUD | `getAll`, `get`, `add`, `put`, `delete`, `clear` |
 | Perfumes | `getPerfumes`, `addPerfume`, `updatePerfume`, `deletePerfume` |
 | Ventas | `getVentas`, `addVenta` ⭐, `updateVenta` ⭐, `deleteVenta` |
@@ -513,6 +519,16 @@ importador no. Ver [TESTING.md](TESTING.md).
 - 🔴 El `id` va **fuera** del payload cifrado, si no `put()` duplica registros.
 - 🟠 `seedDemo()` siembra **una sola vez en la vida** de la instalación (`pt_demo_seeded`).
 
-**Comentario desactualizado conocido.** `db.js:331-333` dice que las cuotas canceladas *no*
-se recrean al deshacer una devolución. **El código sí las recrea** (líneas 355-378) desde
-que el fuzzer encontró ese bug. Ver [TODO.md](TODO.md) §T-02.
+**🔴 Las operaciones que tocan stock están serializadas.** `addVenta`, `updateVenta`,
+`deleteVenta`, `devolverVenta`, `revertirDevolucion`, `registrarCompra` y `eliminarCompra`
+son wrappers finos sobre un `_xImpl` y pasan por `_conLockStock()` (**Web Locks**, que
+cruza pestañas).
+
+Sin eso, dos pestañas leían el mismo stock y escribían el mismo valor: 20 ventas
+descontaban 13 unidades. Ver [BUG_HISTORY.md](BUG_HISTORY.md) §BUG-21.
+
+**⚠️ `entregarReserva` NO toma el lock**: llama a `addVenta`, que ya lo toma, y Web Locks
+no es reentrante — se trabaría para siempre.
+
+**⚠️ Al buscar código en `db.js`, apuntá al `_xImpl`**, no al wrapper. Varias regresiones
+estáticas se rompieron por eso.

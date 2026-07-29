@@ -137,14 +137,14 @@ Definidas en `worker.js:20-24`.
 | GET | `/debug-license` | `debug-license.js` | — | |
 | GET | `/health` | inline en `worker.js` | — | |
 | GET | `/force-update` | inline en `worker.js` | — | |
+| GET | `/version` | `version.js` | — | |
 
 **"Crítica"** = está en `CRITICAL_ROUTES` → máximo 10 requests concurrentes por IP.
 
-### 🔴 Ruta faltante
-
-| Ruta | Estado |
-|---|---|
-| `GET /version` | **NO ruteada.** `functions/version.js` existe pero no se importa ni figura en `GET_ROUTES`. Cae en `ASSETS.fetch()` → 404. La actualización automática nunca dispara. Ver [TODO.md](TODO.md) §T-01 |
+**Rutas con CSRF obligatorio** (`CSRF_ROUTES`): `/trial`, `/validate-license`,
+`/backup` POST y `/sync` POST devuelven **403** sin un `X-CSRF-Token` bien formado.
+`/mp-create-preference` queda afuera a propósito — lo llama la landing sin token.
+Ver [SECURITY.md](SECURITY.md).
 
 ### Rutas estáticas (assets)
 
@@ -182,8 +182,9 @@ flowchart TD
     M -->|sí| H[handler en functions/]
 ```
 
-**⚠️ Los rate limits del router hacen fail-OPEN** si KV falla (loguean warning y siguen).
-Los de `_shared.js`, dentro de cada handler, son fail-closed. Ver [SECURITY.md](SECURITY.md).
+**Fail-closed con KV caído:** las rutas de `CRITICAL_ROUTES` cortan con **503**; el límite
+global sobre el resto sigue fail-open a propósito, para que una caída de KV no se lleve
+puesta la app entera. Ver [SECURITY.md](SECURITY.md).
 
 ### CORS
 
