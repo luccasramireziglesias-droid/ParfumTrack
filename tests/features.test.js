@@ -1134,3 +1134,51 @@ describe('Header — el nombre del negocio no tapa el chip de cuenta', () => {
     expect(utils).toMatch(/logo\.title =/);
   });
 });
+
+describe('Registro por OTP — el contrato cliente/servidor', () => {
+  const cuenta = read('src/app/12-cuenta-licencia.js');
+  const trial = read('functions/trial.js');
+
+  // El backend tenía 24 tests que mandaban `challenge` correctamente. Nadie
+  // probó que el CLIENTE lo mandara: no lo hacía, así que verificar el email
+  // era imposible. El backend rechazaba antes de mirar el código.
+  it('el servidor exige challenge al verificar', () => {
+    const idx = trial.indexOf('async function handleVerify');
+    const cuerpo = trial.slice(idx, idx + 700);
+    expect(cuerpo).toMatch(/!challenge \|\|/);
+    expect(cuerpo).toMatch(/\[0-9a-f\]\{32\}/);
+  });
+
+  it('el registro devuelve el challenge', () => {
+    expect(trial).toMatch(/json\(\{ ok: true, sent: true, challenge: nonce \}/);
+  });
+
+  it('el cliente GUARDA el challenge que devuelve el registro', () => {
+    const idx = cuenta.indexOf('async registrarCuenta');
+    const cuerpo = cuenta.slice(idx, idx + 1400);
+    expect(cuerpo, 'no guarda data.challenge').toMatch(/_otpChallenge = data\.challenge/);
+  });
+
+  it('el cliente MANDA el challenge al verificar', () => {
+    const idx = cuenta.indexOf('async verificarOTP');
+    const cuerpo = cuenta.slice(idx, idx + 1200);
+    expect(cuerpo, 'el body de verify no incluye challenge').toMatch(/step: 'verify'[^}]*challenge/);
+  });
+
+  it('sobrevive a una recarga entre pedir el código y verificarlo', () => {
+    // Solo en memoria, recargar la pantalla dejaba al usuario sin poder
+    // terminar el registro y sin entender por qué
+    expect(cuenta).toMatch(/sessionStorage\.setItem\('pt_otp_challenge'/);
+    expect(cuenta).toMatch(/_getOtpPendiente\(\)/);
+  });
+
+  it('si falta el challenge avisa qué hacer en vez de mandar una request rota', () => {
+    const idx = cuenta.indexOf('async verificarOTP');
+    const cuerpo = cuenta.slice(idx, idx + 700);
+    expect(cuerpo).toMatch(/Pedí un código nuevo/);
+  });
+
+  it('el challenge se descarta al usarlo', () => {
+    expect(cuenta).toMatch(/sessionStorage\.removeItem\('pt_otp_challenge'\)/);
+  });
+});
