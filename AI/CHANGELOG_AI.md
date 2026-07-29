@@ -9,6 +9,29 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-07-29 — Header: el nombre del negocio ya no tapa el chip de cuenta
+
+**Motivo.** El usuario mandó capturas: con el nombre "VIPPARFUMSmgdsssdjhffghhhff…" el chip
+de "Free" quedaba fuera del viewport. Ese chip es la única puerta a la licencia y a los
+backups desde el dashboard.
+
+**Causa.** `.logo-group` sin `min-width: 0`: un item de flex no se encoge por debajo del
+ancho de su contenido, así que empujaba al hermano en vez de truncarse.
+
+**Solución.** `flex: 1; min-width: 0` en el grupo, ellipsis en el texto, `flex-shrink: 0`
+en las acciones. Más `_NOMBRE_NEGOCIO_MAX = 30` aplicado al escribir **y al cargar**
+(`maxlength` no cubre lo que setea el código), y el nombre completo en el `title`.
+
+**Archivos.** `src/styles/02-header.css`, `src/app/11-utils.js`, `src/screens/mas.html`,
+`tests/header.spec.js` (7 tests)
+
+**Riesgo.** 🟢 Solo layout del header, que usa una sola pantalla (`inicio`).
+Verificado con captura: el nombre se corta con "…" y el chip entra entero.
+
+**Total.** 592 → **597 Vitest**, 87 → **94 E2E**.
+
+---
+
 ## 2026-07-29 (tarde) — Cerrar los 4 bloques de deuda de TODO.md
 
 Cuatro tandas seguidas, cada una con su commit.

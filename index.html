@@ -179,6 +179,12 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   display: flex;
   align-items: center;
   gap: 11px;
+  /* min-width:0 es lo que permite que el nombre se trunque en vez de empujar
+     al chip de cuenta fuera de la pantalla: sin esto, un item de flex nunca
+     se encoge por debajo del ancho de su contenido. Con un nombre largo el
+     chip de "Free" quedaba literalmente fuera del viewport. */
+  flex: 1;
+  min-width: 0;
 }
 
 .logo-drop {
@@ -201,12 +207,20 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   font-size: 23px;
   color: var(--text);
   letter-spacing: 0.005em;
+  /* Un nombre que no entra se corta con puntos suspensivos */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .header-actions {
   display: flex;
   gap: 8px;
   align-items: center;
+  /* El chip de cuenta nunca se encoge ni se va de pantalla: es la única
+     forma de llegar a la licencia y a los backups */
+  flex-shrink: 0;
 }
 
 .profile-chip {
@@ -3660,7 +3674,7 @@ input[type="date"].form-input {
         <div class="mas-item" style="cursor:default;">
           <span class="ms gold">storefront</span>
           <span style="flex-shrink:0;">Mi negocio</span>
-          <input type="text" id="input-negocio" class="form-input" placeholder="Nombre del negocio" oninput="App.setNombreNegocio(this.value)" style="flex:1;text-align:right;background:transparent;border:none;color:var(--text);font-size:13px;padding:4px 8px;min-width:0;">
+          <input type="text" id="input-negocio" class="form-input" maxlength="30" placeholder="Nombre del negocio" oninput="App.setNombreNegocio(this.value)" style="flex:1;text-align:right;background:transparent;border:none;color:var(--text);font-size:13px;padding:4px 8px;min-width:0;">
         </div>
         <div class="mas-item" style="cursor:default;">
           <span class="ms gold">lock</span>
@@ -9453,20 +9467,35 @@ const App = {
     }
   },
 
+  // El header es una sola línea y comparte lugar con el chip de cuenta. El
+  // CSS ya trunca con puntos suspensivos, pero acotar lo que se guarda evita
+  // que el usuario escriba 200 caracteres y vea puro "..." sin entender por qué.
+  _NOMBRE_NEGOCIO_MAX: 30,
+
   setNombreNegocio(val) {
-    const name = val.trim();
+    const name = String(val || '').trim().slice(0, this._NOMBRE_NEGOCIO_MAX);
     localStorage.setItem('pt_negocio', name);
     const logo = document.querySelector('.logo-text');
-    if (logo) logo.textContent = name || 'Parfum Track';
+    if (logo) {
+      logo.textContent = name || 'Parfum Track';
+      // El nombre completo queda accesible aunque se vea cortado
+      logo.title = name || 'Parfum Track';
+    }
   },
 
   loadNombreNegocio() {
-    const saved = localStorage.getItem('pt_negocio');
-    if (saved) {
-      const input = document.getElementById('input-negocio');
-      if (input) input.value = saved;
-      const logo = document.querySelector('.logo-text');
-      if (logo) logo.textContent = saved || 'Parfum Track';
+    const guardado = localStorage.getItem('pt_negocio');
+    if (!guardado) return;
+    // maxlength no aplica a lo que se setea por código: los nombres largos
+    // que ya estaban guardados se acotan igual al cargarlos
+    const saved = guardado.slice(0, this._NOMBRE_NEGOCIO_MAX);
+    if (saved !== guardado) localStorage.setItem('pt_negocio', saved);
+    const input = document.getElementById('input-negocio');
+    if (input) input.value = saved;
+    const logo = document.querySelector('.logo-text');
+    if (logo) {
+      logo.textContent = saved || 'Parfum Track';
+      logo.title = saved || 'Parfum Track';
     }
   },
 

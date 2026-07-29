@@ -1091,3 +1091,46 @@ describe('Pulido — montos, duplicados y reimportación', () => {
     expect(modal).toMatch(/#modal-confirm,\s*\n#modal-prompt \{\s*\n\s*z-index: 300/);
   });
 });
+
+describe('Header — el nombre del negocio no tapa el chip de cuenta', () => {
+  const css = read('src/styles/02-header.css');
+  const utils = read('src/app/11-utils.js');
+  const mas = read('src/screens/mas.html');
+
+  it('el nombre se trunca en vez de empujar al chip fuera de pantalla', () => {
+    // min-width:0 es lo que permite que un item de flex se encoja por debajo
+    // del ancho de su contenido. Sin eso el chip de "Free" quedaba fuera del
+    // viewport y no había forma de llegar a la licencia ni a los backups.
+    const grupo = css.slice(css.indexOf('.logo-group {'), css.indexOf('.logo-drop {'));
+    expect(grupo).toMatch(/min-width:\s*0/);
+    expect(grupo).toMatch(/flex:\s*1/);
+
+    const texto = css.slice(css.indexOf('.logo-text {'), css.indexOf('.header-actions {'));
+    expect(texto).toMatch(/text-overflow:\s*ellipsis/);
+    expect(texto).toMatch(/white-space:\s*nowrap/);
+    expect(texto).toMatch(/overflow:\s*hidden/);
+  });
+
+  it('el chip de cuenta nunca se encoge', () => {
+    const acciones = css.slice(css.indexOf('.header-actions {'), css.indexOf('.profile-chip {'));
+    expect(acciones).toMatch(/flex-shrink:\s*0/);
+  });
+
+  it('el nombre guardado se acota, al escribirlo y al cargarlo', () => {
+    expect(utils).toMatch(/_NOMBRE_NEGOCIO_MAX:\s*30/);
+    // Las dos rutas: la que escribe y la que lee lo que ya estaba guardado
+    // (maxlength no aplica a lo que setea el código)
+    const set = utils.slice(utils.indexOf('setNombreNegocio(val)'), utils.indexOf('loadNombreNegocio()'));
+    expect(set).toMatch(/slice\(0, this\._NOMBRE_NEGOCIO_MAX\)/);
+    const load = utils.slice(utils.indexOf('loadNombreNegocio()'), utils.indexOf('fmtDate(ts)'));
+    expect(load).toMatch(/slice\(0, this\._NOMBRE_NEGOCIO_MAX\)/);
+  });
+
+  it('el input no deja tipear de más', () => {
+    expect(mas).toMatch(/id="input-negocio"[^>]*maxlength="30"/);
+  });
+
+  it('el nombre completo queda en el title aunque se vea cortado', () => {
+    expect(utils).toMatch(/logo\.title =/);
+  });
+});
