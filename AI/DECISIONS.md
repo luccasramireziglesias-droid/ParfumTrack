@@ -401,14 +401,27 @@ IndexedDB esté abierta. Leerlo de la base obligaría a esperar, o a mostrar "Pa
 después cambiarlo — un parpadeo en cada arranque.
 
 **Costo aceptado.** 🟠 `config` es el único store **no cifrado**: tiene que ser legible
-antes de que exista la clave. El perfil incluye dirección y documento.
+antes de que exista la clave. El perfil incluye dirección y documento fiscal.
+
+**Confirmado el 29/07/2026** por el dueño del producto, después de plantearle explícitamente
+la asimetría: el documento fiscal es el dato **más identificatorio** del perfil —para un
+unipersonal argentino el CUIT sale del DNI— y es el único sin cifrar, mientras que sus
+ventas, clientes y montos sí lo están.
+
+Se evaluaron tres salidas: dejarlo, cifrar solo ese campo dentro de `config` (viable porque
+el PDF es feature Pro y ahí la clave existe), o mover el perfil a un store cifrado.
+**Se eligió dejarlo.** El riesgo es acotado —está en el dispositivo del usuario, hace falta
+acceso físico o un script que pase la CSP— y el dato va impreso en cada factura que emite.
+Pagar complejidad por un riesgo teórico no compensa mientras el cuello de botella del
+producto sea la adquisición.
 
 **Por qué se aceptó igual:** son datos que el usuario **elige publicar** — van impresos en
 el catálogo que manda por WhatsApp y en los PDF que exporta. No son secretos. La venta
 individual (cliente, monto) es más sensible y **sí** está cifrada.
 
-**Reabrir si.** Se agrega al perfil algo que el usuario no querría compartir (datos
-bancarios, claves de facturación electrónica).
+**Reabrir si.** Se agrega al perfil algo que el usuario no querría compartir: datos
+bancarios, credenciales de facturación electrónica, o cualquier campo que no vaya impreso
+en el catálogo o la factura. Ese es el disparador concreto, no "cuando haya tiempo".
 
 ---
 
@@ -422,3 +435,41 @@ usuario. Si un campo no tiene destino, no va en el formulario.
 
 **Consecuencia para quien agregue un campo:** definí primero **dónde se ve**. Si la
 respuesta es "en ningún lado por ahora", no lo agregues todavía.
+
+
+---
+
+## D-26 — El header muestra la marca; el catálogo y el PDF, el negocio
+
+**Decisión.** Sin nombre de negocio cargado:
+- **Header de la app** → "Parfum Track"
+- **Catálogo de WhatsApp y PDF** → "Mi negocio"
+
+**Por qué la diferencia.** Son dos audiencias distintas. El header lo ve el **usuario**, en
+la pantalla de la app: mostrar la marca ahí es correcto y es dónde la app se presenta. El
+catálogo y el PDF los ve **su cliente**: encabezarlos con "Parfum Track" le estaría
+diciendo al cliente que el negocio se llama así.
+
+**Estado.** Confirmado explícitamente por el dueño del producto el 29/07/2026. Cubierto por
+el test *"sin nombre cargado muestra la marca"* en `tests/header.spec.js`.
+
+**No reabrir** salvo que cambie la estrategia de marca (por ejemplo, si se decide sacar
+"Parfum Track" de la vista del usuario final).
+
+---
+
+## D-27 — El PIN se queda en "Más" (provisional)
+
+**Decisión.** El toggle de PIN sigue en la pantalla `mas`, no en la card del perfil del
+negocio.
+
+**Por qué.** El PIN protege el **dispositivo**, no es parte de la identidad del negocio.
+La card de "Mi negocio" agrupa lo que ve el cliente (nombre, logo, contacto); el PIN no
+sale en ningún lado hacia afuera.
+
+**Estado.** 🟡 **Provisional.** El dueño del producto lo dejó ahí "por ahora" el
+29/07/2026. A diferencia del resto de las decisiones de este archivo, esta se puede mover
+sin discusión: no hay test que la fije, justamente para no trabar el cambio.
+
+**Reabrir si.** Se agrupa la configuración de seguridad (PIN + cifrado + backup) en un solo
+lugar, que sería el momento natural para moverlo.

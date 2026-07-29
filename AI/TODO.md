@@ -7,6 +7,11 @@ el problema y cómo se comprueba.
 
 **Leyenda:** 🔴 crítico · 🟠 alto · 🟡 medio · 🟢 bajo
 
+**Decisiones cerradas** (no volver a proponerlas): el header muestra "Parfum Track" sin
+nombre cargado (§D-26), el PIN se queda en "Más" (§D-27, provisional) y el documento fiscal
+se queda en el store `config` sin cifrar (§D-24, con el disparador para reabrirlo escrito).
+Ver [DECISIONS.md](DECISIONS.md). **No quedan decisiones de producto abiertas.**
+
 ---
 
 ## BUGS ABIERTOS
