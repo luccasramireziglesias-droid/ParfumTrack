@@ -1,5 +1,12 @@
 # PARFUMTRACK — PROJECT MASTER MEMORY v1.1 (30/06/2026)
 
+## ANTES DE EMPEZAR CUALQUIER TAREA
+
+Leé primero `AI/AI_CONTEXT.md` (resumen ejecutivo) y `AI/AI_RULES.md` (reglas para IAs).
+Después `AI/PROJECT_MAP.md` para ubicar el archivo, y solo la sección correspondiente de
+`AI/MODULES.md`. **No analices todo el proyecto** — la carpeta `AI/` existe justamente para
+evitarlo. Al terminar, actualizá la documentación según `AI/AI_RULES.md` §7.
+
 ## REGLAS INQUEBRANTABLES
 
 - Comunicación SIEMPRE en español (voseo argentino)
@@ -70,6 +77,16 @@ ParfumTrack/
 ├── fonts/fonts.css         ← Fuentes locales
 ├── img/whatsapp-cobro.jpg  ← Screenshot cobro WA
 ├── screenshot-*.jpg        ← Screenshots reales de la app
+├── AI/                     ← Base de conocimiento para IAs (20 archivos, excluida del deploy)
+│   ├── AI_CONTEXT.md       ← LEER PRIMERO — resumen ejecutivo
+│   ├── AI_RULES.md         ← Reglas obligatorias + mantenimiento de la doc
+│   ├── PROJECT_MAP.md      ← Índice: dónde tocar según la tarea
+│   ├── MODULES.md          ← Un módulo por sección (leer solo el afectado)
+│   ├── ARCHITECTURE.md · DATABASE.md · SERVICES.md · ROUTES.md · COMPONENTS.md
+│   ├── SECURITY.md · PERFORMANCE.md · TESTING.md · CODE_STANDARDS.md
+│   ├── DECISIONS.md        ← Por qué se decidió cada cosa (no re-debatir)
+│   ├── BUG_HISTORY.md      ← Nunca se borra
+│   └── TODO.md · CHANGELOG_AI.md · KNOWLEDGE_GRAPH.md · ROADMAP.md · README_AI.md
 ├── functions/              ← 10 Worker functions
 │   ├── trial.js            ← OTP email + trial anchor
 │   ├── validate-license.js ← ECDSA license validation

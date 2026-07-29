@@ -9,7 +9,8 @@
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
-    "exclude": ["standalone/*", "inservible/*", "PLAYSTORE/*", "_temp*", "_p_*", "playbook*", "auditoria*", "COBERTURA*", ".claude/*", "node_modules/*", ".git/*", "tests/*", "package*.json", "CLAUDE.md", "src/*", "scripts/*"]
+    // AI/* queda fuera a propósito: documenta hallazgos de seguridad abiertos
+    "exclude": ["standalone/*", "inservible/*", "PLAYSTORE/*", "_temp*", "_p_*", "playbook*", "auditoria*", "COBERTURA*", ".claude/*", "node_modules/*", ".git/*", "tests/*", "package*.json", "CLAUDE.md", "src/*", "scripts/*", "AI/*"]
   },
   "compatibility_flags": [
     "nodejs_compat"
