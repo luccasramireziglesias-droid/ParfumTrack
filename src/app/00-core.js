@@ -90,6 +90,7 @@
     this._initLang();
     this.loadMoneda();
     this.loadNombreNegocio();
+    await this.loadNegocio();
     this.loadAccount();
     await this._initializeEncryption();
     this._initCsrfToken();

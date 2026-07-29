@@ -146,7 +146,12 @@ del pedido.
 `id`, `fecha`, categoría, monto.
 
 ### `config`
-`key` (keyPath) + `value`. Moneda, nombre del negocio, idioma, etc. **No cifrado.**
+`key` (keyPath) + `value`. **No cifrado** — tiene que ser legible antes de que exista la clave.
+
+| Clave | Contenido |
+|---|---|
+| `negocio` | Perfil del negocio: `nombre`, `tipo`, `telefono`, `email`, `direccion`, `ciudad`, `documento`, `logo` (data URL). Ver [DECISIONS.md](DECISIONS.md) §D-24 |
+| otras | Moneda, idioma y demás preferencias |
 
 ---
 

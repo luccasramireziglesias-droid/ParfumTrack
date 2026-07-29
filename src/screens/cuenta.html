@@ -6,6 +6,61 @@
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
       </div>
 
+      <!-- Perfil del negocio: es lo que ve el cliente en el catálogo y el PDF -->
+      <div class="cuenta-card negocio-card">
+        <div class="negocio-logo vacio" id="negocio-logo-preview" onclick="App.elegirLogoNegocio()" role="button" tabindex="0" aria-label="Logo del negocio">
+          <span class="ms">add_photo_alternate</span>
+          <span class="negocio-logo-hint">Tocá para agregar tu logo</span>
+        </div>
+        <input type="file" id="negocio-logo-input" accept="image/*" class="hidden" onchange="App.cargarLogoNegocio(this)">
+
+        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:12px 0 4px;">Mi negocio</h3>
+        <p style="color:var(--text3);font-size:13px;line-height:1.5;margin-bottom:16px;">
+          Estos datos encabezan el catálogo que mandás por WhatsApp y los PDF que exportás.
+        </p>
+
+        <div class="negocio-form">
+          <label class="negocio-campo">
+            <span class="negocio-label">NOMBRE DEL NEGOCIO *</span>
+            <input type="text" class="form-input" id="negocio-nombre" maxlength="30" placeholder="VIP Parfums">
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">TIPO DE NEGOCIO</span>
+            <select class="form-input" id="negocio-tipo"></select>
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">WHATSAPP / TELÉFONO</span>
+            <input type="tel" class="form-input" id="negocio-telefono" maxlength="25" inputmode="tel" placeholder="+598 94 466 577">
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">CORREO</span>
+            <input type="email" class="form-input" id="negocio-email" maxlength="60" inputmode="email" placeholder="tunegocio@gmail.com">
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">DIRECCIÓN</span>
+            <input type="text" class="form-input" id="negocio-direccion" maxlength="80" placeholder="Av. Siempre Viva 742">
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">CIUDAD</span>
+            <input type="text" class="form-input" id="negocio-ciudad" maxlength="40" placeholder="Montevideo">
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">DOCUMENTO (RUT / CUIT)</span>
+            <input type="text" class="form-input" id="negocio-documento" maxlength="20" placeholder="Opcional">
+          </label>
+        </div>
+
+        <button class="btn-primary btn-full" id="negocio-guardar" onclick="App.guardarNegocio()" style="margin-top:4px;">
+          <span class="ms">save</span>Guardar datos
+        </button>
+      </div>
+
       <!-- Plan actual + código de licencia (siempre visible) -->
       <div class="cuenta-card" id="cuenta-plan-section">
         <span class="ms" style="font-size:48px;color:var(--gold2);" id="cuenta-plan-icon">lock_open</span>

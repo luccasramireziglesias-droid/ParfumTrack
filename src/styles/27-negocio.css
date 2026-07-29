@@ -1,0 +1,139 @@
+/* ====== PERFIL DEL NEGOCIO ====== */
+.negocio-card {
+  align-items: stretch;
+  text-align: left;
+}
+
+.negocio-card > h3,
+.negocio-card > p {
+  text-align: center;
+}
+
+/* Logo — círculo tocable, mismo lenguaje que la gota del header */
+.negocio-logo {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--bg2);
+  border: 1px dashed var(--border);
+  color: var(--text3);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.negocio-logo.vacio:active {
+  background: var(--bg3);
+  border-color: var(--gold);
+}
+
+.negocio-logo.vacio .ms {
+  font-size: 28px;
+  color: var(--gold2);
+}
+
+.negocio-logo-hint {
+  font: 500 9px 'DM Sans', sans-serif;
+  line-height: 1.2;
+  text-align: center;
+  padding: 0 8px;
+}
+
+.negocio-logo:not(.vacio) {
+  border-style: solid;
+  border-color: var(--gold);
+  box-shadow: 0 4px 14px rgba(201, 168, 76, 0.28);
+}
+
+.negocio-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Quitar el logo sin tener que abrir el selector de archivos */
+.negocio-logo-quitar {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(15, 15, 26, 0.82);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.negocio-logo-quitar .ms {
+  font-size: 15px;
+}
+
+.negocio-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.negocio-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.negocio-label {
+  font: 600 10px 'DM Sans', sans-serif;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+}
+
+.negocio-campo .form-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* El select hereda el fondo del sistema en Android y queda blanco: se
+   fuerza la paleta oscura, incluidas las opciones del desplegable */
+.negocio-campo select.form-input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--bg2);
+  color: var(--text);
+  background-image: linear-gradient(45deg, transparent 50%, var(--gold2) 50%),
+                    linear-gradient(135deg, var(--gold2) 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(50% + 2px), calc(100% - 13px) calc(50% + 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 34px;
+}
+
+.negocio-campo select.form-input option {
+  background: var(--bg2);
+  color: var(--text);
+}
+
+/* El logo del usuario reemplaza a la gota dorada del header. La gota está
+   rotada 135deg para formar la punta, así que la imagen se contrarrota. */
+.logo-drop.con-logo {
+  background: transparent;
+  background-size: cover;
+  background-position: center;
+  border-radius: 50%;
+  transform: none;
+  box-shadow: 0 4px 12px rgba(201, 168, 76, 0.35);
+  border: 1px solid var(--gold);
+}

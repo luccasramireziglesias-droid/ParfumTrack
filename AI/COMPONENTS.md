@@ -46,7 +46,7 @@ Cada archivo de `src/screens/` es un `<div id="screen-{nombre}" class="screen">`
 | `gastos` | `#gastos-list`, chips de montos | `renderGastos()` |
 | `reservas` | `#reservas-list` | `renderReservas()` |
 | `catalogo` | lista seleccionable | `_renderCatalogoList()` |
-| `cuenta` | estado de licencia y plan | `updateCuentaScreen()` |
+| `cuenta` | perfil del negocio + estado de licencia y plan | `updateCuentaScreen()` → `renderNegocio()` |
 | `mas` | estático (menú) | — |
 
 **🔴 Al agregar una pantalla hay que tocar 3 lugares:**
@@ -181,7 +181,7 @@ El número **es** el orden de cascada: `26-importar.css` puede pisar a `00-base.
 06-section · 07-venta-card · 08-sub-header · 09-live-profit · 10-form · 11-buttons
 12-stock · 13-cuotas · 14-stats · 15-mas · 16-bottom-nav · 17-modal · 18-toast
 19-empty-state · 20-pedidos · 21-recordatorios · 22-devoluciones · 23-compras
-24-reservas · 25-splash · 26-importar
+24-reservas · 25-splash · 26-importar · 27-negocio
 ```
 
 **Paleta (variables CSS en `00-base.css`) — obligatoria:**

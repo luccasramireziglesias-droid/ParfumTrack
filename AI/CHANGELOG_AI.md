@@ -9,6 +9,35 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-07-29 — Perfil del negocio con logo
+
+**Motivo.** El usuario mandó como referencia la pantalla "Editar negocio" de otra app y
+pidió poder cargar ese tipo de datos más una foto de perfil con el logo.
+
+**Qué se hizo.** Módulo nuevo `27-negocio.js` + card en la pantalla de cuenta: nombre, tipo,
+teléfono, email, dirección, ciudad, documento y logo.
+
+**La decisión que define la feature:** cada campo tiene un lugar donde **sale**. El nombre y
+el logo van al header; el contacto al pie del catálogo de WhatsApp y al encabezado del PDF.
+Un formulario que junta datos que nadie lee es ruido (ver [DECISIONS.md](DECISIONS.md) §D-25).
+
+**Almacenamiento.** Store `config` (entra en el backup) + `pt_negocio` en localStorage
+porque el header lo lee antes de que abra IndexedDB (§D-24).
+
+**Nota de diseño.** La captura de referencia era de una app con tema claro y header
+amarillo. Se tomaron los **campos**, no el diseño: la card sigue la paleta dark del proyecto.
+
+**Archivos.** `src/app/27-negocio.js`, `src/screens/cuenta.html`, `src/styles/27-negocio.css`,
+`src/app/00-core.js`, `src/app/10-data-management.js`, `src/app/12-cuenta-licencia.js`,
+`tests/negocio.spec.js` (12 tests) + 11 regresiones estáticas
+
+**Riesgo.** 🟡 `config` no está cifrado; el perfil incluye dirección y documento. Se aceptó
+porque son datos que el usuario **elige publicar** en el catálogo y los PDF. Documentado.
+
+**Total.** 610 → **621 Vitest**, 94 → **106 E2E**.
+
+---
+
 ## 2026-07-29 — Dos incidentes de producción, misma raíz
 
 **Contexto.** El usuario reportó con capturas dos fallas seguidas al activar su licencia.

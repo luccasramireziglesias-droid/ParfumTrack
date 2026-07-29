@@ -383,3 +383,42 @@ podía tocar — **borrar un perfume desde el modal de edición estaba roto en p
 
 **Regla derivada.** Un diálogo que puede abrirse desde adentro de otro modal necesita capa
 propia. No alcanza con que "los modales tengan z-index".
+
+
+---
+
+## D-24 — El perfil del negocio va al store `config`, no a localStorage
+
+**Decisión.** El perfil (nombre, tipo, teléfono, email, dirección, ciudad, documento, logo)
+se guarda en el store `config` bajo la clave `negocio`. El nombre **además** sigue
+escribiéndose en `localStorage.pt_negocio`.
+
+**Por qué config.** `config` entra en el export JSON y en el backup a R2, así que el perfil
+sobrevive a un cambio de teléfono. localStorage no se respalda.
+
+**Por qué la copia en localStorage.** El header pinta el nombre del negocio **antes** de que
+IndexedDB esté abierta. Leerlo de la base obligaría a esperar, o a mostrar "Parfum Track" y
+después cambiarlo — un parpadeo en cada arranque.
+
+**Costo aceptado.** 🟠 `config` es el único store **no cifrado**: tiene que ser legible
+antes de que exista la clave. El perfil incluye dirección y documento.
+
+**Por qué se aceptó igual:** son datos que el usuario **elige publicar** — van impresos en
+el catálogo que manda por WhatsApp y en los PDF que exporta. No son secretos. La venta
+individual (cliente, monto) es más sensible y **sí** está cifrada.
+
+**Reabrir si.** Se agrega al perfil algo que el usuario no querría compartir (datos
+bancarios, claves de facturación electrónica).
+
+---
+
+## D-25 — Los datos del negocio se usan, no solo se guardan
+
+**Decisión.** Cada campo del perfil tiene un lugar donde sale: nombre y logo en el header,
+contacto al pie del catálogo de WhatsApp, contacto y documento en el encabezado del PDF.
+
+**Por qué.** Un formulario que junta datos que nadie lee es trabajo perdido y ruido para el
+usuario. Si un campo no tiene destino, no va en el formulario.
+
+**Consecuencia para quien agregue un campo:** definí primero **dónde se ve**. Si la
+respuesta es "en ningún lado por ahora", no lo agregues todavía.
