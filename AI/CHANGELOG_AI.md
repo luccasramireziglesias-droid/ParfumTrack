@@ -9,6 +9,44 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-07-29 — Dos incidentes de producción, misma raíz
+
+**Contexto.** El usuario reportó con capturas dos fallas seguidas al activar su licencia.
+
+### BUG-24 — 503 en las 5 rutas críticas 🔥
+
+Introducido ese mismo día al volver fail-closed el limitador de concurrencia. La causa de
+fondo era vieja: KV rechaza `expirationTtl < 60` y el limitador usaba 5, así que el `put()`
+fallaba en **todas** las requests desde siempre — tapado por un `catch`.
+
+Registro, activación de licencia y pagos caídos hasta el hotfix.
+
+### BUG-25 — El OTP nunca se pudo verificar
+
+El cliente descartaba el `challenge` que devuelve `/trial` y no lo mandaba al verificar. El
+registro por email nunca funcionó desde que se agregó el nonce.
+
+### La raíz común
+
+**Los dos pasaron los tests porque los tests no reproducían la realidad:** un mock de KV que
+aceptaba cualquier TTL, y 24 tests de backend contra un cliente ideal que no existía.
+
+Las 597 pruebas en verde daban una confianza que no correspondía.
+
+**Qué se agregó.** Un mock de KV que valida como el real, un test que recorre todos los
+`put()` del router, y 7 regresiones que verifican el **contrato** cliente/servidor del OTP.
+Los dos se verificaron al revés: revirtiendo el fix, el test falla.
+
+**Deuda que dejaron.** T-12 (auditar los `catch` silenciosos) y T-13 (tests de contrato
+para el resto de los endpoints).
+
+**Archivos.** `worker.js`, `functions/_shared.js`, `src/app/12-cuenta-licencia.js`,
+`tests/worker.test.js`, `tests/features.test.js`
+
+**Total.** 597 → **610 Vitest**, 94 E2E.
+
+---
+
 ## 2026-07-29 — Header: el nombre del negocio ya no tapa el chip de cuenta
 
 **Motivo.** El usuario mandó capturas: con el nombre "VIPPARFUMSmgdsssdjhffghhhff…" el chip

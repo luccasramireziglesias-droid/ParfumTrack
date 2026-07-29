@@ -1,6 +1,6 @@
 # TESTING — Estrategia de tests
 
-**Estado actual: 597 Vitest + 94 Playwright. Los dos corren en CI y frenan el deploy.**
+**Estado actual: 610 Vitest + 94 Playwright. Los dos corren en CI y frenan el deploy.**
 
 ---
 
@@ -22,10 +22,32 @@ Toda la estrategia de tests apunta a esa clase de bug:
 
 ---
 
+## 1 bis. 🔴 Las dos formas en que esta suite ya mintió
+
+Dos incidentes de producción el mismo día, los dos con la suite entera en verde. Vale más
+entender el patrón que los bugs:
+
+| Qué falló | Por qué el test no lo vio |
+|---|---|
+| **BUG-24** — KV rechaza `expirationTtl < 60`; el router usaba 5 y tumbó 5 rutas críticas | El mock de KV **aceptaba cualquier TTL** |
+| **BUG-25** — el cliente no mandaba el `challenge` que el backend exige | 24 tests del backend, todos con un cliente ideal **que no existía** |
+
+**Las reglas que salieron de ahí:**
+
+1. 🔴 **Un mock que no rechaza lo que el servicio real rechaza no prueba nada.** Si la
+   plataforma tiene un límite (TTL mínimo, tamaño máximo, formato), el mock lo tiene que
+   hacer cumplir.
+2. 🔴 **Probar los dos lados por separado no prueba que hablen entre sí.** Cuando el backend
+   exige un campo, tiene que haber un test de que el cliente lo manda.
+3. 🔴 **Verificá que el test atrape el bug**: revertí el fix y mirá que falle. Los dos casos
+   se comprobaron así.
+
+---
+
 ## 2. Comandos
 
 ```bash
-npm test                              # 597 Vitest
+npm test                              # 610 Vitest
 npx playwright test                   # 94 E2E (necesita la app en :8787)
 npx playwright test tests/f3.spec.js  # un solo archivo
 npx vitest run tests/features.test.js # una sola suite
@@ -38,7 +60,7 @@ VOL_VENTAS=5000 npx playwright test tests/volumen.spec.js
 
 ---
 
-## 3. Vitest — 597 tests, 35 archivos
+## 3. Vitest — 610 tests, 35 archivos
 
 Corren en Node, sin navegador. Dos tipos:
 
