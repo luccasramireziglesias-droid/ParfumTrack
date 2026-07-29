@@ -173,6 +173,67 @@ describe('worker router', () => {
     expect(resp.status).toBe(200);
   });
 
+  // ── KV real: rechaza expirationTtl < 60 ───────────────────────────────
+  // El mock de antes aceptaba cualquier TTL, así que nadie vio que el
+  // limitador de concurrencia usaba 5 y lanzaba en TODAS las requests. Con
+  // el catch fail-closed, eso devolvía 503 y tumbaba registro, licencias y
+  // pagos. Este mock se comporta como el KV de verdad.
+  const kvRealista = () => {
+    const store = new Map();
+    return {
+      ASSETS: env.ASSETS,
+      PT_LICENSES: {
+        get: vi.fn(async (k) => store.get(k) ?? null),
+        put: vi.fn(async (k, v, opts) => {
+          if (opts && opts.expirationTtl !== undefined && opts.expirationTtl < 60) {
+            throw new Error(`Invalid expiration_ttl of ${opts.expirationTtl}. Expiration TTL must be at least 60.`);
+          }
+          store.set(k, v);
+        }),
+        delete: vi.fn(async (k) => { store.delete(k); }),
+      },
+    };
+  };
+
+  it.each(['/trial', '/validate-license', '/backup', '/sync'])(
+    'con un KV que valida el TTL, %s sigue respondiendo', async (path) => {
+      const e = kvRealista();
+      const resp = await worker.fetch(
+        makeRequest('POST', path, { 'X-CSRF-Token': TOKEN_OK }), e, { waitUntil: () => {} },
+      );
+      expect(resp.status, `${path} devolvió ${resp.status}`).toBe(200);
+    },
+  );
+
+  it('ningún put del router usa un TTL que KV rechace', async () => {
+    const e = kvRealista();
+    await worker.fetch(
+      makeRequest('POST', '/trial', { 'X-CSRF-Token': TOKEN_OK }), e, { waitUntil: () => {} },
+    );
+    for (const [, , opts] of e.PT_LICENSES.put.mock.calls) {
+      if (opts && opts.expirationTtl !== undefined) {
+        expect(opts.expirationTtl, 'KV exige expirationTtl >= 60').toBeGreaterThanOrEqual(60);
+      }
+    }
+  });
+
+  it('un fallo del limitador de concurrencia NO tumba la ruta', async () => {
+    // Fail-open a propósito: es un extra sobre el límite global. Un bug acá
+    // no puede dejar a nadie sin registrarse ni sin pagar.
+    const e = {
+      ASSETS: env.ASSETS,
+      PT_LICENSES: {
+        get: vi.fn(async (k) => (k.startsWith('conn_') ? (() => { throw new Error('boom'); })() : null)),
+        put: vi.fn(async () => {}),
+        delete: vi.fn(async () => {}),
+      },
+    };
+    const resp = await worker.fetch(
+      makeRequest('POST', '/trial', { 'X-CSRF-Token': TOKEN_OK }), e, { waitUntil: () => {} },
+    );
+    expect(resp.status).toBe(200);
+  });
+
   // ── Fail-closed cuando KV se cae ──────────────────────────────────────
   const kvRoto = {
     ...env,

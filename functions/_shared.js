@@ -73,7 +73,13 @@ export async function checkBurstRateLimit(env, key, burstThreshold = 5, burstWin
   history.push(now);
 
   try {
-    await env.PT_LICENSES.put(historyKey, JSON.stringify(history), { expirationTtl: Math.ceil(burstWindowMs / 1000) + 1 });
+    // KV no acepta menos de 60 s: con la ventana por defecto (5 s) esto daba
+    // 6 y el put lanzaba SIEMPRE, así que la función devolvía error en cada
+    // llamada. Hoy no la usa ningún endpoint, pero el día que se conecte
+    // habría rechazado todo.
+    await env.PT_LICENSES.put(historyKey, JSON.stringify(history), {
+      expirationTtl: Math.max(60, Math.ceil(burstWindowMs / 1000) + 1),
+    });
   } catch {
     return 'Rate limit write failed';
   }
