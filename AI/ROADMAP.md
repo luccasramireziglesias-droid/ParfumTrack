@@ -31,9 +31,9 @@ catálogo, exportaciones. Así el producto se gana la confianza antes de pedir p
 | **12 ads Meta/IG** | Plan detallado en `plans/`. Es el canal de adquisición principal |
 | **Testimonios reales con foto y nombre** | La objeción #1 de una app que maneja tu plata es la confianza |
 
-**Técnico en paralelo** (de [TODO.md](TODO.md)):
-- 🔴 T-01 — rutear `/version` (la actualización automática no funciona)
-- 🟠 T-02 — arreglar el comentario obsoleto de `db.js`
+**Técnico en paralelo** (de [TODO.md](TODO.md)): nada bloqueante. La deuda técnica que
+condicionaba el roadmap se cerró el 29/07 — `/version`, CSRF, fail-closed y el race de
+stock entre pestañas.
 
 ---
 
@@ -41,15 +41,14 @@ catálogo, exportaciones. Así el producto se gana la confianza antes de pedir p
 
 | Ítem | Por qué |
 |---|---|
-| **Video demo de 15-30 segundos** | "Registro en 10 segundos" se demuestra, no se afirma |
+| **Regrabar el video demo** | El actual (`demo.mp4`, 18,6 MB, del 07/07) es anterior a F1-F5 y pesa demasiado para datos móviles. 🔴 **Hacerlo recién cuando la app esté pulida**: grabarlo antes obliga a rehacerlo. Ver [TODO.md](TODO.md) §P-01 |
 | **Schema de reviews** | SEO: que los testimonios salgan como rich snippets |
 | **A/B test de headlines** | Validar "Dejá de adivinar cuánto ganás" contra alternativas |
 
 **Técnico en paralelo:**
-- 🟠 T-03 — política de fail-open/fail-closed en el router
-- 🟠 T-04 — activar la validación de CSRF
-- 🟠 C-01/C-02 — tests de concurrencia e interrupción
-- 🟡 T-05/T-06 — decimales de `fmt()` y perfumes duplicados
+- 🟠 M-01 — diferir los stores que no se usan en el arranque (medir primero)
+- 🟡 M-02 — partir `02-render.js`, que es donde está casi todo el riesgo de regresión
+- 🟡 T-07 / T-08 / T-11 — fullscreen del demo, `/force-update`, duplicados en reservas
 
 ---
 
@@ -75,11 +74,12 @@ Hacerlo bien implica **sync cifrado extremo a extremo**: el servidor guarda blob
 puede leer. Hacerlo mal —una base legible en el servidor— destruye la ventaja competitiva y
 el argumento de privacidad que hoy diferencia al producto.
 
-Además hay que resolver conflictos: dos dispositivos editando la misma venta offline. La
-app hoy **ni siquiera tiene locking entre pestañas** (T-09), así que ese problema hay que
-resolverlo antes o junto con el sync.
+Además hay que resolver conflictos: dos dispositivos editando la misma venta offline.
+El locking **entre pestañas** ya está resuelto (`DB._conLockStock` con Web Locks, 29/07),
+pero eso no cubre dos dispositivos distintos: ahí hace falta versionado optimista o CRDTs.
 
-**Recomendación:** no empezar el sync hasta cerrar T-09.
+**Recomendación:** diseñar la estrategia de conflictos ANTES de escribir el sync. Es la
+parte difícil, no el transporte.
 
 ---
 
@@ -87,15 +87,13 @@ resolverlo antes o junto con el sync.
 
 | Deuda | Qué bloquea |
 |---|---|
-| 🔴 T-01 `/version` sin rutear | Que los usuarios reciban actualizaciones. **Bloquea cualquier fix urgente en campo** |
-| 🟠 T-09 sin locking entre pestañas | El sync multi-dispositivo del plan Pro |
+| 🟠 Resolución de conflictos multi-dispositivo | El sync del plan Pro. **Es lo difícil, no el transporte** |
 | 🟠 M-01 `loadData()` carga todo | Usuarios con historial muy grande (>5000 ventas) |
 | 🟡 M-02 `02-render.js` de 831 líneas | Velocidad de desarrollo de features de UI |
-| 🟡 T-06 perfumes duplicados | Calidad de las estadísticas y rankings |
+| 🟡 P-01 video demo viejo | La conversión de la landing |
 
-**T-01 es el más urgente del proyecto.** No es solo una feature rota: significa que **no
-hay forma de hacer llegar un fix urgente** a los usuarios que ya tienen la app instalada,
-más allá de esperar a que el Service Worker actualice por su cuenta.
+**Ya no hay deuda técnica que bloquee el crecimiento.** Lo que frena hoy es de producto:
+nadie conoce la app. Ver §2.
 
 ---
 

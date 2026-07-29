@@ -186,7 +186,7 @@ Reportes en `standalone/auditoria-*.html` (actualizado: `auditoria-360-v4.html`)
 - Testimonios reales con foto/nombre
 
 ### 30 días
-- Video demo 15-30 segundos
+- Regrabar el video demo (`demo.mp4`, 18,6 MB, del 07/07 — anterior a F1-F5). Se usa en la app y en la landing, las dos apuntan a `/demo.mp4`. HACERLO CUANDO LA APP ESTÉ PULIDA: grabarlo antes obliga a rehacerlo
 - Review schema para testimonios
 - A/B test headlines
 

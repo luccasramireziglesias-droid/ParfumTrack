@@ -87,6 +87,30 @@ Complejidad alta, beneficio incierto a los volúmenes actuales.
 
 ---
 
+### 🟡 P-01 — Regrabar el video demo
+
+**Estado.** `demo.mp4` (18,6 MB, del 07/07) se usa en **dos lugares**:
+`src/index.template.html:524` (modal de demo dentro de la app) y
+`src/landing/sections/03-demo.html:12` (landing). Los dos apuntan a `/demo.mp4`, así que
+reemplazar el archivo actualiza ambos de una.
+
+**🔴 Hacerlo DESPUÉS de terminar de pulir la app, no antes.** Un video grabado hoy queda
+viejo con el próximo cambio de UI y hay que rehacerlo. Es de los pocos ítems donde
+adelantarse cuesta trabajo doble.
+
+**Qué revisar cuando se haga:**
+- El video actual pesa **18,6 MB** — en un celular con datos móviles caros en LATAM eso es
+  mucho. Apuntar a menos de 5 MB, o poner `preload="none"` con un póster.
+- Que muestre el flujo que promete el headline: cargar una venta **en 10 segundos** y ver
+  la ganancia real. Es lo que vende el producto.
+- Que se vean las features nuevas (cantidad por venta, devoluciones, reservas,
+  recordatorios de cobro) — el video actual es anterior a F1-F5.
+- Material real, nunca mockups (regla del proyecto).
+
+**Depende de:** que la app esté en su forma final. Ver la lista de mejoras de arriba.
+
+---
+
 ## PRODUCTO (ver [ROADMAP.md](ROADMAP.md))
 
 | Plazo | Ítem |
