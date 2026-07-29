@@ -9738,6 +9738,15 @@ const App = {
       const data = await res.json();
       if (data.sent) {
         this._pendingEmail = email;
+        // El challenge que devuelve /trial es OBLIGATORIO al verificar: sin
+        // él el backend rechaza el código antes de mirarlo. Guardarlo en
+        // sessionStorage y no solo en memoria evita que recargar la pantalla
+        // en el medio deje al usuario sin poder terminar el registro.
+        this._otpChallenge = data.challenge || '';
+        try {
+          sessionStorage.setItem('pt_otp_challenge', this._otpChallenge);
+          sessionStorage.setItem('pt_otp_email', email);
+        } catch (_) { /* modo privado: seguimos con el valor en memoria */ }
         document.getElementById('cuenta-no-login').classList.add('hidden');
         document.getElementById('cuenta-otp').classList.remove('hidden');
         this.toast('Código enviado a tu email', 'mail');
@@ -9749,10 +9758,31 @@ const App = {
     }
   },
 
+  // Recupera lo pendiente del registro. En memoria primero; sessionStorage
+  // como respaldo si el usuario recargó entre pedir el código y verificarlo.
+  _getOtpPendiente() {
+    let email = this._pendingEmail;
+    let challenge = this._otpChallenge;
+    if (!email || !challenge) {
+      try {
+        email = email || sessionStorage.getItem('pt_otp_email') || '';
+        challenge = challenge || sessionStorage.getItem('pt_otp_challenge') || '';
+      } catch (_) { /* modo privado */ }
+    }
+    return { email, challenge };
+  },
+
   async verificarOTP() {
     const otp = document.getElementById('cuenta-otp-input').value.trim();
     if (otp.length !== 6) {
       this.toast('El código debe tener 6 dígitos', 'warning');
+      return;
+    }
+    const { email: pendingEmail, challenge } = this._getOtpPendiente();
+    if (!pendingEmail || !challenge) {
+      // Antes se mandaba igual y el backend devolvía "Datos inválidos", que
+      // no le dice nada al usuario sobre qué hacer
+      this.toast('Pedí un código nuevo para continuar', 'refresh');
       return;
     }
     this.toast('Verificando…', 'hourglass_top');
@@ -9761,14 +9791,21 @@ const App = {
         signal: AbortSignal.timeout(30000),
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...this._getCsrfHeaders() },
-        body: JSON.stringify({ step: 'verify', email: this._pendingEmail, otp, deviceId: this._getDeviceId() })
+        body: JSON.stringify({ step: 'verify', email: pendingEmail, otp, challenge, deviceId: this._getDeviceId() })
       });
       const data = await res.json();
       if (data.verified) {
         this._account = this._account || {};
-        this._account.email = this._pendingEmail;
+        // pendingEmail y no this._pendingEmail: puede venir de sessionStorage
+        this._account.email = pendingEmail;
         this._account.deviceId = this._getDeviceId();
         this.saveAccount();
+        // El challenge es de un solo uso: no dejarlo dando vueltas
+        this._otpChallenge = '';
+        try {
+          sessionStorage.removeItem('pt_otp_challenge');
+          sessionStorage.removeItem('pt_otp_email');
+        } catch (_) { /* modo privado */ }
         this.toast('Cuenta verificada', 'check_circle');
         this.haptic('success');
         this.updatePlanUI();
