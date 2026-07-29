@@ -24,6 +24,13 @@ const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status
 // Critical routes for connection limiting (Fix #14)
 const CRITICAL_ROUTES = ['/trial', '/validate-license', '/mp-create-preference', '/backup', '/sync'];
 
+// KV rechaza cualquier expirationTtl menor a 60 segundos: el put() lanza.
+// Había dos puestos en 5, así que el limitador de concurrencia fallaba en
+// TODAS las requests desde que se escribió — en silencio, porque el catch se
+// lo tragaba. Al volverlo fail-closed, ese error latente pasó a devolver 503
+// y se llevó puestos el registro, la activación de licencia y los pagos.
+const KV_TTL_MIN = 60;
+
 // Rutas que exigen el header X-CSRF-Token. Son las que mutan estado y las
 // llama la app, que sí lo manda (_getCsrfHeaders en 00-core.js).
 //
@@ -122,8 +129,10 @@ async function handleRequest(request, env, ctx) {
           });
         }
 
-        // Increment concurrent connection counter (5 sec TTL)
-        await env.PT_LICENSES.put(connKey, String(connCount + 1), { expirationTtl: 5 });
+        // 60 s es el MÍNIMO que acepta KV: con menos, put() lanza y todo este
+        // bloque explota. El contador igual se decrementa abajo; el TTL es
+        // solo la red de seguridad para contadores que quedaron colgados.
+        await env.PT_LICENSES.put(connKey, String(connCount + 1), { expirationTtl: KV_TTL_MIN });
 
         // Decrement after response via context
         ctx.waitUntil(new Promise(resolve => {
@@ -132,7 +141,7 @@ async function handleRequest(request, env, ctx) {
               const final = await env.PT_LICENSES.get(connKey);
               const finalCount = final ? Math.max(0, parseInt(final, 10) - 1) : 0;
               if (finalCount > 0) {
-                await env.PT_LICENSES.put(connKey, String(finalCount), { expirationTtl: 5 });
+                await env.PT_LICENSES.put(connKey, String(finalCount), { expirationTtl: KV_TTL_MIN });
               } else {
                 await env.PT_LICENSES.delete(connKey);
               }
@@ -140,13 +149,13 @@ async function handleRequest(request, env, ctx) {
             resolve();
           }, 100);
         }));
-      } catch {
-        console.warn(JSON.stringify({ ts: Date.now(), level: 'warn', src: 'worker', msg: 'Connection limit check failed', ip: ipAddr, path }));
-        // Esto ya corre solo en rutas críticas: fail-closed
-        return new Response(JSON.stringify({ ok: false, error: 'Service temporarily unavailable' }), {
-          status: 503,
-          headers: { 'Content-Type': 'application/json', 'Retry-After': '30' },
-        });
+      } catch (e) {
+        console.warn(JSON.stringify({ ts: Date.now(), level: 'warn', src: 'worker', msg: 'Connection limit check failed', ip: ipAddr, path, error: e && e.message }));
+        // Fail-OPEN a propósito, aprendido a los golpes: este limitador es un
+        // extra sobre el límite global (que sí es fail-closed en rutas
+        // críticas y usa un TTL válido). Un bug acá no puede dejar sin
+        // registrarse, sin activar licencia ni sin pagar a todo el mundo.
+        // Es exactamente lo que pasó con el expirationTtl de 5 segundos.
       }
     }
 
