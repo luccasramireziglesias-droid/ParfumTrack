@@ -20,10 +20,19 @@
     }
   },
 
+  // toLocaleString sin opciones llega hasta 3 decimales: una ganancia de
+  // 1234.567 salía "$1.234,567", que en una app de plata se lee como un
+  // error. Máximo 2, y los enteros siguen sin coma.
+  _MONTO_OPTS: { minimumFractionDigits: 0, maximumFractionDigits: 2 },
+
+  _abs(n) {
+    return Math.abs(n || 0).toLocaleString('es-AR', this._MONTO_OPTS);
+  },
+
   fmt(n, forceAbs) {
     const sep = this._moneda.length > 1 ? ' ' : '';
     if (n === undefined || n === null) return this._moneda + sep + '0';
-    const abs = Math.abs(n).toLocaleString('es-AR');
+    const abs = this._abs(n);
     if (forceAbs) return this._moneda + sep + abs;
     if (n < 0) return '-' + this._moneda + sep + abs;
     return this._moneda + sep + abs;
@@ -31,7 +40,7 @@
 
   fmtSigned(n) {
     const sep = this._moneda.length > 1 ? ' ' : '';
-    const abs = Math.abs(n || 0).toLocaleString('es-AR');
+    const abs = this._abs(n);
     const sign = (n || 0) >= 0 ? '+' : '-';
     return sign + this._moneda + sep + abs;
   },

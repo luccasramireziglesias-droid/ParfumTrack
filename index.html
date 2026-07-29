@@ -1863,6 +1863,16 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   animation: overlayFadeIn 0.2s ease-out;
 }
 
+/* Confirmar y preguntar van SIEMPRE arriba de cualquier otro modal. Los dos
+   se disparan desde adentro de otro (borrar un perfume desde el modal de
+   edición, avisar que ya existe uno con ese nombre) y con el mismo z-index
+   ganaba el que estaba más abajo en el HTML: el diálogo aparecía detrás y no
+   se podía tocar el botón. */
+#modal-confirm,
+#modal-prompt {
+  z-index: 300;
+}
+
 @keyframes overlayFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -7644,6 +7654,18 @@ const App = {
     return this._once('perfume', () => this._savePerfumeImpl(), document.getElementById('add-perfume-save-btn'));
   },
 
+  // Compara nombres como los escribiría una persona: sin mayúsculas, sin
+  // acentos y sin espacios de más. "YARA ROSA" y "Yará  rosa" son el mismo.
+  _mismoNombre(a, b) {
+    const norm = (s) => (s || '')
+      .toString()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+    return norm(a) === norm(b);
+  },
+
   async _savePerfumeImpl() {
     const nombre = document.getElementById('add-perfume-nombre').value.trim();
     const precioCompra = this.parseMonto(document.getElementById('add-perfume-compra').value) || 0;
@@ -7690,6 +7712,26 @@ const App = {
         if (result) this.showScreen('cuenta');
       });
       return;
+    }
+
+    // Avisar (no bloquear) si ya existe uno con el mismo nombre: dos "Yara
+    // Rosa" parten el stock en dos y el ranking cuenta dos entradas. Puede
+    // ser a propósito (distinto tamaño, distinto proveedor), así que la
+    // decisión queda en el usuario.
+    const yaExiste = this.perfumes.find(p => this._mismoNombre(p.nombre, nombre));
+    if (yaExiste) {
+      const seguir = await this.appConfirm(
+        `Ya tenés "${yaExiste.nombre}" con ${yaExiste.stock || 0} en stock. ` +
+        'Si lo cargás de nuevo, el stock te va a quedar partido en dos. ' +
+        '¿Lo agregás igual?',
+        'Agregar igual',
+        'content_copy',
+      );
+      if (!seguir) {
+        this.closeAddPerfume();
+        this.openEditPerfume(yaExiste.id);
+        return;
+      }
     }
 
     try {
@@ -9370,10 +9412,19 @@ const App = {
     }
   },
 
+  // toLocaleString sin opciones llega hasta 3 decimales: una ganancia de
+  // 1234.567 salía "$1.234,567", que en una app de plata se lee como un
+  // error. Máximo 2, y los enteros siguen sin coma.
+  _MONTO_OPTS: { minimumFractionDigits: 0, maximumFractionDigits: 2 },
+
+  _abs(n) {
+    return Math.abs(n || 0).toLocaleString('es-AR', this._MONTO_OPTS);
+  },
+
   fmt(n, forceAbs) {
     const sep = this._moneda.length > 1 ? ' ' : '';
     if (n === undefined || n === null) return this._moneda + sep + '0';
-    const abs = Math.abs(n).toLocaleString('es-AR');
+    const abs = this._abs(n);
     if (forceAbs) return this._moneda + sep + abs;
     if (n < 0) return '-' + this._moneda + sep + abs;
     return this._moneda + sep + abs;
@@ -9381,7 +9432,7 @@ const App = {
 
   fmtSigned(n) {
     const sep = this._moneda.length > 1 ? ' ' : '';
-    const abs = Math.abs(n || 0).toLocaleString('es-AR');
+    const abs = this._abs(n);
     const sign = (n || 0) >= 0 ? '+' : '-';
     return sign + this._moneda + sep + abs;
   },
@@ -11601,6 +11652,30 @@ const App = {
       document.getElementById('imp-confirmar'));
   },
 
+  // Una fila ya está cargada si coincide en lo que la identifica de verdad.
+  // Para una venta: mismo cliente, mismo perfume, mismo monto y el mismo DÍA
+  // (no el mismo timestamp — la planilla trae fechas sin hora).
+  _impClaveFila(r, destino) {
+    const norm = (s) => (s || '')
+      .toString()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/\s+/g, ' ').trim();
+    if (destino === 'perfumes') return norm(r.nombre);
+    const dia = r.fecha ? new Date(r.fecha).toDateString() : '';
+    return [norm(r.cliente), norm(r.perfume), Math.round(r.precioVenta || 0), dia].join('|');
+  },
+
+  _impYaImportados(filas, destino) {
+    const existentes = new Set(
+      (destino === 'perfumes' ? this.perfumes : this.ventas)
+        .map(x => this._impClaveFila(
+          destino === 'perfumes' ? x : { ...x, perfume: x.perfume },
+          destino,
+        )),
+    );
+    return filas.filter(r => existentes.has(this._impClaveFila(r, destino)));
+  },
+
   async _confirmarImportExcelImpl() {
     const s = this._imp;
     if (!s) return;
@@ -11608,12 +11683,33 @@ const App = {
     if (validos.length === 0) return;
 
     const destino = s.destino;
+
+    // Importar dos veces la misma planilla duplicaba todo en silencio: es el
+    // error más fácil de cometer, porque no hay ninguna señal de que ya se
+    // hizo. Se avisa y se deja elegir; nunca se borra nada.
+    const repetidos = this._impYaImportados(validos, destino);
+    let aCargar = validos;
+    if (repetidos.length) {
+      const nuevos = validos.filter(r => !repetidos.includes(r));
+      const soloRepes = nuevos.length === 0;
+      const opcion = await this.appConfirm(
+        soloRepes
+          ? `Las ${repetidos.length} filas ya están cargadas. Si seguís, van a quedar duplicadas.`
+          : `${repetidos.length} de ${validos.length} filas ya están cargadas. ` +
+            `¿Agrego solo las ${nuevos.length} nuevas?`,
+        soloRepes ? 'Agregar igual' : `Agregar solo las ${nuevos.length} nuevas`,
+        'content_copy',
+      );
+      if (!opcion) return;
+      if (!soloRepes) aCargar = nuevos;
+    }
+
     if (!await this.appConfirm(
-      `Se van a AGREGAR ${validos.length} ${destino === 'perfumes' ? 'perfumes' : 'ventas'} a lo que ya tenés. No se borra nada.`,
+      `Se van a AGREGAR ${aCargar.length} ${destino === 'perfumes' ? 'perfumes' : 'ventas'} a lo que ya tenés. No se borra nada.`,
       'Agregar', 'playlist_add')) return;
 
     let creados = 0, fallidos = 0;
-    for (const r of validos) {
+    for (const r of aCargar) {
       try {
         if (destino === 'perfumes') {
           await DB.addPerfume({

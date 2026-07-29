@@ -194,6 +194,18 @@
     return this._once('perfume', () => this._savePerfumeImpl(), document.getElementById('add-perfume-save-btn'));
   },
 
+  // Compara nombres como los escribiría una persona: sin mayúsculas, sin
+  // acentos y sin espacios de más. "YARA ROSA" y "Yará  rosa" son el mismo.
+  _mismoNombre(a, b) {
+    const norm = (s) => (s || '')
+      .toString()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+    return norm(a) === norm(b);
+  },
+
   async _savePerfumeImpl() {
     const nombre = document.getElementById('add-perfume-nombre').value.trim();
     const precioCompra = this.parseMonto(document.getElementById('add-perfume-compra').value) || 0;
@@ -240,6 +252,26 @@
         if (result) this.showScreen('cuenta');
       });
       return;
+    }
+
+    // Avisar (no bloquear) si ya existe uno con el mismo nombre: dos "Yara
+    // Rosa" parten el stock en dos y el ranking cuenta dos entradas. Puede
+    // ser a propósito (distinto tamaño, distinto proveedor), así que la
+    // decisión queda en el usuario.
+    const yaExiste = this.perfumes.find(p => this._mismoNombre(p.nombre, nombre));
+    if (yaExiste) {
+      const seguir = await this.appConfirm(
+        `Ya tenés "${yaExiste.nombre}" con ${yaExiste.stock || 0} en stock. ` +
+        'Si lo cargás de nuevo, el stock te va a quedar partido en dos. ' +
+        '¿Lo agregás igual?',
+        'Agregar igual',
+        'content_copy',
+      );
+      if (!seguir) {
+        this.closeAddPerfume();
+        this.openEditPerfume(yaExiste.id);
+        return;
+      }
     }
 
     try {

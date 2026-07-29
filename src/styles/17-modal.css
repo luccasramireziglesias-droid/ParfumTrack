@@ -10,6 +10,16 @@
   animation: overlayFadeIn 0.2s ease-out;
 }
 
+/* Confirmar y preguntar van SIEMPRE arriba de cualquier otro modal. Los dos
+   se disparan desde adentro de otro (borrar un perfume desde el modal de
+   edición, avisar que ya existe uno con ese nombre) y con el mismo z-index
+   ganaba el que estaba más abajo en el HTML: el diálogo aparecía detrás y no
+   se podía tocar el botón. */
+#modal-confirm,
+#modal-prompt {
+  z-index: 300;
+}
+
 @keyframes overlayFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

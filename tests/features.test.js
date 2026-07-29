@@ -1044,3 +1044,50 @@ describe('Concurrencia — el stock no se puede duplicar', () => {
     expect(spec).toMatch(/el arranque sana una cuota que quedó pagada de más/);
   });
 });
+
+describe('Pulido — montos, duplicados y reimportación', () => {
+  const utils = read('src/app/11-utils.js');
+  const stock = read('src/app/04-stock.js');
+  const imp = read('src/app/26-importar-excel.js');
+  const modal = read('src/styles/17-modal.css');
+
+  it('los montos se acotan a 2 decimales', () => {
+    // toLocaleString sin opciones llegaba hasta 3: "$1.234,567"
+    expect(utils).toMatch(/maximumFractionDigits: 2/);
+    expect(utils).toMatch(/minimumFractionDigits: 0/);
+    // Un solo lugar formatea el valor absoluto: fmt y fmtSigned no se
+    // pueden desincronizar
+    expect(utils).toMatch(/_abs\(n\) \{/);
+    expect(utils).not.toMatch(/toLocaleString\('es-AR'\);/);
+  });
+
+  it('avisa antes de crear un perfume que ya existe', () => {
+    expect(stock).toContain('_mismoNombre');
+    const idx = stock.indexOf('_mismoNombre(a, b)');
+    const cuerpo = stock.slice(idx, idx + 400);
+    // Ignora mayúsculas, tildes y espacios de más
+    expect(cuerpo).toMatch(/normalize\('NFD'\)/);
+    expect(cuerpo).toMatch(/toLowerCase\(\)/);
+    expect(cuerpo).toMatch(/replace\(\/\\s\+\/g, ' '\)/);
+    // Avisa, no bloquea: puede ser a propósito
+    expect(stock).toMatch(/openEditPerfume\(yaExiste\.id\)/);
+  });
+
+  it('detecta las filas ya importadas de una planilla', () => {
+    expect(imp).toContain('_impYaImportados');
+    const idx = imp.indexOf('_impClaveFila(r, destino)');
+    const cuerpo = imp.slice(idx, idx + 600);
+    // El mismo DÍA, no el mismo timestamp: la planilla trae fechas sin hora
+    expect(cuerpo).toMatch(/toDateString\(\)/);
+    expect(cuerpo).toMatch(/norm\(r\.cliente\)/);
+    // Y sigue siendo el usuario el que decide
+    expect(imp).toMatch(/Agregar solo las \$\{nuevos\.length\} nuevas/);
+  });
+
+  it('confirmar y preguntar van arriba de cualquier otro modal', () => {
+    // Con el mismo z-index ganaba el que estaba más abajo en el HTML: el
+    // diálogo de borrar un perfume salía DETRÁS del modal de edición y no se
+    // podía tocar el botón
+    expect(modal).toMatch(/#modal-confirm,\s*\n#modal-prompt \{\s*\n\s*z-index: 300/);
+  });
+});
