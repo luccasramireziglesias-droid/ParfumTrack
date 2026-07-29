@@ -32,9 +32,9 @@ PWA de gestión de ventas para revendedores de perfumes en LATAM (Argentina, Uru
 ## STACK TÉCNICO
 
 - **Frontend:** HTML+CSS+JS vanilla. `index.html` (~6.4K líneas) se genera con `node scripts/build.js` a partir de los módulos fuente en `src/` (sin ES modules — sigue siendo un único `<script>` clásico inline para no romper los `onclick="App.metodo()"`). Editar siempre en `src/`, nunca `index.html` a mano.
-- **Backend:** 10 Cloudflare Worker functions (`worker.js` como router)
+- **Backend:** 11 Cloudflare Worker functions (`worker.js` como router). Agregar un endpoint son TRES pasos: importarlo, listarlo en POST/GET_ROUTES y el `if`. Saltear el segundo da 404 aunque el archivo exista (le pasó a `/version` por 3 semanas)
 - **Storage:** KV namespace `PT_LICENSES` (trial, rate limit, licencias), R2 bucket `parfumtrack-backups`
-- **Datos usuario:** IndexedDB v5 (local, NO en servidores). Stores: `perfumes`, `ventas`, `cuotas`, `pedidos`, `caja`, `gastos`, `compras` (v4), `reservas` (v5), `config`. Todos encriptados salvo `config`. Al agregar un store hay que sumarlo a `_encryptedStores`, a `loadData()` y a TODAS las listas `const stores = [...]` de `10-data-management.js` (si no, un restore se come los datos).
+- **Datos usuario:** IndexedDB v5 (local, NO en servidores). Las 7 operaciones que tocan stock pasan por `DB._conLockStock()` (Web Locks): sin eso, dos pestañas perdían descuentos. Stores: `perfumes`, `ventas`, `cuotas`, `pedidos`, `caja`, `gastos`, `compras` (v4), `reservas` (v5), `config`. Todos encriptados salvo `config`. Al agregar un store hay que sumarlo a `_encryptedStores`, a `loadData()` y a TODAS las listas `const stores = [...]` de `10-data-management.js` (si no, un restore se come los datos).
 - **Versionado:** la versión vive SOLO en `package.json`. `scripts/build.js` la propaga a `index.html` (meta app-version), `sw.js` (`APP_VERSION`) y `functions/version.js`. Nunca editarlas a mano.
 - **CDN lazy-load:** Chart.js 4.4.0, jsPDF 2.5.1, XLSX 0.18.5 (SRI sha384 implementado en `_loadScript()` — F-24 resuelto)
 - **Service Worker:** v16 (`sw.js`), precachea `STATIC_ASSETS` en `install`; navegación Network-First. El handler de `controllerchange` solo recarga si ya había un controller (si no, recargaba en la primera visita de cada usuario) y nunca encima de un formulario en curso.
@@ -115,6 +115,7 @@ ParfumTrack/
 | GET\|POST | /mp-webhook | Webhook pagos MP |
 | GET | /mp-subscription-status | Status suscripción |
 | GET | /mp-payment-status | Status pago |
+| GET | /version | Versión del app para el auto-update |
 
 ## MONETIZACIÓN
 
@@ -131,6 +132,7 @@ ParfumTrack/
 - X-Frame-Options DENY
 - Rate limiting KV-based fail-closed en 10 endpoints
 - CORS whitelist (localhost, 127.0.0.1, parfumtrack.pages.dev, parfumtrack.luccasramireziglesias.workers.dev)
+- CSRF obligatorio (403 sin header) en /trial, /validate-license, /backup y /sync. `/mp-create-preference` queda afuera: lo llama la landing, que no tiene token
 - HMAC auth para backup/sync
 - ECDSA para validación de licencias
 - List-Unsubscribe en todos los emails
@@ -207,8 +209,14 @@ Reportes en `standalone/auditoria-*.html` (actualizado: `auditoria-360-v4.html`)
 - E2E incorporados a CI: el deploy ahora espera `[test, e2e]`
 - Suite E2E reparada (estaba rota por el modal de consentimiento, una espera de arranque que se cumplía siempre y la recarga del SW): 41/41 en 45s
 - Refactor monolito `index.html` → módulos en `src/` con build script (`scripts/build.js`) — COMPLETADO
+- `/version` estaba implementado y `build.js` le sincronizaba la versión, pero **nunca se ruteó en `worker.js`**: caía en `ASSETS.fetch()` y devolvía 404. Durante ~3 semanas la app no tuvo canal de actualización — ningún fix urgente podía llegar a quien ya la tenía instalada
+- CSRF pasó a bloquear de verdad (`CSRF_ROUTES` en `worker.js` → 403 sin header). `/mp-create-preference` queda AFUERA a propósito: lo llama la landing, que no tiene token, y exigirlo ahí rompe el checkout. Al activarlo apareció una carrera: el token se derivaba con `crypto.subtle.digest` (async) y `_initCsrfToken` no se esperaba, así que tocar "activar licencia" al abrir la app mandaba el header vacío. Ahora es síncrono y `_getCsrfToken()` se cura solo
+- Rate limits del router: fail-closed (503) en `CRITICAL_ROUTES`; el límite global sobre el resto sigue fail-open a propósito, para que una caída de KV no se lleve puesta la app entera
+- **Dos pestañas inventaban inventario** (`tests/concurrencia.spec.js`): 20 ventas que decían haber descontado 20 unidades y el stock bajaba 13. Leer-modificar-escribir en dos transacciones distintas — `get()` y `put()` son transacciones separadas y no se pueden unir, porque con cifrado descifrar es async y eso cierra la transacción. Se serializó con **Web Locks** (`DB._conLockStock`), que cruza pestañas. ⚠️ `entregarReserva` NO toma el lock: llama a `addVenta`, que ya lo tiene, y Web Locks no es reentrante
+- `fmt()` acotado a 2 decimales; aviso al crear un perfume que ya existe; aviso al reimportar una planilla ya cargada
+- **Bug de z-index preexistente**: `.modal-overlay` tenía 200 para todos, así que un `appConfirm` disparado desde adentro de otro modal quedaba detrás y no se podía tocar. Borrar un perfume desde el modal de edición ya estaba roto en producción. `#modal-confirm` y `#modal-prompt` pasan a 300
 - Prueba de volumen (`tests/volumen.spec.js`): siembra 2000 ventas / 1500 cuotas / 120 perfumes repartidas en 3 años y mide arranque en frío y cada pantalla, con y sin encriptación. La única pantalla fuera de rango era **cuotas (297 ms)**: `renderCuotas()` recalculaba el vencimiento más próximo dentro del comparador del `sort` y volcaba las cientos de tarjetas de una. Ahora precalcula y pagina de a 30 (`_CUOTAS_PAGINA`, `verMasCuotas()`, reset al reentrar) → **16 ms** y el DOM bajó de 22.040 a 6.532 nodos. El total adeudado sigue saliendo de TODAS las cuotas, no de las visibles. Subir el volumen con `VOL_VENTAS=5000`
-- Tests automatizados: 560 Vitest + 72 E2E Playwright (incluye `tests/fuzz.spec.js`: secuencias aleatorias con semilla fija que verifican invariantes de stock, cuotas, devoluciones, compras y reservas — subir volumen con `FUZZ_CORRIDAS=30 FUZZ_OPS=120`) — **los dos corren en CI** y frenan el deploy
+- Tests automatizados: 592 Vitest + 87 E2E Playwright (incluye `tests/fuzz.spec.js`: secuencias aleatorias con semilla fija que verifican invariantes de stock, cuotas, devoluciones, compras y reservas — subir volumen con `FUZZ_CORRIDAS=30 FUZZ_OPS=120`) — **los dos corren en CI** y frenan el deploy
 - DRY: `_renderVentaCard()` (dashboard + lista de ventas) y `_processPhoto()` (foto de stock + alta de perfume) compartidos
 - Fullscreen demo modal: expandir video a 100vh/100vw, ocultar controles, mantener evento stopPropagation
 - Auditoría 360° completa: 81/100 score, 30 findings analizados, remediation roadmap incluido

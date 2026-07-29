@@ -364,6 +364,30 @@
       document.getElementById('imp-confirmar'));
   },
 
+  // Una fila ya está cargada si coincide en lo que la identifica de verdad.
+  // Para una venta: mismo cliente, mismo perfume, mismo monto y el mismo DÍA
+  // (no el mismo timestamp — la planilla trae fechas sin hora).
+  _impClaveFila(r, destino) {
+    const norm = (s) => (s || '')
+      .toString()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/\s+/g, ' ').trim();
+    if (destino === 'perfumes') return norm(r.nombre);
+    const dia = r.fecha ? new Date(r.fecha).toDateString() : '';
+    return [norm(r.cliente), norm(r.perfume), Math.round(r.precioVenta || 0), dia].join('|');
+  },
+
+  _impYaImportados(filas, destino) {
+    const existentes = new Set(
+      (destino === 'perfumes' ? this.perfumes : this.ventas)
+        .map(x => this._impClaveFila(
+          destino === 'perfumes' ? x : { ...x, perfume: x.perfume },
+          destino,
+        )),
+    );
+    return filas.filter(r => existentes.has(this._impClaveFila(r, destino)));
+  },
+
   async _confirmarImportExcelImpl() {
     const s = this._imp;
     if (!s) return;
@@ -371,12 +395,33 @@
     if (validos.length === 0) return;
 
     const destino = s.destino;
+
+    // Importar dos veces la misma planilla duplicaba todo en silencio: es el
+    // error más fácil de cometer, porque no hay ninguna señal de que ya se
+    // hizo. Se avisa y se deja elegir; nunca se borra nada.
+    const repetidos = this._impYaImportados(validos, destino);
+    let aCargar = validos;
+    if (repetidos.length) {
+      const nuevos = validos.filter(r => !repetidos.includes(r));
+      const soloRepes = nuevos.length === 0;
+      const opcion = await this.appConfirm(
+        soloRepes
+          ? `Las ${repetidos.length} filas ya están cargadas. Si seguís, van a quedar duplicadas.`
+          : `${repetidos.length} de ${validos.length} filas ya están cargadas. ` +
+            `¿Agrego solo las ${nuevos.length} nuevas?`,
+        soloRepes ? 'Agregar igual' : `Agregar solo las ${nuevos.length} nuevas`,
+        'content_copy',
+      );
+      if (!opcion) return;
+      if (!soloRepes) aCargar = nuevos;
+    }
+
     if (!await this.appConfirm(
-      `Se van a AGREGAR ${validos.length} ${destino === 'perfumes' ? 'perfumes' : 'ventas'} a lo que ya tenés. No se borra nada.`,
+      `Se van a AGREGAR ${aCargar.length} ${destino === 'perfumes' ? 'perfumes' : 'ventas'} a lo que ya tenés. No se borra nada.`,
       'Agregar', 'playlist_add')) return;
 
     let creados = 0, fallidos = 0;
-    for (const r of validos) {
+    for (const r of aCargar) {
       try {
         if (destino === 'perfumes') {
           await DB.addPerfume({

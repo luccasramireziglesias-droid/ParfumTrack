@@ -323,3 +323,63 @@ pantalla de error con un botón de reintentar, en vez de quedarse mirando el log
 
 **Detalles.** Mínimo 420 ms visible (para que no sea un flash) y se **saca del DOM** al
 terminar el fundido: si queda, intercepta toques.
+
+
+---
+
+## D-21 — Web Locks para serializar el stock, no una transacción única
+
+**Decisión.** `DB._conLockStock()` serializa con `navigator.locks`; los métodos que tocan
+stock son wrappers finos sobre un `_xImpl`.
+
+**Contexto.** Dos pestañas vendiendo en paralelo perdían descuentos: 20 ventas bajaban el
+stock 13 (BUG-21).
+
+**Por qué no una sola transacción de IndexedDB.** Sería lo canónico, pero **no se puede**:
+con cifrado activo, descifrar es `async`, y un `await` cierra la transacción. Leer,
+descifrar, modificar, cifrar y escribir dentro de una transacción es imposible por diseño.
+
+**Por qué Web Locks y no un mutex en memoria.** El caso que importa es **entre pestañas**,
+y un mutex en memoria no cruza contextos. Web Locks sí, y está en todos los navegadores
+que interesan. Igual hay fallback a una cola en memoria.
+
+**Costo aceptado.** Las operaciones de stock se serializan globalmente. Es irrelevante:
+son acciones del usuario, de a una.
+
+**Trampa.** 🔴 Web Locks **no es reentrante**. `entregarReserva` no toma el lock porque
+llama a `addVenta`, que ya lo tiene — si lo tomara, se trabaría para siempre.
+
+---
+
+## D-22 — El CSRF se exige en la app, no en la landing
+
+**Decisión.** `CSRF_ROUTES` cubre `/trial`, `/validate-license`, `/backup` y `/sync`.
+`/mp-create-preference` queda afuera.
+
+**Por qué.** La landing es una página estática de marketing sin el objeto `App` ni el
+token. Exigir el header ahí **rompe el checkout**, que es el camino de conversión
+principal.
+
+**Qué se pierde.** Poco: lo peor que puede lograr un atacante en ese endpoint es que
+alguien genere una preferencia de pago a su propio nombre. No hay cambio de estado de
+valor, y el pago lo autentica Mercado Pago.
+
+**Alternativa evaluada.** Generar el token también en la landing. Descartada por ahora:
+más superficie por una protección de bajo valor.
+
+**Reabrir si.** La landing crece a llamar endpoints que sí mutan estado.
+
+---
+
+## D-23 — Los diálogos de confirmar van en su propia capa
+
+**Decisión.** `#modal-confirm` y `#modal-prompt` tienen `z-index: 300`; el resto de los
+modales, 200.
+
+**Por qué.** Con todos en 200, entre dos overlays ganaba el que estaba más abajo en el
+HTML. Cualquier `appConfirm()` disparado desde adentro de otro modal quedaba detrás y no se
+podía tocar — **borrar un perfume desde el modal de edición estaba roto en producción**
+(BUG-22).
+
+**Regla derivada.** Un diálogo que puede abrirse desde adentro de otro modal necesita capa
+propia. No alcanza con que "los modales tengan z-index".

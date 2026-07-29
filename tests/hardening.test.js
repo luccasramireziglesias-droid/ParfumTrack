@@ -49,7 +49,7 @@ describe('Tanda 2 — integridad en ediciones y pagos', () => {
 
   it('la venta registra si descontó stock (evita stock fantasma)', () => {
     expect(db).toMatch(/stockDescontado/);
-    const idx = db.indexOf('async deleteVenta');
+    const idx = db.indexOf('async _deleteVentaImpl');
     expect(db.slice(idx, idx + 500)).toMatch(/stockDescontado !== false/);
   });
 

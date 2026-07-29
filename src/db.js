@@ -5,6 +5,34 @@
 
   _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja', 'compras', 'reservas']),
 
+  // Toda operación que toca stock hace leer-modificar-escribir en dos
+  // transacciones distintas (get y put son transacciones separadas, y con
+  // cifrado activo no se pueden unir: descifrar es async y eso cierra la
+  // transacción de IndexedDB). Sin serializar, dos pestañas leían el mismo
+  // stock y escribían el mismo valor: un descuento se perdía y la app
+  // mostraba más inventario del que había. Con 20 ventas en paralelo desde
+  // dos pestañas, el stock bajaba 13 en vez de 20.
+  //
+  // Web Locks es cross-tab, que es justo el caso que importa. Donde no está,
+  // se cae a una cola en memoria: no cubre dos pestañas, pero sí dos
+  // operaciones simultáneas en la misma.
+  _colaStock: Promise.resolve(),
+
+  async _conLockStock(fn) {
+    if (typeof navigator !== 'undefined' && navigator.locks && navigator.locks.request) {
+      return navigator.locks.request('pt_stock', fn);
+    }
+    const anterior = this._colaStock;
+    let liberar;
+    this._colaStock = new Promise(r => { liberar = r; });
+    try {
+      await anterior;
+      return await fn();
+    } finally {
+      liberar();
+    }
+  },
+
   _shouldEncrypt(store) {
     return this._encryptedStores.has(store) && localStorage.getItem('pt_license_code');
   },
@@ -132,6 +160,10 @@
   },
 
   async addVenta(v) {
+    return this._conLockStock(() => this._addVentaImpl(v));
+  },
+
+  async _addVentaImpl(v) {
     // Resolver el stock ANTES de insertar para dejar constancia en la venta de
     // si descontó una unidad o no. Sin ese dato, borrar una venta hecha con
     // stock en 0 devolvía al inventario una unidad que nunca existió.
@@ -209,6 +241,10 @@
   },
 
   async updateVenta(v) {
+    return this._conLockStock(() => this._updateVentaImpl(v));
+  },
+
+  async _updateVentaImpl(v) {
     const prev = await this.get('ventas', v.id);
     const norm = (x) => (x === null || x === undefined || x === '' ? null : Number(x));
     const cantidad = Math.max(1, parseInt(v.cantidad, 10) || 1);
@@ -252,6 +288,10 @@
   },
 
   async deleteVenta(id) {
+    return this._conLockStock(() => this._deleteVentaImpl(id));
+  },
+
+  async _deleteVentaImpl(id) {
     const v = await this.get('ventas', id);
     if (v) {
       // Solo devolver stock si esta venta lo descontó. Las ventas viejas (sin
@@ -279,7 +319,11 @@
 
   // F3: la venta se marca como devuelta en vez de borrarse. Queda en el
   // historial (con motivo y fecha) pero deja de contar para la ganancia.
-  async devolverVenta(id, { motivo = '', nota = '', reponerStock = true } = {}) {
+  async devolverVenta(id, opciones = {}) {
+    return this._conLockStock(() => this._devolverVentaImpl(id, opciones));
+  },
+
+  async _devolverVentaImpl(id, { motivo = '', nota = '', reponerStock = true } = {}) {
     const v = await this.get('ventas', id);
     if (!v) throw new Error('VENTA_NO_ENCONTRADA');
     if (v.devuelta) throw new Error('YA_DEVUELTA');
@@ -328,10 +372,15 @@
     });
   },
 
-  // Deshacer una devolución cargada por error: vuelve a descontar el stock
-  // que se había repuesto. Las cuotas canceladas NO se recrean (el usuario
-  // puede volver a editar la venta si las necesita).
+  // Deshacer una devolución cargada por error: vuelve a descontar el stock que
+  // se había repuesto y recrea las cuotas que la devolución canceló. Lo
+  // segundo no estaba y lo encontró el fuzzer: la venta volvía a contar para
+  // la ganancia pero la deuda del cliente desaparecía.
   async revertirDevolucion(id) {
+    return this._conLockStock(() => this._revertirDevolucionImpl(id));
+  },
+
+  async _revertirDevolucionImpl(id) {
     const v = await this.get('ventas', id);
     if (!v) throw new Error('VENTA_NO_ENCONTRADA');
     if (!v.devuelta) return v;
@@ -390,7 +439,11 @@
 
   // F4: reposición de stock comprándole al proveedor. Deja registro del
   // costo real de cada tanda, que es lo que después explica la ganancia.
-  async registrarCompra({ perfumeId, cantidad, precioUnitario, proveedor = '', fecha, nota = '', actualizarCosto = true } = {}) {
+  async registrarCompra(opciones = {}) {
+    return this._conLockStock(() => this._registrarCompraImpl(opciones));
+  },
+
+  async _registrarCompraImpl({ perfumeId, cantidad, precioUnitario, proveedor = '', fecha, nota = '', actualizarCosto = true } = {}) {
     const cant = Math.max(1, parseInt(cantidad, 10) || 0);
     if (!cant) throw new Error('CANTIDAD_INVALIDA');
     const precio = Number(precioUnitario);
@@ -421,6 +474,10 @@
   // Deshacer una compra cargada por error: descuenta lo que había sumado,
   // sin dejar el stock en negativo (puede haberse vendido parte).
   async eliminarCompra(id) {
+    return this._conLockStock(() => this._eliminarCompraImpl(id));
+  },
+
+  async _eliminarCompraImpl(id) {
     const c = await this.get('compras', id);
     if (c && c.perfumeId) {
       const p = await this.get('perfumes', c.perfumeId);

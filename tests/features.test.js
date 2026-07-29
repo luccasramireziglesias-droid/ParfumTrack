@@ -62,20 +62,20 @@ describe('F1 — cantidad en la venta', () => {
   });
 
   it('addVenta descuenta N unidades sin dejar stock negativo', () => {
-    const idx = db.indexOf('async addVenta');
+    const idx = db.indexOf('async _addVentaImpl');
     const cuerpo = db.slice(idx, idx + 900);
     expect(cuerpo).toMatch(/Math\.min\(cantidad, p\.stock\)/);
     expect(cuerpo).toMatch(/unidadesDescontadas/);
   });
 
   it('deleteVenta devuelve exactamente las unidades que descontó', () => {
-    const idx = db.indexOf('async deleteVenta');
+    const idx = db.indexOf('async _deleteVentaImpl');
     const cuerpo = db.slice(idx, idx + 600);
     expect(cuerpo).toMatch(/v\.unidadesDescontadas !== undefined/);
   });
 
   it('updateVenta reconcilia el stock solo si cambió perfume o cantidad', () => {
-    const idx = db.indexOf('async updateVenta');
+    const idx = db.indexOf('async _updateVentaImpl');
     const cuerpo = db.slice(idx, idx + 1800);
     expect(cuerpo).toMatch(/cambioStock/);
     expect(cuerpo).toMatch(/prevPerfumeId !== nuevoPerfumeId \|\| prevCantidad !== cantidad/);
@@ -220,7 +220,7 @@ describe('F3 — devoluciones y cambios', () => {
   });
 
   it('la venta NO se borra: se marca como devuelta con motivo y fecha', () => {
-    const idx = db.indexOf('async devolverVenta');
+    const idx = db.indexOf('async _devolverVentaImpl');
     const cuerpo = db.slice(idx, idx + 2000);
     expect(cuerpo).toMatch(/devuelta: true/);
     expect(cuerpo).toMatch(/fechaDevolucion: Date\.now\(\)/);
@@ -230,13 +230,13 @@ describe('F3 — devoluciones y cambios', () => {
   });
 
   it('no se puede devolver dos veces (el stock se repondría de más)', () => {
-    const idx = db.indexOf('async devolverVenta');
+    const idx = db.indexOf('async _devolverVentaImpl');
     expect(db.slice(idx, idx + 400)).toMatch(/if \(v\.devuelta\) throw new Error\('YA_DEVUELTA'\)/);
     expect(dev).toMatch(/_once\('devolucion'/);
   });
 
   it('repone exactamente las unidades que la venta descontó', () => {
-    const idx = db.indexOf('async devolverVenta');
+    const idx = db.indexOf('async _devolverVentaImpl');
     const cuerpo = db.slice(idx, idx + 2000);
     expect(cuerpo).toMatch(/v\.unidadesDescontadas !== undefined/);
     expect(cuerpo).toMatch(/p\.stock = \(p\.stock \|\| 0\) \+ unidades/);
@@ -244,7 +244,7 @@ describe('F3 — devoluciones y cambios', () => {
   });
 
   it('cancela las cuotas impagas y conserva las cobradas', () => {
-    const idx = db.indexOf('async devolverVenta');
+    const idx = db.indexOf('async _devolverVentaImpl');
     const cuerpo = db.slice(idx, idx + 2000);
     expect(cuerpo).toMatch(/if \(pagado > 0\)/);
     expect(cuerpo).toMatch(/await this\.delete\('cuotas', c\.id\)/);
@@ -252,7 +252,7 @@ describe('F3 — devoluciones y cambios', () => {
   });
 
   it('deshacer la devolución vuelve a descontar sin dejar stock negativo', () => {
-    const idx = db.indexOf('async revertirDevolucion');
+    const idx = db.indexOf('async _revertirDevolucionImpl');
     const cuerpo = db.slice(idx, idx + 2500);
     expect(cuerpo).toMatch(/Math\.min\(repuestas, p\.stock \|\| 0\)/);
     expect(cuerpo).toMatch(/delete limpia\.devuelta/);
@@ -312,7 +312,7 @@ describe('F4 — compras al proveedor', () => {
   });
 
   it('registrarCompra valida cantidad y precio antes de tocar el stock', () => {
-    const idx = db.indexOf('async registrarCompra');
+    const idx = db.indexOf('async _registrarCompraImpl');
     const cuerpo = db.slice(idx, idx + 900);
     expect(cuerpo).toMatch(/throw new Error\('CANTIDAD_INVALIDA'\)/);
     expect(cuerpo).toMatch(/throw new Error\('PRECIO_INVALIDO'\)/);
@@ -320,7 +320,7 @@ describe('F4 — compras al proveedor', () => {
   });
 
   it('la compra suma al stock y deja el costo real de la tanda', () => {
-    const idx = db.indexOf('async registrarCompra');
+    const idx = db.indexOf('async _registrarCompraImpl');
     const cuerpo = db.slice(idx, idx + 1600);
     expect(cuerpo).toMatch(/p\.stock = \(p\.stock \|\| 0\) \+ cant/);
     expect(cuerpo).toMatch(/if \(actualizarCosto && precio > 0\) p\.precioCompra = precio/);
@@ -328,7 +328,7 @@ describe('F4 — compras al proveedor', () => {
   });
 
   it('borrar una compra no deja el stock en negativo', () => {
-    const idx = db.indexOf('async eliminarCompra');
+    const idx = db.indexOf('async _eliminarCompraImpl');
     expect(db.slice(idx, idx + 500)).toMatch(/Math\.max\(0, \(p\.stock \|\| 0\) - \(c\.cantidad \|\| 0\)\)/);
   });
 
@@ -462,6 +462,22 @@ describe('Versionado — una sola fuente de verdad', () => {
     expect(read('sw.js')).toContain(`const APP_VERSION = "${pkg.version}";`);
     expect(read('functions/version.js')).toContain(`const version = '${pkg.version}';`);
     expect(read('index.html')).toContain(`content="${pkg.version}"`);
+  });
+
+  it('/version está ruteado en worker.js', () => {
+    // Sincronizar la versión no alcanzaba: el endpoint existía pero el router
+    // no lo importaba ni lo listaba, así que devolvía 404 y el auto-update
+    // nunca disparaba.
+    const worker = read('worker.js');
+    expect(worker).toMatch(/from '\.\/functions\/version\.js'/);
+    expect(worker).toMatch(/GET_ROUTES\s*=\s*\[[^\]]*'\/version'/);
+    expect(worker).toMatch(/path === '\/version'/);
+  });
+
+  it('/version expone onRequestGet, como el resto de los handlers', () => {
+    // Exportaba `export default { fetch }` (formato Worker): no lo podía
+    // consumir el router
+    expect(read('functions/version.js')).toMatch(/export async function onRequestGet/);
   });
 
   it('/version no puede quedar por detrás de la app (rompía el auto-update)', () => {
@@ -805,7 +821,7 @@ describe('Devolver y deshacer no pierde deuda', () => {
   it('al deshacer una devolución se recrean las cuotas canceladas', () => {
     // Sin esto la venta volvía a contar para la ganancia pero el cliente
     // quedaba debiendo sin que la app lo mostrara
-    const idx = db.indexOf('async revertirDevolucion');
+    const idx = db.indexOf('async _revertirDevolucionImpl');
     const cuerpo = db.slice(idx, idx + 2000);
     expect(cuerpo).toMatch(/v\.formaPago === 'cuotas' && v\.numCuotas > 1/);
     expect(cuerpo).toMatch(/numeros\.has\(i\)\) continue/);
@@ -933,5 +949,145 @@ describe('Volumen — la app dentro de tres años', () => {
     // Con licencia cada registro se descifra por separado: miles de AES-GCM
     expect(vol).toMatch(/pt_license_code/);
     expect(vol).toMatch(/los datos no volvieron bien/);
+  });
+});
+
+describe('CSRF — la validación bloquea de verdad', () => {
+  const worker = read('worker.js');
+  const core = read('src/app/00-core.js');
+
+  it('el router rechaza las rutas que mutan estado sin token', () => {
+    // Antes decía "not blocking requests yet": la infraestructura estaba
+    // pero no frenaba nada
+    expect(worker).toMatch(/CSRF_ROUTES/);
+    expect(worker).toMatch(/validateCsrfToken\(request\)/);
+    expect(worker).not.toMatch(/not blocking requests yet/);
+    for (const ruta of ['/trial', '/validate-license', '/backup', '/sync']) {
+      expect(worker, ruta).toMatch(new RegExp(`CSRF_ROUTES[^\\]]*'${ruta}'`));
+    }
+  });
+
+  it('mp-create-preference queda fuera: lo llama la landing sin token', () => {
+    const decl = worker.match(/const CSRF_ROUTES = \[[^\]]*\]/)[0];
+    expect(decl).not.toContain('mp-create-preference');
+    // Y la landing efectivamente lo llama sin el header
+    expect(read('src/landing/sections/14-scripts.html')).toMatch(/fetch\('\/mp-create-preference'/);
+  });
+
+  it('el token se genera de forma SÍNCRONA', () => {
+    // Con crypto.subtle.digest (async) había una carrera: si el usuario
+    // tocaba algo antes de que resolviera, el header salía vacío. Con el
+    // backend rechazando, esa carrera era un 403 en la cara del usuario.
+    expect(core).toMatch(/_generateCsrfToken\(\) \{/);
+    expect(core).not.toMatch(/async _generateCsrfToken/);
+    expect(core).not.toMatch(/crypto\.subtle\.digest\('SHA-256', randomBytes\)/);
+  });
+
+  it('_getCsrfToken se cura solo si falta o está mal formado', () => {
+    const idx = core.indexOf('_getCsrfToken() {');   // la definición, no la llamada
+    expect(idx).toBeGreaterThan(-1);
+    expect(core.slice(idx, idx + 300)).toMatch(/\[0-9a-f\]\{64\}/);
+    expect(core.slice(idx, idx + 300)).toMatch(/_rotateCsrfToken/);
+  });
+});
+
+describe('Rate limiting — fail-closed donde importa', () => {
+  const worker = read('worker.js');
+
+  it('con KV caído, las rutas críticas cortan con 503', () => {
+    expect(worker).toMatch(/if \(isCriticalRoute\) \{[\s\S]{0,300}?status: 503/);
+  });
+
+  it('el límite global no es fail-closed para todo', () => {
+    // Sería convertir cualquier caída de KV en una caída total de la app
+    expect(worker).toMatch(/caída de KV en una caída total/);
+  });
+});
+
+describe('Concurrencia — el stock no se puede duplicar', () => {
+  const db = read('src/db.js');
+  const spec = read('tests/concurrencia.spec.js');
+
+  it('las operaciones que tocan stock están serializadas', () => {
+    // Con dos pestañas vendiendo en paralelo, 20 ventas descontaban solo 13
+    // unidades: las dos leían el mismo stock y escribían el mismo valor.
+    expect(db).toContain('_conLockStock');
+    for (const m of ['addVenta', 'updateVenta', 'deleteVenta', 'devolverVenta',
+                     'revertirDevolucion', 'registrarCompra', 'eliminarCompra']) {
+      expect(db, m).toMatch(new RegExp(`_conLockStock\\(\\(\\) => this\\._${m}Impl`));
+    }
+  });
+
+  it('usa Web Locks, que es lo único que cruza pestañas', () => {
+    const idx = db.indexOf('async _conLockStock');
+    const cuerpo = db.slice(idx, idx + 600);
+    expect(cuerpo).toMatch(/navigator\.locks\.request\('pt_stock'/);
+    // Y una cola en memoria de respaldo donde no esté
+    expect(cuerpo).toMatch(/_colaStock/);
+  });
+
+  it('entregarReserva NO toma el lock: llamaría a addVenta y se trabaría', () => {
+    // Web Locks no es reentrante
+    const idx = db.indexOf('async entregarReserva');
+    expect(db.slice(idx, idx + 200)).not.toMatch(/_conLockStock/);
+  });
+
+  it('los tests comparan el stock contra lo que las ventas dicen haber movido', () => {
+    expect(spec).toMatch(/unidadesDescontadas \|\| 0/);
+    expect(spec).toMatch(/unidadesRepuestas \|\| 0/);
+    expect(spec).toMatch(/cuota \$\{c\.id\} huérfana/);
+  });
+
+  it('cubre interrupción a mitad de venta y de devolución', () => {
+    expect(spec).toMatch(/Interrupción a mitad de una operación/);
+    expect(spec).toMatch(/page\.reload/);
+    expect(spec).toMatch(/el arranque sana una cuota que quedó pagada de más/);
+  });
+});
+
+describe('Pulido — montos, duplicados y reimportación', () => {
+  const utils = read('src/app/11-utils.js');
+  const stock = read('src/app/04-stock.js');
+  const imp = read('src/app/26-importar-excel.js');
+  const modal = read('src/styles/17-modal.css');
+
+  it('los montos se acotan a 2 decimales', () => {
+    // toLocaleString sin opciones llegaba hasta 3: "$1.234,567"
+    expect(utils).toMatch(/maximumFractionDigits: 2/);
+    expect(utils).toMatch(/minimumFractionDigits: 0/);
+    // Un solo lugar formatea el valor absoluto: fmt y fmtSigned no se
+    // pueden desincronizar
+    expect(utils).toMatch(/_abs\(n\) \{/);
+    expect(utils).not.toMatch(/toLocaleString\('es-AR'\);/);
+  });
+
+  it('avisa antes de crear un perfume que ya existe', () => {
+    expect(stock).toContain('_mismoNombre');
+    const idx = stock.indexOf('_mismoNombre(a, b)');
+    const cuerpo = stock.slice(idx, idx + 400);
+    // Ignora mayúsculas, tildes y espacios de más
+    expect(cuerpo).toMatch(/normalize\('NFD'\)/);
+    expect(cuerpo).toMatch(/toLowerCase\(\)/);
+    expect(cuerpo).toMatch(/replace\(\/\\s\+\/g, ' '\)/);
+    // Avisa, no bloquea: puede ser a propósito
+    expect(stock).toMatch(/openEditPerfume\(yaExiste\.id\)/);
+  });
+
+  it('detecta las filas ya importadas de una planilla', () => {
+    expect(imp).toContain('_impYaImportados');
+    const idx = imp.indexOf('_impClaveFila(r, destino)');
+    const cuerpo = imp.slice(idx, idx + 600);
+    // El mismo DÍA, no el mismo timestamp: la planilla trae fechas sin hora
+    expect(cuerpo).toMatch(/toDateString\(\)/);
+    expect(cuerpo).toMatch(/norm\(r\.cliente\)/);
+    // Y sigue siendo el usuario el que decide
+    expect(imp).toMatch(/Agregar solo las \$\{nuevos\.length\} nuevas/);
+  });
+
+  it('confirmar y preguntar van arriba de cualquier otro modal', () => {
+    // Con el mismo z-index ganaba el que estaba más abajo en el HTML: el
+    // diálogo de borrar un perfume salía DETRÁS del modal de edición y no se
+    // podía tocar el botón
+    expect(modal).toMatch(/#modal-confirm,\s*\n#modal-prompt \{\s*\n\s*z-index: 300/);
   });
 });

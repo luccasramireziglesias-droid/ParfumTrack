@@ -27,7 +27,11 @@ describe('worker router', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('routes POST /trial to trial handler', async () => {
-    const resp = await worker.fetch(makeRequest('POST', '/trial'), env, ctx);
+    // /trial está en CSRF_ROUTES: sin el header devuelve 403 antes de llegar
+    // al handler
+    const resp = await worker.fetch(
+      makeRequest('POST', '/trial', { 'X-CSRF-Token': 'a'.repeat(64) }), env, ctx,
+    );
     expect(resp.status).toBe(200);
   });
 
@@ -99,5 +103,104 @@ describe('worker router', () => {
     const body = await resp.json();
     expect(body.ok).toBe(false);
     expect(body.kv).toBe(false);
+  });
+
+  // /version estaba implementado y sincronizado por build.js, pero nunca
+  // ruteado: caía en ASSETS.fetch() y devolvía 404, así que el chequeo de
+  // actualizaciones de 17-auto-update.js nunca disparaba.
+  it('GET /version devuelve la versión y NO cae en los assets', async () => {
+    const resp = await worker.fetch(makeRequest('GET', '/version'), env, ctx);
+    expect(resp.status).toBe(200);
+    expect(env.ASSETS.fetch).not.toHaveBeenCalled();
+    const body = await resp.json();
+    expect(body.ok).toBe(true);
+    expect(body.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(body.minVersion).toMatch(/^\d+\.\d+\.\d+$/);
+  });
+
+  it('GET /version responde igual sin KV: no depende de nada', async () => {
+    // Lo pollea cada cliente cada 5 min. Si dependiera de KV, una caída de
+    // KV se llevaría puesto el canal de actualizaciones.
+    const resp = await worker.fetch(makeRequest('GET', '/version'), { ASSETS: env.ASSETS }, ctx);
+    expect(resp.status).toBe(200);
+  });
+
+  it('POST /version devuelve 405 con Allow: GET', async () => {
+    const resp = await worker.fetch(makeRequest('POST', '/version'), env, ctx);
+    expect(resp.status).toBe(405);
+    expect(resp.headers.get('Allow')).toContain('GET');
+  });
+
+  // ── CSRF ──────────────────────────────────────────────────────────────
+  // La infraestructura estaba desde julio pero el router no bloqueaba nada:
+  // "validation enforced at application level, not blocking requests yet"
+  const TOKEN_OK = 'a'.repeat(64);
+
+  it('POST /trial sin X-CSRF-Token devuelve 403', async () => {
+    const resp = await worker.fetch(makeRequest('POST', '/trial'), env, ctx);
+    expect(resp.status).toBe(403);
+  });
+
+  it('POST /trial con un token bien formado pasa', async () => {
+    const resp = await worker.fetch(
+      makeRequest('POST', '/trial', { 'X-CSRF-Token': TOKEN_OK }), env, ctx,
+    );
+    expect(resp.status).toBe(200);
+  });
+
+  it('un token con formato inválido no alcanza', async () => {
+    const resp = await worker.fetch(
+      makeRequest('POST', '/validate-license', { 'X-CSRF-Token': 'no-soy-hex' }), env, ctx,
+    );
+    expect(resp.status).toBe(403);
+  });
+
+  it.each(['/trial', '/validate-license', '/backup', '/sync'])(
+    'POST %s exige CSRF', async (path) => {
+      expect((await worker.fetch(makeRequest('POST', path), env, ctx)).status).toBe(403);
+    },
+  );
+
+  it('POST /mp-create-preference NO exige CSRF: lo llama la landing', async () => {
+    // La landing es una página estática sin el token. Exigirlo ahí rompe el
+    // checkout, que es el camino de conversión principal.
+    const resp = await worker.fetch(makeRequest('POST', '/mp-create-preference'), env, ctx);
+    expect(resp.status).toBe(200);
+  });
+
+  it('el webhook de Mercado Pago no exige CSRF: no lo llama un browser', async () => {
+    const resp = await worker.fetch(makeRequest('POST', '/mp-webhook'), env, ctx);
+    expect(resp.status).toBe(200);
+  });
+
+  // ── Fail-closed cuando KV se cae ──────────────────────────────────────
+  const kvRoto = {
+    ...env,
+    PT_LICENSES: { get: vi.fn(async () => { throw new Error('KV down'); }), put: vi.fn(), delete: vi.fn() },
+  };
+
+  it('con KV caído, una ruta crítica corta con 503 (fail-closed)', async () => {
+    const resp = await worker.fetch(
+      makeRequest('POST', '/trial', { 'X-CSRF-Token': TOKEN_OK }), kvRoto, ctx,
+    );
+    expect(resp.status).toBe(503);
+    expect(resp.headers.get('Retry-After')).toBe('30');
+  });
+
+  it('con KV caído, una ruta NO crítica sigue funcionando (fail-open)', async () => {
+    // Fail-closed global convertiría cualquier caída de KV en una caída
+    // total de la app
+    const resp = await worker.fetch(makeRequest('POST', '/send-email'), kvRoto, ctx);
+    expect(resp.status).toBe(200);
+  });
+
+  it('OPTIONS /version responde el preflight de CORS', async () => {
+    const resp = await worker.fetch(
+      makeRequest('OPTIONS', '/version', { Origin: 'https://parfumtrack.luccasramireziglesias.workers.dev' }),
+      env, ctx,
+    );
+    expect(resp.status).toBe(204);
+    expect(resp.headers.get('Access-Control-Allow-Origin'))
+      .toBe('https://parfumtrack.luccasramireziglesias.workers.dev');
   });
 });

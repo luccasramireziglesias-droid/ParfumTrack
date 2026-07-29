@@ -1,44 +1,43 @@
-// GET /version — devuelve la versión actual del app y metadatos
-export default {
-  async fetch(request, env) {
-    // CORS preflight
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-        },
-      });
-    }
+// ══════════════════════════════════════════════════════════════
+// Parfum Track — Cloudflare Function: /version
+// GET /version → { ok, version, hash, timestamp, minVersion }
+//
+// Lo consulta 17-auto-update.js al arrancar y cada 5 minutos: si la versión
+// que devuelve es mayor a la del meta app-version, la app se recarga sola.
+//
+// La versión NO se edita acá. Vive en package.json y scripts/build.js la
+// propaga a index.html, sw.js y a este archivo. La línea `const version`
+// tiene que mantener ese formato exacto o el build falla.
+//
+// Sin rate limit propio a propósito: no lee KV ni toca secretos, y lo
+// pollea cada cliente cada 5 minutos. Un contador en KV costaría más que
+// la respuesta y se comería la cuota de escrituras. Queda cubierto por el
+// límite global por IP de worker.js.
+// ══════════════════════════════════════════════════════════════
 
-    if (request.method !== 'GET') {
-      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-        status: 405,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+import { corsHeaders, json } from './_shared.js';
 
-    // Devolver versión actual
-    // En producción, esto podría venir de un KV store para poder hacer rollbacks sin redeploy
-    const version = '1.8.0';
-    const hash = 'default'; // Placeholder para integridad futura
-    const timestamp = new Date().toISOString();
+export async function onRequestGet(context) {
+  const { request } = context;
+  const origin  = request.headers.get('Origin') || '';
+  const headers = corsHeaders(origin, { methods: 'GET, OPTIONS' });
 
-    return new Response(
-      JSON.stringify({
-        version,
-        hash,
-        timestamp,
-        minVersion: '1.0.0', // Versión mínima permitida
-      }),
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Cache-Control': 'public, max-age=60', // Cache por 1 minuto en CDN
-        },
-      }
-    );
-  },
-};
+  const version = '1.8.0';
+
+  return json(
+    {
+      ok: true,
+      version,
+      hash: 'default',            // placeholder para integridad futura
+      timestamp: new Date().toISOString(),
+      minVersion: '1.0.0',        // por debajo de esto, forzar actualización
+    },
+    200,
+    {
+      ...headers,
+      // 60 s en el CDN: alcanza para que una versión nueva llegue rápido y
+      // evita que el poll de cada cliente pegue siempre en el origen
+      'Cache-Control': 'public, max-age=60',
+    },
+  );
+}

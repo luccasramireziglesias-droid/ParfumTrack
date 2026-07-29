@@ -241,6 +241,31 @@ ventas + 1500 cuotas: arranque de ~970 ms (vs ~1100 ms sin cifrar). Ver [PERFORM
 
 ---
 
+## 7 bis. 🔴 Serialización de las escrituras de stock
+
+Toda operación que toca `perfumes.stock` hace **leer-modificar-escribir en dos
+transacciones distintas**: `DB.get()` y `DB.put()` abren transacciones separadas. No se
+pueden unir, porque con cifrado activo descifrar es `async` y un `await` cierra la
+transacción de IndexedDB.
+
+Sin serializar, dos pestañas leían `stock = 50` y las dos escribían `49`: un descuento se
+perdía. Medido: 20 ventas en paralelo desde dos pestañas bajaban el stock **13**.
+
+`DB._conLockStock(fn)` lo resuelve con **Web Locks** (`navigator.locks.request('pt_stock')`),
+que es lo único que cruza pestañas del mismo origen. Donde no está, cae a una cola en
+memoria — cubre dos operaciones simultáneas en la misma pestaña, no dos pestañas.
+
+**Pasan por el lock:** `addVenta`, `updateVenta`, `deleteVenta`, `devolverVenta`,
+`revertirDevolucion`, `registrarCompra`, `eliminarCompra`. Cada uno es un wrapper fino
+sobre su `_xImpl`.
+
+**⚠️ `entregarReserva` NO lo toma:** llama a `addVenta`, que ya lo tiene, y Web Locks
+**no es reentrante**.
+
+Ver [BUG_HISTORY.md](BUG_HISTORY.md) §BUG-21.
+
+---
+
 ## 8. 🔴 Agregar un object store — checklist
 
 Si te salteás un paso, **un restore borra los datos de ese store**.
@@ -263,7 +288,7 @@ Si te salteás un paso, **un restore borra los datos de ese store**.
 |---|---|---|
 | Export JSON (`exportData`) | Vuelca los 9 stores a un archivo | — |
 | Import JSON (`_restoreData`) | 🔴 **REEMPLAZA todo** | Destructivo |
-| Importar Excel (`26-importar-excel.js`) | **AGREGA** sin borrar | Duplicados si se importa dos veces |
+| Importar Excel (`26-importar-excel.js`) | **AGREGA** sin borrar | Avisa si detecta filas ya cargadas (`_impYaImportados`) |
 | Backup a R2 (`backupToCloud`) | Sube cifrado, con HMAC | Requiere licencia |
 | Restore de R2 (`restoreFromCloud`) | 🔴 **REEMPLAZA todo** | Destructivo |
 

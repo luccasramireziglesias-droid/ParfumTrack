@@ -9,6 +9,76 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-07-29 (tarde) — Cerrar los 4 bloques de deuda de TODO.md
+
+Cuatro tandas seguidas, cada una con su commit.
+
+### 1. `/version` ruteado
+
+**Motivo.** El endpoint existía y `build.js` le sincronizaba la versión, pero `worker.js`
+no lo importaba ni lo listaba en `GET_ROUTES`: caía en `ASSETS.fetch()` y devolvía 404.
+El efecto real no era perder una feature — era **no tener canal para hacer llegar un fix
+urgente** a quien ya tiene la app instalada.
+
+**Archivos.** `functions/version.js` (pasó de `export default { fetch }` a `onRequestGet`),
+`worker.js`, `tests/worker.test.js`, `tests/features.test.js`
+
+**Riesgo.** 🟢 Queda sin rate limit propio a propósito y comentado: lo pollea cada cliente
+cada 5 min, un contador en KV costaría más que la respuesta.
+
+### 2. CSRF bloqueando + fail-closed
+
+**Motivo.** La infraestructura estaba desde julio pero el router no frenaba nada
+(*"not blocking requests yet"*). Y los rate limits del router hacían fail-open.
+
+**Qué cambió.** `CSRF_ROUTES` = `/trial`, `/validate-license`, `/backup`, `/sync` → 403 sin
+header. Rutas críticas → 503 si KV falla.
+
+**🔴 Lo que casi rompe.** `/mp-create-preference` lo llama la **landing**, que no tiene
+token. Exigirlo ahí rompía el checkout. Quedó afuera y comentado.
+
+**Carrera que apareció al activarlo.** `_generateCsrfToken` usaba `crypto.subtle.digest`
+(async) y `_initCsrfToken` no se esperaba: tocar "activar licencia" apenas abría la app
+mandaba el header vacío. Con el backend rechazando, eso era un 403 en la cara del usuario.
+Ahora es síncrono y `_getCsrfToken()` se cura solo.
+
+**Archivos.** `worker.js`, `src/app/00-core.js`, `src/db.js` (comentario obsoleto)
+
+### 3. Tests de concurrencia → encontraron un bug real 🐛⭐
+
+**Motivo.** C-01 y C-02 eran los dos huecos de cobertura que quedaban.
+
+**Lo que encontró.** Con dos pestañas vendiendo en paralelo: 20 ventas que decían haber
+descontado 20 unidades y el stock bajando **13**. Siete unidades de inventario inventadas.
+Leer-modificar-escribir en dos transacciones distintas.
+
+**Solución.** `DB._conLockStock()` con **Web Locks**, que cruza pestañas. Envuelve las 7
+operaciones que tocan stock. `entregarReserva` queda afuera: llama a `addVenta` y Web Locks
+no es reentrante.
+
+**Archivos.** `src/db.js`, `tests/concurrencia.spec.js` (7 tests)
+
+**Riesgo.** 🟠 Los 7 métodos pasaron a ser wrappers sobre un `_xImpl`. Las regresiones
+estáticas que indexaban por `'async addVenta'` hubo que apuntarlas al `Impl`.
+
+### 4. Montos, duplicados y reimportación
+
+- `fmt()` acotado a 2 decimales (`toLocaleString` sin opciones llegaba a 3).
+- Aviso al crear un perfume que ya existe, ignorando mayúsculas, tildes y espacios.
+- Aviso al reimportar una planilla ya cargada, comparando por día y no por timestamp.
+
+**🐛 Bug que apareció haciéndolo.** `.modal-overlay` tenía `z-index: 200` para todos, así
+que un `appConfirm` disparado desde adentro de otro modal quedaba **detrás** y no se podía
+tocar. **Borrar un perfume desde el modal de edición ya estaba roto en producción** por
+eso. `#modal-confirm` y `#modal-prompt` pasan a 300.
+
+**Archivos.** `src/app/11-utils.js`, `src/app/04-stock.js`, `src/app/26-importar-excel.js`,
+`src/styles/17-modal.css`, `tests/pulido.spec.js` (8 tests)
+
+**Total de la sesión.** 560 → **592 Vitest**, 72 → **87 E2E**. Todo en verde.
+
+---
+
 ## 2026-07-29 — Base de conocimiento `/AI`
 
 **Motivo.** Cada sesión nueva de IA tenía que releer ~11.000 líneas de código para
@@ -94,8 +164,8 @@ venta de $3000 en 3 cuotas con una paga quedaba con $0 por cobrar en vez de $200
 
 **Riesgo.** 🟢 Suma tiempo a CI. Configurable con `FUZZ_CORRIDAS` / `FUZZ_OPS`.
 
-**Deuda que dejó.** El comentario de `db.js:331` sigue diciendo que las cuotas no se
-recrean. Ver [TODO.md](TODO.md) §T-02.
+**Deuda que dejó** (cerrada el 29/07): el comentario de `db.js:331` siguió diciendo que
+las cuotas no se recrean hasta que se corrigió.
 
 ---
 

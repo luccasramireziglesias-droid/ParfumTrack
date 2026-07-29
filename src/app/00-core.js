@@ -140,27 +140,33 @@
     });
   },
 
-  async _initCsrfToken() {
-    const existing = localStorage.getItem('pt_csrf_token');
-    if (existing) return;
-    const token = await this._generateCsrfToken();
-    localStorage.setItem('pt_csrf_token', token);
+  _initCsrfToken() {
+    this._getCsrfToken();   // lo crea si no está
   },
 
-  async _generateCsrfToken() {
-    const randomBytes = crypto.getRandomValues(new Uint8Array(32));
-    const buf = await crypto.subtle.digest('SHA-256', randomBytes);
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  // Síncrono a propósito. Antes derivaba el token con crypto.subtle.digest,
+  // que es async: si el usuario tocaba "activar licencia" antes de que
+  // resolviera, el header salía vacío. Ahora que el backend RECHAZA las
+  // requests sin token, esa carrera era un 403 en la cara del usuario.
+  // 32 bytes al azar en hex ya son los 64 chars que valida el server; el
+  // SHA-256 encima no agregaba nada.
+  _generateCsrfToken() {
+    const bytes = crypto.getRandomValues(new Uint8Array(32));
+    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
   },
 
-  async _rotateCsrfToken() {
-    const newToken = await this._generateCsrfToken();
+  _rotateCsrfToken() {
+    const newToken = this._generateCsrfToken();
     localStorage.setItem('pt_csrf_token', newToken);
     return newToken;
   },
 
+  // Se cura solo: si falta o quedó con un formato viejo, lo regenera antes
+  // de que salga la request
   _getCsrfToken() {
-    return localStorage.getItem('pt_csrf_token') || '';
+    const actual = localStorage.getItem('pt_csrf_token') || '';
+    if (/^[0-9a-f]{64}$/.test(actual)) return actual;
+    return this._rotateCsrfToken();
   },
 
   _getCsrfHeaders() {

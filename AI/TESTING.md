@@ -1,6 +1,6 @@
 # TESTING — Estrategia de tests
 
-**Estado actual: 560 Vitest + 72 Playwright. Los dos corren en CI y frenan el deploy.**
+**Estado actual: 592 Vitest + 87 Playwright. Los dos corren en CI y frenan el deploy.**
 
 ---
 
@@ -25,8 +25,8 @@ Toda la estrategia de tests apunta a esa clase de bug:
 ## 2. Comandos
 
 ```bash
-npm test                              # 560 Vitest
-npx playwright test                   # 72 E2E (necesita la app en :8787)
+npm test                              # 592 Vitest
+npx playwright test                   # 87 E2E (necesita la app en :8787)
 npx playwright test tests/f3.spec.js  # un solo archivo
 npx vitest run tests/features.test.js # una sola suite
 
@@ -38,7 +38,7 @@ VOL_VENTAS=5000 npx playwright test tests/volumen.spec.js
 
 ---
 
-## 3. Vitest — 560 tests, 35 archivos
+## 3. Vitest — 592 tests, 35 archivos
 
 Corren en Node, sin navegador. Dos tipos:
 
@@ -86,7 +86,7 @@ comportamiento y no el nombre.
 
 ---
 
-## 4. Playwright — 72 tests
+## 4. Playwright — 87 tests
 
 Corren contra la app real en `http://localhost:8787`.
 
@@ -104,6 +104,8 @@ Corren contra la app real en `http://localhost:8787`.
 | `fuzz.spec.js` | 🔵 Fuzzer de invariantes |
 | `riesgos.spec.js` | 🔵 Sondas de riesgo de datos |
 | `volumen.spec.js` | 🔵 Comportamiento con historial de 3 años |
+| `concurrencia.spec.js` | 🔵 Dos pestañas escribiendo + interrupción a mitad de operación |
+| `pulido.spec.js` | Formato de montos, perfume duplicado, planilla reimportada |
 
 ### 🔴 Preámbulo obligatorio de todo E2E
 
@@ -130,6 +132,7 @@ timeout. Fue la causa de que la suite estuviera rota (4/8) sin que nadie se ente
 | Leer el DOM justo después de mutar | `renderAll()` está debounceado 100 ms | Llamar `App.renderDashboard()` directo |
 | Medir el arranque esperando `App.ventas` | `loadData()` llena las cuotas después | Esperar `#splash` `state: 'detached'` |
 | Sembrar con `DB.add` y renderizar | La base tiene los datos, la memoria no | `await App.loadData()` |
+| Un `appConfirm` dentro de otro modal no se puede clickear | Los dos overlays comparten z-index | Ya arreglado (BUG-22); si vuelve a pasar, revisá `17-modal.css` |
 
 También: **scopeá los locators.** `.tag-devuelta` matchea en `#ventas-recientes` **y** en
 `#ventas-all-list` → violación de strict mode.
@@ -200,6 +203,26 @@ llamalo vos.
 
 ---
 
+## 7 bis. 🔵 Concurrencia — `tests/concurrencia.spec.js`
+
+Dos pestañas (`context.newPage()` dos veces: comparten IndexedDB) escribiendo en paralelo,
+y la app cortada a la mitad de una operación con `page.reload()`.
+
+**No asumen que la app tiene locking sobre todo.** Verifican que el estado que queda sea
+**coherente** aunque se pierda la escritura de una de las pestañas:
+
+```
+el stock que bajó == lo que las ventas descontaron − lo que las devoluciones repusieron
+ninguna cuota apunta a una venta que no existe
+una venta en cuotas tiene TODAS sus cuotas o ninguna  (las devueltas quedan afuera)
+ningún id de venta duplicado
+```
+
+**Lo que encontró.** BUG-21: 20 ventas descontando 20 unidades y el stock bajando 13.
+Ver [BUG_HISTORY.md](BUG_HISTORY.md).
+
+---
+
 ## 8. CI — `.github/workflows/deploy.yml`
 
 ```mermaid
@@ -226,8 +249,6 @@ contra el error más común del proyecto.
 
 | # | Qué falta | Prioridad |
 |---|---|---|
-| C-01 | Concurrencia multi-pestaña real | 🟠 |
-| C-02 | Interrupción a mitad de una operación | 🟠 |
 | C-03 | Clicks de la UI del importador (la lógica sí está) | 🟡 |
 | C-04 | Flujo completo de Mercado Pago punta a punta | 🟡 |
 | C-05 | `QuotaExceededError` con el storage lleno | 🟡 |

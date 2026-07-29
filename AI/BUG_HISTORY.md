@@ -135,9 +135,15 @@ escribirla.
 
 **Archivos.** `scripts/build.js`, `sw.js`, `functions/version.js`
 
-**⚠️ Bug relacionado todavía ABIERTO:** aunque la versión ya se sincroniza,
-`/version` **no está ruteado en `worker.js`**, así que devuelve 404 y la actualización
-automática sigue sin funcionar. Ver [TODO.md](TODO.md) §T-01.
+**⚠️ Segunda mitad del bug, cerrada después (07/2026):** aunque la versión ya se
+sincronizaba, `/version` **no estaba ruteado en `worker.js`** — no figuraba en `GET_ROUTES`
+ni se importaba, así que la request caía en `ASSETS.fetch()` y devolvía 404. Además el
+handler exportaba `export default { fetch }` en vez de `onRequestGet`, así que el router
+no podía consumirlo. Durante ~3 semanas la app no tuvo canal de actualización.
+
+**Regla derivada.** 🔴 Agregar un endpoint son **tres** pasos en `worker.js`: importarlo,
+listarlo en `POST_ROUTES`/`GET_ROUTES` y agregar el `if`. Saltear el segundo da 404 aunque
+el archivo exista y esté importado.
 
 ---
 
@@ -321,3 +327,60 @@ Se documentan porque cuestan tiempo y se repiten.
 | `registrarCompra` cambia el `precioCompra` del perfume | **Es intencional.** El costo de la última tanda es el costo de referencia (F4) |
 | Una venta importada de Excel no descuenta stock | **Es intencional.** Van sin `perfumeId`: son históricas y la planilla ya las descontó |
 | `2/2` deja 2 cuotas pagas, no 1 | Correcto: el numerador es cuántas están pagas |
+
+---
+
+## BUG-21 — Dos pestañas inventaban inventario 🐛⭐
+**Fecha:** 07/2026 · **Riesgo:** 🔴 ALTO · **Lo encontraron los tests de concurrencia**
+
+**Descripción.** Con dos pestañas abiertas vendiendo en paralelo: 20 ventas que decían
+haber descontado 20 unidades, y el stock bajaba solo **13**. Siete unidades de inventario
+inventadas, sin ningún error a la vista. El usuario creía tener 37 frascos y tenía 30.
+
+**Causa.** Leer-modificar-escribir en dos transacciones distintas. `DB.get()` y `DB.put()`
+abren transacciones separadas, así que las dos pestañas leían `stock = 50` y las dos
+escribían `49`: un descuento se perdía.
+
+No se pueden unir en una sola transacción: con cifrado activo, descifrar es `async`, y un
+`await` cierra la transacción de IndexedDB.
+
+**Solución.** `DB._conLockStock()` serializa con **Web Locks** (`navigator.locks`), que es
+lo único que cruza pestañas del mismo origen. Donde no está, cae a una cola en memoria: no
+cubre dos pestañas pero sí dos operaciones simultáneas en la misma.
+
+Quedan envueltos `addVenta`, `updateVenta`, `deleteVenta`, `devolverVenta`,
+`revertirDevolucion`, `registrarCompra` y `eliminarCompra`.
+
+**⚠️ `entregarReserva` NO se envuelve**: llama a `addVenta`, que ya toma el lock, y
+**Web Locks no es reentrante** — se trabaría para siempre.
+
+**Archivos.** `src/db.js`, `tests/concurrencia.spec.js`
+
+**Por qué importa.** Es la misma clase que BUG-17: un número mal, sin error visible. Y es
+la razón por la que "escribir los tests que faltan" no es trabajo de segunda: el test no
+documentó un hueco teórico, encontró corrupción real.
+
+---
+
+## BUG-22 — El diálogo de confirmar quedaba detrás de otro modal
+**Fecha:** 07/2026 · **Riesgo:** 🟠 MEDIO
+
+**Descripción.** Cualquier `appConfirm()` disparado desde adentro de otro modal aparecía
+**detrás** y no se podía tocar el botón. Afectaba a **borrar un perfume desde el modal de
+edición**, que estaba roto en producción.
+
+**Causa.** `.modal-overlay` tenía `z-index: 200` para todos. Entre dos elementos con el
+mismo z-index gana el que está más abajo en el HTML, y `#modal-add-perfume` (línea 468)
+va después de `#modal-confirm` (línea 438).
+
+**Solución.** `#modal-confirm` y `#modal-prompt` pasan a `z-index: 300`. Son diálogos que
+por definición van arriba de todo.
+
+**Archivos.** `src/styles/17-modal.css`
+
+**Cómo apareció.** Agregando el aviso de perfume duplicado, que también usa `appConfirm`
+desde adentro del modal de alta. El test E2E nuevo falló con
+*"subtree intercepts pointer events"* y ahí saltó que el bug ya existía.
+
+**Regla derivada.** 🟠 Un diálogo que puede abrirse desde adentro de otro modal necesita
+z-index propio. No alcanza con que "los modales tengan z-index".

@@ -1863,6 +1863,16 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   animation: overlayFadeIn 0.2s ease-out;
 }
 
+/* Confirmar y preguntar van SIEMPRE arriba de cualquier otro modal. Los dos
+   se disparan desde adentro de otro (borrar un perfume desde el modal de
+   edición, avisar que ya existe uno con ese nombre) y con el mismo z-index
+   ganaba el que estaba más abajo en el HTML: el diálogo aparecía detrás y no
+   se podía tocar el botón. */
+#modal-confirm,
+#modal-prompt {
+  z-index: 300;
+}
+
 @keyframes overlayFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -4579,6 +4589,34 @@ const DB = {
 
   _encryptedStores: new Set(['perfumes', 'ventas', 'cuotas', 'pedidos', 'gastos', 'caja', 'compras', 'reservas']),
 
+  // Toda operación que toca stock hace leer-modificar-escribir en dos
+  // transacciones distintas (get y put son transacciones separadas, y con
+  // cifrado activo no se pueden unir: descifrar es async y eso cierra la
+  // transacción de IndexedDB). Sin serializar, dos pestañas leían el mismo
+  // stock y escribían el mismo valor: un descuento se perdía y la app
+  // mostraba más inventario del que había. Con 20 ventas en paralelo desde
+  // dos pestañas, el stock bajaba 13 en vez de 20.
+  //
+  // Web Locks es cross-tab, que es justo el caso que importa. Donde no está,
+  // se cae a una cola en memoria: no cubre dos pestañas, pero sí dos
+  // operaciones simultáneas en la misma.
+  _colaStock: Promise.resolve(),
+
+  async _conLockStock(fn) {
+    if (typeof navigator !== 'undefined' && navigator.locks && navigator.locks.request) {
+      return navigator.locks.request('pt_stock', fn);
+    }
+    const anterior = this._colaStock;
+    let liberar;
+    this._colaStock = new Promise(r => { liberar = r; });
+    try {
+      await anterior;
+      return await fn();
+    } finally {
+      liberar();
+    }
+  },
+
   _shouldEncrypt(store) {
     return this._encryptedStores.has(store) && localStorage.getItem('pt_license_code');
   },
@@ -4706,6 +4744,10 @@ const DB = {
   },
 
   async addVenta(v) {
+    return this._conLockStock(() => this._addVentaImpl(v));
+  },
+
+  async _addVentaImpl(v) {
     // Resolver el stock ANTES de insertar para dejar constancia en la venta de
     // si descontó una unidad o no. Sin ese dato, borrar una venta hecha con
     // stock en 0 devolvía al inventario una unidad que nunca existió.
@@ -4783,6 +4825,10 @@ const DB = {
   },
 
   async updateVenta(v) {
+    return this._conLockStock(() => this._updateVentaImpl(v));
+  },
+
+  async _updateVentaImpl(v) {
     const prev = await this.get('ventas', v.id);
     const norm = (x) => (x === null || x === undefined || x === '' ? null : Number(x));
     const cantidad = Math.max(1, parseInt(v.cantidad, 10) || 1);
@@ -4826,6 +4872,10 @@ const DB = {
   },
 
   async deleteVenta(id) {
+    return this._conLockStock(() => this._deleteVentaImpl(id));
+  },
+
+  async _deleteVentaImpl(id) {
     const v = await this.get('ventas', id);
     if (v) {
       // Solo devolver stock si esta venta lo descontó. Las ventas viejas (sin
@@ -4853,7 +4903,11 @@ const DB = {
 
   // F3: la venta se marca como devuelta en vez de borrarse. Queda en el
   // historial (con motivo y fecha) pero deja de contar para la ganancia.
-  async devolverVenta(id, { motivo = '', nota = '', reponerStock = true } = {}) {
+  async devolverVenta(id, opciones = {}) {
+    return this._conLockStock(() => this._devolverVentaImpl(id, opciones));
+  },
+
+  async _devolverVentaImpl(id, { motivo = '', nota = '', reponerStock = true } = {}) {
     const v = await this.get('ventas', id);
     if (!v) throw new Error('VENTA_NO_ENCONTRADA');
     if (v.devuelta) throw new Error('YA_DEVUELTA');
@@ -4902,10 +4956,15 @@ const DB = {
     });
   },
 
-  // Deshacer una devolución cargada por error: vuelve a descontar el stock
-  // que se había repuesto. Las cuotas canceladas NO se recrean (el usuario
-  // puede volver a editar la venta si las necesita).
+  // Deshacer una devolución cargada por error: vuelve a descontar el stock que
+  // se había repuesto y recrea las cuotas que la devolución canceló. Lo
+  // segundo no estaba y lo encontró el fuzzer: la venta volvía a contar para
+  // la ganancia pero la deuda del cliente desaparecía.
   async revertirDevolucion(id) {
+    return this._conLockStock(() => this._revertirDevolucionImpl(id));
+  },
+
+  async _revertirDevolucionImpl(id) {
     const v = await this.get('ventas', id);
     if (!v) throw new Error('VENTA_NO_ENCONTRADA');
     if (!v.devuelta) return v;
@@ -4964,7 +5023,11 @@ const DB = {
 
   // F4: reposición de stock comprándole al proveedor. Deja registro del
   // costo real de cada tanda, que es lo que después explica la ganancia.
-  async registrarCompra({ perfumeId, cantidad, precioUnitario, proveedor = '', fecha, nota = '', actualizarCosto = true } = {}) {
+  async registrarCompra(opciones = {}) {
+    return this._conLockStock(() => this._registrarCompraImpl(opciones));
+  },
+
+  async _registrarCompraImpl({ perfumeId, cantidad, precioUnitario, proveedor = '', fecha, nota = '', actualizarCosto = true } = {}) {
     const cant = Math.max(1, parseInt(cantidad, 10) || 0);
     if (!cant) throw new Error('CANTIDAD_INVALIDA');
     const precio = Number(precioUnitario);
@@ -4995,6 +5058,10 @@ const DB = {
   // Deshacer una compra cargada por error: descuenta lo que había sumado,
   // sin dejar el stock en negativo (puede haberse vendido parte).
   async eliminarCompra(id) {
+    return this._conLockStock(() => this._eliminarCompraImpl(id));
+  },
+
+  async _eliminarCompraImpl(id) {
     const c = await this.get('compras', id);
     if (c && c.perfumeId) {
       const p = await this.get('perfumes', c.perfumeId);
@@ -5755,27 +5822,33 @@ const App = {
     });
   },
 
-  async _initCsrfToken() {
-    const existing = localStorage.getItem('pt_csrf_token');
-    if (existing) return;
-    const token = await this._generateCsrfToken();
-    localStorage.setItem('pt_csrf_token', token);
+  _initCsrfToken() {
+    this._getCsrfToken();   // lo crea si no está
   },
 
-  async _generateCsrfToken() {
-    const randomBytes = crypto.getRandomValues(new Uint8Array(32));
-    const buf = await crypto.subtle.digest('SHA-256', randomBytes);
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  // Síncrono a propósito. Antes derivaba el token con crypto.subtle.digest,
+  // que es async: si el usuario tocaba "activar licencia" antes de que
+  // resolviera, el header salía vacío. Ahora que el backend RECHAZA las
+  // requests sin token, esa carrera era un 403 en la cara del usuario.
+  // 32 bytes al azar en hex ya son los 64 chars que valida el server; el
+  // SHA-256 encima no agregaba nada.
+  _generateCsrfToken() {
+    const bytes = crypto.getRandomValues(new Uint8Array(32));
+    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
   },
 
-  async _rotateCsrfToken() {
-    const newToken = await this._generateCsrfToken();
+  _rotateCsrfToken() {
+    const newToken = this._generateCsrfToken();
     localStorage.setItem('pt_csrf_token', newToken);
     return newToken;
   },
 
+  // Se cura solo: si falta o quedó con un formato viejo, lo regenera antes
+  // de que salga la request
   _getCsrfToken() {
-    return localStorage.getItem('pt_csrf_token') || '';
+    const actual = localStorage.getItem('pt_csrf_token') || '';
+    if (/^[0-9a-f]{64}$/.test(actual)) return actual;
+    return this._rotateCsrfToken();
   },
 
   _getCsrfHeaders() {
@@ -7581,6 +7654,18 @@ const App = {
     return this._once('perfume', () => this._savePerfumeImpl(), document.getElementById('add-perfume-save-btn'));
   },
 
+  // Compara nombres como los escribiría una persona: sin mayúsculas, sin
+  // acentos y sin espacios de más. "YARA ROSA" y "Yará  rosa" son el mismo.
+  _mismoNombre(a, b) {
+    const norm = (s) => (s || '')
+      .toString()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+    return norm(a) === norm(b);
+  },
+
   async _savePerfumeImpl() {
     const nombre = document.getElementById('add-perfume-nombre').value.trim();
     const precioCompra = this.parseMonto(document.getElementById('add-perfume-compra').value) || 0;
@@ -7627,6 +7712,26 @@ const App = {
         if (result) this.showScreen('cuenta');
       });
       return;
+    }
+
+    // Avisar (no bloquear) si ya existe uno con el mismo nombre: dos "Yara
+    // Rosa" parten el stock en dos y el ranking cuenta dos entradas. Puede
+    // ser a propósito (distinto tamaño, distinto proveedor), así que la
+    // decisión queda en el usuario.
+    const yaExiste = this.perfumes.find(p => this._mismoNombre(p.nombre, nombre));
+    if (yaExiste) {
+      const seguir = await this.appConfirm(
+        `Ya tenés "${yaExiste.nombre}" con ${yaExiste.stock || 0} en stock. ` +
+        'Si lo cargás de nuevo, el stock te va a quedar partido en dos. ' +
+        '¿Lo agregás igual?',
+        'Agregar igual',
+        'content_copy',
+      );
+      if (!seguir) {
+        this.closeAddPerfume();
+        this.openEditPerfume(yaExiste.id);
+        return;
+      }
     }
 
     try {
@@ -9307,10 +9412,19 @@ const App = {
     }
   },
 
+  // toLocaleString sin opciones llega hasta 3 decimales: una ganancia de
+  // 1234.567 salía "$1.234,567", que en una app de plata se lee como un
+  // error. Máximo 2, y los enteros siguen sin coma.
+  _MONTO_OPTS: { minimumFractionDigits: 0, maximumFractionDigits: 2 },
+
+  _abs(n) {
+    return Math.abs(n || 0).toLocaleString('es-AR', this._MONTO_OPTS);
+  },
+
   fmt(n, forceAbs) {
     const sep = this._moneda.length > 1 ? ' ' : '';
     if (n === undefined || n === null) return this._moneda + sep + '0';
-    const abs = Math.abs(n).toLocaleString('es-AR');
+    const abs = this._abs(n);
     if (forceAbs) return this._moneda + sep + abs;
     if (n < 0) return '-' + this._moneda + sep + abs;
     return this._moneda + sep + abs;
@@ -9318,7 +9432,7 @@ const App = {
 
   fmtSigned(n) {
     const sep = this._moneda.length > 1 ? ' ' : '';
-    const abs = Math.abs(n || 0).toLocaleString('es-AR');
+    const abs = this._abs(n);
     const sign = (n || 0) >= 0 ? '+' : '-';
     return sign + this._moneda + sep + abs;
   },
@@ -11538,6 +11652,30 @@ const App = {
       document.getElementById('imp-confirmar'));
   },
 
+  // Una fila ya está cargada si coincide en lo que la identifica de verdad.
+  // Para una venta: mismo cliente, mismo perfume, mismo monto y el mismo DÍA
+  // (no el mismo timestamp — la planilla trae fechas sin hora).
+  _impClaveFila(r, destino) {
+    const norm = (s) => (s || '')
+      .toString()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/\s+/g, ' ').trim();
+    if (destino === 'perfumes') return norm(r.nombre);
+    const dia = r.fecha ? new Date(r.fecha).toDateString() : '';
+    return [norm(r.cliente), norm(r.perfume), Math.round(r.precioVenta || 0), dia].join('|');
+  },
+
+  _impYaImportados(filas, destino) {
+    const existentes = new Set(
+      (destino === 'perfumes' ? this.perfumes : this.ventas)
+        .map(x => this._impClaveFila(
+          destino === 'perfumes' ? x : { ...x, perfume: x.perfume },
+          destino,
+        )),
+    );
+    return filas.filter(r => existentes.has(this._impClaveFila(r, destino)));
+  },
+
   async _confirmarImportExcelImpl() {
     const s = this._imp;
     if (!s) return;
@@ -11545,12 +11683,33 @@ const App = {
     if (validos.length === 0) return;
 
     const destino = s.destino;
+
+    // Importar dos veces la misma planilla duplicaba todo en silencio: es el
+    // error más fácil de cometer, porque no hay ninguna señal de que ya se
+    // hizo. Se avisa y se deja elegir; nunca se borra nada.
+    const repetidos = this._impYaImportados(validos, destino);
+    let aCargar = validos;
+    if (repetidos.length) {
+      const nuevos = validos.filter(r => !repetidos.includes(r));
+      const soloRepes = nuevos.length === 0;
+      const opcion = await this.appConfirm(
+        soloRepes
+          ? `Las ${repetidos.length} filas ya están cargadas. Si seguís, van a quedar duplicadas.`
+          : `${repetidos.length} de ${validos.length} filas ya están cargadas. ` +
+            `¿Agrego solo las ${nuevos.length} nuevas?`,
+        soloRepes ? 'Agregar igual' : `Agregar solo las ${nuevos.length} nuevas`,
+        'content_copy',
+      );
+      if (!opcion) return;
+      if (!soloRepes) aCargar = nuevos;
+    }
+
     if (!await this.appConfirm(
-      `Se van a AGREGAR ${validos.length} ${destino === 'perfumes' ? 'perfumes' : 'ventas'} a lo que ya tenés. No se borra nada.`,
+      `Se van a AGREGAR ${aCargar.length} ${destino === 'perfumes' ? 'perfumes' : 'ventas'} a lo que ya tenés. No se borra nada.`,
       'Agregar', 'playlist_add')) return;
 
     let creados = 0, fallidos = 0;
-    for (const r of validos) {
+    for (const r of aCargar) {
       try {
         if (destino === 'perfumes') {
           await DB.addPerfume({

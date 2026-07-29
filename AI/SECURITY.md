@@ -106,16 +106,17 @@ La mitigación real es `esc()` + delegación de eventos.
 | Capa | Dónde | Límite | Comportamiento si KV falla |
 |---|---|---|---|
 | Tamaño de request | `worker.js` | 5 MB → 413 | — |
-| Global por IP | `worker.js` | 1000/min → 429 | 🟠 **fail-OPEN** (warning + sigue) |
-| Concurrencia en rutas críticas | `worker.js` | 10 simultáneas → 429 | 🟠 **fail-OPEN** |
+| Global por IP | `worker.js` | 1000/min → 429 | ✅ **fail-CLOSED en rutas críticas** (503), fail-open en el resto |
+| Concurrencia en rutas críticas | `worker.js` | 10 simultáneas → 429 | ✅ **fail-CLOSED** (503) |
 | Por endpoint | `_shared.js` | Configurable | ✅ **fail-CLOSED** |
 | Burst | `_shared.js` | 5 en 5 s | ✅ fail-closed |
 | Adaptativo | `_shared.js` | Según historial | ✅ fail-closed |
 | Cuerpo JSON | `_shared.js` | 1 MB | ✅ |
 
-**🟠 Inconsistencia real y conocida.** La regla del proyecto dice *"rate limiting
-fail-closed en TODOS los endpoints"*, y los de `_shared.js` la cumplen. Los del router
-(`worker.js`) hacen fail-open: si KV está caído, dejan pasar. Ver [TODO.md](TODO.md) §T-03.
+**Asimetría deliberada.** Las rutas de `CRITICAL_ROUTES` cortan con 503 si KV falla. El
+límite global sobre el resto sigue fail-open **a propósito**: hacerlo fail-closed
+convertiría cualquier caída de KV en una caída total de la app. Está comentado en el código
+para que no se lea como un descuido.
 
 ### CORS
 Whitelist única `ORIGIN_RE` en `_shared.js:3`. Origen no permitido → `null`.
@@ -131,20 +132,32 @@ Nunca se usa `*`.
 | `timingSafeEqual()` — comparación de tokens | `_shared.js:230` |
 | `verifyTokenWithExpiry()` — TTL 900 s | `_shared.js:258` |
 
-### 🟠 CSRF — a medias
+### CSRF — activo
 
 **Lo que existe:**
-- Token generado en el cliente (`crypto.getRandomValues` + SHA-256) y guardado en
+- Token generado en el cliente (`crypto.getRandomValues`, 32 bytes en hex) y guardado en
   `pt_csrf_token`, con rotación disponible.
 - Header `X-CSRF-Token` aceptado en CORS.
 - Cookies `SameSite=Strict; Secure; HttpOnly`.
 - `validateDoubleSubmitCSRF()` y `validateCsrfToken()` implementadas en `_shared.js`.
 
-**Lo que falta:** `worker.js` **no bloquea** requests sin token. El propio comentario del
-código lo dice: *"Token validation enforced at application level, not blocking requests yet"*.
+**Qué bloquea.** `worker.js` define `CSRF_ROUTES` y devuelve **403** sin un
+`X-CSRF-Token` bien formado en: `/trial`, `/validate-license`, `/backup` POST y `/sync` POST.
 
-En la práctica el riesgo está acotado por la whitelist de CORS y por `SameSite=Strict`,
-pero la defensa en profundidad está incompleta. Ver [TODO.md](TODO.md) §T-04.
+**Por qué el header alcanza.** Solo lo puede mandar un contexto que pasó el preflight de
+CORS y que pudo leer el token de `localStorage`. Un form cross-origin no llega.
+
+**🔴 `/mp-create-preference` queda AFUERA a propósito.** Lo llama la **landing**, que es una
+página estática sin token. Exigirlo ahí rompe el checkout, que es el camino de conversión
+principal. Está comentado en `worker.js` para que nadie lo "complete" sin darse cuenta.
+La protección perdida es acotada: lo peor que puede lograr un atacante es que alguien
+genere una preferencia de pago a su propio nombre.
+
+**El token se genera de forma síncrona.** Antes se derivaba con `crypto.subtle.digest`
+(async) y `_initCsrfToken()` no se esperaba: si el usuario tocaba "activar licencia" apenas
+abría la app, el header salía vacío. Con el backend rechazando, esa carrera era un 403 en
+la cara del usuario. Ahora son 32 bytes al azar en hex — los mismos 64 chars que valida el
+server — y `_getCsrfToken()` se cura solo si falta o quedó mal formado.
 
 ### Logging
 `log()` pasa por `sanitizeData()` antes de escribir. Las IPs se hashean con `hashIp()`.
@@ -188,12 +201,11 @@ viejo el script no carga y las exportaciones dejan de funcionar en silencio.
 
 | # | Severidad | Hallazgo |
 |---|---|---|
-| T-01 | 🔴 Alta | `/version` no ruteado → la actualización automática nunca dispara |
-| T-03 | 🟠 Media | Rate limits del router fail-open (los de `_shared.js` sí son fail-closed) |
-| T-04 | 🟠 Media | CSRF implementado pero no obligatorio |
 | T-08 | 🟡 Baja | `/force-update` borra IndexedDB (`Clear-Site-Data: storage`) sin advertencia |
-| T-09 | 🟡 Baja | Sin locking entre pestañas: dos pestañas pueden pisarse |
 | T-10 | 🟡 Baja | `'unsafe-inline'` en CSP (inherente a la arquitectura) |
+
+**Cerrados en 07/2026:** T-01 (`/version` ruteado), T-03 (fail-closed en rutas críticas),
+T-04 (CSRF bloqueando), T-09 (race de stock entre pestañas → Web Locks).
 
 Detalle y prioridad en [TODO.md](TODO.md).
 
