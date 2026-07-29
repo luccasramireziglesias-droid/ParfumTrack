@@ -3121,6 +3121,145 @@ input[type="date"].form-input {
   opacity: 0.45;
   cursor: not-allowed;
 }
+/* ====== PERFIL DEL NEGOCIO ====== */
+.negocio-card {
+  align-items: stretch;
+  text-align: left;
+}
+
+.negocio-card > h3,
+.negocio-card > p {
+  text-align: center;
+}
+
+/* Logo — círculo tocable, mismo lenguaje que la gota del header */
+.negocio-logo {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--bg2);
+  border: 1px dashed var(--border);
+  color: var(--text3);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.negocio-logo.vacio:active {
+  background: var(--bg3);
+  border-color: var(--gold);
+}
+
+.negocio-logo.vacio .ms {
+  font-size: 28px;
+  color: var(--gold2);
+}
+
+.negocio-logo-hint {
+  font: 500 9px 'DM Sans', sans-serif;
+  line-height: 1.2;
+  text-align: center;
+  padding: 0 8px;
+}
+
+.negocio-logo:not(.vacio) {
+  border-style: solid;
+  border-color: var(--gold);
+  box-shadow: 0 4px 14px rgba(201, 168, 76, 0.28);
+}
+
+.negocio-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Quitar el logo sin tener que abrir el selector de archivos */
+.negocio-logo-quitar {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(15, 15, 26, 0.82);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.negocio-logo-quitar .ms {
+  font-size: 15px;
+}
+
+.negocio-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.negocio-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.negocio-label {
+  font: 600 10px 'DM Sans', sans-serif;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+}
+
+.negocio-campo .form-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* El select hereda el fondo del sistema en Android y queda blanco: se
+   fuerza la paleta oscura, incluidas las opciones del desplegable */
+.negocio-campo select.form-input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--bg2);
+  color: var(--text);
+  background-image: linear-gradient(45deg, transparent 50%, var(--gold2) 50%),
+                    linear-gradient(135deg, var(--gold2) 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(50% + 2px), calc(100% - 13px) calc(50% + 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 34px;
+}
+
+.negocio-campo select.form-input option {
+  background: var(--bg2);
+  color: var(--text);
+}
+
+/* El logo del usuario reemplaza a la gota dorada del header. La gota está
+   rotada 135deg para formar la punta, así que la imagen se contrarrota. */
+.logo-drop.con-logo {
+  background: transparent;
+  background-size: cover;
+  background-position: center;
+  border-radius: 50%;
+  transform: none;
+  box-shadow: 0 4px 12px rgba(201, 168, 76, 0.35);
+  border: 1px solid var(--gold);
+}
 </style>
 </head>
 <body>
@@ -4280,6 +4419,61 @@ input[type="date"].form-input {
         <div class="back-btn" onclick="App.showScreen('mas')" role="button" aria-label="Volver"><span class="ms">arrow_back</span></div>
         <span class="sub-title">Mi cuenta</span>
         <div class="back-btn" style="visibility:hidden"><span class="ms">arrow_back</span></div>
+      </div>
+
+      <!-- Perfil del negocio: es lo que ve el cliente en el catálogo y el PDF -->
+      <div class="cuenta-card negocio-card">
+        <div class="negocio-logo vacio" id="negocio-logo-preview" onclick="App.elegirLogoNegocio()" role="button" tabindex="0" aria-label="Logo del negocio">
+          <span class="ms">add_photo_alternate</span>
+          <span class="negocio-logo-hint">Tocá para agregar tu logo</span>
+        </div>
+        <input type="file" id="negocio-logo-input" accept="image/*" class="hidden" onchange="App.cargarLogoNegocio(this)">
+
+        <h3 style="font:700 20px 'Cormorant Garamond';color:var(--gold2);margin:12px 0 4px;">Mi negocio</h3>
+        <p style="color:var(--text3);font-size:13px;line-height:1.5;margin-bottom:16px;">
+          Estos datos encabezan el catálogo que mandás por WhatsApp y los PDF que exportás.
+        </p>
+
+        <div class="negocio-form">
+          <label class="negocio-campo">
+            <span class="negocio-label">NOMBRE DEL NEGOCIO *</span>
+            <input type="text" class="form-input" id="negocio-nombre" maxlength="30" placeholder="VIP Parfums">
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">TIPO DE NEGOCIO</span>
+            <select class="form-input" id="negocio-tipo"></select>
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">WHATSAPP / TELÉFONO</span>
+            <input type="tel" class="form-input" id="negocio-telefono" maxlength="25" inputmode="tel" placeholder="+598 94 466 577">
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">CORREO</span>
+            <input type="email" class="form-input" id="negocio-email" maxlength="60" inputmode="email" placeholder="tunegocio@gmail.com">
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">DIRECCIÓN</span>
+            <input type="text" class="form-input" id="negocio-direccion" maxlength="80" placeholder="Av. Siempre Viva 742">
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">CIUDAD</span>
+            <input type="text" class="form-input" id="negocio-ciudad" maxlength="40" placeholder="Montevideo">
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">DOCUMENTO (RUT / CUIT)</span>
+            <input type="text" class="form-input" id="negocio-documento" maxlength="20" placeholder="Opcional">
+          </label>
+        </div>
+
+        <button class="btn-primary btn-full" id="negocio-guardar" onclick="App.guardarNegocio()" style="margin-top:4px;">
+          <span class="ms">save</span>Guardar datos
+        </button>
       </div>
 
       <!-- Plan actual + código de licencia (siempre visible) -->
@@ -5786,6 +5980,7 @@ const App = {
     this._initLang();
     this.loadMoneda();
     this.loadNombreNegocio();
+    await this.loadNegocio();
     this.loadAccount();
     await this._initializeEncryption();
     this._initCsrfToken();
@@ -8611,6 +8806,7 @@ const App = {
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
         negocio: localStorage.getItem('pt_negocio'),
+        perfilNegocio: this.getNegocio(),
         // pin: omitido intencionalmente por seguridad
       },
       exportDate: new Date().toISOString()
@@ -8815,6 +9011,12 @@ const App = {
     if (data.settings) {
       if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
       if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
+      // El perfil viaja en el store `config`, pero también en settings como
+      // respaldo: si el backup es de una versión anterior o config no llegó
+      // completo, el negocio no se pierde
+      if (data.settings.perfilNegocio && typeof data.settings.perfilNegocio === 'object') {
+        try { await DB.setConfig('negocio', this._sanitizarNegocio(data.settings.perfilNegocio)); } catch { /* no bloquea el restore */ }
+      }
     }
     // Los backups pueden traer ids string o cuotas ya cubiertas sin marcar
     await DB.dedupEncryptedRecords();
@@ -8823,6 +9025,7 @@ const App = {
     await this.loadData();
     this.loadMoneda();
     this.loadNombreNegocio();
+    await this.loadNegocio();
     this.renderAll();
     return { total, skipped };
   },
@@ -8904,12 +9107,22 @@ const App = {
     const now = new Date();
     const fecha = now.toLocaleDateString('es-AR');
 
+    // Encabezado con los datos del negocio: el PDF se manda al cliente o al
+    // contador, así que tiene que decir de quién es
+    const neg = this.getNegocio();
     doc.setFontSize(18);
-    doc.text('Parfum Track — Reporte', 14, 20);
-    doc.setFontSize(10);
-    doc.text(`Generado: ${fecha}`, 14, 28);
+    doc.text(neg.nombre || 'Parfum Track', 14, 20);
 
-    let y = 38;
+    let y = 28;
+    doc.setFontSize(10);
+    const contacto = this._negocioContacto({ separador: '  ·  ' })
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '')   // jsPDF no dibuja emojis
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    if (contacto) { doc.text(contacto, 14, y); y += 6; }
+    if (neg.documento) { doc.text(`Documento: ${neg.documento}`, 14, y); y += 6; }
+    doc.text(`Generado: ${fecha}`, 14, y);
+    y += 10;
     const addSection = (title) => {
       if (y > 260) { doc.addPage(); y = 20; }
       doc.setFontSize(13);
@@ -9180,12 +9393,18 @@ const App = {
       this.toast('Seleccioná al menos un perfume', 'warning');
       return;
     }
-    const negocio = localStorage.getItem('pt_negocio') || 'Parfum Track';
+    const n = this.getNegocio();
+    const negocio = n.nombre || 'Parfum Track';
     const lines = selected.map(p => {
       const stock = p.stock > 0 ? `(${p.stock} disponible${p.stock > 1 ? 's' : ''})` : '(agotado)';
       return `• ${p.nombre} — ${this.fmt(p.precioVenta)} ${stock}`;
     });
-    const msg = `*${negocio} — Catálogo actualizado*\n\n${lines.join('\n')}\n\n_${selected.length} perfumes · ${new Date().toLocaleDateString('es-AR')}_`;
+    // Los datos de contacto van al pie: el cliente recibe el catálogo y sabe
+    // a quién escribirle sin tener que buscar el chat
+    const contacto = this._negocioContacto();
+    const pie = `_${selected.length} perfumes · ${new Date().toLocaleDateString('es-AR')}_`;
+    const msg = `*${negocio} — Catálogo actualizado*\n\n${lines.join('\n')}\n\n${pie}` +
+      (contacto ? `\n\n${contacto}` : '');
     this.cobrarWhatsApp(msg);
   },
 
@@ -9667,6 +9886,7 @@ const App = {
   },
 
   updateCuentaScreen() {
+    this.renderNegocio();
     const noLogin = document.getElementById('cuenta-no-login');
     const otpDiv = document.getElementById('cuenta-otp');
     const logged = document.getElementById('cuenta-logged');
@@ -11834,6 +12054,208 @@ const App = {
     this.toast(`${creados} ${destino === 'perfumes' ? 'perfumes' : 'ventas'} importados${fallidos ? ` · ${fallidos} con error` : ''}`, 'check_circle');
     this.haptic('success');
     this._notifyTabs();
+  },
+
+
+  // ====== PERFIL DEL NEGOCIO ======
+  // Hasta ahora lo único que se guardaba del negocio era el nombre, en
+  // localStorage. Estos datos son los que el CLIENTE ve: encabezan el
+  // catálogo de WhatsApp y el PDF. Por eso no es un formulario que junta
+  // datos y los deja ahí — cada campo tiene un lugar donde sale.
+  //
+  // Van al store `config` (no en localStorage) por una razón concreta: config
+  // entra en el backup y en el restore, así que el perfil sobrevive a un
+  // cambio de teléfono. El nombre además se sigue escribiendo en
+  // localStorage porque el header lo necesita ANTES de que abra IndexedDB.
+  //
+  // ⚠️ `config` es el único store que NO se cifra: tiene que ser legible
+  // antes de que exista la clave. Si algún día se guarda algo realmente
+  // sensible del negocio, hay que revisar esa decisión.
+
+  _negocio: null,
+
+  _NEGOCIO_LIMITES: {
+    nombre: 30,        // igual que el header, que es donde se ve
+    tipo: 40,
+    telefono: 25,
+    email: 60,
+    direccion: 80,
+    ciudad: 40,
+    documento: 20,
+  },
+
+  _NEGOCIO_TIPOS: [
+    'Perfumes',
+    'Perfumes y cosmética',
+    'Cosmética',
+    'Multimarca',
+    'Otros',
+  ],
+
+  _negocioVacio() {
+    return { nombre: '', tipo: '', telefono: '', email: '', direccion: '', ciudad: '', documento: '', logo: '' };
+  },
+
+  async loadNegocio() {
+    let guardado = null;
+    try {
+      guardado = await DB.getConfig('negocio');
+    } catch (_) { /* base no disponible: seguimos con lo que haya en localStorage */ }
+    this._negocio = Object.assign(this._negocioVacio(), guardado || {});
+    // El nombre viejo vivía solo en localStorage: migrarlo la primera vez
+    if (!this._negocio.nombre) {
+      this._negocio.nombre = (localStorage.getItem('pt_negocio') || '').trim();
+    }
+    this._aplicarLogo();
+    return this._negocio;
+  },
+
+  // Devuelve siempre un objeto usable, aunque loadNegocio no haya corrido
+  getNegocio() {
+    return this._negocio || Object.assign(this._negocioVacio(), {
+      nombre: (localStorage.getItem('pt_negocio') || '').trim(),
+    });
+  },
+
+  _sanitizarNegocio(datos) {
+    const out = this._negocioVacio();
+    for (const campo of Object.keys(this._NEGOCIO_LIMITES)) {
+      out[campo] = String(datos[campo] || '').trim().slice(0, this._NEGOCIO_LIMITES[campo]);
+    }
+    // El logo no se acota por largo: es una data URL ya redimensionada
+    out.logo = typeof datos.logo === 'string' && /^data:image\//.test(datos.logo) ? datos.logo : '';
+    return out;
+  },
+
+  renderNegocio() {
+    const n = this.getNegocio();
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    set('negocio-nombre', n.nombre);
+    set('negocio-telefono', n.telefono);
+    set('negocio-email', n.email);
+    set('negocio-direccion', n.direccion);
+    set('negocio-ciudad', n.ciudad);
+    set('negocio-documento', n.documento);
+
+    const sel = document.getElementById('negocio-tipo');
+    if (sel) {
+      sel.innerHTML = '<option value="">Sin especificar</option>' +
+        this._NEGOCIO_TIPOS.map(t => `<option value="${this.esc(t)}">${this.esc(t)}</option>`).join('');
+      sel.value = n.tipo || '';
+    }
+    this._renderLogoPreview(n.logo);
+  },
+
+  _renderLogoPreview(logo) {
+    const el = document.getElementById('negocio-logo-preview');
+    if (!el) return;
+    if (logo) {
+      el.className = 'negocio-logo';
+      el.innerHTML = `<img src="${logo}" alt="Logo del negocio">
+        <button class="negocio-logo-quitar" onclick="event.stopPropagation();App.quitarLogoNegocio()" aria-label="Quitar logo">
+          <span class="ms">close</span></button>`;
+    } else {
+      el.className = 'negocio-logo vacio';
+      el.innerHTML = '<span class="ms">add_photo_alternate</span><span class="negocio-logo-hint">Tocá para agregar tu logo</span>';
+    }
+  },
+
+  elegirLogoNegocio() {
+    const input = document.getElementById('negocio-logo-input');
+    if (input) input.click();
+  },
+
+  async cargarLogoNegocio(input) {
+    const file = input.files?.[0];
+    if (!file) return;
+    input.value = '';
+    try {
+      // Mismo pipeline que las fotos de perfume: redimensiona y comprime
+      // antes de guardar, si no el backup se infla
+      const dataUrl = await this._processPhoto(file);
+      this._negocio = this.getNegocio();
+      this._negocio.logo = dataUrl;
+      this._renderLogoPreview(dataUrl);
+      this.toast('Logo listo — tocá Guardar', 'image');
+    } catch (_) {
+      this.toast('No pudimos leer la imagen', 'error');
+    }
+  },
+
+  async quitarLogoNegocio() {
+    this._negocio = this.getNegocio();
+    this._negocio.logo = '';
+    this._renderLogoPreview('');
+    this.toast('Logo quitado — tocá Guardar', 'image_not_supported');
+  },
+
+  guardarNegocio() {
+    return this._once('negocio', () => this._guardarNegocioImpl(),
+      document.getElementById('negocio-guardar'));
+  },
+
+  async _guardarNegocioImpl() {
+    const val = (id) => (document.getElementById(id)?.value || '');
+    const datos = this._sanitizarNegocio({
+      nombre: val('negocio-nombre'),
+      tipo: val('negocio-tipo'),
+      telefono: val('negocio-telefono'),
+      email: val('negocio-email'),
+      direccion: val('negocio-direccion'),
+      ciudad: val('negocio-ciudad'),
+      documento: val('negocio-documento'),
+      logo: this.getNegocio().logo,
+    });
+
+    if (!datos.nombre) {
+      this.toast('Poné al menos el nombre del negocio', 'warning');
+      return;
+    }
+    if (datos.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(datos.email)) {
+      this.toast('Revisá el email', 'warning');
+      return;
+    }
+
+    try {
+      await DB.setConfig('negocio', datos);
+    } catch (_) {
+      this.toast('No pudimos guardar los datos', 'error');
+      return;
+    }
+    this._negocio = datos;
+    // El header lee de localStorage en el arranque, antes de abrir la base
+    this.setNombreNegocio(datos.nombre);
+    this._aplicarLogo();
+    this.renderNegocio();
+    this.toast('Datos del negocio guardados', 'check_circle');
+    this.haptic('success');
+    this._notifyTabs();
+  },
+
+  // Reemplaza la gota dorada del header por el logo del usuario
+  _aplicarLogo() {
+    const drop = document.querySelector('#screen-inicio .logo-drop');
+    if (!drop) return;
+    const logo = this.getNegocio().logo;
+    if (logo) {
+      drop.classList.add('con-logo');
+      drop.style.backgroundImage = `url("${logo}")`;
+    } else {
+      drop.classList.remove('con-logo');
+      drop.style.backgroundImage = '';
+    }
+  },
+
+  // Bloque de contacto para el catálogo de WhatsApp y el PDF. Devuelve ''
+  // si el usuario no cargó nada: nunca un encabezado vacío.
+  _negocioContacto({ separador = '\n' } = {}) {
+    const n = this.getNegocio();
+    const partes = [];
+    if (n.telefono) partes.push(`📱 ${n.telefono}`);
+    if (n.email) partes.push(`✉️ ${n.email}`);
+    const ubicacion = [n.direccion, n.ciudad].filter(Boolean).join(', ');
+    if (ubicacion) partes.push(`📍 ${ubicacion}`);
+    return partes.join(separador);
   },
 };
 

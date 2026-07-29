@@ -58,6 +58,7 @@
   },
 
   updateCuentaScreen() {
+    this.renderNegocio();
     const noLogin = document.getElementById('cuenta-no-login');
     const otpDiv = document.getElementById('cuenta-otp');
     const logged = document.getElementById('cuenta-logged');

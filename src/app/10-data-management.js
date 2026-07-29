@@ -18,6 +18,7 @@
       settings: {
         moneda: localStorage.getItem('pt_moneda'),
         negocio: localStorage.getItem('pt_negocio'),
+        perfilNegocio: this.getNegocio(),
         // pin: omitido intencionalmente por seguridad
       },
       exportDate: new Date().toISOString()
@@ -222,6 +223,12 @@
     if (data.settings) {
       if (data.settings.moneda) localStorage.setItem('pt_moneda', data.settings.moneda);
       if (data.settings.negocio) localStorage.setItem('pt_negocio', data.settings.negocio);
+      // El perfil viaja en el store `config`, pero también en settings como
+      // respaldo: si el backup es de una versión anterior o config no llegó
+      // completo, el negocio no se pierde
+      if (data.settings.perfilNegocio && typeof data.settings.perfilNegocio === 'object') {
+        try { await DB.setConfig('negocio', this._sanitizarNegocio(data.settings.perfilNegocio)); } catch { /* no bloquea el restore */ }
+      }
     }
     // Los backups pueden traer ids string o cuotas ya cubiertas sin marcar
     await DB.dedupEncryptedRecords();
@@ -230,6 +237,7 @@
     await this.loadData();
     this.loadMoneda();
     this.loadNombreNegocio();
+    await this.loadNegocio();
     this.renderAll();
     return { total, skipped };
   },
@@ -311,12 +319,22 @@
     const now = new Date();
     const fecha = now.toLocaleDateString('es-AR');
 
+    // Encabezado con los datos del negocio: el PDF se manda al cliente o al
+    // contador, así que tiene que decir de quién es
+    const neg = this.getNegocio();
     doc.setFontSize(18);
-    doc.text('Parfum Track — Reporte', 14, 20);
-    doc.setFontSize(10);
-    doc.text(`Generado: ${fecha}`, 14, 28);
+    doc.text(neg.nombre || 'Parfum Track', 14, 20);
 
-    let y = 38;
+    let y = 28;
+    doc.setFontSize(10);
+    const contacto = this._negocioContacto({ separador: '  ·  ' })
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '')   // jsPDF no dibuja emojis
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    if (contacto) { doc.text(contacto, 14, y); y += 6; }
+    if (neg.documento) { doc.text(`Documento: ${neg.documento}`, 14, y); y += 6; }
+    doc.text(`Generado: ${fecha}`, 14, y);
+    y += 10;
     const addSection = (title) => {
       if (y > 260) { doc.addPage(); y = 20; }
       doc.setFontSize(13);
@@ -587,12 +605,18 @@
       this.toast('Seleccioná al menos un perfume', 'warning');
       return;
     }
-    const negocio = localStorage.getItem('pt_negocio') || 'Parfum Track';
+    const n = this.getNegocio();
+    const negocio = n.nombre || 'Parfum Track';
     const lines = selected.map(p => {
       const stock = p.stock > 0 ? `(${p.stock} disponible${p.stock > 1 ? 's' : ''})` : '(agotado)';
       return `• ${p.nombre} — ${this.fmt(p.precioVenta)} ${stock}`;
     });
-    const msg = `*${negocio} — Catálogo actualizado*\n\n${lines.join('\n')}\n\n_${selected.length} perfumes · ${new Date().toLocaleDateString('es-AR')}_`;
+    // Los datos de contacto van al pie: el cliente recibe el catálogo y sabe
+    // a quién escribirle sin tener que buscar el chat
+    const contacto = this._negocioContacto();
+    const pie = `_${selected.length} perfumes · ${new Date().toLocaleDateString('es-AR')}_`;
+    const msg = `*${negocio} — Catálogo actualizado*\n\n${lines.join('\n')}\n\n${pie}` +
+      (contacto ? `\n\n${contacto}` : '');
     this.cobrarWhatsApp(msg);
   },
 

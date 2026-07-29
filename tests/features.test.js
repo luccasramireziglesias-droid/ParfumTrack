@@ -1182,3 +1182,76 @@ describe('Registro por OTP — el contrato cliente/servidor', () => {
     expect(cuenta).toMatch(/sessionStorage\.removeItem\('pt_otp_challenge'\)/);
   });
 });
+
+describe('Perfil del negocio', () => {
+  const neg = read('src/app/27-negocio.js');
+  const screen = read('src/screens/cuenta.html');
+  const dm = read('src/app/10-data-management.js');
+  const core = read('src/app/00-core.js');
+  const index = read('index.html');
+
+  it('el perfil va al store config, no a localStorage', () => {
+    // config entra en el backup y en el restore: el perfil sobrevive a un
+    // cambio de teléfono. localStorage no se respalda.
+    expect(neg).toMatch(/DB\.setConfig\('negocio'/);
+    expect(neg).toMatch(/DB\.getConfig\('negocio'\)/);
+  });
+
+  it('el nombre sigue yendo a localStorage para el header', () => {
+    // El header lo necesita ANTES de que abra IndexedDB
+    expect(neg).toMatch(/this\.setNombreNegocio\(datos\.nombre\)/);
+  });
+
+  it('se carga en el arranque y al entrar a la pantalla de cuenta', () => {
+    expect(core).toMatch(/await this\.loadNegocio\(\)/);
+    expect(read('src/app/12-cuenta-licencia.js')).toMatch(/this\.renderNegocio\(\)/);
+  });
+
+  it('todos los campos tienen tope y se sanitizan al guardar', () => {
+    expect(neg).toMatch(/_NEGOCIO_LIMITES/);
+    const idx = neg.indexOf('_sanitizarNegocio(datos)');
+    const cuerpo = neg.slice(idx, idx + 500);
+    expect(cuerpo).toMatch(/slice\(0, this\._NEGOCIO_LIMITES\[campo\]\)/);
+  });
+
+  it('el logo solo acepta data URLs de imagen', () => {
+    // Va directo a un src: un string arbitrario sería un vector
+    const idx = neg.indexOf('_sanitizarNegocio(datos)');
+    expect(neg.slice(idx, idx + 600)).toMatch(/\^data:image\\\//);
+  });
+
+  it('el logo reusa el pipeline de fotos que redimensiona y comprime', () => {
+    // Sin esto una foto de 4 MB se iría entera al backup
+    expect(neg).toMatch(/await this\._processPhoto\(file\)/);
+  });
+
+  it('los datos salen en el catálogo de WhatsApp', () => {
+    expect(dm).toMatch(/const contacto = this\._negocioContacto\(\)/);
+    expect(dm).toMatch(/contacto \? `\\n\\n\$\{contacto\}` : ''/);
+  });
+
+  it('los datos encabezan el PDF, sin emojis que jsPDF no dibuja', () => {
+    const idx = dm.indexOf('async exportPDF');
+    const cuerpo = dm.slice(idx, idx + 2200);
+    expect(cuerpo).toMatch(/const neg = this\.getNegocio\(\)/);
+    expect(cuerpo).toMatch(/jsPDF no dibuja emojis/);
+  });
+
+  it('el perfil viaja en el backup y vuelve en el restore', () => {
+    expect(dm).toMatch(/perfilNegocio: this\.getNegocio\(\)/);
+    expect(dm).toMatch(/data\.settings\.perfilNegocio/);
+    expect(dm).toMatch(/await this\.loadNegocio\(\)/);
+  });
+
+  it('el guardado tiene guarda anti doble-tap', () => {
+    expect(neg).toMatch(/_once\('negocio'/);
+  });
+
+  it('la pantalla y los estilos entraron en el build', () => {
+    expect(screen).toContain('id="negocio-logo-preview"');
+    expect(index).toContain('id="negocio-nombre"');
+    expect(index).toContain('.negocio-logo');
+    // El select hereda fondo blanco del sistema en Android si no se fuerza
+    expect(read('src/styles/27-negocio.css')).toMatch(/select\.form-input option/);
+  });
+});

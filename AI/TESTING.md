@@ -1,6 +1,6 @@
 # TESTING — Estrategia de tests
 
-**Estado actual: 597 Vitest + 94 Playwright. Los dos corren en CI y frenan el deploy.**
+**Estado actual: 621 Vitest + 106 Playwright. Los dos corren en CI y frenan el deploy.**
 
 ---
 
@@ -22,11 +22,33 @@ Toda la estrategia de tests apunta a esa clase de bug:
 
 ---
 
+## 1 bis. 🔴 Las dos formas en que esta suite ya mintió
+
+Dos incidentes de producción el mismo día, los dos con la suite entera en verde. Vale más
+entender el patrón que los bugs:
+
+| Qué falló | Por qué el test no lo vio |
+|---|---|
+| **BUG-24** — KV rechaza `expirationTtl < 60`; el router usaba 5 y tumbó 5 rutas críticas | El mock de KV **aceptaba cualquier TTL** |
+| **BUG-25** — el cliente no mandaba el `challenge` que el backend exige | 24 tests del backend, todos con un cliente ideal **que no existía** |
+
+**Las reglas que salieron de ahí:**
+
+1. 🔴 **Un mock que no rechaza lo que el servicio real rechaza no prueba nada.** Si la
+   plataforma tiene un límite (TTL mínimo, tamaño máximo, formato), el mock lo tiene que
+   hacer cumplir.
+2. 🔴 **Probar los dos lados por separado no prueba que hablen entre sí.** Cuando el backend
+   exige un campo, tiene que haber un test de que el cliente lo manda.
+3. 🔴 **Verificá que el test atrape el bug**: revertí el fix y mirá que falle. Los dos casos
+   se comprobaron así.
+
+---
+
 ## 2. Comandos
 
 ```bash
-npm test                              # 597 Vitest
-npx playwright test                   # 94 E2E (necesita la app en :8787)
+npm test                              # 621 Vitest
+npx playwright test                   # 106 E2E (necesita la app en :8787)
 npx playwright test tests/f3.spec.js  # un solo archivo
 npx vitest run tests/features.test.js # una sola suite
 
@@ -38,7 +60,7 @@ VOL_VENTAS=5000 npx playwright test tests/volumen.spec.js
 
 ---
 
-## 3. Vitest — 597 tests, 35 archivos
+## 3. Vitest — 621 tests, 35 archivos
 
 Corren en Node, sin navegador. Dos tipos:
 
@@ -86,7 +108,7 @@ comportamiento y no el nombre.
 
 ---
 
-## 4. Playwright — 94 tests
+## 4. Playwright — 106 tests
 
 Corren contra la app real en `http://localhost:8787`.
 
@@ -107,6 +129,7 @@ Corren contra la app real en `http://localhost:8787`.
 | `concurrencia.spec.js` | 🔵 Dos pestañas escribiendo + interrupción a mitad de operación |
 | `pulido.spec.js` | Formato de montos, perfume duplicado, planilla reimportada |
 | `header.spec.js` | El nombre del negocio no tapa el chip de cuenta |
+| `negocio.spec.js` | Perfil del negocio: guardado, logo, y dónde salen los datos |
 
 ### 🔴 Preámbulo obligatorio de todo E2E
 

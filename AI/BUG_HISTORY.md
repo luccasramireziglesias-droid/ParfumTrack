@@ -415,3 +415,71 @@ un nombre largo guardado también queda sano. El nombre completo va al `title`.
 **Regla derivada.** 🟠 En un header de una sola fila, el texto variable lleva
 `min-width: 0` + ellipsis y el control fijo lleva `flex-shrink: 0`. Sin las dos cosas, el
 texto gana y el control desaparece.
+
+---
+
+## BUG-24 — Un TTL inválido de KV tumbó registro, licencias y pagos 🔥
+**Fecha:** 29/07/2026 · **Riesgo:** 🔴 ALTO · **Incidente en producción**
+
+**Descripción.** Activar una licencia devolvía "Service temporarily unavailable". Afectaba
+a las 5 rutas de `CRITICAL_ROUTES`: `/trial`, `/validate-license`, `/mp-create-preference`,
+`/backup` y `/sync`. Nadie podía registrarse, activar una licencia ni pagar.
+
+**Causa.** **Cloudflare KV rechaza cualquier `expirationTtl` menor a 60 segundos** — el
+`put()` lanza. El limitador de concurrencia usaba **5**.
+
+Ese `put()` venía fallando en **todas** las requests desde que se escribió. El `catch` lo
+tapaba con un `console.warn`, así que el limitador nunca funcionó y nadie se enteró. Al
+volver ese `catch` fail-closed (T-03), el error latente pasó a devolver **503**.
+
+**Solución.**
+1. `expirationTtl` → `KV_TTL_MIN = 60`. El contador se sigue decrementando por `waitUntil`;
+   el TTL es solo la red de seguridad, así que 60 no cambia el comportamiento.
+2. El `catch` del limitador de concurrencia vuelve a **fail-open**, a propósito: es un
+   extra sobre el límite global (que sí es fail-closed y usa un TTL válido de 120). Un bug
+   en un limitador secundario no puede dejar a todo el mundo sin poder pagar.
+3. `checkBurstRateLimit` en `_shared.js` tenía el mismo error (ventana de 5 s → TTL 6).
+   Acotado con `Math.max(60, …)`.
+
+**Archivos.** `worker.js`, `functions/_shared.js`, `tests/worker.test.js`
+
+**🔴 Por qué pasó 597 tests.** El mock de KV **aceptaba cualquier TTL**. Nunca reprodujo el
+comportamiento real. Ahora hay un mock que valida el mínimo como el KV de verdad, y un test
+que recorre todos los `put()` del router.
+
+**Reglas derivadas.**
+- 🔴 **Un mock que no rechaza lo que el servicio real rechaza no prueba nada.**
+- 🔴 **Antes de convertir un `catch` en fail-closed, verificá qué está tapando.** Un `catch`
+  silencioso puede llevar años escondiendo un error que nunca importó.
+- 🟠 El fail-closed va donde la protección importa, no en todos lados por simetría.
+
+---
+
+## BUG-25 — El cliente nunca mandaba el challenge del OTP
+**Fecha:** 29/07/2026 · **Riesgo:** 🔴 ALTO
+
+**Descripción.** Con el código de 6 dígitos correcto, verificar el email devolvía error.
+**El registro por email nunca funcionó** desde que se agregó el nonce.
+
+**Causa.** `/trial` devuelve un `challenge` al pedir el código y `handleVerify` **lo exige
+antes de mirar el OTP**. El cliente leía solo `data.sent` y lo descartaba; al verificar
+mandaba `{ step, email, otp, deviceId }` sin challenge, y el backend cortaba en la primera
+validación con "Datos inválidos".
+
+**Solución.** `registrarCuenta()` guarda `data.challenge` y `verificarOTP()` lo manda. Los
+dos van también a `sessionStorage` (recargar la pantalla en el medio dejaba al usuario
+trabado). Si falta, avisa "Pedí un código nuevo" en vez de mandar una request condenada.
+Al verificar bien se descarta: es de un solo uso.
+
+**Archivos.** `src/app/12-cuenta-licencia.js`, `tests/features.test.js`
+
+**🔴 Por qué pasó desapercibido.** `tests/trial.test.js` tiene **24 tests del backend y
+todos mandan el challenge correctamente**. Se probó el servidor contra un cliente ideal que
+no existía. Cada lado estaba bien; **el contrato entre los dos no lo verificaba nadie**.
+
+**Regla derivada.** 🔴 **Probar los dos lados por separado no prueba que hablen entre sí.**
+Cuando el backend exige un campo, tiene que haber un test de que el cliente lo manda.
+
+> **Los dos bugs del mismo día comparten raíz:** el test usaba algo que no se comportaba
+> como la realidad — un mock permisivo en uno, un cliente imaginario en el otro. Las 597
+> pruebas en verde daban una confianza que no correspondía.

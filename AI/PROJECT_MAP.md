@@ -13,9 +13,9 @@ ParfumTrack/
 ├── src/                          ← FUENTE REAL de la app. Editá SIEMPRE acá.
 │   ├── index.template.html       ← esqueleto + IndexedDB (openDB/tx/reqP) + nav
 │   ├── db.js                     ← capa de datos (703 líneas)
-│   ├── app/                      ← 25 módulos que arman el objeto `App`
+│   ├── app/                      ← 26 módulos que arman el objeto `App`
 │   ├── screens/                  ← 17 pantallas HTML
-│   ├── styles/                   ← 26 hojas CSS numeradas
+│   ├── styles/                   ← 27 hojas CSS numeradas
 │   └── landing/                  ← fuente de landing.html
 │
 ├── index.html                    ← ⚠️ GENERADO (~6.400 líneas). NO EDITAR.
@@ -78,6 +78,7 @@ mismo objeto global `App`.
 | 23 | `23-compras.js` | 164 | Compras al proveedor (F4) |
 | 24 | `24-reservas.js` | 295 | Señas y encargos (F5) |
 | 26 | `26-importar-excel.js` | 438 | Importador de planillas .xlsx/.csv/.ods |
+| 27 | `27-negocio.js` | 210 | Perfil del negocio: datos + logo que ve el cliente |
 
 > **Nota:** faltan los números 21 y 25. No es un error — se reservaron y no se usaron.
 > `15-encryption.js` se inyecta en un placeholder aparte (`/*PT:ENCRYPTION*/`) porque
@@ -106,7 +107,7 @@ el marcador `<!--PT:SCREEN:{nombre}-->` del template.
 | `gastos.html` | | Gastos |
 | `reservas.html` | | Señas y encargos (F5) |
 | `catalogo.html` | | Armado del catálogo para WhatsApp |
-| `cuenta.html` | | Licencia, suscripción, backup, PIN |
+| `cuenta.html` | | **Perfil del negocio (datos + logo)**, licencia, suscripción, backup, PIN |
 
 Navegación completa: [ROUTES.md](ROUTES.md).
 
@@ -130,7 +131,7 @@ Navegación completa: [ROUTES.md](ROUTES.md).
 | `mp-payment-status.js` | 117 | Estado de un pago |
 | `generate-owner-license.js` | 142 | Genera licencias propietarias |
 | `debug-license.js` | 59 | Diagnóstico de licencias |
-| `version.js` | 44 | ⚠️ Existe pero **NO está ruteado** en `worker.js` — ver [TODO.md](TODO.md) |
+| `version.js` | 42 | Versión del app para el auto-update. Sin rate limit propio a propósito |
 
 Detalle de cada servicio: [SERVICES.md](SERVICES.md).
 

@@ -11,6 +11,40 @@ el problema y cómo se comprueba.
 
 ## BUGS ABIERTOS
 
+### 🟠 T-12 — Auditar los `catch` silenciosos del backend
+
+**Por qué.** El incidente del 29/07 (BUG-24) salió de un `catch` que tapó durante semanas
+un `put()` que fallaba en **todas** las requests. Nadie mira los `console.warn` del Worker,
+así que un error tragado ahí es invisible hasta que algo lo destapa.
+
+**Qué hacer.** Recorrer los `catch` de `worker.js` y `functions/*.js` y para cada uno
+responder: ¿qué error puede estar tapando? ¿cómo nos enteraríamos si empieza a fallar
+siempre? Los candidatos obvios son los que envuelven llamadas a KV.
+
+**Extra.** Los `expirationTtl` menores a 60 ya están cubiertos por un test, pero conviene
+revisar si hay otros límites de plataforma asumidos sin verificar (tamaño de valor en KV
+—25 MB—, largo de clave —512 B—, TTL mínimo).
+
+**Dificultad.** Media. No urgente, pero es la clase de deuda que produce incidentes.
+
+---
+
+### 🟠 T-13 — Tests de contrato cliente ↔ backend
+
+**Por qué.** BUG-25: `trial.test.js` tiene 24 tests del backend, todos mandando el
+`challenge` correctamente. El cliente no lo mandaba. Cada lado estaba bien probado; el
+contrato entre los dos, no.
+
+**Qué hacer.** Para cada endpoint que la app llama, un test que verifique que el cliente
+manda **todos** los campos que el backend exige. Hoy están cubiertos `/trial` (7
+regresiones) y CSRF. Faltan `/validate-license`, `/backup`, `/sync` y
+`/mp-create-preference`.
+
+**Dificultad.** Baja por endpoint; el patrón ya está escrito en `features.test.js`.
+
+---
+
+
 ### 🟡 T-08 — `/force-update` borra IndexedDB sin advertencia
 
 **Evidencia.** `worker.js` devuelve `Clear-Site-Data: "cache", "storage"`.

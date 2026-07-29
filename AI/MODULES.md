@@ -492,6 +492,40 @@ importador no. Ver [TESTING.md](TESTING.md).
 
 ---
 
+## `27-negocio.js` — Perfil del negocio · 210 líneas
+
+**Por qué existe.** Lo único que se guardaba del negocio era el nombre, en localStorage.
+Estos datos son **los que el cliente ve**: encabezan el catálogo de WhatsApp y el PDF.
+
+**Métodos.** `loadNegocio()`, `getNegocio()`, `renderNegocio()`, `_sanitizarNegocio()`,
+`_negocioVacio()`, `elegirLogoNegocio()`, `cargarLogoNegocio()`, `quitarLogoNegocio()`,
+`_renderLogoPreview()`, `guardarNegocio()` → `_guardarNegocioImpl()`, `_aplicarLogo()`,
+`_negocioContacto()`.
+
+**Campos.** `nombre` (obligatorio, 30) · `tipo` · `telefono` · `email` · `direccion` ·
+`ciudad` · `documento` · `logo` (data URL).
+
+**Dónde se usa cada dato** — es la parte que importa:
+
+| Dato | Dónde sale |
+|---|---|
+| `nombre` | Header del dashboard, catálogo WA, PDF, `_defaultVendedor()` |
+| `logo` | Reemplaza la gota dorada del header (`.logo-drop.con-logo`) |
+| `telefono` · `email` · `direccion` · `ciudad` | Pie del catálogo WA, encabezado del PDF |
+| `documento` | Encabezado del PDF |
+
+**Almacenamiento.** Store `config` (**entra en el backup**), más `pt_negocio` en
+localStorage porque el header lo lee **antes** de que abra IndexedDB.
+
+**Riesgos.**
+- 🟠 `config` es el único store **no cifrado**. Si algún día se guarda algo realmente
+  sensible del negocio, hay que revisar esa decisión (ver [DECISIONS.md](DECISIONS.md) §D-24).
+- 🟠 El logo va como data URL: `_processPhoto()` lo redimensiona antes de guardar, si no
+  infla el backup.
+- 🟡 jsPDF no dibuja emojis: el contacto del PDF se limpia antes de escribirlo.
+
+---
+
 ## `src/db.js` — Capa de datos · 703 líneas · ⚠️ no está en `src/app/`
 
 **Objetivo.** Único punto de acceso a IndexedDB. Ningún módulo de UI toca la base directo.
