@@ -9921,7 +9921,7 @@ const App = {
       label.textContent = 'Pro';
       chip.style.background = 'linear-gradient(135deg, var(--gold), var(--gold2))';
       chip.style.color = '#1a1a2e';
-      if (masStatus) masStatus.textContent = 'Pro activo';
+      if (masStatus) masStatus.textContent = 'Básico Pro activo';
     } else {
       icon.textContent = 'person';
       label.textContent = 'Free';
@@ -9953,7 +9953,10 @@ const App = {
     if (isPro) {
       icon.textContent = 'workspace_premium';
       icon.style.color = 'var(--gold2)';
-      title.textContent = 'Plan Pro';
+      // El único plan pago se llama "Básico Pro": si el título dice
+      // "Plan Pro" y el badge "Plan actual" está sobre "Básico Pro",
+      // parece que son dos planes distintos y que ya tenés otro.
+      title.textContent = 'Básico Pro';
       desc.textContent = 'Todas las funciones desbloqueadas.';
       licenseSection.classList.add('hidden');
       badgeFree.classList.add('hidden');

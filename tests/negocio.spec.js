@@ -297,3 +297,48 @@ test.describe('Sin duplicados entre pantallas', () => {
     expect(enMas).toBe(false);
   });
 });
+
+test.describe('Nombre del plan', () => {
+  const conLicencia = (page) => page.evaluate(() => {
+    App._account = { email: 'x@y.com', license: 'PT-TEST-0001' };
+    App.updatePlanUI();
+    App.showScreen('cuenta');
+  });
+
+  test('el título coincide con el plan que tiene el badge', async ({ page }) => {
+    // Decía "Plan Pro" arriba y el badge "Plan actual" estaba sobre
+    // "Básico Pro": parecía que eran dos planes distintos
+    await conLicencia(page);
+    const titulo = await page.textContent('#cuenta-plan-title');
+    const conBadge = await page.evaluate(() =>
+      document.querySelector('#plan-card-pro .plan-name').textContent.trim());
+    expect(titulo).toBe(conBadge);
+    expect(titulo).toBe('Básico Pro');
+  });
+
+  test('sin licencia dice Plan Free y el badge está en Free', async ({ page }) => {
+    await page.evaluate(() => {
+      App._account = null;
+      App.updatePlanUI();
+      App.showScreen('cuenta');
+    });
+    expect(await page.textContent('#cuenta-plan-title')).toBe('Plan Free');
+    await expect(page.locator('#plan-badge-free')).toBeVisible();
+    await expect(page.locator('#plan-badge-pro')).toBeHidden();
+  });
+
+  test('solo existen dos planes: isPro es un booleano, no un nivel', async ({ page }) => {
+    // No hay tercer nivel en el código. Si algún día se agrega, este test
+    // falla y obliga a mirar toda la lógica de planes.
+    const r = await page.evaluate(() => {
+      App._account = { license: 'X' };
+      const con = App.isPro();
+      App._account = null;
+      const sin = App.isPro();
+      return { con, sin, tarjetas: document.querySelectorAll('.plan-card').length };
+    });
+    expect(r.con).toBe(true);
+    expect(r.sin).toBe(false);
+    expect(r.tarjetas, 'aparecieron más planes en la UI').toBe(2);
+  });
+});

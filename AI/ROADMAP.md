@@ -13,7 +13,7 @@
 |---|---|---|---|
 | **Free** | $0 siempre | Ventas ilimitadas, stock, ganancia real, cuotas, cobros por WhatsApp, offline | 🟢 Activo |
 | **Básico Pro** | $9.99/mes · $7.99/mes anual | Todo Free + estadísticas, catálogo WA, ranking, PDF/Excel, push | 🟢 Activo |
-| **Pro** | $19.99/mes | Multi-perfil, backup automático, sync multi-dispositivo | 🔵 Próximamente |
+| **Pro** | $19.99/mes | Multi-perfil, backup automático, sync multi-dispositivo | 🔴 **Sin una línea de código** |
 
 **Mercado:** revendedores de perfumes en LATAM — Argentina, Uruguay, Colombia, México.
 **Headline:** *"Dejá de adivinar cuánto ganás"*
@@ -61,6 +61,12 @@ stock entre pestañas.
 | **Blog SEO long-tail** | "cómo calcular ganancia perfumes", "planilla ventas perfumes" — intención de compra alta |
 
 ### Plan Pro — la feature de ingresos
+
+**Estado real: no existe.** Buscar `19.99` en `src/`, `functions/` y la landing da cero
+resultados. Mercado Pago solo acepta `monthly` y `annual` (los dos precios de Básico Pro),
+la UI tiene dos tarjetas y `isPro()` es `!!this._account?.license` — un booleano, no un
+nivel. Hay un test que lo verifica para que nadie lo asuma a medio hacer.
+
 | Ítem | Complejidad |
 |---|---|
 | **Multi-perfil** | Media — varios negocios en el mismo dispositivo |
@@ -80,6 +86,11 @@ pero eso no cubre dos dispositivos distintos: ahí hace falta versionado optimis
 
 **Recomendación:** diseñar la estrategia de conflictos ANTES de escribir el sync. Es la
 parte difícil, no el transporte.
+
+**Y antes que eso: no armar el plan Pro todavía.** Vender un tercer plan cuando el segundo
+no tiene clientes es resolver un problema que no existe. Si hace falta más ingreso antes,
+**backup automático** es lo barato: la infra de R2 ya está y se puede sumar a Básico Pro
+sin resolver conflictos.
 
 ---
 
