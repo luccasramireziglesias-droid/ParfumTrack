@@ -516,7 +516,16 @@
         : ''}`;
   },
 
-  renderCuotas() {
+  _cuotasVisibles: 30,
+  _CUOTAS_PAGINA: 30,
+
+  verMasCuotas() {
+    this._cuotasVisibles += this._CUOTAS_PAGINA;
+    this.renderCuotas(false);
+  },
+
+  renderCuotas(reset = true) {
+    if (reset) this._cuotasVisibles = this._CUOTAS_PAGINA;
     const pendientes = this.cuotasData.filter(c => !c.pagado);
     const totalAdeudado = pendientes.reduce((s, c) => s + c.monto - (c.montoPagado || 0), 0);
     document.getElementById('cuotas-total').textContent = this.fmt(totalAdeudado);
@@ -536,20 +545,27 @@
       grouped[c.ventaId].push(c);
     });
 
-    // Ordenar por la cuota pendiente más próxima a vencer: lo que hay que
-    // cobrar primero va arriba (antes quedaba en orden de inserción)
-    const gruposOrdenados = Object.entries(grouped).sort((a, b) => {
-      const proxA = a[1].filter(c => !c.pagado).sort((x, y) => (x.vence || 0) - (y.vence || 0))[0];
-      const proxB = b[1].filter(c => !c.pagado).sort((x, y) => (x.vence || 0) - (y.vence || 0))[0];
-      return (proxA ? proxA.vence || 0 : Infinity) - (proxB ? proxB.vence || 0 : Infinity);
-    });
+    // El vencimiento más próximo de cada grupo se calcula UNA vez. Antes se
+    // recalculaba dentro del comparador del sort: con 500 ventas en cuotas
+    // eso son miles de filter+sort repetidos.
+    const conProxima = [];
+    for (const [ventaId, cuotas] of Object.entries(grouped)) {
+      let proxima = null;
+      for (const c of cuotas) {
+        if (c.pagado) continue;
+        if (!proxima || (c.vence || 0) < (proxima.vence || 0)) proxima = c;
+      }
+      if (proxima) conProxima.push({ ventaId, cuotas, proxima });
+    }
 
-    container.innerHTML = gruposOrdenados.map(([ventaId, cuotas]) => {
-      const pendientesGrupo = cuotas.filter(c => !c.pagado);
-      if (pendientesGrupo.length === 0) return '';
+    // Lo que hay que cobrar primero va arriba
+    conProxima.sort((a, b) => (a.proxima.vence || 0) - (b.proxima.vence || 0));
 
-      // La próxima a cobrar es la que vence antes, no la primera cargada
-      const proxima = pendientesGrupo.slice().sort((a, b) => (a.vence || 0) - (b.vence || 0))[0];
+    // Paginado: volcar 500 tarjetas de una congelaba la pantalla ~300ms
+    const total = conProxima.length;
+    const hasta = Math.min(this._cuotasVisibles, total);
+
+    container.innerHTML = conProxima.slice(0, hasta).map(({ cuotas, proxima }) => {
       const estaVencida = (proxima.vence || 0) < Date.now();
       const diasVencida = estaVencida ? Math.floor((Date.now() - proxima.vence) / 86400000) : 0;
       const pagadas = cuotas.filter(c => c.pagado).length;
@@ -590,6 +606,13 @@
         </div>
       </div>`;
     }).join('');
+
+    if (hasta < total) {
+      const restantes = total - hasta;
+      container.innerHTML += `<button class="btn-ver-mas" onclick="App.verMasCuotas()">
+        <span class="ms" aria-hidden="true">expand_more</span>Ver más (${restantes} cobro${restantes !== 1 ? 's' : ''} más)
+      </button>`;
+    }
   },
 
   _cuotasView: 'cuotas',

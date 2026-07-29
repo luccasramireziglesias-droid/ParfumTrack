@@ -190,7 +190,8 @@ Reportes en `standalone/auditoria-*.html` (actualizado: `auditoria-360-v4.html`)
 - E2E incorporados a CI: el deploy ahora espera `[test, e2e]`
 - Suite E2E reparada (estaba rota por el modal de consentimiento, una espera de arranque que se cumplía siempre y la recarga del SW): 41/41 en 45s
 - Refactor monolito `index.html` → módulos en `src/` con build script (`scripts/build.js`) — COMPLETADO
-- Tests automatizados: 553 Vitest + 69 E2E Playwright (incluye `tests/fuzz.spec.js`: secuencias aleatorias con semilla fija que verifican invariantes de stock, cuotas, devoluciones, compras y reservas — subir volumen con `FUZZ_CORRIDAS=30 FUZZ_OPS=120`) — **los dos corren en CI** y frenan el deploy
+- Prueba de volumen (`tests/volumen.spec.js`): siembra 2000 ventas / 1500 cuotas / 120 perfumes repartidas en 3 años y mide arranque en frío y cada pantalla, con y sin encriptación. La única pantalla fuera de rango era **cuotas (297 ms)**: `renderCuotas()` recalculaba el vencimiento más próximo dentro del comparador del `sort` y volcaba las cientos de tarjetas de una. Ahora precalcula y pagina de a 30 (`_CUOTAS_PAGINA`, `verMasCuotas()`, reset al reentrar) → **16 ms** y el DOM bajó de 22.040 a 6.532 nodos. El total adeudado sigue saliendo de TODAS las cuotas, no de las visibles. Subir el volumen con `VOL_VENTAS=5000`
+- Tests automatizados: 560 Vitest + 72 E2E Playwright (incluye `tests/fuzz.spec.js`: secuencias aleatorias con semilla fija que verifican invariantes de stock, cuotas, devoluciones, compras y reservas — subir volumen con `FUZZ_CORRIDAS=30 FUZZ_OPS=120`) — **los dos corren en CI** y frenan el deploy
 - DRY: `_renderVentaCard()` (dashboard + lista de ventas) y `_processPhoto()` (foto de stock + alta de perfume) compartidos
 - Fullscreen demo modal: expandir video a 100vh/100vw, ocultar controles, mantener evento stopPropagation
 - Auditoría 360° completa: 81/100 score, 30 findings analizados, remediation roadmap incluido
