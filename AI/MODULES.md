@@ -502,8 +502,15 @@ Estos datos son **los que el cliente ve**: encabezan el catálogo de WhatsApp y 
 `_renderLogoPreview()`, `guardarNegocio()` → `_guardarNegocioImpl()`, `_aplicarLogo()`,
 `_negocioContacto()`.
 
-**Campos.** `nombre` (obligatorio, 30) · `tipo` · `telefono` · `email` · `direccion` ·
-`ciudad` · `documento` · `logo` (data URL).
+**Campos.** `nombre` (obligatorio, 30) · `tipo` · `pais` (código telefónico) · `telefono` ·
+`email` · `direccion` · `ciudad` · `documento` · `logo` (data URL).
+
+**🔴 Nada asume un país.** El mercado es AR/UY/CO/MX, así que:
+- El teléfono guarda el **código de país aparte** (`_NEGOCIO_PAISES`, 18 países) y no se
+  puede guardar un número sin él: en el catálogo lo lee gente de otro país.
+- Los placeholders son genéricos ("Tu ciudad", no "Montevideo").
+- El documento se llama **"Documento fiscal"** — RUT en UY, CUIT en AR, RFC en MX, NIT en CO.
+- `_telefonoCompleto()` respeta los perfiles viejos que guardaban todo junto en `telefono`.
 
 **Dónde se usa cada dato** — es la parte que importa:
 
@@ -513,6 +520,11 @@ Estos datos son **los que el cliente ve**: encabezan el catálogo de WhatsApp y 
 | `logo` | Reemplaza la gota dorada del header (`.logo-drop.con-logo`) |
 | `telefono` · `email` · `direccion` · `ciudad` | Pie del catálogo WA, encabezado del PDF |
 | `documento` | Encabezado del PDF |
+
+**Sin duplicados.** El input suelto de "Mi negocio" que estaba en la pantalla `mas` se
+reemplazó por una fila que navega a `cuenta`: dos inputs escribiendo `pt_negocio` se
+desincronizan. La **moneda** también se movió acá — es una decisión del negocio, no una
+preferencia suelta.
 
 **Almacenamiento.** Store `config` (**entra en el backup**), más `pt_negocio` en
 localStorage porque el header lo lee **antes** de que abra IndexedDB.

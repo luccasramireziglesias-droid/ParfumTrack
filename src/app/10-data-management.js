@@ -323,7 +323,10 @@
     // contador, así que tiene que decir de quién es
     const neg = this.getNegocio();
     doc.setFontSize(18);
-    doc.text(neg.nombre || 'Parfum Track', 14, 20);
+    // 'Mi negocio' y no 'Parfum Track': el PDF lo manda el usuario a su
+    // cliente o a su contador, y encabezarlo con la marca de la app es
+    // decirle a su cliente que el negocio se llama Parfum Track
+    doc.text(neg.nombre || 'Mi negocio', 14, 20);
 
     let y = 28;
     doc.setFontSize(10);
@@ -606,7 +609,7 @@
       return;
     }
     const n = this.getNegocio();
-    const negocio = n.nombre || 'Parfum Track';
+    const negocio = n.nombre || 'Mi negocio';   // nunca la marca de la app
     const lines = selected.map(p => {
       const stock = p.stock > 0 ? `(${p.stock} disponible${p.stock > 1 ? 's' : ''})` : '(agotado)';
       return `• ${p.nombre} — ${this.fmt(p.precioVenta)} ${stock}`;

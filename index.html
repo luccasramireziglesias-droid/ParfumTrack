@@ -1780,6 +1780,18 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   color: var(--text5);
 }
 
+
+/* Valor a la derecha de una fila de "Más" (ej: el nombre del negocio).
+   Se corta si no entra, en vez de empujar al chevron fuera de la fila. */
+.mas-valor {
+  font: 600 13px 'DM Sans', sans-serif;
+  color: var(--text2);
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
 /* ====== BOTTOM NAV ====== */
 .bottom-nav {
   display: flex;
@@ -3231,7 +3243,8 @@ input[type="date"].form-input {
 
 /* El select hereda el fondo del sistema en Android y queda blanco: se
    fuerza la paleta oscura, incluidas las opciones del desplegable */
-.negocio-campo select.form-input {
+.negocio-campo select.form-input,
+.negocio-tel select.form-input {
   appearance: none;
   -webkit-appearance: none;
   background-color: var(--bg2);
@@ -3244,9 +3257,33 @@ input[type="date"].form-input {
   padding-right: 34px;
 }
 
-.negocio-campo select.form-input option {
+.negocio-campo select.form-input option,
+.negocio-tel select.form-input option {
   background: var(--bg2);
   color: var(--text);
+}
+
+/* Código de país + número en una fila. El select se queda con lo justo:
+   el número es lo que necesita espacio. */
+.negocio-tel {
+  display: flex;
+  gap: 8px;
+}
+
+.negocio-tel select.form-input {
+  flex: 0 0 108px;
+  min-width: 0;
+}
+
+.negocio-tel input.form-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.negocio-ayuda {
+  font: 500 11px 'DM Sans', sans-serif;
+  color: var(--text4);
+  line-height: 1.4;
 }
 
 /* El logo del usuario reemplaza a la gota dorada del header. La gota está
@@ -3810,10 +3847,11 @@ input[type="date"].form-input {
           <span>Restaurar backup</span>
           <span class="ms muted chevron">chevron_right</span>
         </div>
-        <div class="mas-item" style="cursor:default;">
+        <div class="mas-item" onclick="App.showScreen('cuenta')">
           <span class="ms gold">storefront</span>
-          <span style="flex-shrink:0;">Mi negocio</span>
-          <input type="text" id="input-negocio" class="form-input" maxlength="30" placeholder="Nombre del negocio" oninput="App.setNombreNegocio(this.value)" style="flex:1;text-align:right;background:transparent;border:none;color:var(--text);font-size:13px;padding:4px 8px;min-width:0;">
+          <span style="flex:1">Mi negocio</span>
+          <span class="mas-valor" id="mas-negocio-valor"></span>
+          <span class="ms muted chevron">chevron_right</span>
         </div>
         <div class="mas-item" style="cursor:default;">
           <span class="ms gold">lock</span>
@@ -3823,19 +3861,6 @@ input[type="date"].form-input {
             <span style="position:absolute;cursor:pointer;inset:0;background:var(--card2);border:1px solid var(--border);border-radius:999px;transition:.3s;"></span>
             <span id="toggle-pin-knob" style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:var(--text4);border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.3);"></span>
           </label>
-        </div>
-        <div class="mas-item" style="cursor:default;">
-          <span class="ms gold">paid</span>
-          <span style="flex:1">Moneda</span>
-          <select id="sel-moneda" onchange="App.setMoneda(this.value)" style="background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;font-family:'DM Sans';outline:none;">
-            <option value="$">$ (Peso/Dólar)</option>
-            <option value="UYU">UYU (Uruguay)</option>
-            <option value="ARS">ARS (Argentina)</option>
-            <option value="COP">COP (Colombia)</option>
-            <option value="MXN">MXN (México)</option>
-            <option value="€">€ (Euro)</option>
-            <option value="R$">R$ (Real)</option>
-          </select>
         </div>
         <div class="mas-item" onclick="App.showDemoModal()">
           <span class="ms gold">play_circle</span>
@@ -4437,7 +4462,7 @@ input[type="date"].form-input {
         <div class="negocio-form">
           <label class="negocio-campo">
             <span class="negocio-label">NOMBRE DEL NEGOCIO *</span>
-            <input type="text" class="form-input" id="negocio-nombre" maxlength="30" placeholder="VIP Parfums">
+            <input type="text" class="form-input" id="negocio-nombre" maxlength="30" placeholder="Cómo se llama tu negocio">
           </label>
 
           <label class="negocio-campo">
@@ -4447,27 +4472,44 @@ input[type="date"].form-input {
 
           <label class="negocio-campo">
             <span class="negocio-label">WHATSAPP / TELÉFONO</span>
-            <input type="tel" class="form-input" id="negocio-telefono" maxlength="25" inputmode="tel" placeholder="+598 94 466 577">
+            <div class="negocio-tel">
+              <select class="form-input" id="negocio-pais" aria-label="Código de país"></select>
+              <input type="tel" class="form-input" id="negocio-telefono" maxlength="25" inputmode="tel" placeholder="Número sin el código">
+            </div>
+            <span class="negocio-ayuda">El código de país hace que te puedan escribir desde cualquier lado.</span>
           </label>
 
           <label class="negocio-campo">
             <span class="negocio-label">CORREO</span>
-            <input type="email" class="form-input" id="negocio-email" maxlength="60" inputmode="email" placeholder="tunegocio@gmail.com">
+            <input type="email" class="form-input" id="negocio-email" maxlength="60" inputmode="email" placeholder="Correo de contacto">
           </label>
 
           <label class="negocio-campo">
             <span class="negocio-label">DIRECCIÓN</span>
-            <input type="text" class="form-input" id="negocio-direccion" maxlength="80" placeholder="Av. Siempre Viva 742">
+            <input type="text" class="form-input" id="negocio-direccion" maxlength="80" placeholder="Calle y número">
           </label>
 
           <label class="negocio-campo">
             <span class="negocio-label">CIUDAD</span>
-            <input type="text" class="form-input" id="negocio-ciudad" maxlength="40" placeholder="Montevideo">
+            <input type="text" class="form-input" id="negocio-ciudad" maxlength="40" placeholder="Tu ciudad">
           </label>
 
           <label class="negocio-campo">
-            <span class="negocio-label">DOCUMENTO (RUT / CUIT)</span>
-            <input type="text" class="form-input" id="negocio-documento" maxlength="20" placeholder="Opcional">
+            <span class="negocio-label">MONEDA</span>
+            <select class="form-input" id="sel-moneda" onchange="App.setMoneda(this.value)">
+              <option value="$">$ (Peso/Dólar)</option>
+              <option value="UYU">UYU (Uruguay)</option>
+              <option value="ARS">ARS (Argentina)</option>
+              <option value="COP">COP (Colombia)</option>
+              <option value="MXN">MXN (México)</option>
+              <option value="€">€ (Euro)</option>
+              <option value="R$">R$ (Real)</option>
+            </select>
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">DOCUMENTO FISCAL</span>
+            <input type="text" class="form-input" id="negocio-documento" maxlength="20" placeholder="RUT, CUIT, RFC, NIT… (opcional)">
           </label>
         </div>
 
@@ -9111,7 +9153,10 @@ const App = {
     // contador, así que tiene que decir de quién es
     const neg = this.getNegocio();
     doc.setFontSize(18);
-    doc.text(neg.nombre || 'Parfum Track', 14, 20);
+    // 'Mi negocio' y no 'Parfum Track': el PDF lo manda el usuario a su
+    // cliente o a su contador, y encabezarlo con la marca de la app es
+    // decirle a su cliente que el negocio se llama Parfum Track
+    doc.text(neg.nombre || 'Mi negocio', 14, 20);
 
     let y = 28;
     doc.setFontSize(10);
@@ -9394,7 +9439,7 @@ const App = {
       return;
     }
     const n = this.getNegocio();
-    const negocio = n.nombre || 'Parfum Track';
+    const negocio = n.nombre || 'Mi negocio';   // nunca la marca de la app
     const lines = selected.map(p => {
       const stock = p.stock > 0 ? `(${p.stock} disponible${p.stock > 1 ? 's' : ''})` : '(agotado)';
       return `• ${p.nombre} — ${this.fmt(p.precioVenta)} ${stock}`;
@@ -9700,6 +9745,9 @@ const App = {
       // El nombre completo queda accesible aunque se vea cortado
       logo.title = name || 'Parfum Track';
     }
+    // La fila de "Más" ahora solo muestra el nombre y lleva al perfil
+    const fila = document.getElementById('mas-negocio-valor');
+    if (fila) fila.textContent = name;
   },
 
   loadNombreNegocio() {
@@ -9709,8 +9757,8 @@ const App = {
     // que ya estaban guardados se acotan igual al cargarlos
     const saved = guardado.slice(0, this._NOMBRE_NEGOCIO_MAX);
     if (saved !== guardado) localStorage.setItem('pt_negocio', saved);
-    const input = document.getElementById('input-negocio');
-    if (input) input.value = saved;
+    const fila = document.getElementById('mas-negocio-valor');
+    if (fila) fila.textContent = saved;
     const logo = document.querySelector('.logo-text');
     if (logo) {
       logo.textContent = saved || 'Parfum Track';
@@ -12077,6 +12125,7 @@ const App = {
   _NEGOCIO_LIMITES: {
     nombre: 30,        // igual que el header, que es donde se ve
     tipo: 40,
+    pais: 6,
     telefono: 25,
     email: 60,
     direccion: 80,
@@ -12092,8 +12141,40 @@ const App = {
     'Otros',
   ],
 
+  // La app se usa en toda LATAM: el código de país va aparte y no asumido.
+  // El primero de la lista NO es un default — arranca vacío a propósito.
+  _NEGOCIO_PAISES: [
+    { codigo: '+54', nombre: 'Argentina' },
+    { codigo: '+591', nombre: 'Bolivia' },
+    { codigo: '+56', nombre: 'Chile' },
+    { codigo: '+57', nombre: 'Colombia' },
+    { codigo: '+506', nombre: 'Costa Rica' },
+    { codigo: '+593', nombre: 'Ecuador' },
+    { codigo: '+503', nombre: 'El Salvador' },
+    { codigo: '+34', nombre: 'España' },
+    { codigo: '+502', nombre: 'Guatemala' },
+    { codigo: '+504', nombre: 'Honduras' },
+    { codigo: '+52', nombre: 'México' },
+    { codigo: '+505', nombre: 'Nicaragua' },
+    { codigo: '+507', nombre: 'Panamá' },
+    { codigo: '+595', nombre: 'Paraguay' },
+    { codigo: '+51', nombre: 'Perú' },
+    { codigo: '+1', nombre: 'Rep. Dominicana / EE.UU.' },
+    { codigo: '+598', nombre: 'Uruguay' },
+    { codigo: '+58', nombre: 'Venezuela' },
+  ],
+
   _negocioVacio() {
-    return { nombre: '', tipo: '', telefono: '', email: '', direccion: '', ciudad: '', documento: '', logo: '' };
+    return { nombre: '', tipo: '', pais: '', telefono: '', email: '', direccion: '', ciudad: '', documento: '', logo: '' };
+  },
+
+  // Teléfono completo listo para mostrar. Los perfiles viejos guardaban todo
+  // junto en `telefono`, así que si ya trae un + se respeta tal cual.
+  _telefonoCompleto(n) {
+    const tel = (n.telefono || '').trim();
+    if (!tel) return '';
+    if (tel.startsWith('+')) return tel;
+    return n.pais ? `${n.pais} ${tel}` : tel;
   },
 
   async loadNegocio() {
@@ -12142,6 +12223,14 @@ const App = {
       sel.innerHTML = '<option value="">Sin especificar</option>' +
         this._NEGOCIO_TIPOS.map(t => `<option value="${this.esc(t)}">${this.esc(t)}</option>`).join('');
       sel.value = n.tipo || '';
+    }
+
+    const pais = document.getElementById('negocio-pais');
+    if (pais) {
+      pais.innerHTML = '<option value="">País…</option>' +
+        this._NEGOCIO_PAISES.map(p =>
+          `<option value="${this.esc(p.codigo)}">${this.esc(p.codigo)} · ${this.esc(p.nombre)}</option>`).join('');
+      pais.value = n.pais || '';
     }
     this._renderLogoPreview(n.logo);
   },
@@ -12199,6 +12288,7 @@ const App = {
     const datos = this._sanitizarNegocio({
       nombre: val('negocio-nombre'),
       tipo: val('negocio-tipo'),
+      pais: val('negocio-pais'),
       telefono: val('negocio-telefono'),
       email: val('negocio-email'),
       direccion: val('negocio-direccion'),
@@ -12213,6 +12303,12 @@ const App = {
     }
     if (datos.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(datos.email)) {
       this.toast('Revisá el email', 'warning');
+      return;
+    }
+    // Sin código de país el número no sirve para escribirle desde otro país,
+    // que es justamente para lo que está en el catálogo
+    if (datos.telefono && !datos.pais && !datos.telefono.startsWith('+')) {
+      this.toast('Elegí el país del teléfono', 'warning');
       return;
     }
 
@@ -12251,7 +12347,8 @@ const App = {
   _negocioContacto({ separador = '\n' } = {}) {
     const n = this.getNegocio();
     const partes = [];
-    if (n.telefono) partes.push(`📱 ${n.telefono}`);
+    const tel = this._telefonoCompleto(n);
+    if (tel) partes.push(`📱 ${tel}`);
     if (n.email) partes.push(`✉️ ${n.email}`);
     const ubicacion = [n.direccion, n.ciudad].filter(Boolean).join(', ');
     if (ubicacion) partes.push(`📍 ${ubicacion}`);

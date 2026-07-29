@@ -20,6 +20,7 @@
   _NEGOCIO_LIMITES: {
     nombre: 30,        // igual que el header, que es donde se ve
     tipo: 40,
+    pais: 6,
     telefono: 25,
     email: 60,
     direccion: 80,
@@ -35,8 +36,40 @@
     'Otros',
   ],
 
+  // La app se usa en toda LATAM: el código de país va aparte y no asumido.
+  // El primero de la lista NO es un default — arranca vacío a propósito.
+  _NEGOCIO_PAISES: [
+    { codigo: '+54', nombre: 'Argentina' },
+    { codigo: '+591', nombre: 'Bolivia' },
+    { codigo: '+56', nombre: 'Chile' },
+    { codigo: '+57', nombre: 'Colombia' },
+    { codigo: '+506', nombre: 'Costa Rica' },
+    { codigo: '+593', nombre: 'Ecuador' },
+    { codigo: '+503', nombre: 'El Salvador' },
+    { codigo: '+34', nombre: 'España' },
+    { codigo: '+502', nombre: 'Guatemala' },
+    { codigo: '+504', nombre: 'Honduras' },
+    { codigo: '+52', nombre: 'México' },
+    { codigo: '+505', nombre: 'Nicaragua' },
+    { codigo: '+507', nombre: 'Panamá' },
+    { codigo: '+595', nombre: 'Paraguay' },
+    { codigo: '+51', nombre: 'Perú' },
+    { codigo: '+1', nombre: 'Rep. Dominicana / EE.UU.' },
+    { codigo: '+598', nombre: 'Uruguay' },
+    { codigo: '+58', nombre: 'Venezuela' },
+  ],
+
   _negocioVacio() {
-    return { nombre: '', tipo: '', telefono: '', email: '', direccion: '', ciudad: '', documento: '', logo: '' };
+    return { nombre: '', tipo: '', pais: '', telefono: '', email: '', direccion: '', ciudad: '', documento: '', logo: '' };
+  },
+
+  // Teléfono completo listo para mostrar. Los perfiles viejos guardaban todo
+  // junto en `telefono`, así que si ya trae un + se respeta tal cual.
+  _telefonoCompleto(n) {
+    const tel = (n.telefono || '').trim();
+    if (!tel) return '';
+    if (tel.startsWith('+')) return tel;
+    return n.pais ? `${n.pais} ${tel}` : tel;
   },
 
   async loadNegocio() {
@@ -85,6 +118,14 @@
       sel.innerHTML = '<option value="">Sin especificar</option>' +
         this._NEGOCIO_TIPOS.map(t => `<option value="${this.esc(t)}">${this.esc(t)}</option>`).join('');
       sel.value = n.tipo || '';
+    }
+
+    const pais = document.getElementById('negocio-pais');
+    if (pais) {
+      pais.innerHTML = '<option value="">País…</option>' +
+        this._NEGOCIO_PAISES.map(p =>
+          `<option value="${this.esc(p.codigo)}">${this.esc(p.codigo)} · ${this.esc(p.nombre)}</option>`).join('');
+      pais.value = n.pais || '';
     }
     this._renderLogoPreview(n.logo);
   },
@@ -142,6 +183,7 @@
     const datos = this._sanitizarNegocio({
       nombre: val('negocio-nombre'),
       tipo: val('negocio-tipo'),
+      pais: val('negocio-pais'),
       telefono: val('negocio-telefono'),
       email: val('negocio-email'),
       direccion: val('negocio-direccion'),
@@ -156,6 +198,12 @@
     }
     if (datos.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(datos.email)) {
       this.toast('Revisá el email', 'warning');
+      return;
+    }
+    // Sin código de país el número no sirve para escribirle desde otro país,
+    // que es justamente para lo que está en el catálogo
+    if (datos.telefono && !datos.pais && !datos.telefono.startsWith('+')) {
+      this.toast('Elegí el país del teléfono', 'warning');
       return;
     }
 
@@ -194,7 +242,8 @@
   _negocioContacto({ separador = '\n' } = {}) {
     const n = this.getNegocio();
     const partes = [];
-    if (n.telefono) partes.push(`📱 ${n.telefono}`);
+    const tel = this._telefonoCompleto(n);
+    if (tel) partes.push(`📱 ${tel}`);
     if (n.email) partes.push(`✉️ ${n.email}`);
     const ubicacion = [n.direccion, n.ciudad].filter(Boolean).join(', ');
     if (ubicacion) partes.push(`📍 ${ubicacion}`);
