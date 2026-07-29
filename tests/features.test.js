@@ -62,20 +62,20 @@ describe('F1 — cantidad en la venta', () => {
   });
 
   it('addVenta descuenta N unidades sin dejar stock negativo', () => {
-    const idx = db.indexOf('async addVenta');
+    const idx = db.indexOf('async _addVentaImpl');
     const cuerpo = db.slice(idx, idx + 900);
     expect(cuerpo).toMatch(/Math\.min\(cantidad, p\.stock\)/);
     expect(cuerpo).toMatch(/unidadesDescontadas/);
   });
 
   it('deleteVenta devuelve exactamente las unidades que descontó', () => {
-    const idx = db.indexOf('async deleteVenta');
+    const idx = db.indexOf('async _deleteVentaImpl');
     const cuerpo = db.slice(idx, idx + 600);
     expect(cuerpo).toMatch(/v\.unidadesDescontadas !== undefined/);
   });
 
   it('updateVenta reconcilia el stock solo si cambió perfume o cantidad', () => {
-    const idx = db.indexOf('async updateVenta');
+    const idx = db.indexOf('async _updateVentaImpl');
     const cuerpo = db.slice(idx, idx + 1800);
     expect(cuerpo).toMatch(/cambioStock/);
     expect(cuerpo).toMatch(/prevPerfumeId !== nuevoPerfumeId \|\| prevCantidad !== cantidad/);
@@ -220,7 +220,7 @@ describe('F3 — devoluciones y cambios', () => {
   });
 
   it('la venta NO se borra: se marca como devuelta con motivo y fecha', () => {
-    const idx = db.indexOf('async devolverVenta');
+    const idx = db.indexOf('async _devolverVentaImpl');
     const cuerpo = db.slice(idx, idx + 2000);
     expect(cuerpo).toMatch(/devuelta: true/);
     expect(cuerpo).toMatch(/fechaDevolucion: Date\.now\(\)/);
@@ -230,13 +230,13 @@ describe('F3 — devoluciones y cambios', () => {
   });
 
   it('no se puede devolver dos veces (el stock se repondría de más)', () => {
-    const idx = db.indexOf('async devolverVenta');
+    const idx = db.indexOf('async _devolverVentaImpl');
     expect(db.slice(idx, idx + 400)).toMatch(/if \(v\.devuelta\) throw new Error\('YA_DEVUELTA'\)/);
     expect(dev).toMatch(/_once\('devolucion'/);
   });
 
   it('repone exactamente las unidades que la venta descontó', () => {
-    const idx = db.indexOf('async devolverVenta');
+    const idx = db.indexOf('async _devolverVentaImpl');
     const cuerpo = db.slice(idx, idx + 2000);
     expect(cuerpo).toMatch(/v\.unidadesDescontadas !== undefined/);
     expect(cuerpo).toMatch(/p\.stock = \(p\.stock \|\| 0\) \+ unidades/);
@@ -244,7 +244,7 @@ describe('F3 — devoluciones y cambios', () => {
   });
 
   it('cancela las cuotas impagas y conserva las cobradas', () => {
-    const idx = db.indexOf('async devolverVenta');
+    const idx = db.indexOf('async _devolverVentaImpl');
     const cuerpo = db.slice(idx, idx + 2000);
     expect(cuerpo).toMatch(/if \(pagado > 0\)/);
     expect(cuerpo).toMatch(/await this\.delete\('cuotas', c\.id\)/);
@@ -252,7 +252,7 @@ describe('F3 — devoluciones y cambios', () => {
   });
 
   it('deshacer la devolución vuelve a descontar sin dejar stock negativo', () => {
-    const idx = db.indexOf('async revertirDevolucion');
+    const idx = db.indexOf('async _revertirDevolucionImpl');
     const cuerpo = db.slice(idx, idx + 2500);
     expect(cuerpo).toMatch(/Math\.min\(repuestas, p\.stock \|\| 0\)/);
     expect(cuerpo).toMatch(/delete limpia\.devuelta/);
@@ -312,7 +312,7 @@ describe('F4 — compras al proveedor', () => {
   });
 
   it('registrarCompra valida cantidad y precio antes de tocar el stock', () => {
-    const idx = db.indexOf('async registrarCompra');
+    const idx = db.indexOf('async _registrarCompraImpl');
     const cuerpo = db.slice(idx, idx + 900);
     expect(cuerpo).toMatch(/throw new Error\('CANTIDAD_INVALIDA'\)/);
     expect(cuerpo).toMatch(/throw new Error\('PRECIO_INVALIDO'\)/);
@@ -320,7 +320,7 @@ describe('F4 — compras al proveedor', () => {
   });
 
   it('la compra suma al stock y deja el costo real de la tanda', () => {
-    const idx = db.indexOf('async registrarCompra');
+    const idx = db.indexOf('async _registrarCompraImpl');
     const cuerpo = db.slice(idx, idx + 1600);
     expect(cuerpo).toMatch(/p\.stock = \(p\.stock \|\| 0\) \+ cant/);
     expect(cuerpo).toMatch(/if \(actualizarCosto && precio > 0\) p\.precioCompra = precio/);
@@ -328,7 +328,7 @@ describe('F4 — compras al proveedor', () => {
   });
 
   it('borrar una compra no deja el stock en negativo', () => {
-    const idx = db.indexOf('async eliminarCompra');
+    const idx = db.indexOf('async _eliminarCompraImpl');
     expect(db.slice(idx, idx + 500)).toMatch(/Math\.max\(0, \(p\.stock \|\| 0\) - \(c\.cantidad \|\| 0\)\)/);
   });
 
@@ -821,7 +821,7 @@ describe('Devolver y deshacer no pierde deuda', () => {
   it('al deshacer una devolución se recrean las cuotas canceladas', () => {
     // Sin esto la venta volvía a contar para la ganancia pero el cliente
     // quedaba debiendo sin que la app lo mostrara
-    const idx = db.indexOf('async revertirDevolucion');
+    const idx = db.indexOf('async _revertirDevolucionImpl');
     const cuerpo = db.slice(idx, idx + 2000);
     expect(cuerpo).toMatch(/v\.formaPago === 'cuotas' && v\.numCuotas > 1/);
     expect(cuerpo).toMatch(/numeros\.has\(i\)\) continue/);
@@ -1001,5 +1001,46 @@ describe('Rate limiting — fail-closed donde importa', () => {
   it('el límite global no es fail-closed para todo', () => {
     // Sería convertir cualquier caída de KV en una caída total de la app
     expect(worker).toMatch(/caída de KV en una caída total/);
+  });
+});
+
+describe('Concurrencia — el stock no se puede duplicar', () => {
+  const db = read('src/db.js');
+  const spec = read('tests/concurrencia.spec.js');
+
+  it('las operaciones que tocan stock están serializadas', () => {
+    // Con dos pestañas vendiendo en paralelo, 20 ventas descontaban solo 13
+    // unidades: las dos leían el mismo stock y escribían el mismo valor.
+    expect(db).toContain('_conLockStock');
+    for (const m of ['addVenta', 'updateVenta', 'deleteVenta', 'devolverVenta',
+                     'revertirDevolucion', 'registrarCompra', 'eliminarCompra']) {
+      expect(db, m).toMatch(new RegExp(`_conLockStock\\(\\(\\) => this\\._${m}Impl`));
+    }
+  });
+
+  it('usa Web Locks, que es lo único que cruza pestañas', () => {
+    const idx = db.indexOf('async _conLockStock');
+    const cuerpo = db.slice(idx, idx + 600);
+    expect(cuerpo).toMatch(/navigator\.locks\.request\('pt_stock'/);
+    // Y una cola en memoria de respaldo donde no esté
+    expect(cuerpo).toMatch(/_colaStock/);
+  });
+
+  it('entregarReserva NO toma el lock: llamaría a addVenta y se trabaría', () => {
+    // Web Locks no es reentrante
+    const idx = db.indexOf('async entregarReserva');
+    expect(db.slice(idx, idx + 200)).not.toMatch(/_conLockStock/);
+  });
+
+  it('los tests comparan el stock contra lo que las ventas dicen haber movido', () => {
+    expect(spec).toMatch(/unidadesDescontadas \|\| 0/);
+    expect(spec).toMatch(/unidadesRepuestas \|\| 0/);
+    expect(spec).toMatch(/cuota \$\{c\.id\} huérfana/);
+  });
+
+  it('cubre interrupción a mitad de venta y de devolución', () => {
+    expect(spec).toMatch(/Interrupción a mitad de una operación/);
+    expect(spec).toMatch(/page\.reload/);
+    expect(spec).toMatch(/el arranque sana una cuota que quedó pagada de más/);
   });
 });
