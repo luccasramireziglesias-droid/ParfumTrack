@@ -27,7 +27,11 @@ describe('worker router', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('routes POST /trial to trial handler', async () => {
-    const resp = await worker.fetch(makeRequest('POST', '/trial'), env, ctx);
+    // /trial está en CSRF_ROUTES: sin el header devuelve 403 antes de llegar
+    // al handler
+    const resp = await worker.fetch(
+      makeRequest('POST', '/trial', { 'X-CSRF-Token': 'a'.repeat(64) }), env, ctx,
+    );
     expect(resp.status).toBe(200);
   });
 
@@ -125,6 +129,69 @@ describe('worker router', () => {
     const resp = await worker.fetch(makeRequest('POST', '/version'), env, ctx);
     expect(resp.status).toBe(405);
     expect(resp.headers.get('Allow')).toContain('GET');
+  });
+
+  // ── CSRF ──────────────────────────────────────────────────────────────
+  // La infraestructura estaba desde julio pero el router no bloqueaba nada:
+  // "validation enforced at application level, not blocking requests yet"
+  const TOKEN_OK = 'a'.repeat(64);
+
+  it('POST /trial sin X-CSRF-Token devuelve 403', async () => {
+    const resp = await worker.fetch(makeRequest('POST', '/trial'), env, ctx);
+    expect(resp.status).toBe(403);
+  });
+
+  it('POST /trial con un token bien formado pasa', async () => {
+    const resp = await worker.fetch(
+      makeRequest('POST', '/trial', { 'X-CSRF-Token': TOKEN_OK }), env, ctx,
+    );
+    expect(resp.status).toBe(200);
+  });
+
+  it('un token con formato inválido no alcanza', async () => {
+    const resp = await worker.fetch(
+      makeRequest('POST', '/validate-license', { 'X-CSRF-Token': 'no-soy-hex' }), env, ctx,
+    );
+    expect(resp.status).toBe(403);
+  });
+
+  it.each(['/trial', '/validate-license', '/backup', '/sync'])(
+    'POST %s exige CSRF', async (path) => {
+      expect((await worker.fetch(makeRequest('POST', path), env, ctx)).status).toBe(403);
+    },
+  );
+
+  it('POST /mp-create-preference NO exige CSRF: lo llama la landing', async () => {
+    // La landing es una página estática sin el token. Exigirlo ahí rompe el
+    // checkout, que es el camino de conversión principal.
+    const resp = await worker.fetch(makeRequest('POST', '/mp-create-preference'), env, ctx);
+    expect(resp.status).toBe(200);
+  });
+
+  it('el webhook de Mercado Pago no exige CSRF: no lo llama un browser', async () => {
+    const resp = await worker.fetch(makeRequest('POST', '/mp-webhook'), env, ctx);
+    expect(resp.status).toBe(200);
+  });
+
+  // ── Fail-closed cuando KV se cae ──────────────────────────────────────
+  const kvRoto = {
+    ...env,
+    PT_LICENSES: { get: vi.fn(async () => { throw new Error('KV down'); }), put: vi.fn(), delete: vi.fn() },
+  };
+
+  it('con KV caído, una ruta crítica corta con 503 (fail-closed)', async () => {
+    const resp = await worker.fetch(
+      makeRequest('POST', '/trial', { 'X-CSRF-Token': TOKEN_OK }), kvRoto, ctx,
+    );
+    expect(resp.status).toBe(503);
+    expect(resp.headers.get('Retry-After')).toBe('30');
+  });
+
+  it('con KV caído, una ruta NO crítica sigue funcionando (fail-open)', async () => {
+    // Fail-closed global convertiría cualquier caída de KV en una caída
+    // total de la app
+    const resp = await worker.fetch(makeRequest('POST', '/send-email'), kvRoto, ctx);
+    expect(resp.status).toBe(200);
   });
 
   it('OPTIONS /version responde el preflight de CORS', async () => {

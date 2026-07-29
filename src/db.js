@@ -328,9 +328,10 @@
     });
   },
 
-  // Deshacer una devolución cargada por error: vuelve a descontar el stock
-  // que se había repuesto. Las cuotas canceladas NO se recrean (el usuario
-  // puede volver a editar la venta si las necesita).
+  // Deshacer una devolución cargada por error: vuelve a descontar el stock que
+  // se había repuesto y recrea las cuotas que la devolución canceló. Lo
+  // segundo no estaba y lo encontró el fuzzer: la venta volvía a contar para
+  // la ganancia pero la deuda del cliente desaparecía.
   async revertirDevolucion(id) {
     const v = await this.get('ventas', id);
     if (!v) throw new Error('VENTA_NO_ENCONTRADA');

@@ -3,7 +3,7 @@
 // Maneja rutas API y sirve assets estáticos
 // ══════════════════════════════════════════════════════════════
 
-import { ORIGIN_RE }                              from './functions/_shared.js';
+import { ORIGIN_RE, validateCsrfToken }           from './functions/_shared.js';
 import { onRequestPost as sendNotification }     from './functions/send-notification.js';
 import { onRequestPost as validateLicense }       from './functions/validate-license.js';
 import { onRequestPost as sendEmail }             from './functions/send-email.js';
@@ -23,6 +23,16 @@ const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status
 
 // Critical routes for connection limiting (Fix #14)
 const CRITICAL_ROUTES = ['/trial', '/validate-license', '/mp-create-preference', '/backup', '/sync'];
+
+// Rutas que exigen el header X-CSRF-Token. Son las que mutan estado y las
+// llama la app, que sí lo manda (_getCsrfHeaders en 00-core.js).
+//
+// /mp-create-preference queda AFUERA a propósito: la landing lo llama desde
+// una página estática que no tiene el token. Exigirlo ahí rompe el checkout,
+// que es el camino de conversión principal. La protección igual es acotada:
+// lo peor que puede lograr un atacante es que alguien genere una preferencia
+// de pago a su propio nombre.
+const CSRF_ROUTES = ['/trial', '/validate-license', '/backup', '/sync'];
 
 export default {
   async fetch(request, env, ctx) {
@@ -84,8 +94,17 @@ async function handleRequest(request, env, ctx) {
         // Increment counter
         await env.PT_LICENSES.put(globalRLKey, String(count + 1), { expirationTtl: 120 });
       } catch {
-        // Rate limit check failure: fail open (allow) but log it
         console.warn(JSON.stringify({ ts: Date.now(), level: 'warn', src: 'worker', msg: 'Global rate limit check failed', ip: ipAddr }));
+        // Con KV caído no se puede contar. En las rutas críticas se corta
+        // (fail-closed, como el resto de los límites de _shared.js); en el
+        // resto se deja pasar, porque un fail-closed global convertiría
+        // cualquier caída de KV en una caída total de la app.
+        if (isCriticalRoute) {
+          return new Response(JSON.stringify({ ok: false, error: 'Service temporarily unavailable' }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json', 'Retry-After': '30' },
+          });
+        }
       }
     }
 
@@ -123,6 +142,11 @@ async function handleRequest(request, env, ctx) {
         }));
       } catch {
         console.warn(JSON.stringify({ ts: Date.now(), level: 'warn', src: 'worker', msg: 'Connection limit check failed', ip: ipAddr, path }));
+        // Esto ya corre solo en rutas críticas: fail-closed
+        return new Response(JSON.stringify({ ok: false, error: 'Service temporarily unavailable' }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json', 'Retry-After': '30' },
+        });
       }
     }
 
@@ -144,9 +168,20 @@ async function handleRequest(request, env, ctx) {
     }
 
     if (method === 'POST' && isApiRoute && POST_ROUTES.includes(path)) {
-      // Fix #11: CSRF Token infrastructure (validation in client layer)
-      // Infrastructure ready: X-CSRF-Token header accepted, SameSite=Strict cookies active
-      // Token validation enforced at application level, not blocking requests yet
+      // El header solo lo puede mandar un contexto que pasó el preflight de
+      // CORS y que pudo leer el token de localStorage: un form cross-origin
+      // no llega. Antes la infraestructura estaba pero no bloqueaba nada.
+      if (CSRF_ROUTES.includes(path)) {
+        const csrfError = validateCsrfToken(request);
+        if (csrfError) {
+          const origin = request.headers.get('Origin') || '';
+          const allowed = ORIGIN_RE.test(origin) ? origin : 'null';
+          return new Response(JSON.stringify({ ok: false, error: csrfError }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': allowed },
+          });
+        }
+      }
 
       if (path === '/send-notification')      return sendNotification(context);
       if (path === '/validate-license')       return validateLicense(context);

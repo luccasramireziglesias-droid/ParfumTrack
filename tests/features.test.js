@@ -951,3 +951,55 @@ describe('Volumen — la app dentro de tres años', () => {
     expect(vol).toMatch(/los datos no volvieron bien/);
   });
 });
+
+describe('CSRF — la validación bloquea de verdad', () => {
+  const worker = read('worker.js');
+  const core = read('src/app/00-core.js');
+
+  it('el router rechaza las rutas que mutan estado sin token', () => {
+    // Antes decía "not blocking requests yet": la infraestructura estaba
+    // pero no frenaba nada
+    expect(worker).toMatch(/CSRF_ROUTES/);
+    expect(worker).toMatch(/validateCsrfToken\(request\)/);
+    expect(worker).not.toMatch(/not blocking requests yet/);
+    for (const ruta of ['/trial', '/validate-license', '/backup', '/sync']) {
+      expect(worker, ruta).toMatch(new RegExp(`CSRF_ROUTES[^\\]]*'${ruta}'`));
+    }
+  });
+
+  it('mp-create-preference queda fuera: lo llama la landing sin token', () => {
+    const decl = worker.match(/const CSRF_ROUTES = \[[^\]]*\]/)[0];
+    expect(decl).not.toContain('mp-create-preference');
+    // Y la landing efectivamente lo llama sin el header
+    expect(read('src/landing/sections/14-scripts.html')).toMatch(/fetch\('\/mp-create-preference'/);
+  });
+
+  it('el token se genera de forma SÍNCRONA', () => {
+    // Con crypto.subtle.digest (async) había una carrera: si el usuario
+    // tocaba algo antes de que resolviera, el header salía vacío. Con el
+    // backend rechazando, esa carrera era un 403 en la cara del usuario.
+    expect(core).toMatch(/_generateCsrfToken\(\) \{/);
+    expect(core).not.toMatch(/async _generateCsrfToken/);
+    expect(core).not.toMatch(/crypto\.subtle\.digest\('SHA-256', randomBytes\)/);
+  });
+
+  it('_getCsrfToken se cura solo si falta o está mal formado', () => {
+    const idx = core.indexOf('_getCsrfToken() {');   // la definición, no la llamada
+    expect(idx).toBeGreaterThan(-1);
+    expect(core.slice(idx, idx + 300)).toMatch(/\[0-9a-f\]\{64\}/);
+    expect(core.slice(idx, idx + 300)).toMatch(/_rotateCsrfToken/);
+  });
+});
+
+describe('Rate limiting — fail-closed donde importa', () => {
+  const worker = read('worker.js');
+
+  it('con KV caído, las rutas críticas cortan con 503', () => {
+    expect(worker).toMatch(/if \(isCriticalRoute\) \{[\s\S]{0,300}?status: 503/);
+  });
+
+  it('el límite global no es fail-closed para todo', () => {
+    // Sería convertir cualquier caída de KV en una caída total de la app
+    expect(worker).toMatch(/caída de KV en una caída total/);
+  });
+});
