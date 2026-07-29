@@ -7,6 +7,10 @@ el problema y cómo se comprueba.
 
 **Leyenda:** 🔴 crítico · 🟠 alto · 🟡 medio · 🟢 bajo
 
+**Decisiones cerradas** (no volver a proponerlas): el header muestra "Parfum Track" sin
+nombre cargado y el PIN se queda en "Más" — ver [DECISIONS.md](DECISIONS.md) §D-26 y §D-27.
+Sigue abierto si el documento fiscal debería ir a un store cifrado (§D-24).
+
 ---
 
 ## BUGS ABIERTOS
