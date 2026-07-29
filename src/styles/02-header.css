@@ -11,6 +11,12 @@
   display: flex;
   align-items: center;
   gap: 11px;
+  /* min-width:0 es lo que permite que el nombre se trunque en vez de empujar
+     al chip de cuenta fuera de la pantalla: sin esto, un item de flex nunca
+     se encoge por debajo del ancho de su contenido. Con un nombre largo el
+     chip de "Free" quedaba literalmente fuera del viewport. */
+  flex: 1;
+  min-width: 0;
 }
 
 .logo-drop {
@@ -33,12 +39,20 @@
   font-size: 23px;
   color: var(--text);
   letter-spacing: 0.005em;
+  /* Un nombre que no entra se corta con puntos suspensivos */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .header-actions {
   display: flex;
   gap: 8px;
   align-items: center;
+  /* El chip de cuenta nunca se encoge ni se va de pantalla: es la única
+     forma de llegar a la licencia y a los backups */
+  flex-shrink: 0;
 }
 
 .profile-chip {

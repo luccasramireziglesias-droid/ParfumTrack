@@ -384,3 +384,34 @@ desde adentro del modal de alta. El test E2E nuevo falló con
 
 **Regla derivada.** 🟠 Un diálogo que puede abrirse desde adentro de otro modal necesita
 z-index propio. No alcanza con que "los modales tengan z-index".
+
+
+---
+
+## BUG-23 — Un nombre de negocio largo empujaba el chip de cuenta fuera de pantalla
+**Fecha:** 07/2026 · **Riesgo:** 🟠 MEDIO · **Lo reportó el usuario con capturas**
+
+**Descripción.** El nombre del negocio y el chip de plan comparten la fila del header. Con
+un nombre largo, el nombre se estiraba y **el chip de "Free" quedaba literalmente fuera
+del viewport**. Ese chip es la única puerta a la licencia, la suscripción y los backups:
+el usuario quedaba sin forma de llegar ahí desde el dashboard.
+
+**Causa.** `.logo-group` es un item de flex sin `min-width: 0`. Por defecto un item de flex
+**no se encoge por debajo del ancho de su contenido**, así que en vez de truncar el texto
+empujaba al hermano fuera del contenedor.
+
+**Solución.** Tres capas:
+1. `.logo-group` → `flex: 1; min-width: 0` (deja que se encoja)
+2. `.logo-text` → `overflow: hidden; text-overflow: ellipsis; white-space: nowrap`
+3. `.header-actions` → `flex-shrink: 0` (el chip nunca se achica)
+
+Además el nombre se acota a 30 caracteres (`_NOMBRE_NEGOCIO_MAX`) al escribirlo **y al
+cargarlo** — `maxlength` no aplica a valores seteados por código, así que quien ya tenía
+un nombre largo guardado también queda sano. El nombre completo va al `title`.
+
+**Archivos.** `src/styles/02-header.css`, `src/app/11-utils.js`, `src/screens/mas.html`,
+`tests/header.spec.js`
+
+**Regla derivada.** 🟠 En un header de una sola fila, el texto variable lleva
+`min-width: 0` + ellipsis y el control fijo lleva `flex-shrink: 0`. Sin las dos cosas, el
+texto gana y el control desaparece.

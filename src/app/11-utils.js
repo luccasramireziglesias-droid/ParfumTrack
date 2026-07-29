@@ -61,20 +61,35 @@
     }
   },
 
+  // El header es una sola línea y comparte lugar con el chip de cuenta. El
+  // CSS ya trunca con puntos suspensivos, pero acotar lo que se guarda evita
+  // que el usuario escriba 200 caracteres y vea puro "..." sin entender por qué.
+  _NOMBRE_NEGOCIO_MAX: 30,
+
   setNombreNegocio(val) {
-    const name = val.trim();
+    const name = String(val || '').trim().slice(0, this._NOMBRE_NEGOCIO_MAX);
     localStorage.setItem('pt_negocio', name);
     const logo = document.querySelector('.logo-text');
-    if (logo) logo.textContent = name || 'Parfum Track';
+    if (logo) {
+      logo.textContent = name || 'Parfum Track';
+      // El nombre completo queda accesible aunque se vea cortado
+      logo.title = name || 'Parfum Track';
+    }
   },
 
   loadNombreNegocio() {
-    const saved = localStorage.getItem('pt_negocio');
-    if (saved) {
-      const input = document.getElementById('input-negocio');
-      if (input) input.value = saved;
-      const logo = document.querySelector('.logo-text');
-      if (logo) logo.textContent = saved || 'Parfum Track';
+    const guardado = localStorage.getItem('pt_negocio');
+    if (!guardado) return;
+    // maxlength no aplica a lo que se setea por código: los nombres largos
+    // que ya estaban guardados se acotan igual al cargarlos
+    const saved = guardado.slice(0, this._NOMBRE_NEGOCIO_MAX);
+    if (saved !== guardado) localStorage.setItem('pt_negocio', saved);
+    const input = document.getElementById('input-negocio');
+    if (input) input.value = saved;
+    const logo = document.querySelector('.logo-text');
+    if (logo) {
+      logo.textContent = saved || 'Parfum Track';
+      logo.title = saved || 'Parfum Track';
     }
   },
 
