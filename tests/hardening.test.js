@@ -63,7 +63,11 @@ describe('Tanda 3 — UX de cobros', () => {
   const stock = read('src/app/04-stock.js');
 
   it('las cuotas se ordenan por vencimiento más próximo', () => {
-    expect(render).toContain('gruposOrdenados');
+    // El vencimiento más próximo de cada grupo se calcula una vez y después
+    // se ordena por él (antes se recalculaba dentro del comparador del sort)
+    const idx = render.indexOf('renderCuotas(reset = true)');
+    const cuerpo = render.slice(idx, idx + 3000);
+    expect(cuerpo).toMatch(/proxima\.vence \|\| 0\) - \(b\.proxima\.vence \|\| 0/);
   });
 
   it('marca las cuotas vencidas', () => {

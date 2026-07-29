@@ -883,3 +883,55 @@ describe('Sondas de riesgo de datos', () => {
     expect(r).toMatch(/onblocked/);
   });
 });
+
+describe('Volumen — la app dentro de tres años', () => {
+  const render = read('src/app/02-render.js');
+  const vol = read('tests/volumen.spec.js');
+
+  it('la pantalla de cuotas pagina como la de ventas', () => {
+    // Con 500 ventas en cuotas volcaba cientos de tarjetas de una sola vez
+    expect(render).toContain('_CUOTAS_PAGINA');
+    expect(render).toContain('verMasCuotas');
+    const idx = render.indexOf('verMasCuotas()');
+    expect(render.slice(idx, idx + 200)).toMatch(/renderCuotas\(false\)/);
+  });
+
+  it('al volver a entrar a cuotas el paginado arranca de cero', () => {
+    const idx = render.indexOf('renderCuotas(reset = true)');
+    expect(idx, 'renderCuotas acepta reset').toBeGreaterThan(-1);
+    expect(render.slice(idx, idx + 200)).toMatch(/if \(reset\) this\._cuotasVisibles = this\._CUOTAS_PAGINA/);
+  });
+
+  it('el vencimiento más próximo se calcula una vez, no dentro del sort', () => {
+    // Recalcularlo en el comparador eran miles de filter+sort repetidos
+    const idx = render.indexOf('renderCuotas(reset = true)');
+    const cuerpo = render.slice(idx, idx + 3000);
+    const sort = cuerpo.match(/\.sort\(\([^)]*\) =>[^\n]*\)/g) || [];
+    sort.forEach(s => expect(s, 'sort sin trabajo adentro').not.toMatch(/filter|\.map\(/));
+  });
+
+  it('el total adeudado sale de TODAS las cuotas, no de las visibles', () => {
+    expect(vol).toMatch(/El total adeudado es de TODAS/);
+    expect(vol).toMatch(/cuotas-total/);
+  });
+
+  it('la prueba de volumen mide el arranque en frío y cada pantalla', () => {
+    expect(vol).toMatch(/VOL_VENTAS \|\| 2000/);
+    for (const p of ['dashboard', 'listaVentas', 'stats', 'cuotas', 'buscar']) {
+      expect(vol, p).toMatch(new RegExp(`medir\\('${p}'`));
+    }
+    // Espera al splash, no a App.ventas: loadData llena las cuotas después
+    expect(vol).toMatch(/#splash', \{ state: 'detached'/);
+  });
+
+  it('verifica que las listas paginen y que el DOM no explote', () => {
+    expect(vol).toMatch(/la lista no pagina/);
+    expect(vol).toMatch(/totalDOM/);
+  });
+
+  it('cubre el arranque con la encriptación activa', () => {
+    // Con licencia cada registro se descifra por separado: miles de AES-GCM
+    expect(vol).toMatch(/pt_license_code/);
+    expect(vol).toMatch(/los datos no volvieron bien/);
+  });
+});
