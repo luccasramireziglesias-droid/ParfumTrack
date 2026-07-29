@@ -13,7 +13,8 @@ const PIXEL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcS
 const PERFIL = {
   nombre: 'VIP Parfums',
   tipo: 'Perfumes',
-  telefono: '+598 94 466 577',
+  pais: '+598',
+  telefono: '94 466 577',
   email: 'vip@parfums.com',
   direccion: 'Av. 18 de Julio 1234',
   ciudad: 'Montevideo',
@@ -185,5 +186,114 @@ test.describe('Backup', () => {
       await App.loadNegocio();
     }, backup);
     expect(await page.evaluate(() => App.getNegocio())).toMatchObject(PERFIL);
+  });
+});
+
+
+test.describe('Nada asume Uruguay', () => {
+  test('el teléfono guarda el código de país por separado', async ({ page }) => {
+    await completar(page, PERFIL);
+    const g = await page.evaluate(() => DB.getConfig('negocio'));
+    expect(g.pais).toBe('+598');
+    expect(g.telefono).toBe('94 466 577');
+    // Y se muestra junto
+    expect(await page.evaluate(() => App._telefonoCompleto(App.getNegocio()))).toBe('+598 94 466 577');
+  });
+
+  test('no guarda un número sin código de país', async ({ page }) => {
+    // Un número suelto no sirve para escribirle desde otro país, que es
+    // justo para lo que está en el catálogo
+    await completar(page, { nombre: 'Sin Pais', telefono: '94466577' });
+    expect(await page.evaluate(() => DB.getConfig('negocio'))).toBeNull();
+  });
+
+  test('respeta los perfiles viejos que tenían todo junto', async ({ page }) => {
+    const r = await page.evaluate(() =>
+      App._telefonoCompleto({ pais: '', telefono: '+54 11 5555 5555' }));
+    expect(r).toBe('+54 11 5555 5555');
+  });
+
+  test('la lista de países cubre el mercado, no solo Uruguay', async ({ page }) => {
+    const codigos = await page.evaluate(() => App._NEGOCIO_PAISES.map(p => p.codigo));
+    // Los cuatro países objetivo del producto
+    for (const c of ['+54', '+598', '+57', '+52']) expect(codigos).toContain(c);
+    expect(codigos.length).toBeGreaterThan(10);
+  });
+
+  test('ningún placeholder asume un país', async ({ page }) => {
+    const phs = await page.evaluate(() => {
+      App.showScreen('cuenta');
+      return ['nombre', 'telefono', 'email', 'direccion', 'ciudad', 'documento']
+        .map(id => document.getElementById('negocio-' + id).placeholder).join(' | ');
+    });
+    console.log(phs);
+    for (const prohibido of ['Montevideo', '+598', 'Uruguay', 'Siempre Viva']) {
+      expect(phs, prohibido).not.toContain(prohibido);
+    }
+  });
+
+  test('el documento no se llama solo RUT ni CUIT', async ({ page }) => {
+    // En Colombia es NIT y en México RFC
+    const ph = await page.evaluate(() => {
+      App.showScreen('cuenta');
+      return document.getElementById('negocio-documento').placeholder;
+    });
+    expect(ph).toContain('RFC');
+    expect(ph).toContain('NIT');
+  });
+
+  test('el catálogo sin nombre no sale con la marca de la app', async ({ page }) => {
+    // El cliente recibiría un catálogo que dice que el negocio se llama
+    // "Parfum Track"
+    const msg = await page.evaluate(async () => {
+      await DB.setConfig('negocio', App._negocioVacio());
+      await App.loadNegocio();
+      localStorage.removeItem('pt_negocio');
+      App._negocio.nombre = '';
+      let capturado = '';
+      const orig = App.cobrarWhatsApp;
+      App.cobrarWhatsApp = (m) => { capturado = m; };
+      App._catalogoSelected = new Set(App.perfumes.slice(0, 1).map(p => p.id));
+      App.enviarCatalogoTexto();
+      App.cobrarWhatsApp = orig;
+      return capturado;
+    });
+    expect(msg).not.toContain('Parfum Track');
+    expect(msg).toContain('Mi negocio');
+  });
+});
+
+test.describe('Sin duplicados entre pantallas', () => {
+  test('"Mi negocio" en Más lleva al perfil, no es otro input', async ({ page }) => {
+    // Dos inputs escribiendo pt_negocio se desincronizan: el que editabas
+    // último ganaba y el otro quedaba mostrando algo viejo
+    await page.evaluate(() => App.setNombreNegocio('VIP Parfums'));
+    await page.evaluate(() => App.showScreen('mas'));
+
+    await expect(page.locator('#input-negocio')).toHaveCount(0);
+    await expect(page.locator('#mas-negocio-valor')).toHaveText('VIP Parfums');
+
+    await page.click('#mas-negocio-valor');
+    await expect.poll(() => page.evaluate(() => App.currentScreen)).toBe('cuenta');
+  });
+
+  test('la fila de Más se actualiza al guardar el perfil', async ({ page }) => {
+    await completar(page, { nombre: 'Nuevo Nombre' });
+    await page.evaluate(() => App.showScreen('mas'));
+    await expect(page.locator('#mas-negocio-valor')).toHaveText('Nuevo Nombre');
+  });
+
+  test('la moneda se movió al perfil y sigue funcionando', async ({ page }) => {
+    // Es una decisión del negocio, no una preferencia suelta
+    await page.evaluate(() => App.showScreen('cuenta'));
+    await expect(page.locator('#negocio-form, .negocio-form')).toBeVisible();
+    await page.selectOption('#sel-moneda', 'ARS');
+    await expect.poll(() => page.evaluate(() => App._moneda)).toBe('ARS');
+    expect(await page.evaluate(() => localStorage.getItem('pt_moneda'))).toBe('ARS');
+
+    // Y ya no está suelta en Más
+    const enMas = await page.evaluate(() =>
+      document.querySelector('#screen-mas')?.contains(document.getElementById('sel-moneda')));
+    expect(enMas).toBe(false);
   });
 });

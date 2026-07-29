@@ -103,8 +103,8 @@ test.describe('Header — nombre del negocio', () => {
 
   test('el input tiene maxlength para que no se pueda tipear de más', async ({ page }) => {
     await abrir(page);
-    await page.evaluate(() => App.showScreen('mas'));
-    await expect(page.locator('#input-negocio')).toHaveAttribute('maxlength', '30');
+    await page.evaluate(() => App.showScreen('cuenta'));
+    await expect(page.locator('#negocio-nombre')).toHaveAttribute('maxlength', '30');
   });
 
   test('un nombre normal se ve completo y sin cortar', async ({ page }) => {

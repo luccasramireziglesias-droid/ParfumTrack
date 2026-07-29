@@ -75,6 +75,9 @@
       // El nombre completo queda accesible aunque se vea cortado
       logo.title = name || 'Parfum Track';
     }
+    // La fila de "Más" ahora solo muestra el nombre y lleva al perfil
+    const fila = document.getElementById('mas-negocio-valor');
+    if (fila) fila.textContent = name;
   },
 
   loadNombreNegocio() {
@@ -84,8 +87,8 @@
     // que ya estaban guardados se acotan igual al cargarlos
     const saved = guardado.slice(0, this._NOMBRE_NEGOCIO_MAX);
     if (saved !== guardado) localStorage.setItem('pt_negocio', saved);
-    const input = document.getElementById('input-negocio');
-    if (input) input.value = saved;
+    const fila = document.getElementById('mas-negocio-valor');
+    if (fila) fila.textContent = saved;
     const logo = document.querySelector('.logo-text');
     if (logo) {
       logo.textContent = saved || 'Parfum Track';

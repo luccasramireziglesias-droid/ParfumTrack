@@ -48,3 +48,15 @@
   color: var(--text5);
 }
 
+
+/* Valor a la derecha de una fila de "Más" (ej: el nombre del negocio).
+   Se corta si no entra, en vez de empujar al chevron fuera de la fila. */
+.mas-valor {
+  font: 600 13px 'DM Sans', sans-serif;
+  color: var(--text2);
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}

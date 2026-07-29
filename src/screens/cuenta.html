@@ -22,7 +22,7 @@
         <div class="negocio-form">
           <label class="negocio-campo">
             <span class="negocio-label">NOMBRE DEL NEGOCIO *</span>
-            <input type="text" class="form-input" id="negocio-nombre" maxlength="30" placeholder="VIP Parfums">
+            <input type="text" class="form-input" id="negocio-nombre" maxlength="30" placeholder="Cómo se llama tu negocio">
           </label>
 
           <label class="negocio-campo">
@@ -32,27 +32,44 @@
 
           <label class="negocio-campo">
             <span class="negocio-label">WHATSAPP / TELÉFONO</span>
-            <input type="tel" class="form-input" id="negocio-telefono" maxlength="25" inputmode="tel" placeholder="+598 94 466 577">
+            <div class="negocio-tel">
+              <select class="form-input" id="negocio-pais" aria-label="Código de país"></select>
+              <input type="tel" class="form-input" id="negocio-telefono" maxlength="25" inputmode="tel" placeholder="Número sin el código">
+            </div>
+            <span class="negocio-ayuda">El código de país hace que te puedan escribir desde cualquier lado.</span>
           </label>
 
           <label class="negocio-campo">
             <span class="negocio-label">CORREO</span>
-            <input type="email" class="form-input" id="negocio-email" maxlength="60" inputmode="email" placeholder="tunegocio@gmail.com">
+            <input type="email" class="form-input" id="negocio-email" maxlength="60" inputmode="email" placeholder="Correo de contacto">
           </label>
 
           <label class="negocio-campo">
             <span class="negocio-label">DIRECCIÓN</span>
-            <input type="text" class="form-input" id="negocio-direccion" maxlength="80" placeholder="Av. Siempre Viva 742">
+            <input type="text" class="form-input" id="negocio-direccion" maxlength="80" placeholder="Calle y número">
           </label>
 
           <label class="negocio-campo">
             <span class="negocio-label">CIUDAD</span>
-            <input type="text" class="form-input" id="negocio-ciudad" maxlength="40" placeholder="Montevideo">
+            <input type="text" class="form-input" id="negocio-ciudad" maxlength="40" placeholder="Tu ciudad">
           </label>
 
           <label class="negocio-campo">
-            <span class="negocio-label">DOCUMENTO (RUT / CUIT)</span>
-            <input type="text" class="form-input" id="negocio-documento" maxlength="20" placeholder="Opcional">
+            <span class="negocio-label">MONEDA</span>
+            <select class="form-input" id="sel-moneda" onchange="App.setMoneda(this.value)">
+              <option value="$">$ (Peso/Dólar)</option>
+              <option value="UYU">UYU (Uruguay)</option>
+              <option value="ARS">ARS (Argentina)</option>
+              <option value="COP">COP (Colombia)</option>
+              <option value="MXN">MXN (México)</option>
+              <option value="€">€ (Euro)</option>
+              <option value="R$">R$ (Real)</option>
+            </select>
+          </label>
+
+          <label class="negocio-campo">
+            <span class="negocio-label">DOCUMENTO FISCAL</span>
+            <input type="text" class="form-input" id="negocio-documento" maxlength="20" placeholder="RUT, CUIT, RFC, NIT… (opcional)">
           </label>
         </div>
 

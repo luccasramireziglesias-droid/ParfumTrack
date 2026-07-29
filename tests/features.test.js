@@ -1127,7 +1127,11 @@ describe('Header — el nombre del negocio no tapa el chip de cuenta', () => {
   });
 
   it('el input no deja tipear de más', () => {
-    expect(mas).toMatch(/id="input-negocio"[^>]*maxlength="30"/);
+    // El input suelto de "Más" se reemplazó por el perfil completo en la
+    // pantalla de cuenta: dos inputs escribiendo el mismo dato se
+    // desincronizan
+    expect(read('src/screens/cuenta.html')).toMatch(/id="negocio-nombre"[^>]*maxlength="30"/);
+    expect(mas, 'quedó el input duplicado en Más').not.toContain('id="input-negocio"');
   });
 
   it('el nombre completo queda en el title aunque se vea cortado', () => {

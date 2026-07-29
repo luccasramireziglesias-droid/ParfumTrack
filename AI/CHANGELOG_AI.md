@@ -9,6 +9,36 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-07-29 — El perfil del negocio deja de asumir Uruguay
+
+**Motivo.** El usuario señaló tres cosas de la primera versión: el nombre caía en
+"Parfum Track" por defecto, el placeholder del teléfono era un número uruguayo y el de
+ciudad decía "Montevideo". La app se usa en AR/UY/CO/MX.
+
+**Qué cambió.**
+- El teléfono ahora tiene **selector de código de país** (18 países) y no se puede guardar
+  un número sin él: en el catálogo lo lee gente de otro país.
+- Placeholders genéricos en todos los campos.
+- "DOCUMENTO (RUT / CUIT)" → **"DOCUMENTO FISCAL"** con RFC y NIT en el ejemplo: el mismo
+  problema que los otros dos, en un campo que el usuario no mencionó.
+- El catálogo y el PDF sin nombre cargado ya no salen con **"Parfum Track"** sino
+  "Mi negocio": encabezar el catálogo del usuario con la marca de la app le dice a su
+  cliente que el negocio se llama así.
+
+**Además, quitar duplicados.** El input suelto de "Mi negocio" en la pantalla `mas` pasó a
+ser una fila que navega al perfil — dos inputs escribiendo `pt_negocio` se desincronizan.
+La **moneda** se movió al perfil por la misma razón: es una decisión del negocio.
+
+**Archivos.** `src/app/27-negocio.js`, `src/screens/cuenta.html`, `src/screens/mas.html`,
+`src/styles/27-negocio.css`, `src/styles/15-mas.css`, `src/app/11-utils.js`,
+`src/app/10-data-management.js`, `tests/negocio.spec.js`, `tests/header.spec.js`
+
+**Riesgo.** 🟢 `_telefonoCompleto()` respeta los perfiles viejos que guardaban todo junto.
+
+**Total.** 621 Vitest, 106 → **116 E2E**.
+
+---
+
 ## 2026-07-29 — Perfil del negocio con logo
 
 **Motivo.** El usuario mandó como referencia la pantalla "Editar negocio" de otra app y

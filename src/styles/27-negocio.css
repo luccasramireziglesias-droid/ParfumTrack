@@ -108,7 +108,8 @@
 
 /* El select hereda el fondo del sistema en Android y queda blanco: se
    fuerza la paleta oscura, incluidas las opciones del desplegable */
-.negocio-campo select.form-input {
+.negocio-campo select.form-input,
+.negocio-tel select.form-input {
   appearance: none;
   -webkit-appearance: none;
   background-color: var(--bg2);
@@ -121,9 +122,33 @@
   padding-right: 34px;
 }
 
-.negocio-campo select.form-input option {
+.negocio-campo select.form-input option,
+.negocio-tel select.form-input option {
   background: var(--bg2);
   color: var(--text);
+}
+
+/* Código de país + número en una fila. El select se queda con lo justo:
+   el número es lo que necesita espacio. */
+.negocio-tel {
+  display: flex;
+  gap: 8px;
+}
+
+.negocio-tel select.form-input {
+  flex: 0 0 108px;
+  min-width: 0;
+}
+
+.negocio-tel input.form-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.negocio-ayuda {
+  font: 500 11px 'DM Sans', sans-serif;
+  color: var(--text4);
+  line-height: 1.4;
 }
 
 /* El logo del usuario reemplaza a la gota dorada del header. La gota está
