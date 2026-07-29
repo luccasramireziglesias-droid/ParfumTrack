@@ -9,6 +9,31 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-07-29 — El plan pago se llama igual en todos lados
+
+**Motivo.** Con la licencia activa, la pantalla decía **"Plan Pro"** arriba y el badge
+"Plan actual" estaba sobre **"Básico Pro"** abajo. Los dos salen del mismo `isPro()`, pero
+para alguien que está por pagar parece que ya tiene un plan llamado "Pro" y que
+"Básico Pro" es otra cosa.
+
+**Qué cambió.** El título ahora dice "Básico Pro", igual que la tarjeta. El estado en
+"Más" pasa de "Pro activo" a "Básico Pro activo".
+
+**Lo que se aclaró de paso.** El plan **Pro de $19.99 no existe en el código**: cero
+resultados buscando `19.99`, Mercado Pago solo acepta los dos precios de Básico Pro, y
+`isPro()` es un booleano. Estaba en la documentación como "PRÓXIMAMENTE", que se leía como
+"a medio hacer". Ahora dice **SIN CÓDIGO** y hay un test que falla si alguien lo agrega a
+medias.
+
+**Archivos.** `src/app/12-cuenta-licencia.js`, `CLAUDE.md`, `AI/ROADMAP.md`,
+`tests/negocio.spec.js` (3 tests), `tests/features.test.js` (3 regresiones)
+
+**Riesgo.** 🟢 Solo texto de UI.
+
+**Total.** 621 → **624 Vitest**, 116 → **119 E2E**.
+
+---
+
 ## 2026-07-29 — El perfil del negocio deja de asumir Uruguay
 
 **Motivo.** El usuario señaló tres cosas de la primera versión: el nombre caía en

@@ -1,6 +1,6 @@
 # TESTING — Estrategia de tests
 
-**Estado actual: 621 Vitest + 116 Playwright. Los dos corren en CI y frenan el deploy.**
+**Estado actual: 624 Vitest + 119 Playwright. Los dos corren en CI y frenan el deploy.**
 
 ---
 
@@ -47,8 +47,8 @@ entender el patrón que los bugs:
 ## 2. Comandos
 
 ```bash
-npm test                              # 621 Vitest
-npx playwright test                   # 116 E2E (necesita la app en :8787)
+npm test                              # 624 Vitest
+npx playwright test                   # 119 E2E (necesita la app en :8787)
 npx playwright test tests/f3.spec.js  # un solo archivo
 npx vitest run tests/features.test.js # una sola suite
 
@@ -60,7 +60,7 @@ VOL_VENTAS=5000 npx playwright test tests/volumen.spec.js
 
 ---
 
-## 3. Vitest — 621 tests, 35 archivos
+## 3. Vitest — 624 tests, 35 archivos
 
 Corren en Node, sin navegador. Dos tipos:
 
@@ -108,7 +108,7 @@ comportamiento y no el nombre.
 
 ---
 
-## 4. Playwright — 116 tests
+## 4. Playwright — 119 tests
 
 Corren contra la app real en `http://localhost:8787`.
 

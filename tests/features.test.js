@@ -1259,3 +1259,32 @@ describe('Perfil del negocio', () => {
     expect(read('src/styles/27-negocio.css')).toMatch(/select\.form-input option/);
   });
 });
+
+describe('Planes — solo hay dos, y se llaman igual en todos lados', () => {
+  const cuenta = read('src/app/12-cuenta-licencia.js');
+  const screen = read('src/screens/cuenta.html');
+  const mp = read('functions/mp-create-preference.js');
+
+  it('el título del plan pago coincide con el nombre de la tarjeta', () => {
+    // "Plan Pro" arriba con el badge sobre "Básico Pro" abajo hacía pensar
+    // que eran dos planes distintos
+    expect(cuenta).toMatch(/title\.textContent = 'Básico Pro'/);
+    expect(cuenta).not.toMatch(/title\.textContent = 'Plan Pro'/);
+    expect(screen).toMatch(/<div class="plan-name">Básico Pro<\/div>/);
+  });
+
+  it('el plan de $19.99 no existe en el código', () => {
+    // Está en la documentación como PRÓXIMAMENTE, pero no hay ni UI ni
+    // precio ni forma de cobrarlo. Si alguien lo agrega, que lo agregue
+    // completo y este test se actualice a propósito.
+    for (const [nombre, src] of [['cuenta', cuenta], ['pantalla', screen], ['mp', mp]]) {
+      expect(src, nombre).not.toContain('19.99');
+    }
+    // Mercado Pago solo acepta los dos planes reales
+    expect(mp).toMatch(/\['monthly', 'annual'\]\.includes\(plan\)/);
+  });
+
+  it('isPro es un booleano, no un nivel', () => {
+    expect(cuenta).toMatch(/isPro\(\) \{\s*\n\s*return !!\(this\._account\?\.license\);/);
+  });
+});
