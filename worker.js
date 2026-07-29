@@ -16,9 +16,10 @@ import { onRequestGet  as mpSubscriptionStatus }  from './functions/mp-subscript
 import { onRequestPost as mpPaymentStatusPost, onRequestGet as mpPaymentStatusGet } from './functions/mp-payment-status.js';
 import { onRequestPost as generateOwnerLicense }   from './functions/generate-owner-license.js';
 import { onRequestGet  as debugLicense }            from './functions/debug-license.js';
+import { onRequestGet  as version }                 from './functions/version.js';
 
 const POST_ROUTES = ['/send-notification', '/validate-license', '/send-email', '/backup', '/trial', '/sync', '/mp-create-preference', '/mp-webhook', '/mp-payment-status', '/generate-owner-license'];
-const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status', '/mp-payment-status', '/health', '/generate-owner-license', '/debug-license'];
+const GET_ROUTES  = ['/backup', '/sync', '/mp-webhook', '/mp-subscription-status', '/mp-payment-status', '/health', '/generate-owner-license', '/debug-license', '/version'];
 
 // Critical routes for connection limiting (Fix #14)
 const CRITICAL_ROUTES = ['/trial', '/validate-license', '/mp-create-preference', '/backup', '/sync'];
@@ -168,6 +169,9 @@ async function handleRequest(request, env, ctx) {
       if (path === '/mp-payment-status')      return mpPaymentStatusGet(context);
       if (path === '/generate-owner-license') return generateOwnerLicense(context);
       if (path === '/debug-license')          return debugLicense(context);
+      // Sin esta línea el fetch caía en ASSETS.fetch() y devolvía 404: la
+      // app nunca se enteraba de que había una versión nueva
+      if (path === '/version')                return version(context);
 
       if (path === '/health') {
         const checks = { kv: false, timestamp: Date.now() };

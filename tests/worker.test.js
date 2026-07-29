@@ -100,4 +100,40 @@ describe('worker router', () => {
     expect(body.ok).toBe(false);
     expect(body.kv).toBe(false);
   });
+
+  // /version estaba implementado y sincronizado por build.js, pero nunca
+  // ruteado: caía en ASSETS.fetch() y devolvía 404, así que el chequeo de
+  // actualizaciones de 17-auto-update.js nunca disparaba.
+  it('GET /version devuelve la versión y NO cae en los assets', async () => {
+    const resp = await worker.fetch(makeRequest('GET', '/version'), env, ctx);
+    expect(resp.status).toBe(200);
+    expect(env.ASSETS.fetch).not.toHaveBeenCalled();
+    const body = await resp.json();
+    expect(body.ok).toBe(true);
+    expect(body.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(body.minVersion).toMatch(/^\d+\.\d+\.\d+$/);
+  });
+
+  it('GET /version responde igual sin KV: no depende de nada', async () => {
+    // Lo pollea cada cliente cada 5 min. Si dependiera de KV, una caída de
+    // KV se llevaría puesto el canal de actualizaciones.
+    const resp = await worker.fetch(makeRequest('GET', '/version'), { ASSETS: env.ASSETS }, ctx);
+    expect(resp.status).toBe(200);
+  });
+
+  it('POST /version devuelve 405 con Allow: GET', async () => {
+    const resp = await worker.fetch(makeRequest('POST', '/version'), env, ctx);
+    expect(resp.status).toBe(405);
+    expect(resp.headers.get('Allow')).toContain('GET');
+  });
+
+  it('OPTIONS /version responde el preflight de CORS', async () => {
+    const resp = await worker.fetch(
+      makeRequest('OPTIONS', '/version', { Origin: 'https://parfumtrack.luccasramireziglesias.workers.dev' }),
+      env, ctx,
+    );
+    expect(resp.status).toBe(204);
+    expect(resp.headers.get('Access-Control-Allow-Origin'))
+      .toBe('https://parfumtrack.luccasramireziglesias.workers.dev');
+  });
 });

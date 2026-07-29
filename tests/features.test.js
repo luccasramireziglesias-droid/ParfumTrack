@@ -464,6 +464,22 @@ describe('Versionado — una sola fuente de verdad', () => {
     expect(read('index.html')).toContain(`content="${pkg.version}"`);
   });
 
+  it('/version está ruteado en worker.js', () => {
+    // Sincronizar la versión no alcanzaba: el endpoint existía pero el router
+    // no lo importaba ni lo listaba, así que devolvía 404 y el auto-update
+    // nunca disparaba.
+    const worker = read('worker.js');
+    expect(worker).toMatch(/from '\.\/functions\/version\.js'/);
+    expect(worker).toMatch(/GET_ROUTES\s*=\s*\[[^\]]*'\/version'/);
+    expect(worker).toMatch(/path === '\/version'/);
+  });
+
+  it('/version expone onRequestGet, como el resto de los handlers', () => {
+    // Exportaba `export default { fetch }` (formato Worker): no lo podía
+    // consumir el router
+    expect(read('functions/version.js')).toMatch(/export async function onRequestGet/);
+  });
+
   it('/version no puede quedar por detrás de la app (rompía el auto-update)', () => {
     const endpoint = (read('functions/version.js').match(/const version = '([^']*)';/) || [])[1];
     const num = (v) => v.split('.').map(Number);
