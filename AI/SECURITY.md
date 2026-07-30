@@ -215,6 +215,33 @@ viejo el script no carga y las exportaciones dejan de funcionar en silencio.
 
 ---
 
+## 6.b Qué se sirve público desde el dominio
+
+`assets.directory` es `"."` — **la raíz del repo**. Por defecto wrangler sube todo, así que
+la superficie pública es "el repo entero menos lo excluido", no "los archivos del sitio".
+
+🔴 **El único mecanismo de exclusión que funciona es `.assetsignore`.**
+`assets.exclude` **no es un campo válido**: wrangler lo ignora y avisa
+`Unexpected fields found in assets field: "exclude"` en el log del deploy. Estuvo escrito
+meses sin excluir nada — ver [BUG_HISTORY.md](BUG_HISTORY.md) §BUG-27.
+
+| | |
+|---|---|
+| Config real | `.assetsignore` (sintaxis gitignore, paquete `ignore`) |
+| Config decorativa | ~~`assets.exclude`~~ — **borrada** de los dos wrangler configs |
+| Test que lo protege | `tests/assets-publicos.test.js` (31 tests) |
+
+El test reimplementa la lógica de wrangler y exige que **todo** archivo que se subiría esté
+en una lista blanca sacada de las referencias reales de `index.html`, `landing.html`,
+`manifest.json` y `STATIC_ASSETS` de `sw.js`. Al agregar un documento interno a la raíz,
+falla y frena el deploy.
+
+**Nunca público:** `AI/` (documenta hallazgos abiertos), `auditoria*`, `tests/`, `src/`,
+`functions/`, `scripts/`, `CLAUDE.md`, los wrangler configs, `MARKETING-*`, `ADS-*`,
+`PLANES_*` y los briefs comerciales.
+
+---
+
 ## 7. Hallazgos abiertos
 
 | # | Severidad | Hallazgo |
@@ -223,7 +250,8 @@ viejo el script no carga y las exportaciones dejan de funcionar en silencio.
 | T-10 | 🟡 Baja | `'unsafe-inline'` en CSP (inherente a la arquitectura) |
 
 **Cerrados en 07/2026:** T-01 (`/version` ruteado), T-03 (fail-closed en rutas críticas),
-T-04 (CSRF bloqueando), T-09 (race de stock entre pestañas → Web Locks).
+T-04 (CSRF bloqueando), T-09 (race de stock entre pestañas → Web Locks), BUG-26 (XSS por
+atributos), BUG-27 (el repo entero servido público).
 
 Detalle y prioridad en [TODO.md](TODO.md).
 
@@ -242,3 +270,7 @@ Detalle y prioridad en [TODO.md](TODO.md).
 9. 🟠 Al tocar `15-encryption.js`, escribí primero el test de ida y vuelta: podés volver
    ilegibles los datos de usuarios reales.
 10. 🟠 Usá `timingSafeEqual()` para comparar cualquier token o secreto.
+11. 🔴 **Al agregar un documento interno a la raíz, sumalo a `.assetsignore`.** Si no, queda
+    público en el dominio. `tests/assets-publicos.test.js` te frena.
+12. 🟠 **Leé los WARNING del deploy.** BUG-24 y BUG-27 los dos venían avisados en el log,
+    en cada deploy, durante semanas.

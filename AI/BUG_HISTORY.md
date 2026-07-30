@@ -548,3 +548,61 @@ incluido el que comprueba que el XSS no se ejecute.
   render que se olvide vuelve a abrir el agujero.
 - 🟠 **La CSP también es contención de daño**, no solo prevención: un permiso que nadie usa
   es una vía de salida gratis para el atacante.
+
+---
+
+## BUG-27 — Todo el repo se servía público en el dominio 🔴
+**Fecha:** 30/07/2026 · **Riesgo de reintroducción:** 🔴 ALTO (silencioso por diseño)
+
+**Descripción.** 340 archivos del repo eran accesibles sin autenticación en
+`https://parfumtrack.../<ruta>`, entre ellos `AI/` completo (que documenta hallazgos de
+seguridad **abiertos**), los 16 reportes de auditoría con severidades, `tests/`,
+`CLAUDE.md`, `wrangler.staging.jsonc`, `test-payment-flow.mjs` y toda la estrategia
+comercial (`MARKETING-*`, `ADS-*`, `PLANES_*`, `MASTER_CREATIVE_BRIEF*`).
+
+Lo más grave no es el código —`index.html` ya es público y `src/` es el mismo código antes
+de concatenar— sino la **documentación de vulnerabilidades abiertas**. Es exactamente lo
+que un atacante buscaría primero.
+
+**No se puede saber si alguien lo leyó:** los assets de Workers no dejan logs de acceso.
+
+**Causa raíz.** `assets.directory` es `"."`, así que wrangler sube el repo entero salvo lo
+excluido. Y **`assets.exclude` no existe como campo de wrangler**: el schema de `assets`
+solo acepta `binding`, `directory`, `html_handling` y `not_found_handling`. La lista estaba
+escrita, se veía prolija, tenía hasta un comentario explicando que `AI/*` quedaba afuera
+"a propósito"… y no hacía nada.
+
+**Wrangler lo venía avisando en cada deploy y nadie lo leía:**
+```
+▲ [WARNING] Processing wrangler.jsonc configuration:
+    - Unexpected fields found in assets field: "exclude"
+```
+
+El mecanismo real, `.assetsignore`, existía pero solo cubría `node_modules/`, `functions/`,
+`scripts/`, `standalone/`, `inservible/`, `worker.js` y `wrangler.jsonc`. Es decir: **había
+dos mecanismos, uno de verdad y uno decorativo**, y el decorativo era el que se editaba.
+
+**Solución.**
+1. Todas las exclusiones a `.assetsignore`, con un comentario arriba que dice que es el
+   único que funciona.
+2. **Borrar** `assets.exclude` de `wrangler.jsonc` y `wrangler.staging.jsonc`. Dejarlo es
+   peor que no tenerlo: parece protección y no la da.
+3. Lista negra, no `*` + negaciones: la lista negra ya está probada funcionando acá, y un
+   default-deny que el walker de wrangler interprete distinto tumba el sitio entero.
+
+**Archivos.** `.assetsignore`, `wrangler.jsonc`, `wrangler.staging.jsonc`,
+`tests/assets-publicos.test.js`, `package.json`
+
+**Verificado al revés:** con el `.assetsignore` que estaba en producción **fallan 20 de los
+31 tests** nuevos.
+
+**Reglas derivadas.**
+- 🔴 **Un campo de config que no existe falla en silencio y se ve igual que uno que
+  funciona.** Antes de confiar en una exclusión, verificarla contra el schema o el log del
+  deploy — no contra lo prolijo que se ve el JSON.
+- 🔴 **Dos mecanismos para lo mismo garantizan que se edite el que no anda.** Se dejó uno.
+- 🟠 **Los WARNING del deploy son señal, no ruido.** Este decía exactamente qué pasaba, en
+  cada deploy, durante meses. Es la misma raíz que BUG-24 (un `catch` que tapaba un error
+  en todas las requests): el aviso existía y nadie lo miraba.
+- 🟠 **La documentación interna es superficie de ataque.** `AI/` es valiosísimo para
+  desarrollar y no puede estar a un GET de distancia.

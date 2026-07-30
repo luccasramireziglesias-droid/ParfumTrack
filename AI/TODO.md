@@ -16,6 +16,32 @@ Ver [DECISIONS.md](DECISIONS.md). **No quedan decisiones de producto abiertas.**
 
 ## BUGS ABIERTOS
 
+### 🟠 T-14 — Verificar en el próximo deploy que el fix de assets tomó efecto
+
+**Por qué.** BUG-27: el repo entero se servía público porque `assets.exclude` no es un campo
+válido de wrangler. El fix pasó todo a `.assetsignore`, pero **la verificación real es el
+log del deploy**, y desde el sandbox no se puede alcanzar el dominio de producción.
+
+**Qué mirar en el log del Deploy Worker:**
+
+1. Que **ya no aparezca** `Unexpected fields found in assets field: "exclude"`.
+2. Que la cantidad de assets baje de **~340 a ~40**. Ojo: wrangler dice "X new or modified"
+   y "N already uploaded" — el número que importa es el total.
+3. Probar a mano un par de URLs que **tienen** que dar 404:
+   `/AI/SECURITY.md`, `/CLAUDE.md`, `/MARKETING-PLAN.md`, `/tests/xss.spec.js`,
+   `/wrangler.jsonc`.
+4. Y un par que **tienen** que seguir dando 200: `/`, `/landing.html`, `/terminos.html`,
+   `/manifest.json`, `/fonts/dm-sans-latin.woff2`, `/.well-known/assetlinks.json`.
+
+**⚠️ Los assets ya subidos no se borran solos.** Si tras el deploy alguna de las URLs del
+punto 3 sigue respondiendo 200, hay que forzar la limpieza desde el Dashboard de Cloudflare
+(Workers → parfumtrack → Settings → Assets) o hacer un deploy desde un directorio limpio.
+**Esto es lo que decide si el hallazgo está realmente cerrado.**
+
+**Dificultad.** Baja, pero es el paso que falta para dar BUG-27 por cerrado de verdad.
+
+---
+
 ### 🟠 T-12 — Auditar los `catch` silenciosos del backend
 
 **Por qué.** El incidente del 29/07 (BUG-24) salió de un `catch` que tapó durante semanas
@@ -154,7 +180,8 @@ adelantarse cuesta trabajo doble.
 
 | Plazo | Ítem |
 |---|---|
-| 7 días | Captación manual — `MARKETING-SEMANA-1.md`. Va **antes** de los ads |
+| — | **Plan de marketing completo: `MARKETING-PLAN.md`** (4 fases con compuertas) |
+| 7 días | Fase 0: captación manual — `MARKETING-SEMANA-1.md`. Va **antes** de los ads |
 | 7 días | 12 ads Meta/IG. Material en la raíz: `ADS-META-IG-BRIEF.md`, `ADS-META-IG.json`, `_p_tiktok_ads.html` |
 | 7 días | Testimonios reales con foto y nombre |
 | 30 días | Video demo de 15-30 segundos |

@@ -18,6 +18,10 @@
 **Mercado:** revendedores de perfumes en LATAM — Argentina, Uruguay, Colombia, México.
 **Headline:** *"Dejá de adivinar cuánto ganás"*
 
+🔴 **La métrica que decide todo es `sale_created`** — una venta cargada de verdad. No
+registros, no visitas, no seguidores. Un registro que nunca cargó una venta no es un
+usuario. Ver `MARKETING-PLAN.md`.
+
 **La apuesta del producto:** el plan Free es genuinamente útil (ventas ilimitadas, ganancia
 real, cuotas). Lo que se cobra es lo que necesita quien **ya creció**: estadísticas,
 catálogo, exportaciones. Así el producto se gana la confianza antes de pedir plata.
@@ -29,6 +33,7 @@ catálogo, exportaciones. Así el producto se gana la confianza antes de pedir p
 | Ítem | Por qué |
 |---|---|
 | **Captación manual (semana 1)** | 🔴 **Va ANTES de los ads.** Ver `MARKETING-SEMANA-1.md`: sin testimonios, 2 de los 12 ads no se pueden correr |
+| **Plan completo** | `MARKETING-PLAN.md` — 4 fases con compuertas. No se avanza de fase sin cumplirla |
 | **12 ads Meta/IG** | Material listo en `ADS-META-IG-BRIEF.md` (12 ads), `ADS-META-IG.json` (para importar), `DESIGN-BRIEF-12-ADS.md`, `_p_tiktok_ads.html` (guiones TikTok) y `plan-lanzamiento-30dias.html` — todos en la RAÍZ, no en `plans/`. Es el canal de adquisición principal |
 | **Testimonios reales con foto y nombre** | La objeción #1 de una app que maneja tu plata es la confianza |
 
