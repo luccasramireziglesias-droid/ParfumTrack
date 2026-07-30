@@ -154,7 +154,8 @@ adelantarse cuesta trabajo doble.
 
 | Plazo | Ítem |
 |---|---|
-| 7 días | Captación manual — `MARKETING-SEMANA-1.md`. Va **antes** de los ads |
+| — | **Plan de marketing completo: `MARKETING-PLAN.md`** (4 fases con compuertas) |
+| 7 días | Fase 0: captación manual — `MARKETING-SEMANA-1.md`. Va **antes** de los ads |
 | 7 días | 12 ads Meta/IG. Material en la raíz: `ADS-META-IG-BRIEF.md`, `ADS-META-IG.json`, `_p_tiktok_ads.html` |
 | 7 días | Testimonios reales con foto y nombre |
 | 30 días | Video demo de 15-30 segundos |

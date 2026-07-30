@@ -9,6 +9,37 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-07-29 — Plan de marketing con compuertas
+
+**Motivo.** Pedido: "hay que hacer un plan de marketing". Se indicó tomar como base solo
+`MARKETING-SEMANA-1.md` (el material más reciente), dejando de lado
+`plan-lanzamiento-30dias.html`.
+
+**Qué se agregó.** `MARKETING-PLAN.md`: cuatro fases, cada una con una **compuerta** que hay
+que cumplir para avanzar. La idea central es que no es un calendario de tácticas sino una
+secuencia de decisiones.
+
+**Las dos definiciones que ordenan el plan:**
+
+1. **`sale_created` es la única métrica que decide.** No registros, no visitas, no
+   seguidores: un registro que nunca cargó una venta no es un usuario, es un número que hace
+   tomar decisiones equivocadas.
+2. **El cuello de botella hoy no es alcance, es confianza y activación.** Comprar alcance
+   antes de resolver eso es pagar por descubrir que el balde tiene agujeros.
+
+**La compuerta más importante:** si en la Fase 0 la activación es < 40%, **no se pasa a los
+ads**. Esa señal llega gratis en una semana y ningún presupuesto la arregla.
+
+**Plata.** ~$300 hasta tener señal real, contra los ~$3.000 que propone
+`ADS-META-IG-BRIEF.md` para testear las 12 variantes de una. Ese presupuesto tiene sentido
+**después** de saber el mensaje.
+
+**Archivos.** `MARKETING-PLAN.md` (nuevo), `AI/ROADMAP.md`, `AI/TODO.md`
+
+**Riesgo.** Ninguno — no toca código.
+
+---
+
 ## 2026-07-29 — 🔴 XSS por inyección en atributos: tres vías, una raíz
 
 **Motivo.** Pedido explícito de revisar seguridad.
