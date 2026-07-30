@@ -2,13 +2,17 @@
   <div class="container-narrow">
     <div class="demo-title">Mirá cómo funciona en 25 segundos</div>
     <p class="demo-subtitle">Registrá ventas, cobrá por WhatsApp y seguí tus ganancias en tiempo real</p>
-    <button class="demo-btn" onclick="document.getElementById('videoModal').classList.add('active')">▶ Ver demo</button>
+    <button class="demo-btn" onclick="abrirDemo()">▶ Ver demo</button>
   </div>
 </section>
 
+<!-- preload="none" es obligatorio: el video pesa ~18 MB y sin eso el navegador se lo
+     baja entero en la primera visita, aunque nadie lo mire. En LATAM, con datos móviles
+     caros, eso es la página entera (98% del peso) gastada de gusto. Se carga recién al
+     tocar "Ver demo", que además arranca la reproducción para que no quede en negro. -->
 <div id="videoModal" class="video-modal">
-  <button class="video-close" onclick="document.getElementById('videoModal').classList.remove('active')">&times;</button>
-  <video controls width="100%" style="max-width: 540px;">
+  <button class="video-close" onclick="cerrarDemo()">&times;</button>
+  <video id="demoVideo" controls playsinline preload="none" width="100%" style="max-width: 540px;">
     <source src="/demo.mp4" type="video/mp4">
     Tu navegador no soporta videos HTML5.
   </video>
@@ -23,9 +27,11 @@
       <div class="trust-stat-num">10 seg</div>
       <div class="trust-stat-label">Por venta registrada</div>
     </div>
+    <!-- Acá decía "+340 · Revendedores en LATAM": no es cierto todavía. Se reemplaza por
+         la ventaja real y verificable (D-03: los datos viven solo en el dispositivo). -->
     <div class="trust-stat">
-      <div class="trust-stat-num">+340</div>
-      <div class="trust-stat-label">Revendedores en LATAM</div>
+      <div class="trust-stat-num">Tus datos</div>
+      <div class="trust-stat-label">Solo en tu celular</div>
     </div>
     <div class="trust-stat">
       <div class="trust-stat-num">Gratis</div>

@@ -11,10 +11,11 @@
 .feature-hero.reverse > * { direction: ltr; }
 .feature-hero-text {}
 .feature-hero-title {
-  font-size: clamp(24px, 3vw, 36px);
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.5px;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(28px, 3.5vw, 42px);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.2px;
   margin-bottom: 16px;
 }
 .feature-hero-desc {

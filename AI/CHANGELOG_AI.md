@@ -40,6 +40,45 @@ ads**. Esa señal llega gratis en una semana y ningún presupuesto la arregla.
 
 ---
 
+## 2026-07-30 — Landing: prueba social inventada, 18 MB de video y tipografía fuera de marca
+
+**Motivo.** Pedido: "podés chequear la landing" → "mejorala a lo mejor que veas teniendo en
+cuenta todo".
+
+**1. 🔴 Prueba social inventada.** El hero decía *"+340 revendedores en LATAM ya organizan su
+negocio con Parfum Track"* y la barra de stats repetía *"+340"*, con el producto en **0
+usuarios**. Publicidad engañosa (regulada en los cuatro mercados objetivo) y además pelea
+con la propia estrategia, que es conseguir a los primeros y pedirles testimonios reales.
+Reemplazado por *"Recién lanzada · Probala gratis y contanos qué le falta"* y por
+*"Tus datos · Solo en tu celular"*. Ver [DECISIONS.md](DECISIONS.md) §D-28.
+
+**2. 🟠 18 MB de video en cada visita.** La primera carga móvil pesaba **18,07 MB**, de los
+cuales **17,79 MB era `demo.mp4`** — el 98% — bajado aunque el video viva en un modal que
+nadie abrió. Con `preload="none"` + arrancar la reproducción en el click de "Ver demo":
+**18,07 MB → 0,28 MB**. En el mismo lugar apareció que cerrar el modal **no pausaba el
+video**: el audio seguía sonando. Ver [BUG_HISTORY.md](BUG_HISTORY.md) §BUG-28.
+
+**3. 🟡 Tipografía fuera de marca.** La landing usaba Cormorant Garamond en **un** elemento
+contra 18 en la app: el h1 y todos los títulos iban en DM Sans. Ahora los cinco selectores
+de título usan la serif, con peso ≤700, tamaño ~15% mayor y sin tracking negativo (las tres
+trampas de cambiar de palo seco a serif). Ver §D-29.
+
+**Lo que estaba bien y no se tocó.** Precios correctos ($9.99/$7.99/$95.88, sin rastro del
+Pro de $19.99), el plan Pro solo mencionado como "(próximamente)", 8 CTAs consistentes a
+`/index.html`, las 7 imágenes con `alt`, sin scroll horizontal a 1280 ni a 390, cero errores
+de consola. **Y ninguna referencia de la landing quedó excluida por el fix de assets de
+BUG-27** — se verificó archivo por archivo.
+
+**Archivos.** `src/landing/sections/02-hero.html`, `03-demo.html`, `14-scripts.html`,
+`src/landing/styles/03-hero.css`, `04-demo.css`, `05-sections-common.css`,
+`07-feature-catalog.css`, `13-cta-footer.css`, `landing.html` (generado),
+`tests/landing-contenido.test.js` (nuevo, 18 tests), `AI/DECISIONS.md`, `AI/BUG_HISTORY.md`
+
+**Riesgo.** 🟢 Bajo. No toca la app ni el backend. 686 Vitest + 137 E2E pasan.
+**Verificado al revés:** revirtiendo los tres cambios fallan 5 tests.
+
+---
+
 ## 2026-07-30 — 🔴 Todo el repo estaba público en el dominio (BUG-27)
 
 **Motivo.** Pedido: "haceme un html con el plan". Al buscar dónde ponerlo para que **no**

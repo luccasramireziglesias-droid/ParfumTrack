@@ -473,3 +473,57 @@ sin discusión: no hay test que la fije, justamente para no trabar el cambio.
 
 **Reabrir si.** Se agrupa la configuración de seguridad (PIN + cifrado + backup) en un solo
 lugar, que sería el momento natural para moverlo.
+
+---
+
+## D-28 — La landing no afirma tener usuarios hasta tenerlos
+
+**Decisión.** Ningún número de usuarios, ventas o clientes en la landing mientras no sea
+real y sostenible con datos.
+
+**Qué había.** El hero decía *"+340 revendedores en LATAM ya organizan su negocio con
+Parfum Track"* y la barra de stats repetía *"+340 · Revendedores en LATAM"*, con el
+producto en 0 usuarios (ver `MARKETING-SEMANA-1.md`, cuya Fase 0 es justamente conseguir
+los primeros 20-30).
+
+**Por qué.**
+1. **Es publicidad engañosa** y está regulada en los cuatro mercados objetivo
+   (AR/UY/CO/MX). Con una app que cobra suscripción y maneja la plata del usuario, es un
+   riesgo desproporcionado al beneficio.
+2. **Pelea con la propia estrategia.** El plan apuesta al ángulo "sé de los primeros" y a
+   conseguir testimonios reales. No se puede pedir eso mientras el hero dice que ya son 340.
+3. **Quema lo único que cuesta construir.** Un usuario que descubre el número inflado no
+   te va a confiar los números de su negocio. Ver `ROADMAP.md` §7: la confianza es la
+   objeción #1.
+
+**Con qué se reemplazó.** Hero: *"Recién lanzada · Probala gratis y contanos qué le falta"*
+— honesto, y además invita al feedback que la Fase 0 necesita. Stat: *"Tus datos · Solo en
+tu celular"*, que es la ventaja real y verificable (D-03).
+
+**Cuándo se puede volver a poner un número.** Cuando exista y se pueda sostener. El lugar
+es el mismo; hay que actualizar `tests/landing-contenido.test.js`, que hoy falla ante
+cualquier afirmación de la forma "N revendedores/usuarios/clientes".
+
+---
+
+## D-29 — Los títulos de la landing van en Cormorant Garamond
+
+**Decisión.** `.hero h1`, `.section-h2`, `.cta-final-h2`, `.feature-hero-title` y
+`.demo-title` usan Cormorant Garamond, igual que la app.
+
+**Por qué.** Es la regla de marca del proyecto ("Cormorant Garamond títulos, DM Sans
+body"), pero la landing la cumplía en **un solo** elemento (el h2 del footer) contra 18
+lugares en la app: parecían dos productos distintos. Y para un producto de perfumería, la
+serif comunica el registro que el palo seco geométrico no da.
+
+**Tres cosas que hay que respetar al tocar esto** (las fija
+`tests/landing-contenido.test.js`):
+- **Peso máximo 700.** `fonts/fonts.css` solo trae Cormorant en 400, 600 y 700. Pedir
+  800/900 hace que el navegador lo simule engrosando los trazos y queda sucio.
+- **Tamaño ~15% mayor.** Cormorant tiene la x más chica que DM Sans; al mismo `px` se ve
+  más chico.
+- **Sin tracking negativo.** El `letter-spacing: -1.5px` es un recurso de palo seco; en una
+  serif junta las letras.
+
+**Lo que NO cambió.** El body, los botones, las stats y todo el texto corrido siguen en
+DM Sans. La serif es solo para titular.
