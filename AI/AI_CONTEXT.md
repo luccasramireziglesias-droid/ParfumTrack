@@ -67,7 +67,7 @@ Si te salteás esta sección vas a romper algo. En orden de gravedad:
 | **Datos del usuario** | IndexedDB v5, local, cifrado con AES-GCM cuando hay licencia. |
 | **Datos del servidor** | KV `PT_LICENSES` (licencias, trial, rate limit) + R2 `parfumtrack-backups`. |
 | **Offline** | Service Worker v16. Precache de estáticos, navegación Network-First. |
-| **Tests** | 629 Vitest (unit/estáticos) + 125 Playwright (E2E). Los dos corren en CI. |
+| **Tests** | 637 Vitest (unit/estáticos) + 137 Playwright (E2E). Los dos corren en CI. |
 | **CI/CD** | GitHub Actions: `npm run build` + `npm test` + E2E → deploy automático en push a `main`. |
 | **Android** | Capacitor con `server.url` — la app nativa carga la web remota, no la empaqueta. |
 
@@ -159,8 +159,8 @@ Están protegidas por tests. Si tu cambio las viola, CI te frena.
 ```bash
 node scripts/build.js      # regenera index.html desde src/  ← SIEMPRE tras tocar src/
 npm run build              # build.js + build-landing.js
-npm test                   # 629 tests Vitest
-npx playwright test        # 125 tests E2E (necesita la app servida en :8787)
+npm test                   # 637 tests Vitest
+npx playwright test        # 137 tests E2E (necesita la app servida en :8787)
 npm run build:og           # regenera la imagen Open Graph con Chromium
 ```
 

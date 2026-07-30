@@ -214,7 +214,7 @@
 
     // BUG #1 FIX: Usar addEventListener en lugar de onclick inline para evitar XSS
     listEl.innerHTML = filtered.map(v => {
-      return `<div class="ac-item" data-value="${this.esc(v)}">${this.esc(v)}</div>`;
+      return `<div class="ac-item" data-value="${this.escAttr(v)}">${this.esc(v)}</div>`;
     }).join('');
 
     // Agregar listeners a cada item

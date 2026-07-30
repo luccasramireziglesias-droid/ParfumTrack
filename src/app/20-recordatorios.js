@@ -105,7 +105,7 @@
         <div class="recordatorio-right">
           <span class="recordatorio-monto">${this.fmt(resta)}</span>
           <div class="recordatorio-acciones">
-            <button class="btn-whatsapp recordatorio-btn" data-msg="${this.b64Encode(this._mensajeRecordatorio(item))}" aria-label="Recordar a ${this.esc(cuota.cliente || 'cliente')} por WhatsApp"><span class="ms" aria-hidden="true">chat</span></button>
+            <button class="btn-whatsapp recordatorio-btn" data-msg="${this.b64Encode(this._mensajeRecordatorio(item))}" aria-label="Recordar a ${this.escAttr(cuota.cliente || 'cliente')} por WhatsApp"><span class="ms" aria-hidden="true">chat</span></button>
             <button class="btn-pay recordatorio-btn" data-cuota-id="${cuotaIdAttr}" aria-label="Registrar pago de la cuota"><span class="ms" aria-hidden="true">payments</span></button>
           </div>
         </div>

@@ -9,6 +9,48 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-07-29 — 🔴 XSS por inyección en atributos: tres vías, una raíz
+
+**Motivo.** Pedido explícito de revisar seguridad.
+
+**Lo que se encontró.** Tres vectores que permitían **ejecutar JavaScript** en el origen de
+la app, con acceso a ventas, clientes, código de licencia y token CSRF:
+
+| Vector | Cómo llega |
+|---|---|
+| Nombre de perfume | Tipeado **o importado de un Excel** que te manden |
+| Foto de perfume | Backup JSON restaurado |
+| Logo del negocio | Backup JSON restaurado |
+
+**Se verificaron explotables antes del fix**, ejecutando `window.__XSS = true` por los tres
+caminos. No eran hallazgos teóricos.
+
+**Causa raíz única.** `esc()` usa `textContent` → `innerHTML`: escapa `& < >` pero **no las
+comillas**. Estaba usado dentro de atributos, donde una comilla cierra el atributo e inyecta
+uno nuevo. Y las imágenes se validaban **solo por prefijo** (`^data:image/`), así que
+`data:image/png,x" onerror="…` pasaba entero.
+
+**Cuatro capas de fix.** `escAttr()` para atributos · `esImagenSegura()`/`imgSrc()` que
+valida la cadena completa y excluye SVG · `_sanearImportado()` que limpia el backup **al
+entrar a la base** · CSP sin `https:` en `img-src`, que era el canal de exfiltración.
+
+**Bug encontrado dentro del propio fix.** El primer intento usaba `encodeURIComponent` para
+el `onclick` del cliente — **no escapa el apóstrofo**, así que "O'Brien" seguía rompiendo el
+string. Lo detectó el test porque estaba escrito con el nombre real.
+
+**Verificado al revés:** volviendo la validación a solo-prefijo, **7 tests fallan**.
+
+**Archivos.** `11-utils.js`, `02-render.js`, `04-stock.js`, `10-data-management.js`,
+`18-clientes.js`, `20-recordatorios.js`, `03-nueva-venta.js`, `26-importar-excel.js`,
+`27-negocio.js`, `_headers`, `tests/xss.spec.js` (12 tests) + 8 regresiones estáticas
+
+**Riesgo.** 🟠 La CSP se acotó: si alguien suma OneSignal o Google Fonts más adelante, va a
+chocar contra la CSP. Es el modo de falla correcto — explícito, no silencioso.
+
+**Total.** 629 → **637 Vitest**, 125 → **137 E2E**.
+
+---
+
 ## 2026-07-29 — El catálogo mandaba solo texto sin que se notara
 
 **Motivo.** El usuario reportó con captura que "envía un msj pero no la imagen".

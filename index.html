@@ -6778,7 +6778,7 @@ const App = {
               <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)" aria-label="Sumar stock">add</button>
             </div>
           </div>
-          <button class="stock-reponer" onclick="App.abrirCompra(${p.id})" aria-label="Reponer stock de ${this.esc(p.nombre)}">
+          <button class="stock-reponer" onclick="App.abrirCompra(${p.id})" aria-label="Reponer stock de ${this.escAttr(p.nombre)}">
             <span class="ms" aria-hidden="true">local_shipping</span>Reponer
           </button>
         </div>
@@ -6877,7 +6877,7 @@ const App = {
           <div class="stock-alert-nombre">${this.esc(a.perfume)}</div>
           <div class="stock-alert-detalle">${detalle}</div>
         </div>
-        <button class="stock-alert-btn" onclick="App.abrirCompra(${a.id})" aria-label="Reponer ${this.esc(a.perfume)}">
+        <button class="stock-alert-btn" onclick="App.abrirCompra(${a.id})" aria-label="Reponer ${this.escAttr(a.perfume)}">
           ${a.critical ? 'Reponer' : `~${Math.round(a.monthsLeft * 30)}d`}
         </button>
       </div>`;
@@ -7431,7 +7431,7 @@ const App = {
 
     // BUG #1 FIX: Usar addEventListener en lugar de onclick inline para evitar XSS
     listEl.innerHTML = filtered.map(v => {
-      return `<div class="ac-item" data-value="${this.esc(v)}">${this.esc(v)}</div>`;
+      return `<div class="ac-item" data-value="${this.escAttr(v)}">${this.esc(v)}</div>`;
     }).join('');
 
     // Agregar listeners a cada item
@@ -7858,10 +7858,10 @@ const App = {
     document.getElementById('add-perfume-compra').value = p.precioCompra || '';
     document.getElementById('add-perfume-venta').value = p.precioVenta || '';
     document.getElementById('add-perfume-stock').value = p.stock ?? 0;
-    if (p.foto && /^data:image\//.test(p.foto)) {
+    if (this.esImagenSegura(p.foto)) {
       const preview = document.getElementById('add-perfume-photo-preview');
       preview.className = '';
-      preview.innerHTML = `<img class="photo-preview-img" src="${p.foto}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
+      preview.innerHTML = `<img class="photo-preview-img" src="${this.imgSrc(p.foto)}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
     }
   },
 
@@ -7900,7 +7900,7 @@ const App = {
     this._pendingPerfumePhoto = dataUrl;
     const preview = document.getElementById('add-perfume-photo-preview');
     preview.className = '';
-    preview.innerHTML = `<img class="photo-preview-img" src="${dataUrl}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
+    preview.innerHTML = `<img class="photo-preview-img" src="${this.imgSrc(dataUrl)}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
   },
 
   savePerfume() {
@@ -9037,6 +9037,22 @@ const App = {
     return registros;
   },
 
+  // Un backup es un archivo que puede venir de cualquiera. Las fotos van
+  // directo a un src, así que una foto adulterada era XSS con solo restaurar
+  // el archivo. Los renders ya validan, pero no se guarda basura en la base:
+  // si el dato entra sucio, cualquier render nuevo que se olvide de validar
+  // vuelve a abrir el agujero.
+  _sanearImportado(store, item) {
+    if (!item || typeof item !== 'object') return item;
+    if (store === 'perfumes' && 'foto' in item) {
+      return { ...item, foto: this.esImagenSegura(item.foto) ? item.foto : '' };
+    }
+    if (store === 'config' && item.key === 'negocio' && item.value) {
+      return { ...item, value: this._sanitizarNegocio(item.value) };
+    }
+    return item;
+  },
+
   async _restoreData(data) {
     // Si esto lanza, la base local queda intacta (todavía no borramos nada)
     this._assertRestorable(data);
@@ -9049,7 +9065,7 @@ const App = {
     for (const store of stores) {
       if (!Array.isArray(data[store])) continue;
       for (const item of data[store]) {
-        try { await DB.put(store, item); total++; } catch { skipped++; }
+        try { await DB.put(store, this._sanearImportado(store, item)); total++; } catch { skipped++; }
       }
     }
     if (data.settings) {
@@ -9326,7 +9342,7 @@ const App = {
       <label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
         <input type="checkbox" data-cat-id="${p.id}" ${this._catalogoSelected.has(p.id) ? 'checked' : ''} onchange="App._toggleCatalogoItem('${p.id}', this.checked)" style="width:20px;height:20px;accent-color:var(--gold);flex-shrink:0;">
         ${p.foto && /^data:image\//.test(p.foto)
-          ? `<img src="${this.esc(p.foto)}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;">`
+          ? `<img src="${this.imgSrc(p.foto)}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;">`
           : `<div style="width:40px;height:40px;border-radius:8px;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span class="ms" style="font-size:20px;color:var(--text4);">photo_camera</span></div>`
         }
         <div style="flex:1;min-width:0;">
@@ -9390,7 +9406,7 @@ const App = {
 
     const container = document.getElementById('catalogo-preview-imgs');
     container.innerHTML = this._catalogoImages.map((src, i) =>
-      `<img src="${src}" alt="Página ${i + 1}" style="width:100%;border-radius:12px;border:1px solid var(--border);">`
+      `<img src="${this.imgSrc(src)}" alt="Página ${i + 1}" style="width:100%;border-radius:12px;border:1px solid var(--border);">`
     ).join('');
     document.getElementById('catalogo-preview').classList.remove('hidden');
 
@@ -9798,11 +9814,41 @@ const App = {
     return d.getDate() + ' ' + months[d.getMonth()];
   },
 
+  // esc() sirve para CONTENIDO de texto. NO escapa comillas, así que dentro
+  // de un atributo no protege: un nombre como `Yara" onmouseover="…` cierra
+  // el atributo e inyecta un handler. Verificado explotable en 07/2026 por
+  // tres vías (nombre de perfume, foto, logo). Para atributos va escAttr().
   esc(s) {
     if (!s) return '';
     const div = document.createElement('div');
     div.textContent = s;
     return div.innerHTML;
+  },
+
+  // Para TODO valor que entre entre comillas de un atributo HTML.
+  escAttr(s) {
+    if (s === null || s === undefined) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+
+  // Los data URL de imagen van directo a un src. Validar solo el prefijo
+  // (`^data:image/`) dejaba pasar `data:image/png,x" onerror="…`: el resto
+  // de la cadena nunca se miraba. Acá se valida la cadena COMPLETA, así que
+  // no hay forma de que sobreviva una comilla.
+  _IMG_DATA_URL: /^data:image\/(png|jpe?g|webp|gif|avif);base64,[A-Za-z0-9+/]+={0,2}$/,
+
+  esImagenSegura(v) {
+    return typeof v === 'string' && this._IMG_DATA_URL.test(v);
+  },
+
+  // Devuelve la imagen si es segura, o '' — para usar directo en un src
+  imgSrc(v) {
+    return this.esImagenSegura(v) ? v : '';
   },
 
   // Interpreta montos tipeados con separadores regionales: "1.400" (miles AR/UY),
@@ -10760,7 +10806,7 @@ const App = {
       const saldoTag = c.saldo > 0
         ? `<span class="cliente-saldo debe">Debe ${this.fmt(c.saldo)}</span>`
         : `<span class="cliente-saldo ok">Al día</span>`;
-      return `<div class="cliente-card" role="button" tabindex="0" aria-label="Ver cliente ${this.esc(c.nombre)}" onclick="App.abrirClienteDetalle('${this.esc(c.key).replace(/'/g, "\\'")}')">
+      return `<div class="cliente-card" role="button" tabindex="0" aria-label="Ver cliente ${this.escAttr(c.nombre)}" onclick="App.abrirClienteDetalle(decodeURIComponent('${encodeURIComponent(c.key).replace(/'/g, '%27')}'))">
         <div class="cliente-avatar">${inicial}</div>
         <div class="cliente-info">
           <div class="cliente-nombre">${this.esc(c.nombre)}</div>
@@ -11002,7 +11048,7 @@ const App = {
         <div class="recordatorio-right">
           <span class="recordatorio-monto">${this.fmt(resta)}</span>
           <div class="recordatorio-acciones">
-            <button class="btn-whatsapp recordatorio-btn" data-msg="${this.b64Encode(this._mensajeRecordatorio(item))}" aria-label="Recordar a ${this.esc(cuota.cliente || 'cliente')} por WhatsApp"><span class="ms" aria-hidden="true">chat</span></button>
+            <button class="btn-whatsapp recordatorio-btn" data-msg="${this.b64Encode(this._mensajeRecordatorio(item))}" aria-label="Recordar a ${this.escAttr(cuota.cliente || 'cliente')} por WhatsApp"><span class="ms" aria-hidden="true">chat</span></button>
             <button class="btn-pay recordatorio-btn" data-cuota-id="${cuotaIdAttr}" aria-label="Registrar pago de la cuota"><span class="ms" aria-hidden="true">payments</span></button>
           </div>
         </div>
@@ -11947,7 +11993,7 @@ const App = {
       selHoja.classList.toggle('hidden', s.hojas.length < 2);
       if (s.hojas.length > 1) {
         document.getElementById('imp-hoja').innerHTML = s.hojas.map(h =>
-          `<option value="${this.esc(h)}"${h === s.hoja ? ' selected' : ''}>${this.esc(h)}</option>`).join('');
+          `<option value="${this.escAttr(h)}"${h === s.hoja ? ' selected' : ''}>${this.esc(h)}</option>`).join('');
       }
     }
 
@@ -12230,8 +12276,10 @@ const App = {
     for (const campo of Object.keys(this._NEGOCIO_LIMITES)) {
       out[campo] = String(datos[campo] || '').trim().slice(0, this._NEGOCIO_LIMITES[campo]);
     }
-    // El logo no se acota por largo: es una data URL ya redimensionada
-    out.logo = typeof datos.logo === 'string' && /^data:image\//.test(datos.logo) ? datos.logo : '';
+    // El logo no se acota por largo: es una data URL ya redimensionada.
+    // esImagenSegura valida la cadena COMPLETA — validar solo el prefijo
+    // dejaba pasar `data:image/png,x" onerror="…`, explotable vía backup.
+    out.logo = this.esImagenSegura(datos.logo) ? datos.logo : '';
     return out;
   },
 
@@ -12248,7 +12296,7 @@ const App = {
     const sel = document.getElementById('negocio-tipo');
     if (sel) {
       sel.innerHTML = '<option value="">Sin especificar</option>' +
-        this._NEGOCIO_TIPOS.map(t => `<option value="${this.esc(t)}">${this.esc(t)}</option>`).join('');
+        this._NEGOCIO_TIPOS.map(t => `<option value="${this.escAttr(t)}">${this.esc(t)}</option>`).join('');
       sel.value = n.tipo || '';
     }
 
@@ -12256,7 +12304,7 @@ const App = {
     if (pais) {
       pais.innerHTML = '<option value="">País…</option>' +
         this._NEGOCIO_PAISES.map(p =>
-          `<option value="${this.esc(p.codigo)}">${this.esc(p.codigo)} · ${this.esc(p.nombre)}</option>`).join('');
+          `<option value="${this.escAttr(p.codigo)}">${this.esc(p.codigo)} · ${this.esc(p.nombre)}</option>`).join('');
       pais.value = n.pais || '';
     }
     this._renderLogoPreview(n.logo);
@@ -12267,7 +12315,7 @@ const App = {
     if (!el) return;
     if (logo) {
       el.className = 'negocio-logo';
-      el.innerHTML = `<img src="${logo}" alt="Logo del negocio">
+      el.innerHTML = `<img src="${this.imgSrc(logo)}" alt="Logo del negocio">
         <button class="negocio-logo-quitar" onclick="event.stopPropagation();App.quitarLogoNegocio()" aria-label="Quitar logo">
           <span class="ms">close</span></button>`;
     } else {

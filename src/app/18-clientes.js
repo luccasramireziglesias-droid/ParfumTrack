@@ -61,7 +61,7 @@
       const saldoTag = c.saldo > 0
         ? `<span class="cliente-saldo debe">Debe ${this.fmt(c.saldo)}</span>`
         : `<span class="cliente-saldo ok">Al día</span>`;
-      return `<div class="cliente-card" role="button" tabindex="0" aria-label="Ver cliente ${this.esc(c.nombre)}" onclick="App.abrirClienteDetalle('${this.esc(c.key).replace(/'/g, "\\'")}')">
+      return `<div class="cliente-card" role="button" tabindex="0" aria-label="Ver cliente ${this.escAttr(c.nombre)}" onclick="App.abrirClienteDetalle(decodeURIComponent('${encodeURIComponent(c.key).replace(/'/g, '%27')}'))">
         <div class="cliente-avatar">${inicial}</div>
         <div class="cliente-info">
           <div class="cliente-nombre">${this.esc(c.nombre)}</div>

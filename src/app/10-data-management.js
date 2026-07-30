@@ -205,6 +205,22 @@
     return registros;
   },
 
+  // Un backup es un archivo que puede venir de cualquiera. Las fotos van
+  // directo a un src, así que una foto adulterada era XSS con solo restaurar
+  // el archivo. Los renders ya validan, pero no se guarda basura en la base:
+  // si el dato entra sucio, cualquier render nuevo que se olvide de validar
+  // vuelve a abrir el agujero.
+  _sanearImportado(store, item) {
+    if (!item || typeof item !== 'object') return item;
+    if (store === 'perfumes' && 'foto' in item) {
+      return { ...item, foto: this.esImagenSegura(item.foto) ? item.foto : '' };
+    }
+    if (store === 'config' && item.key === 'negocio' && item.value) {
+      return { ...item, value: this._sanitizarNegocio(item.value) };
+    }
+    return item;
+  },
+
   async _restoreData(data) {
     // Si esto lanza, la base local queda intacta (todavía no borramos nada)
     this._assertRestorable(data);
@@ -217,7 +233,7 @@
     for (const store of stores) {
       if (!Array.isArray(data[store])) continue;
       for (const item of data[store]) {
-        try { await DB.put(store, item); total++; } catch { skipped++; }
+        try { await DB.put(store, this._sanearImportado(store, item)); total++; } catch { skipped++; }
       }
     }
     if (data.settings) {
@@ -494,7 +510,7 @@
       <label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
         <input type="checkbox" data-cat-id="${p.id}" ${this._catalogoSelected.has(p.id) ? 'checked' : ''} onchange="App._toggleCatalogoItem('${p.id}', this.checked)" style="width:20px;height:20px;accent-color:var(--gold);flex-shrink:0;">
         ${p.foto && /^data:image\//.test(p.foto)
-          ? `<img src="${this.esc(p.foto)}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;">`
+          ? `<img src="${this.imgSrc(p.foto)}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;">`
           : `<div style="width:40px;height:40px;border-radius:8px;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span class="ms" style="font-size:20px;color:var(--text4);">photo_camera</span></div>`
         }
         <div style="flex:1;min-width:0;">
@@ -558,7 +574,7 @@
 
     const container = document.getElementById('catalogo-preview-imgs');
     container.innerHTML = this._catalogoImages.map((src, i) =>
-      `<img src="${src}" alt="Página ${i + 1}" style="width:100%;border-radius:12px;border:1px solid var(--border);">`
+      `<img src="${this.imgSrc(src)}" alt="Página ${i + 1}" style="width:100%;border-radius:12px;border:1px solid var(--border);">`
     ).join('');
     document.getElementById('catalogo-preview').classList.remove('hidden');
 
