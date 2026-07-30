@@ -187,7 +187,8 @@ Reportes en `standalone/auditoria-*.html` (actualizado: `auditoria-360-v4.html`)
 ## PENDIENTES / ROADMAP
 
 ### 7 días
-- 12 ads Meta/IG (plan detallado existe en plans/)
+- 12 ads Meta/IG. El material ya está escrito: `ADS-META-IG-BRIEF.md`, `ADS-META-IG.json`, `DESIGN-BRIEF-12-ADS.md`, `_p_tiktok_ads.html` y `plan-lanzamiento-30dias.html`, todos en la RAÍZ (NO en `plans/`, que no existe)
+- Antes de gastar en ads: `MARKETING-SEMANA-1.md` — captación manual gratis para conseguir los testimonios que dos de los 12 ads necesitan
 - Testimonios reales con foto/nombre
 
 ### 30 días

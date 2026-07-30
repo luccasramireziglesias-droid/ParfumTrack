@@ -9,6 +9,48 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-07-29 — Plan de captación manual + corrección de una ruta que se repitió toda la sesión
+
+**Motivo.** Pregunta del dueño: dónde correr los ads y qué recomiendo.
+
+**Lo que se encontró.** El material de ads ya estaba escrito y completo:
+`ADS-META-IG-BRIEF.md` (12 ads), `ADS-META-IG.json`, `DESIGN-BRIEF-12-ADS.md`,
+`_p_tiktok_ads.html` (~20 guiones) y `plan-lanzamiento-30dias.html`.
+
+**🔴 Corrección de documentación.** `CLAUDE.md`, `AI/ROADMAP.md` y `AI/TODO.md` decían que
+el plan estaba en `plans/`, **una carpeta que no existe** — los archivos están en la raíz.
+Se repitió esa ruta varias veces en la sesión antes de verificarla.
+
+**Lo que se agregó.** `MARKETING-SEMANA-1.md`: captación manual a $0 antes de gastar en
+ads. El razonamiento:
+
+- Dos de los 12 ads (`AD 5` social proof, `AD 12` objection handler) **necesitan
+  testimonios** que hoy no existen: correrlos sería mentir.
+- El brief propone $100-150/día × 21 días (~$3.000) para testear 12 variantes. Distinguir
+  12 variantes necesita ~100 conversiones cada una: se gastaría el presupuesto aprendiendo
+  qué creatividad gana **antes** de saber si el embudo convierte.
+- No hay tasa de activación medida. Si de 10 registros solo 1 carga una venta, el problema
+  no es el ad.
+
+**Recomendación registrada.** Semana 1 gratis (grupos de Facebook + DMs de Instagram) para
+conseguir testimonios, objeciones reales y la tasa de activación. Después **3 ads a
+$10-20/día**, no 12 a $100-150: AD 1 (dolor), AD 4 (velocidad), AD 8 (vs. Excel) — los tres
+que no necesitan testimonios y que testean **posicionamiento** en vez de creatividad.
+
+**Nota de honestidad.** El documento **no lista grupos concretos de Facebook**: no se puede
+verificar desde el entorno de desarrollo. Da términos de búsqueda y criterios de selección,
+y lo dice explícitamente en el propio archivo.
+
+**Dato bueno que salió del chequeo.** El embudo ya está instrumentado en Plausible:
+`cta_*` → `sale_created` (con `duracion`) → `click_subscribe` → `mp_checkout_redirect`.
+Se puede medir activación real desde el día uno.
+
+**Archivos.** `MARKETING-SEMANA-1.md` (nuevo), `CLAUDE.md`, `AI/ROADMAP.md`, `AI/TODO.md`
+
+**Riesgo.** Ninguno — no toca código.
+
+---
+
 ## 2026-07-29 — El plan pago se llama igual en todos lados
 
 **Motivo.** Con la licencia activa, la pantalla decía **"Plan Pro"** arriba y el badge
