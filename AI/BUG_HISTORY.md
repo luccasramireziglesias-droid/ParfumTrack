@@ -549,6 +549,16 @@ incluido el que comprueba que el XSS no se ejecute.
 - 🟠 **La CSP también es contención de daño**, no solo prevención: un permiso que nadie usa
   es una vía de salida gratis para el atacante.
 
+**Riesgo residual que quedaba abierto y ya se cerró (30/07).** Apretar `esImagenSegura()` a
+una lista blanca (`png|jpe?g|webp|gif|avif`) abría la pregunta de si iba a rechazar fotos
+reales — por ejemplo un iPhone, que saca HEIC. **No las rechaza, y no depende del celular:**
+tanto la foto de perfume como el logo del negocio pasan por `_processPhoto()`
+(`04-stock.js:57`), que dibuja la imagen en un `<canvas>` y guarda
+`c.toDataURL('image/webp', 0.7)`, con fallback a `image/jpeg` si el navegador no soporta
+webp. O sea que el formato de origen **nunca** se guarda tal cual: el canvas lo normaliza
+siempre a webp o jpeg, los dos en la lista blanca. Confirmado además por el dueño con sus
+datos reales en producción.
+
 ---
 
 ## BUG-27 — Todo el repo se servía público en el dominio 🔴
