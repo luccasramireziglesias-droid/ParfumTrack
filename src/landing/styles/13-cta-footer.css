@@ -15,10 +15,11 @@
   pointer-events: none;
 }
 .cta-final-h2 {
-  font-size: clamp(30px, 5vw, 54px);
-  font-weight: 900;
-  line-height: 1.08;
-  letter-spacing: -1px;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(35px, 5.7vw, 62px);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.3px;
   margin-bottom: 18px;
 }
 .cta-final-p {

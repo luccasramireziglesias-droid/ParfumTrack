@@ -54,6 +54,24 @@ document.addEventListener('click', e => {
   }
 });
 
+// ── Demo en video ──
+// El <video> tiene preload="none" (pesa ~18 MB). Se carga recién acá, y arrancamos
+// la reproducción en el mismo gesto del click para que no quede un rectángulo negro.
+function abrirDemo() {
+  document.getElementById('videoModal').classList.add('active');
+  const v = document.getElementById('demoVideo');
+  if (v) v.play().catch(() => {});   // si el navegador la bloquea, quedan los controles
+  if (window.plausible) plausible('ver_demo');
+}
+function cerrarDemo() {
+  document.getElementById('videoModal').classList.remove('active');
+  const v = document.getElementById('demoVideo');
+  if (v) v.pause();   // sin esto el audio seguía sonando con el modal cerrado
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('videoModal')?.classList.contains('active')) cerrarDemo();
+});
+
 // ── FAQ Accordion ──
 document.querySelectorAll('.faq-question').forEach(q => {
   function toggleFaq() {

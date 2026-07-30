@@ -255,11 +255,16 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
+/* Cormorant Garamond en los títulos, igual que la app (regla de marca). Ojo con tres
+   cosas al tocar esto: el peso máximo de la fuente es 700 (no hay 900), tiene la x
+   más chica que DM Sans —por eso el tamaño sube ~15% para que pese lo mismo— y el
+   tracking negativo es un recurso de palo seco: en una serif junta las letras. */
 .hero h1 {
-  font-size: clamp(36px, 6vw, 68px);
-  font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: -1.5px;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(42px, 7vw, 78px);
+  font-weight: 700;
+  line-height: 1.03;
+  letter-spacing: -0.5px;
   margin-bottom: 22px;
   color: var(--text);
 }
@@ -424,7 +429,8 @@ body {
   text-align: center;
 }
 .demo-title {
-  font-size: 24px;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 29px;
   font-weight: 700;
   margin-bottom: 12px;
   color: var(--text);
@@ -546,11 +552,14 @@ body {
   color: var(--gold);
   margin-bottom: 14px;
 }
+/* Cormorant Garamond, igual que la app y que el h1 del hero. Ver la nota en 03-hero.css:
+   máximo 700 de peso, tamaño ~15% más grande y sin tracking negativo. */
 .section-h2 {
-  font-size: clamp(28px, 4vw, 46px);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.8px;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(32px, 4.6vw, 54px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.2px;
   margin-bottom: 16px;
   color: var(--text);
 }
@@ -674,10 +683,11 @@ body {
 .feature-hero.reverse > * { direction: ltr; }
 .feature-hero-text {}
 .feature-hero-title {
-  font-size: clamp(24px, 3vw, 36px);
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.5px;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(28px, 3.5vw, 42px);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.2px;
   margin-bottom: 16px;
 }
 .feature-hero-desc {
@@ -1217,10 +1227,11 @@ body.annual-mode [data-annual] { display: block; }
   pointer-events: none;
 }
 .cta-final-h2 {
-  font-size: clamp(30px, 5vw, 54px);
-  font-weight: 900;
-  line-height: 1.08;
-  letter-spacing: -1px;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(35px, 5.7vw, 62px);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.3px;
   margin-bottom: 18px;
 }
 .cta-final-p {
@@ -1474,9 +1485,14 @@ footer {
     tu ganancia real — todo desde el celular, en 10 segundos por venta.
   </p>
 
+  <!-- Acá decía "+340 revendedores en LATAM ya organizan su negocio con Parfum Track".
+       El producto todavía no tiene esa base de usuarios: inventar prueba social es
+       publicidad engañosa (regulada en AR/UY/CO/MX) y pelea con la propia estrategia,
+       que es conseguir a los primeros y pedirles testimonios reales. Cuando existan,
+       el lugar es este — con números que se puedan sostener. Ver MARKETING-PLAN.md. -->
   <div class="hero-social-proof">
     <span class="sp-dot"></span>
-    +340 revendedores en LATAM ya organizan su negocio con Parfum Track
+    Recién lanzada · Probala gratis y contanos qué le falta
   </div>
 
   <div class="hero-ctas">
@@ -1523,13 +1539,17 @@ footer {
   <div class="container-narrow">
     <div class="demo-title">Mirá cómo funciona en 25 segundos</div>
     <p class="demo-subtitle">Registrá ventas, cobrá por WhatsApp y seguí tus ganancias en tiempo real</p>
-    <button class="demo-btn" onclick="document.getElementById('videoModal').classList.add('active')">▶ Ver demo</button>
+    <button class="demo-btn" onclick="abrirDemo()">▶ Ver demo</button>
   </div>
 </section>
 
+<!-- preload="none" es obligatorio: el video pesa ~18 MB y sin eso el navegador se lo
+     baja entero en la primera visita, aunque nadie lo mire. En LATAM, con datos móviles
+     caros, eso es la página entera (98% del peso) gastada de gusto. Se carga recién al
+     tocar "Ver demo", que además arranca la reproducción para que no quede en negro. -->
 <div id="videoModal" class="video-modal">
-  <button class="video-close" onclick="document.getElementById('videoModal').classList.remove('active')">&times;</button>
-  <video controls width="100%" style="max-width: 540px;">
+  <button class="video-close" onclick="cerrarDemo()">&times;</button>
+  <video id="demoVideo" controls playsinline preload="none" width="100%" style="max-width: 540px;">
     <source src="/demo.mp4" type="video/mp4">
     Tu navegador no soporta videos HTML5.
   </video>
@@ -1544,9 +1564,11 @@ footer {
       <div class="trust-stat-num">10 seg</div>
       <div class="trust-stat-label">Por venta registrada</div>
     </div>
+    <!-- Acá decía "+340 · Revendedores en LATAM": no es cierto todavía. Se reemplaza por
+         la ventaja real y verificable (D-03: los datos viven solo en el dispositivo). -->
     <div class="trust-stat">
-      <div class="trust-stat-num">+340</div>
-      <div class="trust-stat-label">Revendedores en LATAM</div>
+      <div class="trust-stat-num">Tus datos</div>
+      <div class="trust-stat-label">Solo en tu celular</div>
     </div>
     <div class="trust-stat">
       <div class="trust-stat-num">Gratis</div>
@@ -2202,6 +2224,24 @@ document.addEventListener('click', e => {
     nav.classList.remove('open');
     document.body.style.overflow = '';
   }
+});
+
+// ── Demo en video ──
+// El <video> tiene preload="none" (pesa ~18 MB). Se carga recién acá, y arrancamos
+// la reproducción en el mismo gesto del click para que no quede un rectángulo negro.
+function abrirDemo() {
+  document.getElementById('videoModal').classList.add('active');
+  const v = document.getElementById('demoVideo');
+  if (v) v.play().catch(() => {});   // si el navegador la bloquea, quedan los controles
+  if (window.plausible) plausible('ver_demo');
+}
+function cerrarDemo() {
+  document.getElementById('videoModal').classList.remove('active');
+  const v = document.getElementById('demoVideo');
+  if (v) v.pause();   // sin esto el audio seguía sonando con el modal cerrado
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('videoModal')?.classList.contains('active')) cerrarDemo();
 });
 
 // ── FAQ Accordion ──

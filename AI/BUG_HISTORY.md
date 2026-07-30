@@ -549,6 +549,16 @@ incluido el que comprueba que el XSS no se ejecute.
 - 🟠 **La CSP también es contención de daño**, no solo prevención: un permiso que nadie usa
   es una vía de salida gratis para el atacante.
 
+**Riesgo residual que quedaba abierto y ya se cerró (30/07).** Apretar `esImagenSegura()` a
+una lista blanca (`png|jpe?g|webp|gif|avif`) abría la pregunta de si iba a rechazar fotos
+reales — por ejemplo un iPhone, que saca HEIC. **No las rechaza, y no depende del celular:**
+tanto la foto de perfume como el logo del negocio pasan por `_processPhoto()`
+(`04-stock.js:57`), que dibuja la imagen en un `<canvas>` y guarda
+`c.toDataURL('image/webp', 0.7)`, con fallback a `image/jpeg` si el navegador no soporta
+webp. O sea que el formato de origen **nunca** se guarda tal cual: el canvas lo normaliza
+siempre a webp o jpeg, los dos en la lista blanca. Confirmado además por el dueño con sus
+datos reales en producción.
+
 ---
 
 ## BUG-27 — Todo el repo se servía público en el dominio 🔴
@@ -606,3 +616,43 @@ dos mecanismos, uno de verdad y uno decorativo**, y el decorativo era el que se 
   en todas las requests): el aviso existía y nadie lo miraba.
 - 🟠 **La documentación interna es superficie de ataque.** `AI/` es valiosísimo para
   desarrollar y no puede estar a un GET de distancia.
+
+---
+
+## BUG-28 — La landing bajaba 18 MB de video a todo el que entraba 🟠
+**Fecha:** 30/07/2026 · **Riesgo de reintroducción:** 🟠 MEDIO
+
+**Descripción.** La primera carga de la landing pesaba **18,07 MB en móvil**, de los cuales
+**17,79 MB era `demo.mp4`** — el 98%. El video está dentro de un modal que solo se abre al
+tocar "Ver demo", pero el navegador se lo bajaba igual, entero, aunque nadie lo mirara.
+
+**Por qué importa.** El mercado objetivo es LATAM con datos móviles caros. Es plata que le
+hacés gastar al visitante antes de que lea el titular, y la mayoría se va antes de que
+cargue. Es la clase de problema que no aparece en ningún test funcional: todo "anda".
+
+**Causa.** `<video controls>` sin atributo `preload`. El default de Chrome es agresivo y se
+baja el archivo completo.
+
+**Solución.** `preload="none"` + que el botón "Ver demo" (`abrirDemo()`) arranque la
+reproducción en el mismo gesto del click, para que no quede un rectángulo negro esperando.
+**18,07 MB → 0,28 MB** (verificado midiendo las respuestas del navegador).
+
+No se le puso `poster` porque no hay forma de extraer un frame en este entorno (el Chromium
+de Playwright no trae el códec H.264 y no hay ffmpeg). Cuando se regrabe el video (P-01),
+generar el poster de paso.
+
+**Bug de audio encontrado en el mismo lugar.** `cerrarDemo()` solo sacaba la clase `active`
+del modal: **el video seguía reproduciéndose, con audio, detrás de la página cerrada.** Ahora
+pausa. De paso, Escape también cierra.
+
+**Archivos.** `src/landing/sections/03-demo.html`, `src/landing/sections/14-scripts.html`,
+`tests/landing-contenido.test.js`
+
+**Verificado al revés:** sacando `preload="none"` fallan 2 tests.
+
+**Reglas derivadas.**
+- 🟠 **Todo `<video>`/`<audio>` de la landing va con `preload="none"`.** Un test lo exige
+  para cualquiera que se agregue.
+- 🟠 **Ocultar algo con CSS no evita que se descargue.** Un modal cerrado igual baja su
+  contenido.
+- 🟠 **Cerrar un modal con video tiene que pausarlo**, o el audio sigue sonando.

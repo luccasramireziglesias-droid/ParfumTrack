@@ -55,11 +55,16 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
+/* Cormorant Garamond en los títulos, igual que la app (regla de marca). Ojo con tres
+   cosas al tocar esto: el peso máximo de la fuente es 700 (no hay 900), tiene la x
+   más chica que DM Sans —por eso el tamaño sube ~15% para que pese lo mismo— y el
+   tracking negativo es un recurso de palo seco: en una serif junta las letras. */
 .hero h1 {
-  font-size: clamp(36px, 6vw, 68px);
-  font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: -1.5px;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(42px, 7vw, 78px);
+  font-weight: 700;
+  line-height: 1.03;
+  letter-spacing: -0.5px;
   margin-bottom: 22px;
   color: var(--text);
 }
