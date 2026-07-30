@@ -145,10 +145,10 @@
     document.getElementById('add-perfume-compra').value = p.precioCompra || '';
     document.getElementById('add-perfume-venta').value = p.precioVenta || '';
     document.getElementById('add-perfume-stock').value = p.stock ?? 0;
-    if (p.foto && /^data:image\//.test(p.foto)) {
+    if (this.esImagenSegura(p.foto)) {
       const preview = document.getElementById('add-perfume-photo-preview');
       preview.className = '';
-      preview.innerHTML = `<img class="photo-preview-img" src="${p.foto}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
+      preview.innerHTML = `<img class="photo-preview-img" src="${this.imgSrc(p.foto)}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
     }
   },
 
@@ -187,7 +187,7 @@
     this._pendingPerfumePhoto = dataUrl;
     const preview = document.getElementById('add-perfume-photo-preview');
     preview.className = '';
-    preview.innerHTML = `<img class="photo-preview-img" src="${dataUrl}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
+    preview.innerHTML = `<img class="photo-preview-img" src="${this.imgSrc(dataUrl)}" alt=""><div class="photo-preview-change">Tocar para cambiar</div>`;
   },
 
   savePerfume() {

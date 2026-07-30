@@ -9,6 +9,123 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-07-29 — 🔴 XSS por inyección en atributos: tres vías, una raíz
+
+**Motivo.** Pedido explícito de revisar seguridad.
+
+**Lo que se encontró.** Tres vectores que permitían **ejecutar JavaScript** en el origen de
+la app, con acceso a ventas, clientes, código de licencia y token CSRF:
+
+| Vector | Cómo llega |
+|---|---|
+| Nombre de perfume | Tipeado **o importado de un Excel** que te manden |
+| Foto de perfume | Backup JSON restaurado |
+| Logo del negocio | Backup JSON restaurado |
+
+**Se verificaron explotables antes del fix**, ejecutando `window.__XSS = true` por los tres
+caminos. No eran hallazgos teóricos.
+
+**Causa raíz única.** `esc()` usa `textContent` → `innerHTML`: escapa `& < >` pero **no las
+comillas**. Estaba usado dentro de atributos, donde una comilla cierra el atributo e inyecta
+uno nuevo. Y las imágenes se validaban **solo por prefijo** (`^data:image/`), así que
+`data:image/png,x" onerror="…` pasaba entero.
+
+**Cuatro capas de fix.** `escAttr()` para atributos · `esImagenSegura()`/`imgSrc()` que
+valida la cadena completa y excluye SVG · `_sanearImportado()` que limpia el backup **al
+entrar a la base** · CSP sin `https:` en `img-src`, que era el canal de exfiltración.
+
+**Bug encontrado dentro del propio fix.** El primer intento usaba `encodeURIComponent` para
+el `onclick` del cliente — **no escapa el apóstrofo**, así que "O'Brien" seguía rompiendo el
+string. Lo detectó el test porque estaba escrito con el nombre real.
+
+**Verificado al revés:** volviendo la validación a solo-prefijo, **7 tests fallan**.
+
+**Archivos.** `11-utils.js`, `02-render.js`, `04-stock.js`, `10-data-management.js`,
+`18-clientes.js`, `20-recordatorios.js`, `03-nueva-venta.js`, `26-importar-excel.js`,
+`27-negocio.js`, `_headers`, `tests/xss.spec.js` (12 tests) + 8 regresiones estáticas
+
+**Riesgo.** 🟠 La CSP se acotó: si alguien suma OneSignal o Google Fonts más adelante, va a
+chocar contra la CSP. Es el modo de falla correcto — explícito, no silencioso.
+
+**Total.** 629 → **637 Vitest**, 125 → **137 E2E**.
+
+---
+
+## 2026-07-29 — El catálogo mandaba solo texto sin que se notara
+
+**Motivo.** El usuario reportó con captura que "envía un msj pero no la imagen".
+
+**No era un bug: eran dos botones y el obvio era el equivocado.** El de abajo, con el verde
+de WhatsApp y a todo el ancho, mandaba **solo texto**. Las imágenes estaban detrás de otro
+botón que **solo aparecía después** de apretar "Vista previa" (`display:none` hasta
+entonces). El camino que manda imágenes era invisible.
+
+**Restricción de fondo.** Un link `wa.me` **no puede llevar archivos** — WhatsApp solo
+acepta texto por URL. Las imágenes exigen `navigator.share({ files })`, que abre el menú
+del sistema. Los dos caminos no se pueden unir, así que hay que explicarlo en la UI.
+
+**Qué cambió.**
+- Los dos botones **siempre visibles**, y cada uno dice qué hace: "Enviar con imágenes (N)"
+  y "Enviar solo el listado en texto".
+- Nota abajo explicando por qué son dos: *"WhatsApp no deja mandar imágenes desde un link"*.
+- `_catalogoMensaje()` extraído: el texto se arma **una vez** y ahora viaja como
+  **epígrafe de la imagen**. Antes la imagen iba sin precios ni contacto.
+- Si el navegador acepta archivos pero rechaza la combinación con texto, manda la imagen
+  igual en vez de fallar.
+- `enviarCatalogo()` genera las imágenes si hacen falta. Antes `if (length === 0) return`
+  salía en silencio.
+
+**Archivos.** `src/app/10-data-management.js`, `src/screens/catalogo.html`,
+`tests/negocio.spec.js` (6 tests), `tests/features.test.js` (5 regresiones)
+
+**Riesgo.** 🟢 El comportamiento de texto no cambia; el de imágenes suma el epígrafe.
+
+**Total.** 624 → **629 Vitest**, 119 → **125 E2E**.
+
+---
+
+## 2026-07-29 — Plan de captación manual + corrección de una ruta que se repitió toda la sesión
+
+**Motivo.** Pregunta del dueño: dónde correr los ads y qué recomiendo.
+
+**Lo que se encontró.** El material de ads ya estaba escrito y completo:
+`ADS-META-IG-BRIEF.md` (12 ads), `ADS-META-IG.json`, `DESIGN-BRIEF-12-ADS.md`,
+`_p_tiktok_ads.html` (~20 guiones) y `plan-lanzamiento-30dias.html`.
+
+**🔴 Corrección de documentación.** `CLAUDE.md`, `AI/ROADMAP.md` y `AI/TODO.md` decían que
+el plan estaba en `plans/`, **una carpeta que no existe** — los archivos están en la raíz.
+Se repitió esa ruta varias veces en la sesión antes de verificarla.
+
+**Lo que se agregó.** `MARKETING-SEMANA-1.md`: captación manual a $0 antes de gastar en
+ads. El razonamiento:
+
+- Dos de los 12 ads (`AD 5` social proof, `AD 12` objection handler) **necesitan
+  testimonios** que hoy no existen: correrlos sería mentir.
+- El brief propone $100-150/día × 21 días (~$3.000) para testear 12 variantes. Distinguir
+  12 variantes necesita ~100 conversiones cada una: se gastaría el presupuesto aprendiendo
+  qué creatividad gana **antes** de saber si el embudo convierte.
+- No hay tasa de activación medida. Si de 10 registros solo 1 carga una venta, el problema
+  no es el ad.
+
+**Recomendación registrada.** Semana 1 gratis (grupos de Facebook + DMs de Instagram) para
+conseguir testimonios, objeciones reales y la tasa de activación. Después **3 ads a
+$10-20/día**, no 12 a $100-150: AD 1 (dolor), AD 4 (velocidad), AD 8 (vs. Excel) — los tres
+que no necesitan testimonios y que testean **posicionamiento** en vez de creatividad.
+
+**Nota de honestidad.** El documento **no lista grupos concretos de Facebook**: no se puede
+verificar desde el entorno de desarrollo. Da términos de búsqueda y criterios de selección,
+y lo dice explícitamente en el propio archivo.
+
+**Dato bueno que salió del chequeo.** El embudo ya está instrumentado en Plausible:
+`cta_*` → `sale_created` (con `duracion`) → `click_subscribe` → `mp_checkout_redirect`.
+Se puede medir activación real desde el día uno.
+
+**Archivos.** `MARKETING-SEMANA-1.md` (nuevo), `CLAUDE.md`, `AI/ROADMAP.md`, `AI/TODO.md`
+
+**Riesgo.** Ninguno — no toca código.
+
+---
+
 ## 2026-07-29 — El plan pago se llama igual en todos lados
 
 **Motivo.** Con la licencia activa, la pantalla decía **"Plan Pro"** arriba y el badge

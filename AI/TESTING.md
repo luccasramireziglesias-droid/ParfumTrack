@@ -1,6 +1,6 @@
 # TESTING — Estrategia de tests
 
-**Estado actual: 624 Vitest + 119 Playwright. Los dos corren en CI y frenan el deploy.**
+**Estado actual: 637 Vitest + 137 Playwright. Los dos corren en CI y frenan el deploy.**
 
 ---
 
@@ -47,8 +47,8 @@ entender el patrón que los bugs:
 ## 2. Comandos
 
 ```bash
-npm test                              # 624 Vitest
-npx playwright test                   # 119 E2E (necesita la app en :8787)
+npm test                              # 637 Vitest
+npx playwright test                   # 137 E2E (necesita la app en :8787)
 npx playwright test tests/f3.spec.js  # un solo archivo
 npx vitest run tests/features.test.js # una sola suite
 
@@ -60,7 +60,7 @@ VOL_VENTAS=5000 npx playwright test tests/volumen.spec.js
 
 ---
 
-## 3. Vitest — 624 tests, 35 archivos
+## 3. Vitest — 637 tests, 35 archivos
 
 Corren en Node, sin navegador. Dos tipos:
 
@@ -108,7 +108,7 @@ comportamiento y no el nombre.
 
 ---
 
-## 4. Playwright — 119 tests
+## 4. Playwright — 137 tests
 
 Corren contra la app real en `http://localhost:8787`.
 
@@ -129,6 +129,7 @@ Corren contra la app real en `http://localhost:8787`.
 | `concurrencia.spec.js` | 🔵 Dos pestañas escribiendo + interrupción a mitad de operación |
 | `pulido.spec.js` | Formato de montos, perfume duplicado, planilla reimportada |
 | `header.spec.js` | El nombre del negocio no tapa el chip de cuenta |
+| `xss.spec.js` | 🔴 Los 3 vectores de inyección en atributos, con el payload real |
 | `negocio.spec.js` | Perfil del negocio: guardado, logo, y dónde salen los datos |
 
 ### 🔴 Preámbulo obligatorio de todo E2E

@@ -205,6 +205,22 @@
     return registros;
   },
 
+  // Un backup es un archivo que puede venir de cualquiera. Las fotos van
+  // directo a un src, así que una foto adulterada era XSS con solo restaurar
+  // el archivo. Los renders ya validan, pero no se guarda basura en la base:
+  // si el dato entra sucio, cualquier render nuevo que se olvide de validar
+  // vuelve a abrir el agujero.
+  _sanearImportado(store, item) {
+    if (!item || typeof item !== 'object') return item;
+    if (store === 'perfumes' && 'foto' in item) {
+      return { ...item, foto: this.esImagenSegura(item.foto) ? item.foto : '' };
+    }
+    if (store === 'config' && item.key === 'negocio' && item.value) {
+      return { ...item, value: this._sanitizarNegocio(item.value) };
+    }
+    return item;
+  },
+
   async _restoreData(data) {
     // Si esto lanza, la base local queda intacta (todavía no borramos nada)
     this._assertRestorable(data);
@@ -217,7 +233,7 @@
     for (const store of stores) {
       if (!Array.isArray(data[store])) continue;
       for (const item of data[store]) {
-        try { await DB.put(store, item); total++; } catch { skipped++; }
+        try { await DB.put(store, this._sanearImportado(store, item)); total++; } catch { skipped++; }
       }
     }
     if (data.settings) {
@@ -494,7 +510,7 @@
       <label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
         <input type="checkbox" data-cat-id="${p.id}" ${this._catalogoSelected.has(p.id) ? 'checked' : ''} onchange="App._toggleCatalogoItem('${p.id}', this.checked)" style="width:20px;height:20px;accent-color:var(--gold);flex-shrink:0;">
         ${p.foto && /^data:image\//.test(p.foto)
-          ? `<img src="${this.esc(p.foto)}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;">`
+          ? `<img src="${this.imgSrc(p.foto)}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;">`
           : `<div style="width:40px;height:40px;border-radius:8px;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span class="ms" style="font-size:20px;color:var(--text4);">photo_camera</span></div>`
         }
         <div style="flex:1;min-width:0;">
@@ -506,8 +522,6 @@
     `).join('');
     this._updateCatalogoCount();
     document.getElementById('catalogo-preview').classList.add('hidden');
-    document.getElementById('btn-catalogo-send').style.display = 'none';
-    document.getElementById('btn-catalogo-preview').style.display = '';
   },
 
   _toggleCatalogoItem(id, checked) {
@@ -560,16 +574,25 @@
 
     const container = document.getElementById('catalogo-preview-imgs');
     container.innerHTML = this._catalogoImages.map((src, i) =>
-      `<img src="${src}" alt="Página ${i + 1}" style="width:100%;border-radius:12px;border:1px solid var(--border);">`
+      `<img src="${this.imgSrc(src)}" alt="Página ${i + 1}" style="width:100%;border-radius:12px;border:1px solid var(--border);">`
     ).join('');
     document.getElementById('catalogo-preview').classList.remove('hidden');
-    document.getElementById('btn-catalogo-send').style.display = '';
-    document.getElementById('btn-catalogo-preview').style.display = 'none';
+
     this.toast('Vista previa lista', 'check_circle');
   },
 
   async enviarCatalogo() {
-    if (this._catalogoImages.length === 0) return;
+    // Antes salía en silencio si no habías apretado "Vista previa" primero.
+    // Genera las imágenes si hacen falta: el usuario apretó Enviar, no
+    // "preparate para enviar".
+    if (this._catalogoImages.length === 0) {
+      if (this._catalogoSelected.size === 0) {
+        this.toast('Seleccioná al menos un perfume', 'warning');
+        return;
+      }
+      await this.previewCatalogo();
+      if (this._catalogoImages.length === 0) return;
+    }
 
     if (navigator.share && navigator.canShare) {
       try {
@@ -579,7 +602,14 @@
           const blob = await res.blob();
           return new File([blob], `catalogo-${i + 1}.png`, { type: 'image/png' });
         }));
-        const shareData = { files };
+        // El texto va junto: WhatsApp lo usa como epígrafe de la imagen, así
+        // que el cliente recibe el catálogo Y los precios con el contacto en
+        // un solo mensaje. Antes la imagen viajaba sola.
+        const texto = this._catalogoMensaje();
+        const conTexto = texto ? { files, text: texto } : { files };
+        // canShare puede aceptar los archivos pero rechazar la combinación con
+        // texto: en ese caso se manda solo la imagen antes que fallar
+        const shareData = navigator.canShare(conTexto) ? conTexto : { files };
         if (navigator.canShare(shareData)) {
           navigator.share(shareData).catch(() => {});
           this.toast('Catálogo enviado', 'share');
@@ -600,14 +630,14 @@
     this.toast(`${this._catalogoImages.length} imagen${this._catalogoImages.length > 1 ? 'es' : ''} descargada${this._catalogoImages.length > 1 ? 's' : ''}`, 'download');
   },
 
-  enviarCatalogoTexto() {
+  // Un solo lugar arma el mensaje: lo usa el envío de texto Y el caption de
+  // las imágenes. Antes estaba solo en el de texto, así que la imagen viajaba
+  // sin precios ni contacto.
+  _catalogoMensaje() {
     const selected = this.perfumes
       .filter(p => this._catalogoSelected.has(p.id))
       .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
-    if (selected.length === 0) {
-      this.toast('Seleccioná al menos un perfume', 'warning');
-      return;
-    }
+    if (selected.length === 0) return '';
     const n = this.getNegocio();
     const negocio = n.nombre || 'Mi negocio';   // nunca la marca de la app
     const lines = selected.map(p => {
@@ -618,8 +648,16 @@
     // a quién escribirle sin tener que buscar el chat
     const contacto = this._negocioContacto();
     const pie = `_${selected.length} perfumes · ${new Date().toLocaleDateString('es-AR')}_`;
-    const msg = `*${negocio} — Catálogo actualizado*\n\n${lines.join('\n')}\n\n${pie}` +
+    return `*${negocio} — Catálogo actualizado*\n\n${lines.join('\n')}\n\n${pie}` +
       (contacto ? `\n\n${contacto}` : '');
+  },
+
+  enviarCatalogoTexto() {
+    const msg = this._catalogoMensaje();
+    if (!msg) {
+      this.toast('Seleccioná al menos un perfume', 'warning');
+      return;
+    }
     this.cobrarWhatsApp(msg);
   },
 

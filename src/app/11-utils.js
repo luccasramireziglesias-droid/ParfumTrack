@@ -104,11 +104,41 @@
     return d.getDate() + ' ' + months[d.getMonth()];
   },
 
+  // esc() sirve para CONTENIDO de texto. NO escapa comillas, así que dentro
+  // de un atributo no protege: un nombre como `Yara" onmouseover="…` cierra
+  // el atributo e inyecta un handler. Verificado explotable en 07/2026 por
+  // tres vías (nombre de perfume, foto, logo). Para atributos va escAttr().
   esc(s) {
     if (!s) return '';
     const div = document.createElement('div');
     div.textContent = s;
     return div.innerHTML;
+  },
+
+  // Para TODO valor que entre entre comillas de un atributo HTML.
+  escAttr(s) {
+    if (s === null || s === undefined) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+
+  // Los data URL de imagen van directo a un src. Validar solo el prefijo
+  // (`^data:image/`) dejaba pasar `data:image/png,x" onerror="…`: el resto
+  // de la cadena nunca se miraba. Acá se valida la cadena COMPLETA, así que
+  // no hay forma de que sobreviva una comilla.
+  _IMG_DATA_URL: /^data:image\/(png|jpe?g|webp|gif|avif);base64,[A-Za-z0-9+/]+={0,2}$/,
+
+  esImagenSegura(v) {
+    return typeof v === 'string' && this._IMG_DATA_URL.test(v);
+  },
+
+  // Devuelve la imagen si es segura, o '' — para usar directo en un src
+  imgSrc(v) {
+    return this.esImagenSegura(v) ? v : '';
   },
 
   // Interpreta montos tipeados con separadores regionales: "1.400" (miles AR/UY),

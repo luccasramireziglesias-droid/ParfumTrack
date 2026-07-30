@@ -392,7 +392,7 @@
               <button class="stock-btn plus ms" onclick="App.adjustStock(${p.id}, 1)" aria-label="Sumar stock">add</button>
             </div>
           </div>
-          <button class="stock-reponer" onclick="App.abrirCompra(${p.id})" aria-label="Reponer stock de ${this.esc(p.nombre)}">
+          <button class="stock-reponer" onclick="App.abrirCompra(${p.id})" aria-label="Reponer stock de ${this.escAttr(p.nombre)}">
             <span class="ms" aria-hidden="true">local_shipping</span>Reponer
           </button>
         </div>
@@ -491,7 +491,7 @@
           <div class="stock-alert-nombre">${this.esc(a.perfume)}</div>
           <div class="stock-alert-detalle">${detalle}</div>
         </div>
-        <button class="stock-alert-btn" onclick="App.abrirCompra(${a.id})" aria-label="Reponer ${this.esc(a.perfume)}">
+        <button class="stock-alert-btn" onclick="App.abrirCompra(${a.id})" aria-label="Reponer ${this.escAttr(a.perfume)}">
           ${a.critical ? 'Reponer' : `~${Math.round(a.monthsLeft * 30)}d`}
         </button>
       </div>`;
