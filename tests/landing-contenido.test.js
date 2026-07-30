@@ -116,6 +116,76 @@ describe('la landing no le quema los datos móviles al visitante', () => {
   });
 });
 
+/** Lee el ancho y alto reales de un JPEG o un WebP, sin dependencias. */
+function dimensiones(rel) {
+  const d = readFileSync(path.join(root, rel));
+  if (d[0] === 0xff && d[1] === 0xd8) {
+    // JPEG: recorrer los marcadores hasta el SOF, que trae alto y ancho.
+    let i = 2;
+    while (i < d.length - 9) {
+      if (d[i] !== 0xff) { i++; continue; }
+      const m = d[i + 1];
+      if (m >= 0xc0 && m <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(m)) {
+        return { w: d.readUInt16BE(i + 7), h: d.readUInt16BE(i + 5) };
+      }
+      i += 2 + d.readUInt16BE(i + 2);
+    }
+  }
+  if (d.slice(0, 4).toString() === 'RIFF' && d.slice(8, 12).toString() === 'WEBP') {
+    const fmt = d.slice(12, 16).toString();
+    if (fmt === 'VP8 ') return { w: d.readUInt16LE(26) & 0x3fff, h: d.readUInt16LE(28) & 0x3fff };
+    if (fmt === 'VP8L') {
+      const b = d.readUInt32LE(21);
+      return { w: (b & 0x3fff) + 1, h: ((b >> 14) & 0x3fff) + 1 };
+    }
+    if (fmt === 'VP8X') return { w: (d.readUIntLE(24, 3) & 0xffffff) + 1, h: (d.readUIntLE(27, 3) & 0xffffff) + 1 };
+  }
+  throw new Error('no se pudo leer el tamaño de ' + rel);
+}
+
+describe('las capturas declaran el tamaño que realmente tienen', () => {
+  // Un width/height mal declarado reserva el espacio equivocado y la página salta cuando
+  // la imagen carga (CLS). Ya pasó con img/whatsapp-cobro.jpg: decía 1231 y son 1144.
+  const tags = landing.match(/<img\b[^>]*>/g) || [];
+
+  it.each(
+    tags
+      .map((t) => ({
+        tag: t,
+        src: (t.match(/src=["']\/([^"']+)["']/) || [])[1],
+        w: Number((t.match(/width=["'](\d+)["']/) || [])[1]),
+        h: Number((t.match(/height=["'](\d+)["']/) || [])[1]),
+      }))
+      .filter((x) => x.src && x.w && x.h && /\.(jpe?g|webp|png)$/.test(x.src))
+      .map((x) => [x.src, x.w, x.h])
+  )('%s declara %ix%i y el archivo coincide en proporción', (src, w, h) => {
+    const real = dimensiones(src);
+    const declarada = w / h;
+    const verdadera = real.w / real.h;
+    expect(
+      Math.abs(declarada - verdadera),
+      `${src}: declara ${w}x${h} (${declarada.toFixed(3)}) pero el archivo es ` +
+        `${real.w}x${real.h} (${verdadera.toFixed(3)}). Corregí width/height o la página va a saltar al cargar.`
+    ).toBeLessThan(0.01);
+  });
+
+  it('manifest.json declara el tamaño real de cada captura', () => {
+    const manifest = JSON.parse(readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+    for (const s of manifest.screenshots || []) {
+      const real = dimensiones(s.src.replace(/^\//, ''));
+      expect(s.sizes, `${s.src} en manifest.json`).toBe(`${real.w}x${real.h}`);
+    }
+  });
+
+  it('las capturas de la landing no pesan de más', () => {
+    for (const rel of ['screenshot-app.webp', 'screenshot-catalogo.jpg',
+                       'screenshot-estadisticas.jpg', 'img/whatsapp-cobro.jpg']) {
+      const kb = readFileSync(path.join(root, rel)).length / 1024;
+      expect(kb, `${rel} pesa ${kb.toFixed(0)} KB`).toBeLessThan(300);
+    }
+  });
+});
+
 describe('la landing usa la tipografía de la marca', () => {
   it.each([
     ['styles/03-hero.css', '.hero h1'],
