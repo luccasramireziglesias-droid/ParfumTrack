@@ -8,9 +8,10 @@
   },
   "assets": {
     "directory": ".",
-    "binding": "ASSETS",
-    // AI/* queda fuera a propósito: documenta hallazgos de seguridad abiertos
-    "exclude": ["standalone/*", "inservible/*", "PLAYSTORE/*", "_temp*", "_p_*", "playbook*", "auditoria*", "COBERTURA*", ".claude/*", "node_modules/*", ".git/*", "tests/*", "package*.json", "CLAUDE.md", "src/*", "scripts/*", "AI/*"]
+    "binding": "ASSETS"
+    // ⚠️ NO agregar "exclude" acá: no es un campo válido. Wrangler lo ignora en silencio
+    // (avisa "Unexpected fields found in assets field") y todo lo que creías excluido
+    // queda público. La lista real de exclusiones vive en `.assetsignore`.
   },
   "compatibility_flags": [
     "nodejs_compat"

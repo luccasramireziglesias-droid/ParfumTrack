@@ -40,6 +40,71 @@ ads**. Esa señal llega gratis en una semana y ningún presupuesto la arregla.
 
 ---
 
+## 2026-07-30 — 🔴 Todo el repo estaba público en el dominio (BUG-27)
+
+**Motivo.** Pedido: "haceme un html con el plan". Al buscar dónde ponerlo para que **no**
+quedara público apareció el hallazgo.
+
+**Lo que estaba pasando.** `assets.directory` es `.` (la raíz del repo), así que wrangler
+sube todo lo que no esté excluido. Y **`assets.exclude` no es un campo válido de
+wrangler.** Nunca excluyó nada. Wrangler lo venía avisando en cada deploy:
+
+```
+▲ [WARNING] Processing wrangler.jsonc configuration:
+    - Unexpected fields found in assets field: "exclude"
+```
+
+Confirmado en el log del deploy de producción del 30/07 (run 30536826819) y contra
+`node_modules/wrangler/config-schema.json`, donde `assets` solo acepta `binding`,
+`directory`, `html_handling` y `not_found_handling`. El único mecanismo real es
+`.assetsignore`, que existía pero solo cubría `node_modules/`, `functions/`, `scripts/`,
+`standalone/`, `inservible/`, `worker.js` y `wrangler.jsonc`.
+
+**Qué quedaba accesible sin autenticación** (340 archivos, simulando la lógica de wrangler):
+
+| Qué | Por qué importa |
+|---|---|
+| `AI/` (20 archivos) | 🔴 **Documenta hallazgos de seguridad ABIERTOS.** `TODO.md`, `SECURITY.md` y `BUG_HISTORY.md` son un mapa para un atacante |
+| 14 `auditoria-*.html`, `AUDIT_LEGAL.html`, `COBERTURA_LEGAL.html` | Hallazgos abiertos con severidad y scores |
+| `tests/` (52) | Describen los vectores de ataque y los invariantes que protegen |
+| `CLAUDE.md` | Arquitectura, nombres de los secrets, detalles de KV |
+| `MARKETING-*`, `ADS-*`, `PLANES_*`, `MASTER_CREATIVE_BRIEF*` | Estrategia, presupuesto y ángulos de campaña completos |
+| `wrangler.staging.jsonc`, `test-payment-flow.mjs` | Config de staging y lógica de pagos |
+| `src/` (103), `android/` (52), `PLAYSTORE/` (20) | Menos grave: `index.html` ya es público y es el mismo código |
+
+**No hay forma de saber si alguien lo leyó**: los assets no dejan logs de acceso.
+
+**Fix.** Las exclusiones pasaron a `.assetsignore` (el mecanismo que sí funciona) y se
+**borró** `assets.exclude` de los dos wrangler configs: dejarlo ahí es peor que no tenerlo,
+porque parece protección. Se eligió lista negra y no `*` + negaciones porque la lista negra
+ya está probada funcionando en este archivo, y un default-deny mal interpretado por el
+walker de wrangler tumba el sitio entero.
+
+**Lo que evita que vuelva a pasar.** `tests/assets-publicos.test.js` (31 tests):
+reimplementa la lógica exacta de wrangler (`createAssetIgnoreFunction` → paquete `ignore`,
+fijado en `7.0.6`) y exige que **todo** archivo que se subiría esté en una lista blanca
+derivada de las referencias reales de `index.html`, `landing.html`, `manifest.json` y
+`STATIC_ASSETS` de `sw.js`. Con el `.assetsignore` viejo **fallan 20 de los 31** — se
+verificó revirtiéndolo. Un documento interno nuevo en la raíz ahora frena el deploy en vez
+de quedar público.
+
+**Qué más se agregó.** `standalone/marketing-plan.html` — el plan renderizado con la paleta
+dark/gold, imprimible. Las fuentes de marca van **embebidas en base64** (subset latin de
+`cormorant-garamond-latin.woff2` y `dm-sans-latin.woff2`): la primera versión pedía Google
+Fonts, que contradice la regla de fuentes locales, no anda sin internet y filtra la IP de
+quien lo abre. El archivo no tiene **ninguna** referencia externa (verificado renderizándolo:
+consola limpia, sin scroll horizontal a 900px ni a 390px).
+
+**Archivos.** `.assetsignore`, `wrangler.jsonc`, `wrangler.staging.jsonc`,
+`tests/assets-publicos.test.js` (nuevo), `package.json` (dep `ignore`),
+`standalone/marketing-plan.html` (nuevo), `AI/BUG_HISTORY.md`, `AI/SECURITY.md`
+
+**Riesgo.** 🟢 Bajo en el código: no toca rutas de la app ni del Worker, 668 tests pasan y
+el build no cambia `index.html`. ⚠️ **Verificar en el próximo deploy** que el log ya no
+avisa de `exclude` y que la cantidad de assets baja de ~340 a ~40.
+
+---
+
 ## 2026-07-29 — 🔴 XSS por inyección en atributos: tres vías, una raíz
 
 **Motivo.** Pedido explícito de revisar seguridad.

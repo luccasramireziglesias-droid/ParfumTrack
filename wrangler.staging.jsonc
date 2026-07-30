@@ -8,8 +8,9 @@
   },
   "assets": {
     "directory": ".",
-    "binding": "ASSETS",
-    "exclude": ["standalone/*", "inservible/*", "PLAYSTORE/*", "_temp*", "_p_*", "playbook*", "auditoria*", "COBERTURA*", ".claude/*", "node_modules/*", ".git/*", "tests/*", "package*.json", "CLAUDE.md"]
+    "binding": "ASSETS"
+    // ⚠️ NO agregar "exclude" acá: no es un campo válido, wrangler lo ignora en silencio.
+    // Las exclusiones reales están en `.assetsignore`.
   },
   "compatibility_flags": [
     "nodejs_compat"

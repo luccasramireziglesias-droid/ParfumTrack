@@ -1,13 +1,75 @@
+# Qué NO se sirve públicamente desde el dominio.
+#
+# 🔴 ESTE ARCHIVO ES EL ÚNICO QUE FUNCIONA. `assets.exclude` en wrangler.jsonc NO EXISTE
+# como campo: wrangler lo ignora y avisa "Unexpected fields found in assets field:
+# exclude" en el log del deploy. Estuvo ahí meses sin excluir nada.
+#
+# `assets.directory` es "." (la raíz del repo), así que TODO archivo que no esté acá
+# queda accesible en https://parfumtrack.../<ruta>. Al agregar un documento interno a la
+# raíz hay que sumarlo acá. `tests/assets-publicos.test.js` falla si te olvidás.
+
+# ── Código y build ────────────────────────────────────────────
 node_modules/
 functions/
+src/
+scripts/
+tests/
 .github/
 .git/
 .wrangler/
-scripts/
+.claude/
+.ci/
 netlify/
-inservible/
+www/
+test-results/
+playwright-report/
 worker.js
 wrangler.jsonc
+wrangler.staging.jsonc
 netlify.toml
-standalone/
+playwright.config.js
+vitest.config.js
+capacitor.config.json
+package.json
+package-lock.json
+test-payment-flow.mjs
+test-webhook-logic.mjs
 *.log
+.gitignore
+.gitattributes
+
+# ── Documentación interna ─────────────────────────────────────
+# AI/ documenta hallazgos de seguridad ABIERTOS: es un mapa para un atacante.
+AI/
+CLAUDE.md
+standalone/
+inservible/
+PLAYSTORE/
+android/
+
+# ── Auditorías (traen hallazgos abiertos y scores) ────────────
+auditoria*
+auditoria*/
+AUDITORIA*
+AUDIT_*
+COBERTURA*
+
+# ── Estrategia comercial y de marketing ───────────────────────
+MARKETING-*
+ADS-*
+DESIGN-BRIEF-*
+MASTER_CREATIVE_BRIEF*
+BRIEF-*
+ASSETS_FOR_*
+BRAND-COLORS.json
+PLANES_*
+ANALISIS_*
+plan-lanzamiento*
+planes-para-cliente.html
+presentacion.html
+playbook*
+_temp*
+_p_*
+
+# ── Borradores no linkeados ───────────────────────────────────
+landing-v2.html
