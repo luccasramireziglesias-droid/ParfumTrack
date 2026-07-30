@@ -22,11 +22,23 @@ Ver [DECISIONS.md](DECISIONS.md). **No quedan decisiones de producto abiertas.**
 válido de wrangler. El fix pasó todo a `.assetsignore`, pero **la verificación real es el
 log del deploy**, y desde el sandbox no se puede alcanzar el dominio de producción.
 
-**Qué mirar en el log del Deploy Worker:**
+**Estado tras el deploy del 30/07 (run 30553468515, commit `53df85a`):**
 
-1. Que **ya no aparezca** `Unexpected fields found in assets field: "exclude"`.
+✅ **El WARNING de `exclude` desapareció.** Era el único aviso de config y ya no está: la
+config se procesa limpia y `.assetsignore` es lo único que decide qué se sube.
+
+⚠️ **Falta confirmar que lo viejo dejó de servirse.** El log dice `No files to upload` —
+correcto, porque los blobs ya estaban en el storage de Cloudflare — pero **no imprime el
+total del manifiesto**, así que del log solo no se puede saber si bajó de ~340 a ~40.
+**La verificación que falta es pedir las URLs a mano** (puntos 3 y 4). Desde el sandbox no
+se alcanza el dominio: la política de red del entorno lo bloquea.
+
+**Qué mirar:**
+
+1. ✅ Que **ya no aparezca** `Unexpected fields found in assets field: "exclude"` — hecho.
 2. Que la cantidad de assets baje de **~340 a ~40**. Ojo: wrangler dice "X new or modified"
-   y "N already uploaded" — el número que importa es el total.
+   y "N already uploaded" — el número que importa es el total, y solo lo imprime cuando
+   hay algo que subir.
 3. Probar a mano un par de URLs que **tienen** que dar 404:
    `/AI/SECURITY.md`, `/CLAUDE.md`, `/MARKETING-PLAN.md`, `/tests/xss.spec.js`,
    `/wrangler.jsonc`.
@@ -39,6 +51,32 @@ punto 3 sigue respondiendo 200, hay que forzar la limpieza desde el Dashboard de
 **Esto es lo que decide si el hallazgo está realmente cerrado.**
 
 **Dificultad.** Baja, pero es el paso que falta para dar BUG-27 por cerrado de verdad.
+
+---
+
+### 🟠 T-15 — Hay un sitio de Netlify conectado al repo
+
+**Evidencia.** El PR #103 trajo un check `netlify/parfumtrackapp/deploy-preview` apuntando a
+`app.netlify.com/projects/parfumtrackapp`. O sea: **hay una app de Netlify enganchada a este
+repositorio** que buildea en cada PR.
+
+**Por qué importa.** `.assetsignore` y `wrangler.jsonc` son de Cloudflare — **a Netlify no
+lo tocan**. Si Netlify publica la raíz del repo (que es lo que hace por defecto, y acá no
+hay `netlify.toml` que diga otra cosa), los mismos archivos que se acaban de cerrar en el
+dominio de Cloudflare **siguen públicos en el dominio de Netlify** y en cada URL de deploy
+preview. BUG-27 no está cerrado del todo hasta resolver esto.
+
+**Además contradice la arquitectura declarada:** `CLAUDE.md` dice "Hosting: Cloudflare
+Workers con Assets (NO Pages, NO Netlify)". Parece un resto de una migración vieja —
+`.assetsignore` todavía nombra `netlify/` y `netlify.toml`, que ya no existen en el repo.
+
+**Qué hacer.** Entrar a `app.netlify.com/projects/parfumtrackapp` y ver si el sitio está
+publicado. Si no se usa —que es lo más probable—, **desconectarlo del repo y borrarlo**: es
+superficie de ataque y una copia desactualizada de la app dando vueltas. Si se usa para
+algo, hay que replicar las exclusiones ahí.
+
+**Dificultad.** Baja. **No verificado desde acá**: la política de red del entorno no deja
+alcanzar dominios externos.
 
 ---
 
