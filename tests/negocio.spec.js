@@ -342,3 +342,95 @@ test.describe('Nombre del plan', () => {
     expect(r.tarjetas, 'aparecieron más planes en la UI').toBe(2);
   });
 });
+
+test.describe('Catálogo — imagen y texto juntos', () => {
+  const seleccionar = (page, n = 2) => page.evaluate((n) => {
+    App.showScreen('catalogo');
+    App.compartirCatalogo();
+    App._catalogoSelected = new Set(App.perfumes.slice(0, n).map(p => p.id));
+    App._updateCatalogoCount();
+  }, n);
+
+  test('el mensaje se arma en un solo lugar y lo usan los dos caminos', async ({ page }) => {
+    // Antes el texto se armaba dentro de enviarCatalogoTexto, así que la
+    // imagen viajaba sin precios ni contacto
+    await completar(page, PERFIL);
+    await seleccionar(page);
+    const msg = await page.evaluate(() => App._catalogoMensaje());
+    expect(msg).toContain('VIP Parfums');
+    expect(msg).toContain('+598 94 466 577');
+  });
+
+  test('al compartir imágenes va el texto como epígrafe', async ({ page }) => {
+    await completar(page, PERFIL);
+    await seleccionar(page);
+
+    const compartido = await page.evaluate(async () => {
+      let capturado = null;
+      navigator.canShare = () => true;
+      navigator.share = async (d) => { capturado = { tieneFiles: !!d.files, texto: d.text || '' }; };
+      await App.enviarCatalogo();
+      return capturado;
+    });
+    expect(compartido.tieneFiles, 'no mandó las imágenes').toBe(true);
+    expect(compartido.texto, 'la imagen viajó sin el texto').toContain('VIP Parfums');
+    expect(compartido.texto).toContain('+598 94 466 577');
+  });
+
+  test('si el navegador rechaza texto+archivo, manda igual la imagen', async ({ page }) => {
+    await completar(page, { nombre: 'Solo Imagen' });
+    await seleccionar(page);
+    const r = await page.evaluate(async () => {
+      let capturado = null;
+      // Acepta archivos solos pero rechaza la combinación con texto
+      navigator.canShare = (d) => !!d.files && !d.text;
+      navigator.share = async (d) => { capturado = { tieneFiles: !!d.files, texto: d.text || '' }; };
+      await App.enviarCatalogo();
+      return capturado;
+    });
+    expect(r.tieneFiles).toBe(true);
+    expect(r.texto).toBe('');
+  });
+
+  test('Enviar funciona sin apretar Vista previa antes', async ({ page }) => {
+    // Antes salía en silencio: `if (_catalogoImages.length === 0) return`
+    await completar(page, { nombre: 'Directo' });
+    await seleccionar(page);
+    const r = await page.evaluate(async () => {
+      let llamado = false;
+      navigator.canShare = () => true;
+      navigator.share = async () => { llamado = true; };
+      await App.enviarCatalogo();       // sin previewCatalogo() antes
+      return { llamado, imagenes: App._catalogoImages.length };
+    });
+    expect(r.imagenes, 'no generó las imágenes solo').toBeGreaterThan(0);
+    expect(r.llamado, 'no llegó a compartir').toBe(true);
+  });
+
+  test('sin nada seleccionado avisa en vez de no hacer nada', async ({ page }) => {
+    const r = await page.evaluate(async () => {
+      App.showScreen('catalogo');
+      App.compartirCatalogo();
+      App._catalogoSelected = new Set();
+      App._catalogoImages = [];
+      let llamado = false;
+      navigator.canShare = () => true;
+      navigator.share = async () => { llamado = true; };
+      await App.enviarCatalogo();
+      return { llamado, toast: document.getElementById('toast').textContent };
+    });
+    expect(r.llamado).toBe(false);
+    expect(r.toast).toContain('Seleccioná');
+  });
+
+  test('los dos botones están siempre visibles', async ({ page }) => {
+    // El de imágenes estaba con display:none hasta apretar "Vista previa":
+    // el camino que manda imágenes era invisible
+    await seleccionar(page);
+    await expect(page.locator('#btn-catalogo-send')).toBeVisible();
+    await expect(page.locator('#btn-catalogo-preview')).toBeVisible();
+    await expect(page.locator('#btn-catalogo-send')).toContainText('imágenes');
+    // Y el de texto dice que es solo texto
+    await expect(page.locator('#screen-catalogo .btn-whatsapp')).toContainText('solo el listado');
+  });
+});

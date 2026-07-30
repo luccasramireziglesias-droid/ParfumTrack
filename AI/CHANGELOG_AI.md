@@ -9,6 +9,39 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-07-29 — El catálogo mandaba solo texto sin que se notara
+
+**Motivo.** El usuario reportó con captura que "envía un msj pero no la imagen".
+
+**No era un bug: eran dos botones y el obvio era el equivocado.** El de abajo, con el verde
+de WhatsApp y a todo el ancho, mandaba **solo texto**. Las imágenes estaban detrás de otro
+botón que **solo aparecía después** de apretar "Vista previa" (`display:none` hasta
+entonces). El camino que manda imágenes era invisible.
+
+**Restricción de fondo.** Un link `wa.me` **no puede llevar archivos** — WhatsApp solo
+acepta texto por URL. Las imágenes exigen `navigator.share({ files })`, que abre el menú
+del sistema. Los dos caminos no se pueden unir, así que hay que explicarlo en la UI.
+
+**Qué cambió.**
+- Los dos botones **siempre visibles**, y cada uno dice qué hace: "Enviar con imágenes (N)"
+  y "Enviar solo el listado en texto".
+- Nota abajo explicando por qué son dos: *"WhatsApp no deja mandar imágenes desde un link"*.
+- `_catalogoMensaje()` extraído: el texto se arma **una vez** y ahora viaja como
+  **epígrafe de la imagen**. Antes la imagen iba sin precios ni contacto.
+- Si el navegador acepta archivos pero rechaza la combinación con texto, manda la imagen
+  igual en vez de fallar.
+- `enviarCatalogo()` genera las imágenes si hacen falta. Antes `if (length === 0) return`
+  salía en silencio.
+
+**Archivos.** `src/app/10-data-management.js`, `src/screens/catalogo.html`,
+`tests/negocio.spec.js` (6 tests), `tests/features.test.js` (5 regresiones)
+
+**Riesgo.** 🟢 El comportamiento de texto no cambia; el de imágenes suma el epígrafe.
+
+**Total.** 624 → **629 Vitest**, 119 → **125 E2E**.
+
+---
+
 ## 2026-07-29 — Plan de captación manual + corrección de una ruta que se repitió toda la sesión
 
 **Motivo.** Pregunta del dueño: dónde correr los ads y qué recomiendo.

@@ -1288,3 +1288,47 @@ describe('Planes — solo hay dos, y se llaman igual en todos lados', () => {
     expect(cuenta).toMatch(/isPro\(\) \{\s*\n\s*return !!\(this\._account\?\.license\);/);
   });
 });
+
+describe('Catálogo — el camino de las imágenes es visible', () => {
+  const dm = read('src/app/10-data-management.js');
+  const screen = read('src/screens/catalogo.html');
+
+  it('el mensaje se arma en un solo lugar', () => {
+    // Estaba dentro de enviarCatalogoTexto, así que la imagen viajaba sin
+    // precios ni contacto
+    expect(dm).toMatch(/_catalogoMensaje\(\) \{/);
+    const idx = dm.indexOf('enviarCatalogoTexto()');
+    expect(dm.slice(idx, idx + 300)).toMatch(/this\._catalogoMensaje\(\)/);
+  });
+
+  it('al compartir imágenes el texto va como epígrafe', () => {
+    const idx = dm.indexOf('async enviarCatalogo()');
+    const cuerpo = dm.slice(idx, idx + 1800);
+    expect(cuerpo).toMatch(/\{ files, text: texto \}/);
+    // Y si el navegador rechaza la combinación, manda igual la imagen
+    expect(cuerpo).toMatch(/navigator\.canShare\(conTexto\) \? conTexto : \{ files \}/);
+  });
+
+  it('Enviar genera las imágenes si no hay vista previa', () => {
+    // Antes: `if (this._catalogoImages.length === 0) return;` — salía en
+    // silencio y el usuario no entendía por qué no pasaba nada
+    const idx = dm.indexOf('async enviarCatalogo()');
+    const cuerpo = dm.slice(idx, idx + 700);
+    expect(cuerpo).toMatch(/await this\.previewCatalogo\(\)/);
+    expect(cuerpo).toMatch(/Seleccioná al menos un perfume/);
+  });
+
+  it('los dos botones están siempre visibles y dicen qué hacen', () => {
+    // El de imágenes tenía display:none hasta apretar "Vista previa": el
+    // camino que manda imágenes era invisible y el usuario apretaba el de
+    // texto pensando que mandaba todo
+    expect(screen).not.toMatch(/id="btn-catalogo-send"[^>]*display:none/);
+    expect(dm).not.toMatch(/getElementById\('btn-catalogo-send'\)\.style\.display/);
+    expect(screen).toMatch(/Enviar con imágenes/);
+    expect(screen).toMatch(/Enviar solo el listado en texto/);
+  });
+
+  it('explica por qué las imágenes no van por el link de WhatsApp', () => {
+    expect(screen).toMatch(/WhatsApp no deja mandar imágenes desde un link/);
+  });
+});

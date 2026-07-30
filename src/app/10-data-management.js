@@ -506,8 +506,6 @@
     `).join('');
     this._updateCatalogoCount();
     document.getElementById('catalogo-preview').classList.add('hidden');
-    document.getElementById('btn-catalogo-send').style.display = 'none';
-    document.getElementById('btn-catalogo-preview').style.display = '';
   },
 
   _toggleCatalogoItem(id, checked) {
@@ -563,13 +561,22 @@
       `<img src="${src}" alt="Página ${i + 1}" style="width:100%;border-radius:12px;border:1px solid var(--border);">`
     ).join('');
     document.getElementById('catalogo-preview').classList.remove('hidden');
-    document.getElementById('btn-catalogo-send').style.display = '';
-    document.getElementById('btn-catalogo-preview').style.display = 'none';
+
     this.toast('Vista previa lista', 'check_circle');
   },
 
   async enviarCatalogo() {
-    if (this._catalogoImages.length === 0) return;
+    // Antes salía en silencio si no habías apretado "Vista previa" primero.
+    // Genera las imágenes si hacen falta: el usuario apretó Enviar, no
+    // "preparate para enviar".
+    if (this._catalogoImages.length === 0) {
+      if (this._catalogoSelected.size === 0) {
+        this.toast('Seleccioná al menos un perfume', 'warning');
+        return;
+      }
+      await this.previewCatalogo();
+      if (this._catalogoImages.length === 0) return;
+    }
 
     if (navigator.share && navigator.canShare) {
       try {
@@ -579,7 +586,14 @@
           const blob = await res.blob();
           return new File([blob], `catalogo-${i + 1}.png`, { type: 'image/png' });
         }));
-        const shareData = { files };
+        // El texto va junto: WhatsApp lo usa como epígrafe de la imagen, así
+        // que el cliente recibe el catálogo Y los precios con el contacto en
+        // un solo mensaje. Antes la imagen viajaba sola.
+        const texto = this._catalogoMensaje();
+        const conTexto = texto ? { files, text: texto } : { files };
+        // canShare puede aceptar los archivos pero rechazar la combinación con
+        // texto: en ese caso se manda solo la imagen antes que fallar
+        const shareData = navigator.canShare(conTexto) ? conTexto : { files };
         if (navigator.canShare(shareData)) {
           navigator.share(shareData).catch(() => {});
           this.toast('Catálogo enviado', 'share');
@@ -600,14 +614,14 @@
     this.toast(`${this._catalogoImages.length} imagen${this._catalogoImages.length > 1 ? 'es' : ''} descargada${this._catalogoImages.length > 1 ? 's' : ''}`, 'download');
   },
 
-  enviarCatalogoTexto() {
+  // Un solo lugar arma el mensaje: lo usa el envío de texto Y el caption de
+  // las imágenes. Antes estaba solo en el de texto, así que la imagen viajaba
+  // sin precios ni contacto.
+  _catalogoMensaje() {
     const selected = this.perfumes
       .filter(p => this._catalogoSelected.has(p.id))
       .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
-    if (selected.length === 0) {
-      this.toast('Seleccioná al menos un perfume', 'warning');
-      return;
-    }
+    if (selected.length === 0) return '';
     const n = this.getNegocio();
     const negocio = n.nombre || 'Mi negocio';   // nunca la marca de la app
     const lines = selected.map(p => {
@@ -618,8 +632,16 @@
     // a quién escribirle sin tener que buscar el chat
     const contacto = this._negocioContacto();
     const pie = `_${selected.length} perfumes · ${new Date().toLocaleDateString('es-AR')}_`;
-    const msg = `*${negocio} — Catálogo actualizado*\n\n${lines.join('\n')}\n\n${pie}` +
+    return `*${negocio} — Catálogo actualizado*\n\n${lines.join('\n')}\n\n${pie}` +
       (contacto ? `\n\n${contacto}` : '');
+  },
+
+  enviarCatalogoTexto() {
+    const msg = this._catalogoMensaje();
+    if (!msg) {
+      this.toast('Seleccioná al menos un perfume', 'warning');
+      return;
+    }
     this.cobrarWhatsApp(msg);
   },
 

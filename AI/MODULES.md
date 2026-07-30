@@ -249,7 +249,7 @@ Los gastos **sí** entran en la ganancia neta del dashboard.
 | Export JSON | `exportData()`, `_backupFilename()` |
 | Import JSON | `importData()`, `_handleImportFile()`, `_normalizeBackupData()`, `_assertRestorable()`, `_restoreData()`, `_parseDate()` |
 | PDF / Excel | `exportPDF()`, `exportExcel()` (jsPDF y XLSX lazy, con SRI) |
-| Catálogo WA | `compartirCatalogo()`, `previewCatalogo()`, `enviarCatalogo()`, `enviarCatalogoTexto()`, `_renderCatalogoPage()` |
+| Catálogo WA | `compartirCatalogo()`, `previewCatalogo()`, `enviarCatalogo()`, `enviarCatalogoTexto()`, `_catalogoMensaje()`, `_renderCatalogoPage()` |
 | Nube | `backupToCloud()`, `restoreFromCloud()`, `_getAuthToken()`, `_refreshAuthToken()` |
 | Destructivo | `clearData()` |
 | Infra | `_loadScript(url)` — carga CDN con `integrity` sha384 |
@@ -260,6 +260,22 @@ Si te olvidás de una, **un restore borra los datos de ese store**. Hay un test 
 
 > La lista de la línea 197 (`_assertRestorable`) es la única que **no** incluye `config`,
 > a propósito: valida stores de negocio.
+
+**🔴 El catálogo tiene DOS caminos y no se pueden unir.** Un link `wa.me` solo transporta
+texto: WhatsApp no acepta archivos por URL.
+
+| Camino | Cómo | Qué manda |
+|---|---|---|
+| `enviarCatalogo()` | `navigator.share({ files, text })` → menú del sistema | Imágenes **con el texto como epígrafe** |
+| `enviarCatalogoTexto()` | `wa.me` | Solo el listado en texto |
+
+`_catalogoMensaje()` arma el mensaje **una sola vez** y lo usan los dos. Antes vivía dentro
+del camino de texto, así que la imagen viajaba sin precios ni contacto.
+
+`enviarCatalogo()` genera las imágenes solo si hacen falta: antes salía en silencio con
+`if (_catalogoImages.length === 0) return`, y el botón estaba oculto hasta apretar "Vista
+previa" — el camino de las imágenes era invisible y el usuario mandaba solo texto sin
+saberlo.
 
 **Riesgos.**
 - 🔴 `_restoreData()` **reemplaza** todo. El importador de Excel, en cambio, **agrega**.
