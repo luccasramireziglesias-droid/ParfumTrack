@@ -16,60 +16,6 @@ Ver [DECISIONS.md](DECISIONS.md). **No quedan decisiones de producto abiertas.**
 
 ## BUGS ABIERTOS
 
-### 🟠 T-14 — Verificar en el próximo deploy que el fix de assets tomó efecto
-
-**Por qué.** BUG-27: el repo entero se servía público porque `assets.exclude` no es un campo
-válido de wrangler. El fix pasó todo a `.assetsignore`, pero **la verificación real es el
-log del deploy**, y desde el sandbox no se puede alcanzar el dominio de producción.
-
-**Estado tras el deploy del 30/07 (run 30553468515, commit `53df85a`):**
-
-✅ **El WARNING de `exclude` desapareció.** Era el único aviso de config y ya no está: la
-config se procesa limpia y `.assetsignore` es lo único que decide qué se sube.
-
-⚠️ **Falta confirmar que lo viejo dejó de servirse.** El log dice `No files to upload` —
-correcto, porque los blobs ya estaban en el storage de Cloudflare — pero **no imprime el
-total del manifiesto**, así que del log solo no se puede saber si bajó de ~340 a ~40.
-**La verificación que falta es pedir las URLs a mano** (puntos 3 y 4). Desde el sandbox no
-se alcanza el dominio: la política de red del entorno lo bloquea.
-
-**Qué mirar:**
-
-1. ✅ Que **ya no aparezca** `Unexpected fields found in assets field: "exclude"` — hecho.
-2. Que la cantidad de assets baje de **~340 a ~40**. Ojo: wrangler dice "X new or modified"
-   y "N already uploaded" — el número que importa es el total, y solo lo imprime cuando
-   hay algo que subir.
-3. Probar a mano un par de URLs que **tienen** que dar 404:
-   `/AI/SECURITY.md`, `/CLAUDE.md`, `/MARKETING-PLAN.md`, `/tests/xss.spec.js`,
-   `/wrangler.jsonc`.
-4. Y un par que **tienen** que seguir dando 200: `/`, `/landing.html`, `/terminos.html`,
-   `/manifest.json`, `/fonts/dm-sans-latin.woff2`, `/.well-known/assetlinks.json`.
-
-**⚠️ Los assets ya subidos no se borran solos.** Si tras el deploy alguna de las URLs del
-punto 3 sigue respondiendo 200, hay que forzar la limpieza desde el Dashboard de Cloudflare
-(Workers → parfumtrack → Settings → Assets) o hacer un deploy desde un directorio limpio.
-**Esto es lo que decide si el hallazgo está realmente cerrado.**
-
-**⚠️ Anomalía sin resolver (31/07).** Los tres deploys posteriores al fix (#103, #105, #106)
-dijeron los tres `No files to upload`, **incluidos los que cambiaron `landing.html`,
-`index.html`, `sw.js` y las cuatro capturas**. El manifiesto local es correcto —simulando la
-lógica de wrangler da 37 archivos y están todos los que hacen falta—, así que `.assetsignore`
-funciona. Lo que no se puede saber desde acá es si Cloudflare está sirviendo la versión nueva
-de esos assets o quedó con la vieja.
-
-**Cómo se resuelve en 5 segundos:** abrir `/landing.html` en producción y mirar el hero.
-- Si dice **"Nuevo lanzamiento · Sé de los primeros"** y el título está en serif → los assets están al día.
-- Si todavía dice **"+340 revendedores en LATAM"** → el deploy no actualizó los assets, y hay
-  que forzarlo (Dashboard → Workers → parfumtrack → Settings → Assets, o un deploy limpio).
-
-Ojo: los cambios de `worker.js` (entre ellos el fix de `/force-update`) **sí están en
-producción** —el script del Worker se sube siempre, y el log lo confirma—. La duda es solo
-sobre los assets estáticos.
-
-**Dificultad.** Baja, pero es el paso que falta para dar BUG-27 por cerrado de verdad.
-
----
-
 ### 🟠 T-15 — Hay un sitio de Netlify conectado al repo
 
 **Evidencia.** El PR #103 trajo un check `netlify/parfumtrackapp/deploy-preview` apuntando a
@@ -248,6 +194,7 @@ adelantarse cuesta trabajo doble.
 | ✅ M-03 aviso de planilla reimportada | 07/2026 |
 | ✅ C-01 y C-02 tests de concurrencia e interrupción | 07/2026 |
 | ✅ T-08 `/force-update` ya no borra datos del usuario (BUG-29) | 07/2026 |
+| ✅ T-14 el fix de assets verificado en producción (BUG-27 cerrado) | 07/2026 |
 | ✅ Paginado de la pantalla de cuotas (297 ms → 16 ms) | 07/2026 |
 | ✅ Prueba de volumen con 2000 ventas, con y sin cifrado | 07/2026 |
 | ✅ Fuzzer de invariantes en CI | 07/2026 |

@@ -9,6 +9,38 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-07-31 (tarde) — El CTA de cierre se partía en móvil (BUG-30) + T-14 cerrado
+
+**Motivo.** Captura del sitio **en producción** desde un Android: la flecha del botón
+"Empezar ahora — es gratis →" caía sola a una segunda línea.
+
+**✅ De paso, esa captura cerró T-14.** El título de la sección se veía en **Cormorant
+Garamond**, o sea que los assets **sí se actualizan** en producción. La anomalía de los
+tres `No files to upload` seguidos era una falsa alarma: wrangler no reporta el total del
+manifiesto, nada más. BUG-27 queda cerrado.
+
+**El bug.** El botón traía `style="font-size:17px;padding:18px 40px"` inline, y **un estilo
+inline le gana a cualquier media query**. Ese botón —y solo ese— se saltaba la regla
+`.btn-hero { padding:14px 24px; font-size:15px }` de `15-responsive.css`, que funcionaba
+bien en todos los demás. A 360px (Android común) no entraba y partía la flecha.
+
+**Fix.** El tamaño pasa a `.btn-cta-final`, y la media query lo lista explícito. Más
+`es&nbsp;gratis&nbsp;→` para que la flecha nunca quede huérfana aunque cambie el copy.
+Verificado a 320/360/390/412/768/1280: una línea en todos.
+
+**El test no prohíbe estilos inline** — el toggle de precios los usa a propósito, los pisa
+desde JS. Comprueba el invariante real: *lo que una media query redimensiona no puede tener
+el tamaño puesto inline*. Lee las clases del bloque `@media` y verifica solo esas.
+
+**Archivos.** `src/landing/sections/11-cta.html`, `src/landing/styles/13-cta-footer.css`,
+`src/landing/styles/15-responsive.css`, `tests/landing-contenido.test.js` (+5),
+`AI/{TODO,SECURITY,BUG_HISTORY}.md`
+
+**Riesgo.** 🟢 Bajo. 721 Vitest pasan. **Verificado al revés:** devolviendo el inline y el
+espacio normal, fallan 3 tests.
+
+---
+
 ## 2026-07-31 — `/force-update` borraba datos (BUG-29) + limpieza de la landing
 
 **Motivo.** Pedido: "qué más se puede mejorar" → "y la 7 cuál sería mejor".

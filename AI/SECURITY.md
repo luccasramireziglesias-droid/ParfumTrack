@@ -232,6 +232,7 @@ meses sin excluir nada — ver [BUG_HISTORY.md](BUG_HISTORY.md) §BUG-27.
 | Config real | `.assetsignore` (sintaxis gitignore, paquete `ignore`) |
 | Config decorativa | ~~`assets.exclude`~~ — **borrada** de los dos wrangler configs |
 | Test que lo protege | `tests/assets-publicos.test.js` (31 tests) |
+| Verificado en producción | ✅ 31/07/2026 — el WARNING de `exclude` desapareció del log y una captura del sitio real confirma que los assets se actualizan |
 
 El test reimplementa la lógica de wrangler y exige que **todo** archivo que se subiría esté
 en una lista blanca sacada de las referencias reales de `index.html`, `landing.html`,

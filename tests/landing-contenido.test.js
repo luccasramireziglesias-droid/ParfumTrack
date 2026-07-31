@@ -229,6 +229,67 @@ describe('la app no depende de un CDN de fuentes', () => {
   });
 });
 
+describe('ningún botón se salta el diseño responsive', () => {
+  // Un `style=""` inline le gana a cualquier media query. El CTA de cierre tenía
+  // `style="font-size:17px;padding:18px 40px"`, así que se saltaba el achique de
+  // `15-responsive.css` y a 360px —el ancho de un Android común— la flecha se caía sola
+  // a una segunda línea. El tamaño va en una clase, no inline.
+  // El invariante no es "ningún estilo inline" —el toggle de precios los usa a propósito,
+  // `togglePricing()` los pisa desde JS para marcar el activo—, sino este:
+  // **lo que una media query redimensiona no puede tener el tamaño puesto inline.**
+  // Se leen las clases de la media query y se comprueba solo esas. Si mañana alguien suma
+  // `.ptog-btn` ahí, el test va a exigir que le saquen el inline.
+  const bloqueResponsive = (() => {
+    const css = src('styles/15-responsive.css');
+    const i = css.indexOf('@media (max-width: 480px)');
+    return css.slice(i, css.indexOf('\n}', i));
+  })();
+
+  const clasesResponsive = [...new Set(
+    [...bloqueResponsive.matchAll(/\.([a-z][a-z0-9-]*)\s*(?=[,{ ])/gi)].map((m) => m[1])
+  )];
+
+  const secciones = readdirSync(path.join(root, 'src', 'landing', 'sections'))
+    .filter((f) => f.endsWith('.html'));
+
+  it('la media query redimensiona al menos un botón (si no, el test no prueba nada)', () => {
+    expect(clasesResponsive).toContain('btn-hero');
+    expect(clasesResponsive).toContain('btn-cta-final');
+  });
+
+  it.each(secciones)('%s: lo que la media query achica no fija tamaño inline', (f) => {
+    const html = src('sections/' + f);
+    const tags = (html.match(/<(?:a|button)\b[^>]*>/g) || []);
+    const malos = tags.filter((t) => {
+      const clases = (t.match(/class=["']([^"']*)["']/) || [])[1] || '';
+      const gobernado = clases.split(/\s+/).some((c) => clasesResponsive.includes(c));
+      return gobernado && /style=["'][^"']*(font-size|padding)\s*:/.test(t);
+    });
+    expect(
+      malos,
+      'Un style="" inline le gana a la media query y rompe el achique en móvil. ' +
+        'Movelo a una clase:\n' + malos.join('\n')
+    ).toEqual([]);
+  });
+
+  it('el CTA de cierre usa la clase, no estilos inline', () => {
+    expect(src('sections/11-cta.html')).toMatch(/class=["'][^"']*btn-cta-final/);
+    expect(src('styles/13-cta-footer.css')).toMatch(/\.btn-cta-final\s*\{/);
+  });
+
+  it('la media query achica también al CTA de cierre', () => {
+    const css = src('styles/15-responsive.css');
+    const i = css.indexOf('@media (max-width: 480px)');
+    expect(i).toBeGreaterThan(-1);
+    expect(css.slice(i, css.indexOf('\n}', i))).toMatch(/\.btn-cta-final/);
+  });
+
+  it('la flecha no se puede separar del texto', () => {
+    // Con un espacio normal, la flecha queda huérfana en su propia línea.
+    expect(src('sections/11-cta.html')).toMatch(/gratis&nbsp;→/);
+  });
+});
+
 describe('la landing usa la tipografía de la marca', () => {
   it.each([
     ['styles/03-hero.css', '.hero h1'],

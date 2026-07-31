@@ -53,7 +53,10 @@
 }
 @media (max-width: 480px) {
   .hero h1 { letter-spacing: -0.5px; }
-  .btn-hero { padding: 14px 24px; font-size: 15px; }
+  /* `.btn-cta-final` va listado aparte a propósito: hereda de `.btn-hero` y con la misma
+     especificidad gana el que se declara último, pero dejarlo explícito evita que el
+     próximo que reordene los archivos rompa el achique sin darse cuenta. */
+  .btn-hero, .btn-cta-final { padding: 14px 24px; font-size: 15px; }
   .steps-grid { grid-template-columns: 1fr; }
   .testi-grid { grid-template-columns: 1fr; }
   .pain-cards { grid-template-columns: 1fr; }
