@@ -8,10 +8,6 @@
   margin-top: 56px;
 }
 .compare-col { border-radius: var(--radius); padding: 32px 28px; }
-.compare-bad {
-  background: rgba(248,113,113,0.04);
-  border: 1px solid rgba(248,113,113,0.15);
-}
 .compare-good {
   background: var(--gold4);
   border: 1px solid rgba(201,168,76,0.2);

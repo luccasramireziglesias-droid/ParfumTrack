@@ -47,22 +47,10 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Cache Google Fonts for offline use
-  if (url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com") {
-    event.respondWith(
-      caches.match(event.request).then((cached) => {
-        if (cached) return cached;
-        return fetch(event.request).then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        });
-      }),
-    );
-    return;
-  }
+  // Acá había una rama que cacheaba fonts.googleapis.com y fonts.gstatic.com. Es código
+  // muerto desde que las fuentes se sirven locales (/fonts/*.woff2, precargadas en
+  // STATIC_ASSETS): la app no le pide nada a Google, y la CSP (`font-src 'self'`) lo
+  // bloquearía igual. Se saca para que nadie deduzca que todavía dependemos de un CDN.
 
   if (url.hostname !== self.location.hostname) return;
 

@@ -9,34 +9,47 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
-## 2026-07-29 — Plan de marketing con compuertas
+## 2026-07-31 — `/force-update` borraba datos (BUG-29) + limpieza de la landing
 
-**Motivo.** Pedido: "hay que hacer un plan de marketing". Se indicó tomar como base solo
-`MARKETING-SEMANA-1.md` (el material más reciente), dejando de lado
-`plan-lanzamiento-30dias.html`.
+**Motivo.** Pedido: "qué más se puede mejorar" → "y la 7 cuál sería mejor".
 
-**Qué se agregó.** `MARKETING-PLAN.md`: cuatro fases, cada una con una **compuerta** que hay
-que cumplir para avanzar. La idea central es que no es un calendario de tácticas sino una
-secuencia de decisiones.
+**1. 🔴 `/force-update` (T-08, cerrado).** Devolvía `Clear-Site-Data: "cache", "storage"`.
+`"storage"` no borra solo IndexedDB: **también localStorage**, o sea el historial completo
+de ventas *más* el código de licencia, la sal del cifrado, el perfil y el PIN. Y la página
+decía "Los caches fueron limpiados" y nada más. Como nada en la app enlaza a esa URL —se le
+pasa a mano a quien escribe porque "no le carga"—, el borrado le caía a un usuario que ya
+estaba con un problema, mientras lo ayudabas.
 
-**Las dos definiciones que ordenan el plan:**
+**La opción de "avisar antes" no existe:** `Clear-Site-Data` es una cabecera de respuesta,
+el navegador la ejecuta al recibir la página. Cualquier aviso ahí es una autopsia. Por eso
+se eligió sacar `"storage"` en vez de advertir. Lo único que ese valor aportaba
+—desregistrar un SW envenenado— ahora se hace desde el cliente, sin tocar datos.
+Ver [BUG_HISTORY.md](BUG_HISTORY.md) §BUG-29.
 
-1. **`sale_created` es la única métrica que decide.** No registros, no visitas, no
-   seguidores: un registro que nunca cargó una venta no es un usuario, es un número que hace
-   tomar decisiones equivocadas.
-2. **El cuello de botella hoy no es alcance, es confianza y activación.** Comprar alcance
-   antes de resolver eso es pagar por descubrir que el balde tiene agujeros.
+**2. Accesibilidad del checkout.** El `<label>` "Tu email" no tenía `for`, así que no
+quedaba asociado al input: un lector de pantalla anunciaba sin nombre el único formulario
+de la landing, el que cobra. Sumado `aria-describedby`, `role="alert"` en el error e
+`inputmode="email"`.
 
-**La compuerta más importante:** si en la Fase 0 la activación es < 40%, **no se pasa a los
-ads**. Esa señal llega gratis en una semana y ningún presupuesto la arregla.
+**3. CSS muerto.** 20 reglas borradas de 219 (quedan 199). Casi todas eran mockups
+(`.cat-grid`, `.wa-bubble`, `.stat-row-mock`, `.feature-mockup-header`) que se reemplazaron
+por capturas reales: se fue el HTML y quedó el CSS. Se verificó clase por clase antes de
+borrar — `.feature-mockup` y `.hero-screenshot-wrap` sí se usan y quedaron.
+`10-testimonials.css` **no se borró** aunque no se usa: el hueco está diseñado esperando
+testimonios reales, y ahora tiene un comentario que lo explica.
 
-**Plata.** ~$300 hasta tener señal real, contra los ~$3.000 que propone
-`ADS-META-IG-BRIEF.md` para testear las 12 variantes de una. Ese presupuesto tiene sentido
-**después** de saber el mensaje.
+**4. `sw.js` ya no cachea Google Fonts.** Código muerto desde que las fuentes son locales, y
+la CSP (`font-src 'self'`) lo bloquearía igual.
 
-**Archivos.** `MARKETING-PLAN.md` (nuevo), `AI/ROADMAP.md`, `AI/TODO.md`
+**5. Doc.** El bloque de CSP de SECURITY.md estaba desactualizado (decía `img-src ... https:`
+y Google Fonts en `style-src`). Sincronizado con `_headers`.
 
-**Riesgo.** Ninguno — no toca código.
+**Archivos.** `worker.js`, `sw.js`, `src/landing/sections/13-modals.html`,
+`src/landing/styles/{03-hero,07-feature-catalog,09-comparison,10-testimonials}.css`,
+`tests/worker.test.js` (+5), `tests/landing-contenido.test.js` (+7), `AI/{TODO,SECURITY,BUG_HISTORY}.md`
+
+**Riesgo.** 🟢 Bajo. 703 Vitest + 137 E2E pasan. **Verificado al revés:** devolviendo
+`"storage"` y la rama de Google Fonts fallan 2 tests.
 
 ---
 
@@ -141,6 +154,37 @@ consola limpia, sin scroll horizontal a 900px ni a 390px).
 **Riesgo.** 🟢 Bajo en el código: no toca rutas de la app ni del Worker, 668 tests pasan y
 el build no cambia `index.html`. ⚠️ **Verificar en el próximo deploy** que el log ya no
 avisa de `exclude` y que la cantidad de assets baja de ~340 a ~40.
+
+---
+
+## 2026-07-29 — Plan de marketing con compuertas
+
+**Motivo.** Pedido: "hay que hacer un plan de marketing". Se indicó tomar como base solo
+`MARKETING-SEMANA-1.md` (el material más reciente), dejando de lado
+`plan-lanzamiento-30dias.html`.
+
+**Qué se agregó.** `MARKETING-PLAN.md`: cuatro fases, cada una con una **compuerta** que hay
+que cumplir para avanzar. La idea central es que no es un calendario de tácticas sino una
+secuencia de decisiones.
+
+**Las dos definiciones que ordenan el plan:**
+
+1. **`sale_created` es la única métrica que decide.** No registros, no visitas, no
+   seguidores: un registro que nunca cargó una venta no es un usuario, es un número que hace
+   tomar decisiones equivocadas.
+2. **El cuello de botella hoy no es alcance, es confianza y activación.** Comprar alcance
+   antes de resolver eso es pagar por descubrir que el balde tiene agujeros.
+
+**La compuerta más importante:** si en la Fase 0 la activación es < 40%, **no se pasa a los
+ads**. Esa señal llega gratis en una semana y ningún presupuesto la arregla.
+
+**Plata.** ~$300 hasta tener señal real, contra los ~$3.000 que propone
+`ADS-META-IG-BRIEF.md` para testear las 12 variantes de una. Ese presupuesto tiene sentido
+**después** de saber el mensaje.
+
+**Archivos.** `MARKETING-PLAN.md` (nuevo), `AI/ROADMAP.md`, `AI/TODO.md`
+
+**Riesgo.** Ninguno — no toca código.
 
 ---
 

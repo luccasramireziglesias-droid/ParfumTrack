@@ -265,3 +265,42 @@ describe('worker router', () => {
       .toBe('https://parfumtrack.luccasramireziglesias.workers.dev');
   });
 });
+
+// ── /force-update ─────────────────────────────────────────────────────────────
+// Escotilla de emergencia para assets viejos o un SW envenenado. Tuvo
+// `Clear-Site-Data: "cache", "storage"`, y "storage" borra IndexedDB (todo el historial
+// de ventas) y localStorage (licencia, sal del cifrado, perfil, PIN) — mientras la página
+// decía solo "Los caches fueron limpiados". Ver AI/BUG_HISTORY.md §BUG-29.
+describe('/force-update no puede borrar los datos del usuario', () => {
+  const pedir = () => worker.fetch(makeRequest('GET', '/force-update'), env, ctx);
+
+  it('🔴 el Clear-Site-Data NO incluye "storage"', async () => {
+    const csd = (await pedir()).headers.get('Clear-Site-Data');
+    expect(
+      csd,
+      '"storage" borra IndexedDB Y localStorage: historial de ventas, licencia y la sal ' +
+        'del cifrado. Y no se puede advertir en esa página, porque la cabecera se ejecuta ' +
+        'al recibirla. IndexedDB no guarda assets: borrarlo nunca arregló un cache viejo.'
+    ).not.toMatch(/storage/);
+  });
+
+  it('sigue limpiando el cache, que es para lo que existe', async () => {
+    expect((await pedir()).headers.get('Clear-Site-Data')).toMatch(/"cache"/);
+  });
+
+  it('desregistra el Service Worker desde el cliente (eso sí destraba un SW envenenado)', async () => {
+    const html = await (await pedir()).text();
+    expect(html).toContain('serviceWorker.getRegistrations');
+    expect(html).toContain('unregister');
+    expect(html).toContain('caches.delete');
+  });
+
+  it('le dice al usuario que sus datos siguen ahí', async () => {
+    const html = await (await pedir()).text();
+    expect(html).toMatch(/no se tocaron/i);
+  });
+
+  it('no se cachea', async () => {
+    expect((await pedir()).headers.get('Cache-Control')).toMatch(/no-store/);
+  });
+});

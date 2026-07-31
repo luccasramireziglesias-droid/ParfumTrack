@@ -345,13 +345,6 @@ body {
   background: radial-gradient(ellipse, rgba(201,168,76,0.12), transparent 65%);
   pointer-events: none;
 }
-.hero-screenshot {
-  width: 100%;
-  height: auto;
-  border-radius: 24px;
-  box-shadow: 0 0 0 1px var(--border2), var(--shadow);
-  display: block;
-}
 .hero-floating-card {
   position: absolute;
   background: var(--card2);
@@ -381,7 +374,6 @@ body {
 .hfc-value { color: var(--gold2); font-size: 16px; font-weight: 800; }
 .hfc-sub { color: var(--green); font-size: 10px; font-weight: 600; }
 
-
 /* ═══════════════════════════════════
    HERO SCREENSHOT SVG
 ═══════════════════════════════════ */
@@ -394,7 +386,6 @@ body {
   background: #0a0a15;
 }
 .hero-screenshot-wrap svg, .hero-screenshot-wrap img { display: block; width: 100%; height: auto; }
-
 
 /* ═══════════════════════════════════
    SOCIAL PROOF STRIP (hero)
@@ -735,99 +726,6 @@ body {
   overflow: hidden;
   box-shadow: var(--shadow);
 }
-.feature-mockup-header {
-  background: var(--card2);
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.fmh-dots { display: flex; gap: 5px; }
-.fmh-dots span {
-  width: 9px; height: 9px;
-  border-radius: 50%;
-  background: var(--border2);
-}
-.feature-mockup-body { padding: 16px; }
-
-/* Catalog mockup */
-.cat-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.cat-item {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 8px;
-  text-align: center;
-}
-.cat-bottle {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-.cat-item-name { font-size: 9px; color: var(--text2); margin-bottom: 2px; }
-.cat-item-price { font-size: 11px; font-weight: 700; color: var(--gold2); }
-.cat-share-btn {
-  width: 100%;
-  padding: 9px;
-  background: linear-gradient(135deg, #25D366, #1da851);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-/* WhatsApp mockup */
-.wa-bubble {
-  background: #25D366;
-  border-radius: 12px 12px 4px 12px;
-  padding: 10px 14px;
-  margin-bottom: 8px;
-  font-size: 12px;
-  color: white;
-  line-height: 1.5;
-  max-width: 80%;
-}
-.wa-bubble-reply {
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 12px 12px 12px 4px;
-  padding: 10px 14px;
-  margin-bottom: 8px;
-  font-size: 12px;
-  color: var(--text2);
-  line-height: 1.5;
-  max-width: 80%;
-  margin-left: auto;
-}
-.wa-time { font-size: 10px; opacity: 0.6; text-align: right; margin-top: 3px; }
-
-/* Stats mockup */
-.stat-row-mock {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-}
-.stat-row-mock:last-child { border-bottom: none; }
-.srm-label { color: var(--text2); }
-.srm-value { font-weight: 700; color: var(--gold2); }
-.srm-change { font-size: 11px; color: var(--green); font-weight: 600; }
 
 
 
@@ -889,10 +787,6 @@ body {
   margin-top: 56px;
 }
 .compare-col { border-radius: var(--radius); padding: 32px 28px; }
-.compare-bad {
-  background: rgba(248,113,113,0.04);
-  border: 1px solid rgba(248,113,113,0.15);
-}
 .compare-good {
   background: var(--gold4);
   border: 1px solid rgba(201,168,76,0.2);
@@ -928,6 +822,14 @@ body {
 /* ═══════════════════════════════════
    TESTIMONIALS
 ═══════════════════════════════════ */
+/* ⚠️ Hoy ninguna de estas reglas se usa: no hay sección de testimonios en el HTML,
+   porque todavía no hay testimonios reales. NO es basura — el hueco está diseñado y
+   esperando contenido, y es la prioridad #1 del plan (`MARKETING-SEMANA-1.md`, Fase 0):
+   la objeción #1 de una app que maneja plata es la confianza, y dos de los 12 ads no se
+   pueden correr sin testimonios.
+
+   Cuando existan: van con nombre y foto reales. Nunca inventados — ver DECISIONS.md §D-28,
+   que es por qué se sacó el "+340 revendedores" del hero. */
 .testi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
@@ -1514,18 +1416,21 @@ footer {
   <div class="hero-visual">
     <div class="hero-visual-glow"></div>
     <div class="hero-screenshot-wrap">
-      <img src="/screenshot-app.webp" alt="Parfum Track — vista real de la app" width="720" height="1395" loading="eager" fetchpriority="high">
+      <img src="/screenshot-app.webp" alt="Parfum Track — vista real de la app" width="720" height="1464" loading="eager" fetchpriority="high">
     </div>
     <div class="hero-floating-cards-wrap">
+      <!-- Estos números tienen que coincidir con los de la captura de atrás: las tarjetas
+           se le superponen, y si dicen otra cosa la composición se contradice sola.
+           Al cambiar `screenshot-app.webp` hay que actualizarlos. -->
       <div class="hero-floating-card hfc-left">
         <div class="hfc-label">Ganancia este mes</div>
-        <div class="hfc-value">$35.600</div>
-        <div class="hfc-sub">↑ 18% vs mayo</div>
+        <div class="hfc-value">$11.960</div>
+        <div class="hfc-sub">14 ventas registradas</div>
       </div>
       <div class="hero-floating-card hfc-right">
-        <div class="hfc-label">Cuotas pendientes</div>
-        <div class="hfc-value">$9.800</div>
-        <div class="hfc-sub">3 clientes · WA listo</div>
+        <div class="hfc-label">Por cobrar</div>
+        <div class="hfc-value">$14.240</div>
+        <div class="hfc-sub">7 deudas activas</div>
       </div>
     </div>
   </div>
@@ -1693,7 +1598,7 @@ footer {
       </div>
       <div class="feature-visual reveal reveal-d1">
         <div class="feature-mockup" style="padding:0;overflow:hidden;">
-          <img src="/screenshot-catalogo.jpg" alt="Catálogo de perfumes real generado con Parfum Track" width="1763" height="2048" loading="lazy" style="display:block;width:100%;height:auto;border-radius:16px;">
+          <img src="/screenshot-catalogo.jpg" alt="Catálogo de perfumes real generado con Parfum Track" width="1080" height="2196" loading="lazy" style="display:block;width:100%;height:auto;border-radius:16px;">
         </div>
       </div>
     </div>
@@ -1720,7 +1625,7 @@ footer {
       </div>
       <div class="feature-visual reveal reveal-d1">
         <div style="max-width:340px;margin:0 auto;border-radius:18px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.5),0 0 0 1px rgba(201,168,76,0.15);">
-          <img src="/img/whatsapp-cobro.jpg" alt="Recordatorio de cobro por WhatsApp — ejemplo real" width="1080" height="1231" style="width:100%;height:auto;display:block;" loading="lazy">
+          <img src="/img/whatsapp-cobro.jpg" alt="Recordatorio de cobro por WhatsApp — ejemplo real" width="1080" height="1144" style="width:100%;height:auto;display:block;" loading="lazy">
         </div>
       </div>
     </div>
@@ -1746,7 +1651,7 @@ footer {
       </div>
       <div class="feature-visual reveal reveal-d1">
         <div class="feature-mockup" style="padding:0;overflow:hidden;">
-          <img src="/screenshot-estadisticas.jpg" alt="Estadísticas reales de Parfum Track — ganancia por mes, ticket promedio, margen" width="1080" height="1213" loading="lazy" style="display:block;width:100%;height:auto;border-radius:16px;">
+          <img src="/screenshot-estadisticas.jpg" alt="Estadísticas reales de Parfum Track — ganancia por mes, ticket promedio, margen" width="1080" height="2196" loading="lazy" style="display:block;width:100%;height:auto;border-radius:16px;">
         </div>
       </div>
     </div>
@@ -2153,11 +2058,15 @@ footer {
       <h3 style="color:#e8cc7a;font-size:19px;font-weight:700;margin:0 0 6px;">Pagar — Plan Básico Pro</h3>
       <p id="mp-modal-subtitle" style="font-size:13px;color:#7a7870;">$9.99/mes · Se cobra via Mercado Pago · Tu código llega por email</p>
     </div>
-    <label style="display:block;font-size:13px;color:#b8b4a8;margin-bottom:6px;">Tu email</label>
+    <!-- El `for` no es decorativo: sin él el label no queda asociado al input y un lector
+         de pantalla lee el campo sin nombre. Es el único formulario de la landing y es
+         donde entra la plata. El error va con role="alert" para que se anuncie solo. -->
+    <label for="mp-email-input" style="display:block;font-size:13px;color:#b8b4a8;margin-bottom:6px;">Tu email</label>
     <input id="mp-email-input" type="email" placeholder="hola@ejemplo.com" autocomplete="email"
+      inputmode="email" required aria-describedby="mp-checkout-error"
       onkeydown="if(event.key==='Enter')iniciarCheckoutMP()"
       style="width:100%;padding:12px 16px;background:#13132a;border:1.5px solid rgba(201,168,76,0.3);border-radius:10px;color:#f0eee8;font-size:15px;margin-bottom:8px;outline:none;font-family:inherit;">
-    <p id="mp-checkout-error" style="font-size:12px;color:#e07070;min-height:16px;margin-bottom:12px;"></p>
+    <p id="mp-checkout-error" role="alert" style="font-size:12px;color:#e07070;min-height:16px;margin-bottom:12px;"></p>
     <p style="font-size:12px;color:#b8b4a8;text-align:center;margin-bottom:12px;line-height:1.5;">🔒 Pago seguro vía Mercado Pago · Cancelás cuando querés<br>El monto se cobra en tu moneda local</p>
     <button id="mp-checkout-btn" onclick="iniciarCheckoutMP()"
       style="width:100%;padding:14px;background:linear-gradient(135deg,#009ee3,#0070ba);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">

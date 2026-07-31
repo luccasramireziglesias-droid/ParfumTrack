@@ -62,21 +62,21 @@
   "screenshots": [
     {
       "src": "/screenshot-app.jpg",
-      "sizes": "1080x2093",
+      "sizes": "1080x2196",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Dashboard principal con ventas y ganancias"
     },
     {
       "src": "/screenshot-catalogo.jpg",
-      "sizes": "1763x2048",
+      "sizes": "1080x2196",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Catálogo visual de productos"
     },
     {
       "src": "/screenshot-estadisticas.jpg",
-      "sizes": "1080x1213",
+      "sizes": "1080x2196",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Estadísticas y métricas de ventas"

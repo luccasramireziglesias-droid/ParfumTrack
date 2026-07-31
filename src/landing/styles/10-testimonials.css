@@ -1,6 +1,14 @@
 /* ═══════════════════════════════════
    TESTIMONIALS
 ═══════════════════════════════════ */
+/* ⚠️ Hoy ninguna de estas reglas se usa: no hay sección de testimonios en el HTML,
+   porque todavía no hay testimonios reales. NO es basura — el hueco está diseñado y
+   esperando contenido, y es la prioridad #1 del plan (`MARKETING-SEMANA-1.md`, Fase 0):
+   la objeción #1 de una app que maneja plata es la confianza, y dos de los 12 ads no se
+   pueden correr sin testimonios.
+
+   Cuando existan: van con nombre y foto reales. Nunca inventados — ver DECISIONS.md §D-28,
+   que es por qué se sacó el "+340 revendedores" del hero. */
 .testi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
