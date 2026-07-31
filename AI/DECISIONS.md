@@ -496,7 +496,7 @@ los primeros 20-30).
    te va a confiar los números de su negocio. Ver `ROADMAP.md` §7: la confianza es la
    objeción #1.
 
-**Con qué se reemplazó.** Hero: *"Recién lanzada · Probala gratis y contanos qué le falta"*
+**Con qué se reemplazó.** Hero: *"Nuevo lanzamiento · Probala gratis y contanos qué le falta"*
 — honesto, y además invita al feedback que la Fase 0 necesita. Stat: *"Tus datos · Solo en
 tu celular"*, que es la ventaja real y verificable (D-03).
 
