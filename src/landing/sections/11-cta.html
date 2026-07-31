@@ -9,8 +9,12 @@
       Probá gratis y cerrá tu próximo mes con los números claros.<br>
       Sin tarjeta, sin instalación — solo abrís el link y empezás.
     </p>
-    <a href="/index.html" class="btn-hero primary" style="font-size:17px;padding:18px 40px;margin-bottom:8px;" onclick="if(window.plausible)plausible('cta_footer')">
-      Empezar ahora — es gratis →
+    <!-- El tamaño va en `.btn-cta-final`, NO en un style="" inline: un inline le gana a
+         cualquier media query, y por eso este botón se saltaba la regla responsive y a
+         360px la flecha se caía sola a una segunda línea.
+         El &nbsp; ata la flecha a "gratis" para que nunca quede huérfana. -->
+    <a href="/index.html" class="btn-hero primary btn-cta-final" onclick="if(window.plausible)plausible('cta_footer')">
+      Empezar ahora — es&nbsp;gratis&nbsp;→
     </a>
     <div class="cta-guarantee">
       <span class="cta-guarantee-icon">🔒</span>

@@ -711,3 +711,41 @@ recuperaba. Uno sin backup —el caso normal— perdía todo.
   Se ejecuta antes de que se lea.
 - 🟠 **Limpiar cache y borrar datos son cosas distintas.** Si el problema es un asset
   viejo, la solución no toca nada del usuario.
+
+---
+
+## BUG-30 — Un `style=""` inline le ganaba a la media query y partía el CTA 🟡
+**Fecha:** 31/07/2026 · **Riesgo de reintroducción:** 🟠 MEDIO
+
+**Descripción.** En el CTA de cierre de la landing, la flecha se caía sola a una segunda
+línea en pantallas de **360px** (un Android común). Reportado con una captura del sitio
+real, reproducido a 360px.
+
+**Causa.** El botón traía el tamaño en un atributo inline:
+`style="font-size:17px;padding:18px 40px"`. **Un estilo inline le gana a cualquier media
+query**, así que ese botón —y solo ese— se saltaba la regla `.btn-hero { padding:14px 24px;
+font-size:15px }` de `15-responsive.css`. A 17px con 40px de padding, el texto no entraba en
+360px y la flecha quedaba huérfana.
+
+Lo confuso del caso: la regla responsive **existía y funcionaba** en todos los demás
+botones. Era invisible salvo que se midiera justo ese.
+
+**Solución.** El tamaño pasa a `.btn-cta-final` en `13-cta-footer.css`, y la media query lo
+lista explícitamente. Además `es&nbsp;gratis&nbsp;→` ata la flecha al texto para que nunca
+quede sola aunque el copy cambie. Verificado a 320/360/390/412/768/1280: **una línea en
+todos**, y en escritorio conserva el tamaño grande.
+
+**Archivos.** `src/landing/sections/11-cta.html`, `src/landing/styles/13-cta-footer.css`,
+`src/landing/styles/15-responsive.css`, `tests/landing-contenido.test.js`
+
+**Verificado al revés:** devolviendo el inline y el espacio normal, fallan 3 tests.
+
+**El test que lo cubre no prohíbe los estilos inline**, porque el toggle de precios los usa
+a propósito (`togglePricing()` los pisa desde JS para marcar el activo). Comprueba el
+invariante real: **lo que una media query redimensiona no puede tener el tamaño puesto
+inline**. Lee las clases del bloque `@media` y verifica solo esas, así que si mañana alguien
+suma `.ptog-btn` ahí, el test va a exigir que le saquen el inline.
+
+**Regla derivada.**
+- 🟠 **Un `style=""` inline gana sobre cualquier media query.** Si algo tiene que achicarse
+  en móvil, su tamaño va en una clase — nunca inline.

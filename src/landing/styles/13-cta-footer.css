@@ -29,6 +29,15 @@
   margin: 0 auto 40px;
   line-height: 1.6;
 }
+/* El CTA de cierre es más grande que el resto. Vive acá y no en un style="" inline
+   porque el inline le gana a la media query de 15-responsive.css, y así el botón se
+   saltaba el achique en pantallas chicas. */
+.btn-cta-final {
+  font-size: 17px;
+  padding: 18px 40px;
+  margin-bottom: 8px;
+}
+
 .cta-guarantee {
   display: inline-flex;
   align-items: center;
