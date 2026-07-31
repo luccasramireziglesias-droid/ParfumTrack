@@ -50,6 +50,22 @@ punto 3 sigue respondiendo 200, hay que forzar la limpieza desde el Dashboard de
 (Workers → parfumtrack → Settings → Assets) o hacer un deploy desde un directorio limpio.
 **Esto es lo que decide si el hallazgo está realmente cerrado.**
 
+**⚠️ Anomalía sin resolver (31/07).** Los tres deploys posteriores al fix (#103, #105, #106)
+dijeron los tres `No files to upload`, **incluidos los que cambiaron `landing.html`,
+`index.html`, `sw.js` y las cuatro capturas**. El manifiesto local es correcto —simulando la
+lógica de wrangler da 37 archivos y están todos los que hacen falta—, así que `.assetsignore`
+funciona. Lo que no se puede saber desde acá es si Cloudflare está sirviendo la versión nueva
+de esos assets o quedó con la vieja.
+
+**Cómo se resuelve en 5 segundos:** abrir `/landing.html` en producción y mirar el hero.
+- Si dice **"Recién lanzada · Probala gratis"** y el título está en serif → los assets están al día.
+- Si todavía dice **"+340 revendedores en LATAM"** → el deploy no actualizó los assets, y hay
+  que forzarlo (Dashboard → Workers → parfumtrack → Settings → Assets, o un deploy limpio).
+
+Ojo: los cambios de `worker.js` (entre ellos el fix de `/force-update`) **sí están en
+producción** —el script del Worker se sube siempre, y el log lo confirma—. La duda es solo
+sobre los assets estáticos.
+
 **Dificultad.** Baja, pero es el paso que falta para dar BUG-27 por cerrado de verdad.
 
 ---
