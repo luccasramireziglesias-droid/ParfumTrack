@@ -97,14 +97,16 @@ Strict-Transport-Security: max-age=63072000; includeSubDomains; preload   ← 2 
 X-Permitted-Cross-Domain-Policies: none
 ```
 
-**CSP:**
+**CSP** (copiada de `_headers` — si la cambiás allá, actualizá acá):
 ```
 default-src 'self'
-script-src  'self' 'unsafe-inline' cdn.onesignal.com cdnjs.cloudflare.com plausible.io
-style-src   'self' 'unsafe-inline' fonts.googleapis.com
-connect-src 'self' + onesignal + plausible + el worker propio
-img-src     'self' data: blob: https:
-frame-ancestors 'none'   ·   object-src 'none'   ·   base-uri 'self'   ·   form-action 'self'
+script-src  'self' 'unsafe-inline' cdnjs.cloudflare.com plausible.io
+style-src   'self' 'unsafe-inline'
+font-src    'self'                          ← sin CDN: las fuentes son locales
+connect-src 'self' plausible.io + el worker propio
+img-src     'self' data: blob:              ← sin https:, ver abajo
+worker-src 'self' blob:  ·  manifest-src 'self'
+frame-ancestors 'none'  ·  object-src 'none'  ·  base-uri 'self'  ·  form-action 'self'
 ```
 
 **🟠 `'unsafe-inline'` en `script-src` es inevitable con esta arquitectura** — toda la app
@@ -246,12 +248,11 @@ falla y frena el deploy.
 
 | # | Severidad | Hallazgo |
 |---|---|---|
-| T-08 | 🟡 Baja | `/force-update` borra IndexedDB (`Clear-Site-Data: storage`) sin advertencia |
 | T-10 | 🟡 Baja | `'unsafe-inline'` en CSP (inherente a la arquitectura) |
 
 **Cerrados en 07/2026:** T-01 (`/version` ruteado), T-03 (fail-closed en rutas críticas),
 T-04 (CSRF bloqueando), T-09 (race de stock entre pestañas → Web Locks), BUG-26 (XSS por
-atributos), BUG-27 (el repo entero servido público).
+atributos), BUG-27 (el repo entero servido público), BUG-29 (`/force-update` borraba datos y licencia).
 
 Detalle y prioridad en [TODO.md](TODO.md).
 

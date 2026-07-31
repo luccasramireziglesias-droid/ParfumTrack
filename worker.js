@@ -232,20 +232,46 @@ async function handleRequest(request, env, ctx) {
         });
       }
 
+      // Escotilla de emergencia para assets viejos o un Service Worker envenenado.
+      // Se le pasa a mano a un usuario que escribe porque "la app no le carga".
+      //
+      // 🔴 NUNCA agregar "storage" al Clear-Site-Data. Borra IndexedDB (todo el historial
+      // de ventas) Y localStorage: el código de licencia, la sal del cifrado
+      // (`pt_salt_<licencia>`), el perfil del negocio y el PIN. Estuvo así y la página
+      // decía "Los caches fueron limpiados" sin mencionarlo.
+      //
+      // Y no se puede arreglar con una advertencia acá: Clear-Site-Data es una cabecera de
+      // respuesta, el navegador la ejecuta al recibir la página. Para cuando el usuario
+      // lee el aviso, los datos ya no están.
+      //
+      // IndexedDB no guarda assets, así que borrarlo nunca arregló un problema de cache.
+      // Lo único de "storage" que servía —desregistrar el SW— se hace abajo desde el
+      // cliente, con precisión y sin tocar un solo dato del usuario.
       if (path === '/force-update') {
         return new Response(
-          '<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Actualizando...</title></head>' +
-          '<body style="background:#0f0f1a;color:#f0ece4;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;">' +
+          '<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Actualizando…</title></head>' +
+          '<body style="background:#0f0f1a;color:#f0ece4;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;padding:24px;">' +
           '<div><div style="font-size:48px;margin-bottom:16px;">✨</div>' +
-          '<h2 style="color:#e8c97e;">Parfum Track actualizado</h2>' +
-          '<p style="color:#999;font-size:14px;">Los caches fueron limpiados.<br>Cerrá esta pestaña y abrí la app de nuevo.</p>' +
-          '<a href="/" style="display:inline-block;margin-top:20px;padding:12px 32px;background:linear-gradient(135deg,#c9a84c,#e8c97e);color:#1a1a2e;border-radius:10px;text-decoration:none;font-weight:600;">Abrir Parfum Track</a>' +
-          '</div></body></html>',
+          '<h2 style="color:#e8c97e;font-size:22px;margin:0 0 12px;">Parfum Track actualizado</h2>' +
+          '<p style="color:#b8b4a8;font-size:14px;line-height:1.6;margin:0 0 6px;">Se limpiaron los archivos guardados de la app.</p>' +
+          '<p style="color:#70c9a0;font-size:13px;line-height:1.6;margin:0 0 20px;">Tus ventas, clientes y stock <strong>no se tocaron</strong>.</p>' +
+          '<a href="/" style="display:inline-block;padding:12px 32px;background:linear-gradient(135deg,#c9a84c,#e8c97e);color:#1a1a2e;border-radius:10px;text-decoration:none;font-weight:600;">Abrir Parfum Track</a>' +
+          '</div>' +
+          '<script>' +
+          // Desregistrar el SW y vaciar la Cache Storage. Esto es lo que de verdad
+          // destraba un cache envenenado; los datos del usuario ni se rozan.
+          'if(navigator.serviceWorker){navigator.serviceWorker.getRegistrations()' +
+          '.then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))})' +
+          '.catch(function(){})}' +
+          'if(window.caches){caches.keys().then(function(ks){' +
+          'return Promise.all(ks.map(function(k){return caches.delete(k)}))}).catch(function(){})}' +
+          '</scr' + 'ipt>' +
+          '</body></html>',
           {
             status: 200,
             headers: {
               'Content-Type': 'text/html; charset=utf-8',
-              'Clear-Site-Data': '"cache", "storage"',
+              'Clear-Site-Data': '"cache"',
               'Cache-Control': 'no-store',
             },
           },

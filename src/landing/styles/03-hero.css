@@ -145,13 +145,6 @@
   background: radial-gradient(ellipse, rgba(201,168,76,0.12), transparent 65%);
   pointer-events: none;
 }
-.hero-screenshot {
-  width: 100%;
-  height: auto;
-  border-radius: 24px;
-  box-shadow: 0 0 0 1px var(--border2), var(--shadow);
-  display: block;
-}
 .hero-floating-card {
   position: absolute;
   background: var(--card2);
@@ -181,7 +174,6 @@
 .hfc-value { color: var(--gold2); font-size: 16px; font-weight: 800; }
 .hfc-sub { color: var(--green); font-size: 10px; font-weight: 600; }
 
-
 /* ═══════════════════════════════════
    HERO SCREENSHOT SVG
 ═══════════════════════════════════ */
@@ -194,7 +186,6 @@
   background: #0a0a15;
 }
 .hero-screenshot-wrap svg, .hero-screenshot-wrap img { display: block; width: 100%; height: auto; }
-
 
 /* ═══════════════════════════════════
    SOCIAL PROOF STRIP (hero)

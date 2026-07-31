@@ -114,19 +114,6 @@ regresiones) y CSRF. Faltan `/validate-license`, `/backup`, `/sync` y
 ---
 
 
-### 🟡 T-08 — `/force-update` borra IndexedDB sin advertencia
-
-**Evidencia.** `worker.js` devuelve `Clear-Site-Data: "cache", "storage"`.
-**`storage` incluye IndexedDB** — o sea, todo el historial del usuario.
-
-**Impacto.** Es una escotilla de emergencia para cache envenenado, pero **destruye los
-datos**. La página que devuelve no lo advierte.
-
-**Solución.** O sacar `"storage"` y dejar solo `"cache"`, o poner una advertencia explícita
-con paso de backup previo. Dificultad: baja. **Decisión de producto, no técnica.**
-
----
-
 ### 🟡 T-11 — Reservas y pedidos no avisan de duplicados
 
 Los perfumes (`_mismoNombre`) y el importador de Excel (`_impYaImportados`) ya avisan.
@@ -244,6 +231,7 @@ adelantarse cuesta trabajo doble.
 | ✅ T-09 race de stock entre pestañas (Web Locks) | 07/2026 |
 | ✅ M-03 aviso de planilla reimportada | 07/2026 |
 | ✅ C-01 y C-02 tests de concurrencia e interrupción | 07/2026 |
+| ✅ T-08 `/force-update` ya no borra datos del usuario (BUG-29) | 07/2026 |
 | ✅ Paginado de la pantalla de cuotas (297 ms → 16 ms) | 07/2026 |
 | ✅ Prueba de volumen con 2000 ventas, con y sin cifrado | 07/2026 |
 | ✅ Fuzzer de invariantes en CI | 07/2026 |

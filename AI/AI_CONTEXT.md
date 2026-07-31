@@ -178,8 +178,6 @@ VOL_VENTAS=5000 npx playwright test tests/volumen.spec.js
 
 Hallazgos abiertos que importan (detalle y prioridad en [TODO.md](TODO.md)):
 
-1. 🟡 `/force-update` borra IndexedDB (`Clear-Site-Data: "cache", "storage"`) sin advertirle
-   al usuario. Es una escotilla de emergencia que destruye datos.
 2. 🟡 Las reservas y los pedidos no tienen aviso de duplicado (los perfumes y el importador
    de Excel sí).
 3. 🟢 `'unsafe-inline'` en la CSP — inherente a la arquitectura de un solo archivo (D-01).

@@ -656,3 +656,58 @@ pausa. De paso, Escape también cierra.
 - 🟠 **Ocultar algo con CSS no evita que se descargue.** Un modal cerrado igual baja su
   contenido.
 - 🟠 **Cerrar un modal con video tiene que pausarlo**, o el audio sigue sonando.
+
+---
+
+## BUG-29 — `/force-update` borraba el historial de ventas y la licencia 🔴
+**Fecha:** 31/07/2026 · **Riesgo de reintroducción:** 🔴 ALTO (parece inofensivo)
+
+**Descripción.** La escotilla de emergencia para cache viejo devolvía
+`Clear-Site-Data: "cache", "storage"`. **`"storage"` no borra solo IndexedDB — también
+borra localStorage.** O sea, todo esto de una:
+
+| Se perdía | Qué era |
+|---|---|
+| IndexedDB entero | Ventas, cuotas, stock, gastos, compras, reservas |
+| `pt_license_code` | **La licencia paga** |
+| `pt_salt_<licencia>` | La sal del cifrado (aleatoria, solo vive ahí) |
+| `pt_negocio`, `pt_pin_hash`, `pt_onboarded` | Perfil, PIN, onboarding |
+
+Y la página decía **"Los caches fueron limpiados"** y nada más.
+
+**El escenario real.** Nada en la app enlaza a `/force-update`: es una URL que se le pasa
+a mano a alguien que escribió porque "la app no le carga". O sea que el borrado le caía a
+un usuario que ya estaba con un problema, mientras lo ayudabas, con un ✨ y un mensaje que
+no mencionaba lo que acababa de pasar.
+
+**Por qué no se arreglaba con una advertencia.** `Clear-Site-Data` es una **cabecera de
+respuesta**: el navegador la ejecuta al recibir la página, antes de pintarla. Cualquier
+aviso en esa página es una autopsia. Para advertir habría que hacerlo en una página
+anterior, y entonces deja de ser la escotilla de un click que se necesita en soporte.
+
+**Causa.** Confundir dos almacenamientos que no se tocan. `/force-update` existe para
+**assets** viejos o envenenados; IndexedDB y localStorage no guardan assets. Borrarlos
+nunca arregló un problema de cache: era costo puro sin beneficio.
+
+**Solución.** `Clear-Site-Data: "cache"` a secas. Lo único de `"storage"` que servía de
+verdad —desregistrar un Service Worker envenenado— se hace desde el cliente, con
+precisión y sin tocar un dato: `getRegistrations()` + `unregister()`, y `caches.delete()`
+sobre cada cache. Resultado: cache limpio + SW desregistrado + cero pérdida de datos. Y el
+texto ahora dice explícitamente que las ventas, clientes y stock no se tocaron.
+
+**Lo que limitaba el daño** (verificado, no asumido): el export JSON y el backup a R2 se
+guardan **descifrados**, y el backup en R2 está indexado por el código de licencia
+(`backup/${code}`), no por el device id. Un usuario con backup y su licencia se
+recuperaba. Uno sin backup —el caso normal— perdía todo.
+
+**Archivos.** `worker.js`, `tests/worker.test.js` (5 tests)
+
+**Verificado al revés:** devolviendo `"storage"` falla el test.
+
+**Reglas derivadas.**
+- 🔴 **Nunca `"storage"` en un `Clear-Site-Data`.** Se lleva puesto IndexedDB *y*
+  localStorage: datos, licencia y material de clave.
+- 🔴 **Una cabecera que destruye datos no se puede advertir desde la página que la manda.**
+  Se ejecuta antes de que se lea.
+- 🟠 **Limpiar cache y borrar datos son cosas distintas.** Si el problema es un asset
+  viejo, la solución no toca nada del usuario.

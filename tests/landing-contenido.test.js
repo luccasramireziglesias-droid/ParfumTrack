@@ -186,6 +186,49 @@ describe('las capturas declaran el tamaño que realmente tienen', () => {
   });
 });
 
+describe('el formulario donde entra la plata es usable con lector de pantalla', () => {
+  it('el campo de email tiene un label asociado con for=', () => {
+    // Había un <label> con el texto "Tu email" pero sin `for`, así que no quedaba
+    // asociado: un lector de pantalla anunciaba el campo sin nombre.
+    expect(landing).toMatch(/<label[^>]*\sfor=["']mp-email-input["']/);
+    expect(landing).toMatch(/<input[^>]*\sid=["']mp-email-input["']/);
+  });
+
+  it('los errores de validación se anuncian solos', () => {
+    expect(landing).toMatch(/id=["']mp-checkout-error["'][^>]*role=["']alert["']/);
+    expect(landing).toMatch(/<input[^>]*aria-describedby=["']mp-checkout-error["']/);
+  });
+
+  it('el teclado del celular se abre en modo email', () => {
+    const input = (landing.match(/<input[^>]*id=["']mp-email-input["'][^>]*>/) || [])[0] || '';
+    expect(input).toMatch(/type=["']email["']/);
+    expect(input).toMatch(/inputmode=["']email["']/);
+  });
+});
+
+describe('la app no depende de un CDN de fuentes', () => {
+  it('el Service Worker ya no cachea Google Fonts', () => {
+    // Código muerto desde que las fuentes son locales, y la CSP (font-src 'self') lo
+    // bloquearía igual. Se sacó para que nadie deduzca que todavía dependemos de Google.
+    //
+    // Se miran los comentarios aparte: el comentario que explica por qué se quitó nombra
+    // los dominios, y eso está bien. Lo que no puede volver es el código.
+    const sw = readFileSync(path.join(root, 'sw.js'), 'utf8');
+    const codigo = sw.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    expect(codigo).not.toMatch(/fonts\.(googleapis|gstatic)\.com/);
+  });
+
+  it('las fuentes locales siguen precacheadas', () => {
+    const sw = readFileSync(path.join(root, 'sw.js'), 'utf8');
+    expect(sw).toContain('/fonts/fonts.css');
+    expect(sw).toContain('/fonts/dm-sans-latin.woff2');
+  });
+
+  it('la CSP no permite pedir fuentes afuera', () => {
+    expect(readFileSync(path.join(root, '_headers'), 'utf8')).toMatch(/font-src 'self'/);
+  });
+});
+
 describe('la landing usa la tipografía de la marca', () => {
   it.each([
     ['styles/03-hero.css', '.hero h1'],
