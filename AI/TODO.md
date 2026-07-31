@@ -58,7 +58,7 @@ funciona. Lo que no se puede saber desde acá es si Cloudflare está sirviendo l
 de esos assets o quedó con la vieja.
 
 **Cómo se resuelve en 5 segundos:** abrir `/landing.html` en producción y mirar el hero.
-- Si dice **"Nuevo lanzamiento · Probala gratis"** y el título está en serif → los assets están al día.
+- Si dice **"Nuevo lanzamiento · Sé de los primeros"** y el título está en serif → los assets están al día.
 - Si todavía dice **"+340 revendedores en LATAM"** → el deploy no actualizó los assets, y hay
   que forzarlo (Dashboard → Workers → parfumtrack → Settings → Assets, o un deploy limpio).
 
