@@ -62,7 +62,7 @@ cuenta todo".
 negocio con Parfum Track"* y la barra de stats repetía *"+340"*, con el producto en **0
 usuarios**. Publicidad engañosa (regulada en los cuatro mercados objetivo) y además pelea
 con la propia estrategia, que es conseguir a los primeros y pedirles testimonios reales.
-Reemplazado por *"Recién lanzada · Probala gratis y contanos qué le falta"* y por
+Reemplazado por *"Nuevo lanzamiento · Sé de los primeros"* y por
 *"Tus datos · Solo en tu celular"*. Ver [DECISIONS.md](DECISIONS.md) §D-28.
 
 **2. 🟠 18 MB de video en cada visita.** La primera carga móvil pesaba **18,07 MB**, de los

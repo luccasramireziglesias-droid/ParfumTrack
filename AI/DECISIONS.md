@@ -496,9 +496,22 @@ los primeros 20-30).
    te va a confiar los números de su negocio. Ver `ROADMAP.md` §7: la confianza es la
    objeción #1.
 
-**Con qué se reemplazó.** Hero: *"Recién lanzada · Probala gratis y contanos qué le falta"*
-— honesto, y además invita al feedback que la Fase 0 necesita. Stat: *"Tus datos · Solo en
-tu celular"*, que es la ventaja real y verificable (D-03).
+**Con qué se reemplazó.** Hero: *"Nuevo lanzamiento · Sé de los primeros"*. Stat:
+*"Tus datos · Solo en tu celular"*, que es la ventaja real y verificable (D-03).
+
+**Por qué esa frase y no otra** (se probaron cinco renderizadas a 390px):
+- *"Nuevo lanzamiento"* es la frase que un revendedor de perfumes usa todos los días cuando
+  sale una fragancia: es vocabulario del nicho. *"Recién lanzada"*, en cambio, describe al
+  producto como recién salido — en una app que maneja plata ajena eso se lee como
+  "sin probar".
+- *"Sé de los primeros"* convierte la ausencia de usuarios en una invitación en vez de una
+  disculpa, y es el mismo ángulo que usa la Fase 0 del plan.
+- Se descartó agregarle *"en probarla"* o *"probala gratis"*: es un badge, no una oración.
+  "Sé de los primeros" ya se entiende solo, y explicar debilita. "Gratis" tampoco hace
+  falta ahí — ya aparece en la barra de anuncio, en los ✓ de abajo y en el propio CTA.
+- 🟠 **Al alargarlo, medir**: a 390px la versión de 58 caracteres envuelve a **tres líneas**
+  y la de 38 entra en una. (Se comprobó que **no** empuja los CTA fuera de la primera
+  pantalla: 662px contra 643px de 844 disponibles. La diferencia es de aire, no de fold.)
 
 **Cuándo se puede volver a poner un número.** Cuando exista y se pueda sostener. El lugar
 es el mismo; hay que actualizar `tests/landing-contenido.test.js`, que hoy falla ante
