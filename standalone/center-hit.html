@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#050f28">
+<meta name="robots" content="noindex">
+<title>Center Hit — práctica</title>
+<style>
+  :root {
+    color-scheme: dark;
+
+    --ink-900: #050f28;
+    --ink-800: #08183c;
+    --ink-700: #0b2352;
+    --ink-600: #123068;
+    --ray:     #061635;
+
+    --bone:    #efe6d4;
+    --paper:   #f6f8ff;
+    --paper-dim: #b9c6e6;
+
+    --violet:  #6d55e8;
+    --violet-hi: #9d8bff;
+    --violet-lo: #4b35c0;
+
+    --z-green:  #2fa35f;
+    --z-yellow: #d6b52b;
+    --z-orange: #d1761c;
+    --z-red:    #b23328;
+
+    --step-0: 0.78rem;
+    --step-1: 0.95rem;
+    --step-2: 1.12rem;
+    --step-3: 1.7rem;
+    --step-4: clamp(2.1rem, 9vw, 3.1rem);
+    --step-5: clamp(3.6rem, 20vw, 6rem);
+
+    --display: "Trebuchet MS", "Lucida Grande", system-ui, sans-serif;
+    --body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ink-900);
+    color: var(--paper);
+    font-family: var(--body);
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  /* Tres bandas fijas: HUD arriba, juego al medio (siempre centrado, aunque el
+     pie esté oculto) y botones abajo. */
+  .stage {
+    position: relative;
+    width: 100%;
+    min-height: 100dvh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    justify-items: center;
+    align-items: center;
+    gap: 1rem;
+    padding: max(1rem, env(safe-area-inset-top)) 1.15rem max(1.15rem, env(safe-area-inset-bottom));
+    background:
+      radial-gradient(120% 75% at 50% 46%, var(--ink-600) 0%, var(--ink-700) 34%, var(--ink-800) 62%, var(--ink-900) 100%);
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* Sunburst: rayos finos que salen del centro de la barra */
+  .rays {
+    position: absolute;
+    inset: -40% -25%;
+    background: repeating-conic-gradient(
+      from 0deg at 50% 50%,
+      var(--ray) 0deg 1.15deg,
+      transparent 1.15deg 9deg
+    );
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 14%, #000 34%, #000 62%, transparent 88%);
+    mask-image: radial-gradient(circle at 50% 50%, transparent 14%, #000 34%, #000 62%, transparent 88%);
+    opacity: .85;
+    animation: spin 240s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .grain {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: .5;
+    background: radial-gradient(80% 50% at 50% 50%, transparent 40%, rgba(2, 8, 22, .75) 100%);
+  }
+
+  .layer { position: relative; z-index: 2; width: 100%; max-width: 30rem; }
+
+  /* ---------- HUD ---------- */
+  .hud {
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    min-height: 2.2rem;
+  }
+
+  .pips { display: flex; gap: .38rem; }
+  .pips[hidden], .hud-read[hidden] { display: none; }
+  .pip {
+    width: .62rem; height: .62rem;
+    border-radius: 50%;
+    background: rgba(246, 248, 255, .18);
+    box-shadow: inset 0 0 0 1px rgba(246, 248, 255, .22);
+    transition: background .18s ease, transform .18s ease;
+  }
+  .pip.done { background: var(--bone); }
+  .pip.live { background: var(--violet-hi); transform: scale(1.25); }
+
+  .hud-read {
+    font-family: var(--display);
+    font-size: var(--step-1);
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--paper-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .hud-read b { color: var(--paper); font-weight: 800; }
+
+  .icon-btn {
+    appearance: none;
+    border: 1px solid rgba(246, 248, 255, .2);
+    background: rgba(5, 15, 40, .5);
+    color: var(--paper-dim);
+    border-radius: 999px;
+    width: 2.1rem; height: 2.1rem;
+    font-size: .95rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .icon-btn:hover { color: var(--paper); border-color: rgba(246, 248, 255, .45); }
+
+  /* ---------- Bloques de texto ---------- */
+  .screen {
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+  }
+  .screen[hidden] { display: none; }
+  .foot { grid-row: 3; }
+
+  h1 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: var(--step-4);
+    font-weight: 900;
+    letter-spacing: -.015em;
+    text-transform: uppercase;
+    text-wrap: balance;
+    text-shadow: 0 .18rem 0 rgba(3, 10, 28, .55);
+  }
+
+  .lede {
+    margin: 0;
+    max-width: 24ch;
+    font-size: var(--step-2);
+    font-weight: 600;
+    line-height: 1.4;
+    text-wrap: balance;
+    text-shadow: 0 .12rem .5rem rgba(3, 10, 28, .8);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .45rem 1.05rem;
+    border-radius: 999px;
+    border: 1px solid rgba(246, 248, 255, .16);
+    background: rgba(4, 12, 32, .62);
+    font-size: var(--step-1);
+    font-weight: 600;
+    color: var(--paper-dim);
+  }
+  .chip b { color: var(--paper); font-variant-numeric: tabular-nums; }
+
+  /* ---------- La barra ---------- */
+  .arena {
+    position: relative;
+    width: 100%;
+    padding: 5rem 0 3.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+
+  .slab-wrap {
+    width: 100%;
+    perspective: 900px;
+  }
+
+  .slab {
+    position: relative;
+    height: 3.4rem;
+    display: flex;
+    border-radius: .5rem;
+    overflow: visible;
+    transform: rotateX(34deg);
+    transform-style: preserve-3d;
+    box-shadow:
+      0 .28rem 0 rgba(3, 10, 26, .55),
+      0 .56rem 0 rgba(3, 10, 26, .35),
+      0 1.6rem 2.4rem rgba(2, 6, 20, .65);
+  }
+
+  .zone { position: relative; }
+  .zone::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .22), rgba(0, 0, 0, .28));
+  }
+  .zone:first-child { border-radius: .5rem 0 0 .5rem; }
+  .zone:last-child { border-radius: 0 .5rem .5rem 0; }
+
+  .z-r { flex: 0 0 15%; background: var(--z-red); }
+  .z-o { flex: 0 0 15%; background: var(--z-orange); }
+  .z-y { flex: 0 0 14%; background: var(--z-yellow); }
+  .z-g { flex: 0 0 12%; background: var(--z-green); }
+
+  .marker {
+    position: absolute;
+    top: -1.5rem;
+    bottom: -1.5rem;
+    left: 50%;
+    width: .52rem;
+    margin-left: -.26rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #fffaf0, var(--bone) 45%, #b9ad95);
+    box-shadow: 0 0 1.4rem rgba(255, 246, 224, .45);
+    transform: translate3d(0, 0, 2.4rem);
+    will-change: left;
+  }
+  .marker.locked { animation: thud .28s ease-out; }
+  @keyframes thud {
+    0% { transform: translate3d(0, -.5rem, 2.4rem) scaleY(1.12); }
+    100% { transform: translate3d(0, 0, 2.4rem) scaleY(1); }
+  }
+
+  .verdict {
+    position: absolute;
+    top: .2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--display);
+    font-size: var(--step-3);
+    font-weight: 900;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0;
+    text-shadow: 0 .16rem .6rem rgba(2, 6, 20, .9);
+  }
+  .verdict.show { animation: pop 1s ease-out; }
+  @keyframes pop {
+    0%   { opacity: 0; transform: translate(-50%, .6rem) scale(.85); }
+    18%  { opacity: 1; transform: translate(-50%, 0) scale(1.06); }
+    30%  { transform: translate(-50%, 0) scale(1); }
+    80%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -.7rem) scale(1); }
+  }
+
+  .hint {
+    font-family: var(--display);
+    font-size: var(--step-1);
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--paper-dim);
+  }
+  .hint.pulse { animation: breathe 1.6s ease-in-out infinite; }
+  @keyframes breathe { 50% { opacity: .35; } }
+
+  /* ---------- Resultado ---------- */
+  .score {
+    font-family: var(--display);
+    font-size: var(--step-5);
+    font-weight: 900;
+    line-height: .9;
+    letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .score span { font-size: .38em; letter-spacing: 0; }
+
+  .rank {
+    font-family: var(--display);
+    font-size: var(--step-3);
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .rounds {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: .42rem;
+    padding: .9rem 1rem;
+    border-radius: .85rem;
+    border: 1px solid rgba(246, 248, 255, .12);
+    background: rgba(4, 12, 32, .55);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 4.6rem 1fr 2.9rem;
+    align-items: center;
+    gap: .6rem;
+    font-size: var(--step-0);
+    font-weight: 600;
+    color: var(--paper-dim);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .bar {
+    height: .42rem;
+    border-radius: 999px;
+    background: rgba(246, 248, 255, .12);
+    overflow: hidden;
+  }
+  .bar i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    transform-origin: left;
+    animation: grow .5s cubic-bezier(.2, .8, .3, 1) both;
+  }
+  @keyframes grow { from { transform: scaleX(0); } }
+  .row b {
+    color: var(--paper);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--step-1);
+  }
+
+  .best {
+    font-size: var(--step-0);
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--paper-dim);
+  }
+  .best.new { color: var(--z-yellow); }
+
+  /* ---------- Botones ---------- */
+  .foot { display: flex; flex-direction: column; gap: .6rem; }
+  .foot[hidden] { display: none; }
+
+  .btn {
+    appearance: none;
+    width: 100%;
+    padding: 1.05rem 1.5rem;
+    border-radius: 1.1rem;
+    border: 2px solid var(--violet-hi);
+    background: linear-gradient(180deg, var(--violet) 0%, var(--violet-lo) 100%);
+    color: var(--paper);
+    font-family: var(--display);
+    font-size: var(--step-3);
+    font-weight: 900;
+    letter-spacing: .01em;
+    cursor: pointer;
+    box-shadow: 0 .3rem 0 rgba(40, 26, 110, .9), 0 1rem 1.8rem rgba(3, 8, 28, .55);
+    transition: transform .09s ease, box-shadow .09s ease;
+  }
+  .btn:active {
+    transform: translateY(.28rem);
+    box-shadow: 0 .06rem 0 rgba(40, 26, 110, .9), 0 .5rem 1rem rgba(3, 8, 28, .5);
+  }
+  .btn.ghost {
+    background: transparent;
+    border-color: rgba(246, 248, 255, .28);
+    color: var(--paper-dim);
+    font-size: var(--step-2);
+    padding: .8rem 1.5rem;
+    box-shadow: none;
+  }
+  .btn.ghost:active { transform: none; }
+  :focus-visible { outline: 3px solid var(--violet-hi); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rays { animation: none; }
+    .hint.pulse { animation: none; }
+    .bar i { animation: none; }
+    .verdict.show { animation-duration: .9s; }
+  }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="rays"></div>
+  <div class="grain"></div>
+
+  <header class="layer hud" id="hud">
+    <div class="pips" id="pips" hidden></div>
+    <div class="hud-read" id="hudRead" hidden>Media <b id="hudAvg">—</b></div>
+    <div style="flex:1"></div>
+    <button class="icon-btn" id="sound" type="button" aria-label="Activar o silenciar el sonido">🔊</button>
+  </header>
+
+  <section class="layer screen" id="screenIntro">
+    <h1>Center Hit</h1>
+    <p class="lede">Una línea rebota sobre la barra: tocá justo cuando pase por el centro. Después de cada toque se acelera (5 rondas). Tu puntaje es la precisión media.</p>
+    <span class="chip">⏳ Duración <b>~15s</b></span>
+  </section>
+
+  <section class="layer screen" id="screenPlay" hidden>
+    <div class="arena" id="arena">
+      <div class="verdict" id="verdict"></div>
+      <div class="slab-wrap">
+        <div class="slab">
+          <div class="zone z-r"></div>
+          <div class="zone z-o"></div>
+          <div class="zone z-y"></div>
+          <div class="zone z-g"></div>
+          <div class="zone z-y"></div>
+          <div class="zone z-o"></div>
+          <div class="zone z-r"></div>
+          <div class="marker" id="marker"></div>
+        </div>
+      </div>
+    </div>
+    <p class="hint pulse" id="hint">Tocá la pantalla</p>
+  </section>
+
+  <section class="layer screen" id="screenResult" hidden>
+    <div class="score" id="finalScore">0<span>%</span></div>
+    <div class="rank" id="rank"></div>
+    <div class="rounds" id="rounds"></div>
+    <div class="best" id="best"></div>
+  </section>
+
+  <footer class="layer foot" id="foot">
+    <button class="btn" id="primary" type="button">Start</button>
+    <button class="btn ghost" id="secondary" type="button" hidden>Ver instrucciones</button>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var RONDAS = 5;
+  var PERIODO_BASE = 1150;   // ms de punta a punta en la ronda 1
+  var ACELERA = 0.79;        // cada ronda es un 21% más rápida
+  var PAUSA = 950;           // ms de festejo entre rondas
+
+  var el = {
+    stage: document.getElementById("stage"),
+    hud: document.getElementById("hud"),
+    hudRead: document.getElementById("hudRead"),
+    pips: document.getElementById("pips"),
+    hudAvg: document.getElementById("hudAvg"),
+    sound: document.getElementById("sound"),
+    intro: document.getElementById("screenIntro"),
+    play: document.getElementById("screenPlay"),
+    result: document.getElementById("screenResult"),
+    arena: document.getElementById("arena"),
+    marker: document.getElementById("marker"),
+    verdict: document.getElementById("verdict"),
+    hint: document.getElementById("hint"),
+    finalScore: document.getElementById("finalScore"),
+    rank: document.getElementById("rank"),
+    rounds: document.getElementById("rounds"),
+    best: document.getElementById("best"),
+    foot: document.getElementById("foot"),
+    primary: document.getElementById("primary"),
+    secondary: document.getElementById("secondary")
+  };
+
+  // Escalones de precisión, alineados con las franjas de color de la barra.
+  var ESCALONES = [
+    { max: 0.04, texto: "¡Perfecto!", color: "#7ce8a8" },
+    { max: 0.12, texto: "Excelente",  color: "#2fa35f" },
+    { max: 0.26, texto: "Bien",       color: "#d6b52b" },
+    { max: 0.41, texto: "Casi",       color: "#d1761c" },
+    { max: 2.00, texto: "Fuera",      color: "#b23328" }
+  ];
+
+  function escalon(p) {
+    var d = Math.abs(p);
+    for (var i = 0; i < ESCALONES.length; i++) {
+      if (d <= ESCALONES[i].max) return ESCALONES[i];
+    }
+    return ESCALONES[ESCALONES.length - 1];
+  }
+
+  var estado = {
+    fase: "intro",     // intro | corriendo | esperando | fin
+    ronda: 0,
+    resultados: [],
+    inicio: 0,
+    periodo: PERIODO_BASE,
+    fase0: 0,
+    raf: 0
+  };
+
+  /* ---------- sonido ---------- */
+  var audioOn = localStorage.getItem("ch_sonido") !== "0";
+  var ctx = null;
+
+  function pintarSonido() { el.sound.textContent = audioOn ? "🔊" : "🔇"; }
+
+  function beep(freq, dur, vol) {
+    if (!audioOn) return;
+    try {
+      if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === "suspended") ctx.resume();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(vol || 0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + dur);
+    } catch (e) { /* sin audio, el juego sigue igual */ }
+  }
+
+  function vibrar(ms) {
+    if (navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) {} }
+  }
+
+  /* ---------- posición de la línea ---------- */
+  // Onda triangular: x recorre 0→2 y vuelve. Devuelve p en [-1, 1].
+  function posicion(t) {
+    var x = ((t - estado.inicio) / estado.periodo + estado.fase0) % 2;
+    if (x < 0) x += 2;
+    return x < 1 ? -1 + 2 * x : 3 - 2 * x;
+  }
+
+  function pintarMarcador(p) {
+    el.marker.style.left = (50 + p * 50) + "%";
+  }
+
+  function loop() {
+    if (estado.fase !== "corriendo") return;
+    pintarMarcador(posicion(performance.now()));
+    estado.raf = requestAnimationFrame(loop);
+  }
+
+  /* ---------- flujo del juego ---------- */
+  function pintarPips() {
+    el.pips.innerHTML = "";
+    for (var i = 0; i < RONDAS; i++) {
+      var d = document.createElement("div");
+      d.className = "pip" + (i < estado.ronda ? " done" : i === estado.ronda ? " live" : "");
+      el.pips.appendChild(d);
+    }
+  }
+
+  function media() {
+    if (!estado.resultados.length) return 0;
+    var s = 0;
+    for (var i = 0; i < estado.resultados.length; i++) s += estado.resultados[i].precision;
+    return Math.round(s / estado.resultados.length);
+  }
+
+  function empezar() {
+    estado.ronda = 0;
+    estado.resultados = [];
+    estado.fase = "corriendo";
+    el.intro.hidden = true;
+    el.result.hidden = true;
+    el.play.hidden = false;
+    el.foot.hidden = true;
+    el.pips.hidden = false;
+    el.hudRead.hidden = false;
+    el.hudAvg.textContent = "—";
+    beep(520, 0.12);
+    lanzarRonda();
+  }
+
+  function lanzarRonda() {
+    estado.fase = "corriendo";
+    estado.periodo = PERIODO_BASE * Math.pow(ACELERA, estado.ronda);
+    // Arranca de un borde al azar y con un pelín de desfase: no se puede contar el ritmo.
+    estado.fase0 = (Math.random() < 0.5 ? 0 : 1) + (Math.random() * 0.2 - 0.1);
+    estado.inicio = performance.now();
+    el.marker.classList.remove("locked");
+    el.hint.textContent = "Tocá la pantalla";
+    el.hint.classList.add("pulse");
+    pintarPips();
+    cancelAnimationFrame(estado.raf);
+    estado.raf = requestAnimationFrame(loop);
+  }
+
+  function golpear() {
+    if (estado.fase !== "corriendo") return;
+    cancelAnimationFrame(estado.raf);
+    estado.fase = "esperando";
+
+    var p = posicion(performance.now());
+    pintarMarcador(p);
+    el.marker.classList.add("locked");
+
+    var precision = Math.max(0, Math.round(100 * (1 - Math.abs(p))));
+    var esc = escalon(p);
+    estado.resultados.push({ precision: precision, color: esc.color, texto: esc.texto });
+
+    el.verdict.textContent = esc.texto + " " + precision + "%";
+    el.verdict.style.color = esc.color;
+    el.verdict.classList.remove("show");
+    void el.verdict.offsetWidth;   // reinicia la animación
+    el.verdict.classList.add("show");
+
+    el.hint.textContent = precision >= 88 ? "¡Así!" : "Se acelera…";
+    el.hint.classList.remove("pulse");
+    el.hudAvg.textContent = media() + "%";
+
+    beep(240 + precision * 6, precision >= 88 ? 0.22 : 0.1, 0.09);
+    vibrar(precision >= 88 ? [12, 40, 12] : 18);
+
+    estado.ronda++;
+    pintarPips();
+
+    setTimeout(function () {
+      if (estado.ronda >= RONDAS) terminar();
+      else lanzarRonda();
+    }, PAUSA);
+  }
+
+  function rango(m) {
+    if (m >= 95) return { t: "Pulso de cirujano", c: "#7ce8a8" };
+    if (m >= 85) return { t: "Muy afilado", c: "#2fa35f" };
+    if (m >= 70) return { t: "Vas bien", c: "#d6b52b" };
+    if (m >= 50) return { t: "Zafaste", c: "#d1761c" };
+    return { t: "A practicar", c: "#b23328" };
+  }
+
+  function terminar() {
+    estado.fase = "fin";
+    var m = media();
+    var r = rango(m);
+
+    el.play.hidden = true;
+    el.pips.hidden = true;
+    el.hudRead.hidden = true;
+    el.result.hidden = false;
+    el.foot.hidden = false;
+
+    el.finalScore.innerHTML = m + "<span>%</span>";
+    el.rank.textContent = r.t;
+    el.rank.style.color = r.c;
+
+    el.rounds.innerHTML = "";
+    estado.resultados.forEach(function (res, i) {
+      var row = document.createElement("div");
+      row.className = "row";
+      var etiqueta = document.createElement("span");
+      etiqueta.textContent = "Ronda " + (i + 1);
+      var bar = document.createElement("div");
+      bar.className = "bar";
+      var fill = document.createElement("i");
+      fill.style.width = res.precision + "%";
+      fill.style.background = res.color;
+      fill.style.animationDelay = (i * 70) + "ms";
+      bar.appendChild(fill);
+      var val = document.createElement("b");
+      val.textContent = res.precision + "%";
+      row.appendChild(etiqueta);
+      row.appendChild(bar);
+      row.appendChild(val);
+      el.rounds.appendChild(row);
+    });
+
+    var record = parseInt(localStorage.getItem("ch_record") || "0", 10);
+    if (m > record) {
+      localStorage.setItem("ch_record", String(m));
+      el.best.textContent = record ? "¡Nuevo récord! Antes: " + record + "%" : "Primer récord: " + m + "%";
+      el.best.classList.add("new");
+      beep(880, 0.3, 0.1);
+    } else {
+      el.best.textContent = "Tu récord: " + record + "%";
+      el.best.classList.remove("new");
+      beep(m >= 70 ? 660 : 330, 0.25, 0.09);
+    }
+
+    el.primary.textContent = "Jugar de nuevo";
+    el.secondary.hidden = false;
+    el.secondary.textContent = "Ver instrucciones";
+  }
+
+  function volverAlIntro() {
+    estado.fase = "intro";
+    el.result.hidden = true;
+    el.play.hidden = true;
+    el.pips.hidden = true;
+    el.hudRead.hidden = true;
+    el.intro.hidden = false;
+    el.foot.hidden = false;
+    el.primary.textContent = "Start";
+    el.secondary.hidden = true;
+  }
+
+  /* ---------- entradas ---------- */
+  el.primary.addEventListener("click", empezar);
+  el.secondary.addEventListener("click", volverAlIntro);
+
+  el.sound.addEventListener("click", function () {
+    audioOn = !audioOn;
+    localStorage.setItem("ch_sonido", audioOn ? "1" : "0");
+    pintarSonido();
+    beep(600, 0.08);
+  });
+
+  el.stage.addEventListener("pointerdown", function (ev) {
+    if (estado.fase !== "corriendo") return;
+    if (ev.target.closest("button")) return;
+    ev.preventDefault();
+    golpear();
+  });
+
+  window.addEventListener("keydown", function (ev) {
+    if (ev.code !== "Space" && ev.code !== "Enter") return;
+    if (document.activeElement && document.activeElement.tagName === "BUTTON") return;
+    ev.preventDefault();
+    if (estado.fase === "corriendo") golpear();
+    else if (estado.fase === "intro") empezar();
+    else if (estado.fase === "fin") empezar();
+  });
+
+  // Si te vas de la pestaña en medio de una ronda, la ronda queda en pausa y
+  // se relanza entera al volver: si no, el reloj sigue corriendo de fondo y
+  // volvés con la línea en cualquier lado.
+  var pausadaPorPestania = false;
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden && estado.fase === "corriendo") {
+      cancelAnimationFrame(estado.raf);
+      estado.fase = "pausa";
+      pausadaPorPestania = true;
+      el.hint.textContent = "En pausa";
+      el.hint.classList.remove("pulse");
+      return;
+    }
+    if (!document.hidden && pausadaPorPestania) {
+      pausadaPorPestania = false;
+      el.hint.textContent = "¡Volvemos!";
+      setTimeout(function () {
+        if (estado.fase === "pausa") lanzarRonda();
+      }, 700);
+    }
+  });
+
+  pintarSonido();
+  pintarPips();
+  pintarMarcador(-1);
+})();
+</script>
+</body>
+</html>
