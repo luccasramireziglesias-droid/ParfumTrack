@@ -381,6 +381,93 @@ const Importar = (() => {
     UI.toast('Archivo generado', 'ok');
   }
 
+  // ── Copia de seguridad de TODO ────────────────────────────
+  //
+  // Exportar de a un recorrido no alcanza como respaldo: los recorridos
+  // viven en el IndexedDB del teléfono, y eso se va entero si se pierde el
+  // teléfono, si se limpian los datos del navegador o si se desinstala la
+  // app. Son horas de manejo grabando.
+  const FORMATO = 'recorridos-backup';
+
+  function armarBackup(recorridos) {
+    return {
+      formato: FORMATO,
+      version: 1,
+      fecha: new Date().toISOString(),
+      cantidad: recorridos.length,
+      recorridos,
+    };
+  }
+
+  /**
+   * Valida y devuelve los recorridos de un backup.
+   * Es estricto a propósito: restaurar basura silenciosamente es peor que
+   * fallar con un mensaje.
+   */
+  function leerBackup(texto) {
+    let obj;
+    try { obj = JSON.parse(texto); }
+    catch { throw new Error('el archivo no es un JSON válido'); }
+    if (!obj || obj.formato !== FORMATO) {
+      throw new Error('no es una copia de recorridos (si es un recorrido suelto, usá “Desde un archivo”)');
+    }
+    if (!Array.isArray(obj.recorridos)) throw new Error('la copia no trae la lista de recorridos');
+    const validos = obj.recorridos.filter(r => r && Array.isArray(r.puntos) && r.puntos.length > 1);
+    if (!validos.length) throw new Error('la copia no tiene ningún recorrido con trazado');
+    return validos;
+  }
+
+  async function exportarTodo() {
+    const recorridos = await DB.todos();
+    if (!recorridos.length) return UI.toast('Todavía no hay recorridos para guardar.', 'aviso');
+
+    const blob = new Blob([JSON.stringify(armarBackup(recorridos), null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const d = new Date();
+    const p = n => String(n).padStart(2, '0');
+    a.href = url;
+    a.download = `recorridos-${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    UI.toast(`Copia de ${recorridos.length} recorrido(s) generada. Guardala en Drive o mandátela por mail.`, 'ok', 6000);
+  }
+
+  /**
+   * Restaura AGREGANDO, nunca reemplazando.
+   *
+   * Un id repetido recibe uno nuevo en vez de pisar el recorrido que ya
+   * está. Si alguien restaura una copia vieja encima de la base actual, lo
+   * peor que puede pasar es tener duplicados —que se borran en dos toques—
+   * y no perder el trabajo de los últimos meses.
+   */
+  async function restaurarTodo(file) {
+    let recorridos;
+    try {
+      recorridos = leerBackup(await file.text());
+    } catch (e) {
+      return UI.toast(`No se pudo restaurar: ${e.message}`, 'error', 7000);
+    }
+
+    const existentes = new Set((await DB.todos()).map(r => r.id));
+    const ok = await UI.confirmar(
+      `¿Restaurar ${recorridos.length} recorrido(s)?`,
+      'Se AGREGAN a los que ya tenés; no se pisa ni se borra nada. Si alguno ya está, vas a quedar con dos copias.',
+      'Restaurar');
+    if (!ok) return;
+
+    let agregados = 0;
+    for (const r of recorridos) {
+      const copia = { ...r };
+      if (!copia.id || existentes.has(copia.id)) copia.id = null;   // DB.guardar le pone uno nuevo
+      await DB.guardar(copia);
+      agregados++;
+    }
+    UI.toast(`${agregados} recorrido(s) restaurados`, 'ok', 4000);
+    await Lista.cargar();
+    UI.irA('lista');
+  }
+
   // ── Nombres de calles ─────────────────────────────────────
   const NOMINATIM = 'https://nominatim.openstreetmap.org/reverse';
   const TOPE_CONSULTAS = 80;
@@ -432,12 +519,19 @@ const Importar = (() => {
 
   function init() {
     UI.$('#osm-buscar').onclick = buscarOsm;
+    UI.$('#backup-guardar').onclick = exportarTodo;
     UI.$('#archivo').addEventListener('change', _alElegirArchivos);
     UI.$('#gtfs-archivo').addEventListener('change', _alElegirGtfs);
+    UI.$('#backup-archivo').addEventListener('change', (e) => {
+      const f = (e.target.files || [])[0];
+      e.target.value = '';
+      if (f) restaurarTodo(f);
+    });
   }
 
   return {
     init, buscarOsm, exportar, nombrarCalles,
+    exportarTodo, restaurarTodo, armarBackup, leerBackup,
     _unirWays, _leerGeoJson, _leerGpx, _leerKml, _aRecorrido,
   };
 })();

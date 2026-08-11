@@ -59,7 +59,7 @@ propio origen y lo único que se logra tocándolo es romper la app entera.
 | **Manejar** | La guía GPS. Pantalla completa, voz, alerta de desvío |
 | **Grabar** | Registrar un recorrido manejándolo |
 | **Editar** | Dibujar o corregir un trazado, poner paradas y avisos |
-| **Importar** | Buscar en OpenStreetMap o leer GPX / GeoJSON / KML |
+| **Importar** | GTFS oficial, OpenStreetMap, GPX/GeoJSON/KML y la copia de seguridad |
 | **Estudiar** | Repaso en el mapa + test de memorización |
 
 ## De dónde salen los recorridos
@@ -107,6 +107,22 @@ Cinco vías, en orden de fiabilidad:
 Detalle → **Mapa offline** baja los tiles del corredor del recorrido (zooms 13 a 16) a la
 Cache API. Después el recorrido funciona con el teléfono en avión. Los mapas bajados
 **no se borran** al actualizar la app; se limpian a mano desde Ajustes.
+
+## No perder trabajo
+
+Grabar un recorrido cuesta manejarlo entero, así que hay dos redes:
+
+- **Borrador automático.** La grabación se escribe en IndexedDB cada 5 puntos y, como
+  techo, cada 1,2 s. Si Android mata la pestaña con la pantalla apagada —que es lo que
+  pasa— al abrir la app se ofrece recuperarla. Vuelve **en pausa**, nunca grabando:
+  reanudar sola metería una recta desde donde se cortó hasta donde estés ahora.
+  `pagehide` y `visibilitychange` también fuerzan un guardado, pero no alcanzan por sí
+  solos: escribir en IndexedDB es asíncrono y la página se descarga antes de que termine.
+  Por eso el techo de tiempo es lo que de verdad acota la pérdida.
+- **Copia de todo.** Importar → “Guardar copia de todo” baja un JSON con todos los
+  recorridos. Restaurar **agrega, nunca pisa**: un id repetido recibe uno nuevo, así que
+  restaurar una copia vieja te deja duplicados (que se borran en dos toques) en lugar de
+  perder meses de trabajo.
 
 ## Datos
 

@@ -252,3 +252,55 @@ describe('Offline', () => {
     expect([...zooms].sort()).toEqual(['13', '14', '15', '16']);
   });
 });
+
+// ── Copia de seguridad ────────────────────────────────────────
+// Los recorridos viven solo en el IndexedDB del teléfono. El backup es la
+// única red que hay contra perder el teléfono o limpiar los datos del
+// navegador, así que su formato tiene que ser estricto: restaurar basura en
+// silencio es peor que fallar con un mensaje.
+describe('backup completo', () => {
+  const unRecorrido = (id, nombre) => ({
+    id, nombre, linea: '710', puntos: [[-34.82, -55.95], [-34.81, -55.95]],
+    paradas: [], hitos: [],
+  });
+
+  it('el ida y vuelta conserva los recorridos', () => {
+    const originales = [unRecorrido('r1', '710 ida'), unRecorrido('r2', '710 vuelta')];
+    const leidos = Importar.leerBackup(JSON.stringify(Importar.armarBackup(originales)));
+    expect(leidos).toHaveLength(2);
+    expect(leidos[0].nombre).toBe('710 ida');
+    expect(leidos[1].puntos).toEqual(originales[1].puntos);
+  });
+
+  it('el archivo se identifica a sí mismo', () => {
+    const b = Importar.armarBackup([unRecorrido('r1', 'x')]);
+    expect(b.formato).toBe('recorridos-backup');
+    expect(b.version).toBe(1);
+    expect(b.cantidad).toBe(1);
+  });
+
+  it('rechaza un JSON que no es una copia de recorridos', () => {
+    expect(() => Importar.leerBackup('{"hola":1}')).toThrow(/no es una copia de recorridos/);
+  });
+
+  it('rechaza algo que ni siquiera es JSON', () => {
+    expect(() => Importar.leerBackup('esto no es json')).toThrow(/no es un JSON válido/);
+  });
+
+  it('rechaza una copia sin ningún recorrido con trazado', () => {
+    const vacio = { formato: 'recorridos-backup', version: 1, recorridos: [{ nombre: 'sin puntos' }] };
+    expect(() => Importar.leerBackup(JSON.stringify(vacio))).toThrow(/ningún recorrido con trazado/);
+  });
+
+  it('descarta los recorridos rotos pero conserva los sanos', () => {
+    // Un archivo a medio escribir no puede tirar abajo la restauración
+    // entera: lo que se pueda salvar, se salva.
+    const mezcla = {
+      formato: 'recorridos-backup', version: 1,
+      recorridos: [unRecorrido('r1', 'bueno'), { nombre: 'roto' }, { nombre: 'roto2', puntos: [] }],
+    };
+    const leidos = Importar.leerBackup(JSON.stringify(mezcla));
+    expect(leidos).toHaveLength(1);
+    expect(leidos[0].nombre).toBe('bueno');
+  });
+});

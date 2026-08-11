@@ -9,6 +9,41 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-08-11 (cierre) — Dos riesgos de pérdida de datos en Recorridos
+
+**Motivo.** El usuario preguntó si la app estaba completa. Al revisarla en serio
+aparecieron dos agujeros, los dos sobre lo más caro de producir: un recorrido grabado son
+horas de manejo.
+
+**1. La grabación vivía solo en memoria.** Se escribía recién al tocar "Terminar".
+Andando 40 minutos con la pantalla apagada, Android mata la pestaña y se perdía todo.
+`beforeunload` no cubre ese caso: cuando el sistema mata el proceso no dispara nada.
+Ahora hay borrador en IndexedDB cada 5 puntos y, como techo, cada 1,2 s, más un guardado
+forzado en `visibilitychange` y `pagehide`. Al abrir la app se ofrece recuperarlo, y
+vuelve **en pausa**: reanudar solo metería una recta desde el corte hasta la posición
+actual.
+
+**El test encontró el bug del bug.** La primera versión guardaba solo cada 5 puntos y el
+E2E recuperó 5 de 8: `pagehide` no alcanza a escribir porque IndexedDB es asíncrono. De
+ahí salió el techo de tiempo, que es lo que realmente acota la pérdida.
+
+**2. No había copia de seguridad de todo.** Se exportaba de a un recorrido. Ahora
+Importar → "Guardar copia de todo" baja un JSON con todos, y restaurar **agrega, nunca
+pisa**: un id repetido recibe uno nuevo, así que restaurar una copia vieja deja duplicados
+en vez de borrar lo nuevo.
+
+**Archivos.** `omnibus/js/09-grabar.js`, `omnibus/js/11-importar.js`,
+`omnibus/js/99-app.js`, `omnibus/index.html`, `omnibus/README.md`,
+`tests/omnibus-datos.test.js`, `tests/omnibus.spec.js`.
+
+**Tests.** Los E2E nuevos de grabación **no inyectan posiciones**: mueven la
+geolocalización del navegador con Playwright, así que pasan por `watchPosition` de verdad.
+Suite: 801 unitarios y 155 E2E en verde.
+
+**Riesgo.** 🟢 BAJO. Todo lo agregado es defensivo; ningún camino existente cambia.
+
+---
+
 ## 2026-08-11 (noche) — Importador de GTFS en la app de recorridos
 
 **Motivo.** El usuario preguntó si se podían sacar los recorridos de Nextbus. La respuesta

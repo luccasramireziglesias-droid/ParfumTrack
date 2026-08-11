@@ -35,9 +35,11 @@ const App = (() => {
     const op = await UI.elegir('Ajustes', [
       { texto: `${Voz.estaActiva() ? '🔊' : '🔇'} Avisos por voz: ${Voz.estaActiva() ? 'sí' : 'no'}`, valor: 'voz' },
       { texto: '🌗 Cambiar entre mapa de día y de noche', valor: 'capa' },
+      { texto: '💾 Guardar copia de todos los recorridos', valor: 'backup' },
       { texto: '🎬 Probar un recorrido sin GPS (demo)', valor: 'demo' },
       { texto: `🗑️ Borrar mapas guardados (${tiles} · ${mb} MB)`, valor: 'tiles' },
     ]);
+    if (op === 'backup') return Importar.exportarTodo();
     if (op === 'voz') {
       const on = Voz.activar(!Voz.estaActiva());
       UI.toast(on ? 'Avisos por voz activados' : 'Avisos por voz en silencio', 'ok');
@@ -118,6 +120,32 @@ const App = (() => {
       // tiene que ir o el error queda tapado por la pantalla de carga.
       UI.$('#splash').classList.add('oculto');
     }
+    // Después de bajar el splash, para que el diálogo no quede tapado.
+    _ofrecerRecuperar();
+  }
+
+  /**
+   * Si quedó una grabación a medio hacer, se ofrece recuperarla.
+   *
+   * Este es el caso que motivó todo el borrador: Android mata la pestaña con
+   * la pantalla apagada y, sin esto, cuarenta minutos de manejo grabando se
+   * evaporaban sin dejar rastro ni mensaje.
+   */
+  async function _ofrecerRecuperar() {
+    try {
+      const b = await Grabar.borradorPendiente();
+      if (!b) return;
+      const km = Geo.fmtDist(Geo.largo(b.puntos));
+      const op = await UI.elegir(
+        `Quedó una grabación sin terminar (${km}, del ${UI.fecha(b.ts)})`, [
+          { texto: '↩️ Recuperarla', valor: 'si', clase: 'ok' },
+          { texto: '🗑️ Descartarla', valor: 'no', clase: 'peligro' },
+        ]);
+      // Sin respuesta (tocó afuera del diálogo) NO se borra: en la duda, el
+      // borrador se queda y se vuelve a ofrecer la próxima vez.
+      if (op === 'si') Grabar.recuperar(b);
+      else if (op === 'no') await Grabar._borrarBorrador();
+    } catch (e) { console.warn('[recuperar]', e); }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

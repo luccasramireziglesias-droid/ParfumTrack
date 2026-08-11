@@ -173,6 +173,15 @@
   <label class="btn bloque" for="archivo">📂 Elegir archivo</label>
   <input type="file" id="archivo" accept=".gpx,.geojson,.json,.kml,.xml" multiple hidden>
   <div id="import-resultados" class="lista"></div>
+
+  <h2 class="titulo-seccion">Copia de seguridad</h2>
+  <p class="nota">Los recorridos viven solo en este teléfono. Si lo perdés o limpiás los datos
+  del navegador, se van todos. Guardá una copia cada tanto y mandátela por mail o a Drive.</p>
+  <div class="acciones-fila">
+    <button class="btn" id="backup-guardar">💾 Guardar copia de todo</button>
+    <label class="btn" for="backup-archivo">📥 Restaurar una copia</label>
+  </div>
+  <input type="file" id="backup-archivo" accept=".json" hidden>
 </section>
 
 <!-- ══ ESTUDIO ════════════════════════════════════════════ -->

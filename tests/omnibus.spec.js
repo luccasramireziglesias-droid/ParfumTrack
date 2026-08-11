@@ -367,3 +367,143 @@ test('con un filtro de empresa que no existe, ofrece las que sí están', async 
   await expect(page.locator('#gtfs-resultados')).toContainText('ninguna coincide');
   fs.unlinkSync(zip);
 });
+
+// ── Grabación y copia de seguridad ─────────────────────────────
+// Acá el GPS NO se inyecta: se usa la geolocalización del navegador que
+// mueve Playwright, o sea que pasa por watchPosition de verdad. Es lo más
+// cerca del ómnibus que se puede llegar sin subirse a uno.
+
+/** Mueve el "teléfono" a lo largo de una recta, un paso por vez. */
+async function manejar(context, page, pasos = 8, metrosPorPaso = 40) {
+  const lat0 = -34.8235, lng0 = -55.9560;
+  for (let i = 1; i <= pasos; i++) {
+    await context.setGeolocation({
+      latitude: lat0 + (i * metrosPorPaso) / 110574,
+      longitude: lng0,
+      accuracy: 8,
+    });
+    await page.waitForTimeout(220);
+  }
+}
+
+test('la grabación se va guardando sola y se puede recuperar', async ({ page, context }) => {
+  await context.setGeolocation({ latitude: -34.8235, longitude: -55.9560, accuracy: 8 });
+  await page.click('.tab[data-ir="grabar"]');
+  await page.click('#grab-toggle');
+  await expect(page.locator('#grab-estado')).toHaveText('● Grabando…');
+
+  await manejar(context, page);
+
+  // Puntos de verdad, llegados por watchPosition.
+  const puntos = await page.evaluate(() => Grabar.puntos().length);
+  expect(puntos).toBeGreaterThan(3);
+
+  // El techo de tiempo entre escrituras: pasado eso, no puede quedar nada
+  // sin guardar. Si esto se rompiera, la pérdida dejaría de estar acotada.
+  await page.waitForTimeout(1600);
+  const borrador = await page.evaluate(() => DB.getConfig('grabacion_en_curso', null));
+  expect(borrador).not.toBeNull();
+  expect(borrador.puntos.length).toBe(puntos);
+
+  // Simula que Android mató la pestaña. El `beforeunload` de la app abriría
+  // un diálogo del navegador que cancelaría la recarga; se acepta, que es
+  // justo lo que NO pasa cuando el sistema mata el proceso por su cuenta.
+  page.on('dialog', d => d.accept());
+  await page.reload();
+  await expect(page.locator('#splash')).toHaveClass(/oculto/, { timeout: 15000 });
+
+  const dialogo = page.locator('.overlay .dialogo');
+  await expect(dialogo).toBeVisible({ timeout: 10000 });
+  await expect(dialogo).toContainText('grabación sin terminar');
+
+  await dialogo.locator('.btn.ok').click();
+  await expect(page.locator('#p-grabar')).toBeVisible();
+  // Vuelve EN PAUSA, nunca grabando: la app se está abriendo de nuevo y
+  // reanudar sola metería una recta desde donde se cortó hasta acá.
+  await expect(page.locator('#grab-estado')).toHaveText('⏸ En pausa');
+  expect(await page.evaluate(() => Grabar.puntos().length)).toBe(puntos);
+  // Y el mapa vuelve a dibujar el trazado recuperado, no una pantalla vacía.
+  expect(await page.evaluate(() => !!Mapa.get('mapa-grabar').capas.recorrido)).toBe(true);
+});
+
+test('descartar la grabación recuperada no la vuelve a ofrecer', async ({ page, context }) => {
+  await context.setGeolocation({ latitude: -34.8235, longitude: -55.9560, accuracy: 8 });
+  await page.click('.tab[data-ir="grabar"]');
+  await page.click('#grab-toggle');
+  await manejar(context, page, 5);
+  await page.waitForTimeout(1600);
+
+  page.on('dialog', d => d.accept());
+  await page.reload();
+  await expect(page.locator('#splash')).toHaveClass(/oculto/, { timeout: 15000 });
+  await page.locator('.overlay .dialogo .btn.peligro').click();
+
+  // Borrar es una escritura asíncrona: sin esperar a que termine, la recarga
+  // puede ganarle la carrera y el borrador sigue ahí. Eso haría fallar la
+  // prueba por un motivo que no es el que se está midiendo.
+  await expect.poll(() => page.evaluate(() => DB.getConfig('grabacion_en_curso', null)))
+    .toBeNull();
+
+  await page.reload();
+  await expect(page.locator('#splash')).toHaveClass(/oculto/, { timeout: 15000 });
+  await page.waitForTimeout(1200);
+  await expect(page.locator('.overlay')).toHaveCount(0);
+});
+
+test('terminar y guardar deja de ofrecer la recuperación', async ({ page, context }) => {
+  await context.setGeolocation({ latitude: -34.8235, longitude: -55.9560, accuracy: 8 });
+  await page.click('.tab[data-ir="grabar"]');
+  await page.click('#grab-toggle');
+  await manejar(context, page, 6);
+
+  await page.click('#grab-fin');
+  await page.fill('#dlg-texto', 'Recorrido grabado');
+  await page.locator('.dialogo .btn.ok').click();
+  await expect(page.locator('#p-detalle')).toBeVisible();
+  await expect(page.locator('#det-nombre')).toHaveText('Recorrido grabado');
+
+  // El borrador tiene que haberse limpiado al guardar.
+  expect(await page.evaluate(() => DB.getConfig('grabacion_en_curso', null))).toBeNull();
+});
+
+test('la copia de seguridad restaura todo sin pisar lo que ya está', async ({ page }) => {
+  await sembrar(page);
+  await sembrar(page, { ...recorridoEnEle(), nombre: '196 Pando', linea: '196' });
+
+  const backup = await page.evaluate(async () =>
+    JSON.stringify(Importar.armarBackup(await DB.todos())));
+
+  // Se borra todo, como si fuera un teléfono nuevo.
+  await page.evaluate(async () => {
+    for (const r of await DB.todos()) await DB.borrar(r.id);
+    await Lista.cargar();
+  });
+  await expect(page.locator('#lista-recorridos .tarjeta')).toHaveCount(0);
+
+  await page.evaluate((json) => {
+    const f = new File([json], 'copia.json', { type: 'application/json' });
+    Importar.restaurarTodo(f);
+  }, backup);
+  await page.locator('.dialogo .btn.peligro').click();
+
+  await expect(page.locator('#lista-recorridos .tarjeta')).toHaveCount(2);
+  await expect(page.locator('#lista-recorridos')).toContainText('196 Pando');
+
+  // Restaurar la MISMA copia otra vez agrega duplicados en vez de pisar:
+  // en la duda, nunca se pierde lo que ya estaba.
+  await page.evaluate((json) => {
+    const f = new File([json], 'copia.json', { type: 'application/json' });
+    Importar.restaurarTodo(f);
+  }, backup);
+  await page.locator('.dialogo .btn.peligro').click();
+  await expect(page.locator('#lista-recorridos .tarjeta')).toHaveCount(4);
+});
+
+test('un archivo que no es una copia se rechaza con un motivo', async ({ page }) => {
+  await page.evaluate(() => {
+    const f = new File(['{"hola":1}'], 'cualquiera.json', { type: 'application/json' });
+    Importar.restaurarTodo(f);
+  });
+  await expect(page.locator('#toast')).toContainText('no es una copia de recorridos');
+  await expect(page.locator('#lista-recorridos .tarjeta')).toHaveCount(0);
+});

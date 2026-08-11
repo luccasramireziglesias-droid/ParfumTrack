@@ -10,11 +10,28 @@ const Grabar = (() => {
   const PRECISION_MAX = 40;   // metros: peor que esto, el fix no entra
   const PASO_MIN = 6;         // metros entre puntos guardados
 
+  // 🔴 Borrador en IndexedDB. La grabación vivía SOLO en memoria y se
+  // guardaba recién al tocar "Terminar". Andando 40 minutos con la pantalla
+  // apagada, Android mata la pestaña sin preguntar y se perdía el recorrido
+  // entero — hay que volver a manejarlo. `beforeunload` no cubre eso: cuando
+  // el sistema mata el proceso no dispara nada.
+  //
+  // Ahora se persiste cada pocos puntos y en cada evento de "me estoy
+  // yendo". Al abrir la app, si quedó un borrador, se ofrece recuperarlo.
+  const CLAVE_BORRADOR = 'grabacion_en_curso';
+  const PUNTOS_POR_GUARDADO = 5;
+  // Además del guardado cada N puntos, uno por tiempo. Con N solo, quedaban
+  // hasta 4 puntos sin escribir cuando el sistema mataba la pestaña; y
+  // `pagehide` no salva eso, porque escribir en IndexedDB es asíncrono y la
+  // página se descarga antes de que la escritura termine. Con el techo de
+  // tiempo, lo que se pierde son a lo sumo un par de segundos de manejo.
+  const MS_POR_GUARDADO = 1200;
+
   let _estado = 'listo';      // listo | grabando | pausa
   let _puntos = [], _paradas = [], _hitos = [];
   let _desuscribir = null, _inicio = 0, _pausadoMs = 0, _tPausa = 0;
   let _ultima = null, _descartados = 0;
-  let _tick = null;
+  let _tick = null, _timerGuardado = null;
 
   const grabando = () => _estado === 'grabando';
 
@@ -41,7 +58,76 @@ const Grabar = (() => {
     _puntos.push(p);
     Mapa.dibujarRecorrido('mapa-grabar', _puntos, { color: '#e05252' });
     if (_puntos.length % 12 === 0) Mapa.get('mapa-grabar').map.panTo(p);
+    if (_puntos.length % PUNTOS_POR_GUARDADO === 0) _guardarBorrador();
+    else _programarGuardado();
     _pintar();
+  }
+
+  /**
+   * Techo de tiempo entre escrituras. Es un throttle, no un debounce: si
+   * fuera debounce y los puntos llegaran sin parar (que es exactamente lo
+   * que pasa manejando), la escritura se posterga para siempre.
+   */
+  function _programarGuardado() {
+    if (_timerGuardado) return;
+    _timerGuardado = setTimeout(() => {
+      _timerGuardado = null;
+      _guardarBorrador();
+    }, MS_POR_GUARDADO);
+  }
+
+  /** Persiste el estado de la grabación. Nunca tira: perder el borrador no puede cortar la grabación. */
+  function _guardarBorrador() {
+    clearTimeout(_timerGuardado);
+    _timerGuardado = null;
+    if (_estado === 'listo') return Promise.resolve();
+    return DB.setConfig(CLAVE_BORRADOR, {
+      puntos: _puntos, paradas: _paradas, hitos: _hitos,
+      inicio: _inicio, pausadoMs: _pausadoMs, descartados: _descartados,
+      ts: Date.now(),
+    }).catch(e => console.warn('[grabar] no se pudo guardar el borrador', e));
+  }
+
+  const _borrarBorrador = () => DB.setConfig(CLAVE_BORRADOR, null).catch(() => {});
+
+  /** El borrador guardado, si vale la pena ofrecerlo. */
+  async function borradorPendiente() {
+    try {
+      const b = await DB.getConfig(CLAVE_BORRADOR, null);
+      // Menos de tres puntos no es una grabación, es un arranque en falso:
+      // ofrecer recuperar eso solo molesta.
+      return b && (b.puntos || []).length > 2 ? b : null;
+    } catch { return null; }
+  }
+
+  /**
+   * Vuelve a cargar un borrador. Queda EN PAUSA, nunca grabando: la app se
+   * está abriendo de nuevo, no sabemos si el ómnibus sigue andando, y
+   * reanudar solo metería una línea recta desde donde se cortó hasta donde
+   * estás ahora.
+   */
+  function recuperar(b) {
+    _puntos = b.puntos || [];
+    _paradas = b.paradas || [];
+    _hitos = b.hitos || [];
+    _inicio = b.inicio || Date.now();
+    _pausadoMs = b.pausadoMs || 0;
+    _descartados = b.descartados || 0;
+    _estado = 'pausa';
+    _tPausa = b.ts || Date.now();
+    clearInterval(_tick);
+    _tick = setInterval(_pintar, 1000);
+
+    UI.irA('grabar');
+    Mapa.crear('mapa-grabar');
+    Mapa.refrescar('mapa-grabar');
+    Mapa.dibujarRecorrido('mapa-grabar', _puntos, { color: '#e05252' });
+    Mapa.dibujarParadas('mapa-grabar', _paradas);
+    Mapa.dibujarHitos('mapa-grabar', _hitos);
+    Mapa.encuadrar('mapa-grabar', _puntos);
+    if (!_desuscribir) _desuscribir = GPS.seguir(_alFix);
+    _pintar();
+    UI.toast('Grabación recuperada, en pausa. Tocá "Seguir" o "Terminar y guardar".', 'ok', 6000);
   }
 
   function _transcurrido() {
@@ -87,6 +173,7 @@ const Grabar = (() => {
     if (_estado === 'listo')    return _empezar();
     if (_estado === 'grabando') { _estado = 'pausa'; _tPausa = Date.now(); Voz.decir('Grabación en pausa.'); }
     else                        { _estado = 'grabando'; _pausadoMs += Date.now() - _tPausa; Voz.decir('Seguimos grabando.'); }
+    _guardarBorrador();
     _pintar();
   }
 
@@ -107,6 +194,7 @@ const Grabar = (() => {
       Voz.decir('Aviso marcado.', { repetible: true });
     }
     Voz.vibrar([60]);
+    _guardarBorrador();
     _pintar();
     UI.toast(clase === 'parada' ? 'Parada marcada' : 'Aviso marcado', 'ok', 1600);
   }
@@ -143,8 +231,10 @@ const Grabar = (() => {
     _puntos = []; _paradas = []; _hitos = [];
     _inicio = 0; _pausadoMs = 0; _descartados = 0;
     clearInterval(_tick); _tick = null;
+    clearTimeout(_timerGuardado); _timerGuardado = null;
     GPS.mantenerPantalla(false);
     Mapa.limpiar('mapa-grabar', 'recorrido', 'paradas', 'hitos');
+    _borrarBorrador();
     _pintar();
   }
 
@@ -171,12 +261,21 @@ const Grabar = (() => {
       if (_estado === 'listo' && _desuscribir) { _desuscribir(); _desuscribir = null; }
     });
 
-    // El aviso del navegador al cerrar la pestaña es lo único que frena un
-    // cierre accidental con una grabación de 40 minutos adentro.
+    // El aviso del navegador al cerrar la pestaña frena un cierre
+    // accidental, pero SOLO cuando el usuario cierra a mano. Si el sistema
+    // mata el proceso no dispara nada: para eso está el borrador.
     window.addEventListener('beforeunload', e => {
       if (_estado !== 'listo' && _puntos.length > 5) { e.preventDefault(); e.returnValue = ''; }
     });
+
+    // Los dos momentos en que Android decide matar la pestaña son justo
+    // estos: cuando pasa a segundo plano y cuando descarga la página. Es la
+    // última oportunidad de escribir, así que se escribe en los dos.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') _guardarBorrador();
+    });
+    window.addEventListener('pagehide', _guardarBorrador);
   }
 
-  return { init, grabando, puntos: () => _puntos };
+  return { init, grabando, puntos: () => _puntos, borradorPendiente, recuperar, _borrarBorrador };
 })();
