@@ -50,6 +50,21 @@ service worker, mapas offline y GPS confiable. Es la versión para usar manejand
 que reescribirlo porque el global lo apaga; en un hosting propio el default ya permite el
 propio origen y lo único que se logra tocándolo es romper la app entera.
 
+### Vista previa publicable
+
+```bash
+node scripts/build-omnibus-preview.js <salida.html>
+```
+
+Toma el standalone y lo adapta a una página publicada, donde la política de seguridad
+**bloquea todo pedido a otro dominio** — incluidos los tiles del mapa. Saca la capa de
+tiles (el fondo oscuro queda prolijo y el recorrido se lee igual), avisa en pantalla por
+qué faltan las calles, y siembra dos recorridos inventados para que la app no abra vacía
+y se pueda ver el modo manejo con el demo.
+
+Sirve para mostrar la app con un link, sin que nadie baje ni instale nada. No reemplaza a
+la versión servida: ahí no hay calles de fondo ni GPS confiable.
+
 ## Pantallas
 
 | Pantalla | Para qué |
