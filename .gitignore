@@ -33,3 +33,7 @@ test-results/
 
 # Generado por scripts/build-omnibus-standalone.js
 omnibus/recorridos-standalone.html
+
+# Generado por scripts/build-omnibus-dist.js
+dist-recorridos/
+recorridos-para-subir.zip

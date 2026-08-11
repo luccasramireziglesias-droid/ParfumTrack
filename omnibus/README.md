@@ -36,6 +36,20 @@ GPS depende de si el navegador le da permiso a un origen `file://`; Chrome de es
 suele hacerlo, en Android es menos confiable. Para manejar de verdad, usá la versión
 servida por https.
 
+### Carpeta lista para un hosting propio
+
+```bash
+node scripts/build-omnibus-dist.js   # dist-recorridos/ + recorridos-para-subir.zip
+```
+
+La app con la raíz en `/` (no en `/omnibus/`), con su `_headers` y un `LEEME.txt`. Se
+arrastra a Netlify Drop o Cloudflare Pages y queda en https con dominio propio: ahí sí hay
+service worker, mapas offline y GPS confiable. Es la versión para usar manejando.
+
+⚠️ El `_headers` que genera **no restringe `geolocation`**. En el Worker de ParfumTrack hay
+que reescribirlo porque el global lo apaga; en un hosting propio el default ya permite el
+propio origen y lo único que se logra tocándolo es romper la app entera.
+
 ## Pantallas
 
 | Pantalla | Para qué |
