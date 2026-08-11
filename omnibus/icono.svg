@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Recorridos">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#35c78a"/>
+      <stop offset="1" stop-color="#1f8f61"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#0f0f1a"/>
+  <!-- El recorrido: la S es la marca. Sin ella el ícono es un ómnibus más. -->
+  <path d="M118 402 C118 300 250 322 250 236 C250 150 382 172 394 106"
+        fill="none" stroke="url(#g)" stroke-width="34"
+        stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 62"/>
+  <path d="M118 402 C118 300 250 322 250 236 C250 150 382 172 394 106"
+        fill="none" stroke="#35c78a" stroke-width="14"
+        stroke-linecap="round" stroke-linejoin="round" opacity=".45"/>
+  <!-- Punto de partida -->
+  <circle cx="118" cy="402" r="34" fill="#0f0f1a" stroke="#35c78a" stroke-width="16"/>
+  <!-- Destino: el pin -->
+  <path d="M394 60 C428 60 456 88 456 122 C456 160 394 214 394 214 C394 214 332 160 332 122 C332 88 360 60 394 60 Z"
+        fill="#f0b429"/>
+  <circle cx="394" cy="121" r="23" fill="#0f0f1a"/>
+</svg>

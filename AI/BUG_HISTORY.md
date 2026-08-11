@@ -10,6 +10,34 @@ Formato: fecha · descripción · causa · solución · archivos · riesgo de re
 
 ---
 
+## BUG-31 — Sin señal, el mapa de Recorridos se pintaba entero de verde fosforescente
+**Fecha:** 11/08/2026 · **Riesgo de reintroducción:** 🟠 MEDIO
+
+**Descripción.** En la app de recorridos (`/omnibus/`), cuando un tile de mapa no se podía
+traer ni de la red ni de la caché, el área del mapa quedaba de un verde brillante con el
+recorrido apenas visible abajo. Justo en el escenario para el que la app existe: sin señal.
+
+**Causa.** El service worker devuelve un PNG de 1×1 como respaldo, que Leaflet estira a
+256×256. El base64 que estaba puesto no era el píxel transparente que decía el comentario:
+decodificado da **RGBA(0, 255, 0, 127)** — verde puro a media transparencia. Sobre el fondo
+oscuro del mapa daba exactamente `rgb(8,136,14)`.
+
+**Por qué no saltó antes.** No hay error, no hay log y `img.complete` es `true`: para el
+navegador el tile cargó perfecto. Simplemente el mapa era verde. Lo que lo delató fue una
+captura de pantalla, y confirmarlo requirió decodificar el PNG a mano — el `getImageData`
+del headless de este entorno devuelve basura y mandaba para el lado equivocado.
+
+**Solución.** PNG de 1×1 RGBA con alfa 0 generado y verificado byte a byte, en la constante
+`PIXEL_VACIO` con el porqué al lado. `tests/omnibus-sw.test.js` **decodifica el blob del
+propio `sw.js`** y falla si el alfa no es 0 o si no es RGBA de 1×1.
+
+**Archivos.** `omnibus/sw.js`, `tests/omnibus-sw.test.js`
+
+**Lección.** Un blob base64 pegado de memoria es código que nadie revisa. Si un literal
+opaco define algo visible, el test tiene que decodificarlo, no confiar en el comentario.
+
+---
+
 ## BUG-01 — El restore de backup se comía los stores nuevos
 **Fecha:** ~06/2026 · **Riesgo de reintroducción:** 🔴 ALTO
 

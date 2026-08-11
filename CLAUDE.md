@@ -1,5 +1,17 @@
 # PARFUMTRACK — PROJECT MASTER MEMORY v1.1 (30/06/2026)
 
+## ⚠️ ESTE REPO TIENE DOS APPS
+
+- **ParfumTrack** — todo lo que documenta este archivo. Raíz del repo, `src/`, `functions/`.
+- **Recorridos** (`omnibus/`) — PWA aparte, guía GPS de líneas de ómnibus para COETC.
+  Comparte el repositorio y el Worker; nada más. Se sirve en `/omnibus/`.
+
+**Si la tarea es sobre recorridos, ómnibus, mapas o GPS:** leé
+[`omnibus/README.md`](omnibus/README.md) y nada más. No hace falta nada de `AI/`, que
+documenta ParfumTrack.
+
+**Si la tarea es sobre ParfumTrack:** `omnibus/` no existe. No la analices ni la toques.
+
 ## ANTES DE EMPEZAR CUALQUIER TAREA
 
 Leé primero `AI/AI_CONTEXT.md` (resumen ejecutivo) y `AI/AI_RULES.md` (reglas para IAs).

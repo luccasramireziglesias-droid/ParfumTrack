@@ -9,6 +9,47 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-08-11 — App nueva: "Recorridos", guía GPS de líneas de ómnibus (`/omnibus/`)
+
+**Motivo.** Pedido del dueño del repo, que trabaja en COETC (ómnibus, Ciudad de la Costa):
+tiene que aprenderse de memoria muchos recorridos y quería una app tipo maps donde estén
+todos cargados y, al elegir el que le toca ese día, el GPS lo vaya guiando por el trazado
+establecido.
+
+**No es un módulo de ParfumTrack.** Es otra PWA que comparte el repo y el Worker. No toca
+`index.html`, ni `src/`, ni la base de ParfumTrack, ni ninguno de sus endpoints. Vive
+entera en `omnibus/` y se sirve en `/omnibus/`.
+
+**Archivos.** `omnibus/` (nuevo, 24 archivos: shell, CSS, 15 módulos JS, Leaflet 1.9.4
+vendorizado, SW, manifest, iconos, README), `scripts/build-omnibus.js` (nuevo),
+`worker.js` (bloque `cabecerasOmnibus`), `package.json` (script `build`),
+`playwright.config.js` (dos proyectos y dos servidores),
+`tests/assets-publicos.test.js` (`omnibus/` a la lista blanca),
+`tests/omnibus-geo.test.js` · `omnibus-datos.test.js` · `omnibus-sw.test.js` ·
+`omnibus.spec.js` (nuevos).
+
+**Qué hace.** Cuatro vías para cargar recorridos (grabarlo manejando, dibujarlo, importar
+GPX/GeoJSON/KML, o buscarlo en OpenStreetMap), modo manejo con avisos por voz, alerta de
+desvío y de contramano, mapas offline por corredor, y un modo de estudio con test de
+memorización. Los giros se detectan solos por geometría del trazado.
+
+**Impacto en ParfumTrack.** Ninguno funcional. Lo único compartido es el Worker: se agregó
+un bloque al final del router que reescribe las cabeceras de seguridad para `/omnibus/*`.
+Todo lo anterior queda igual.
+
+**Riesgo.** 🟡 MEDIO, y está acotado a las cabeceras. `_headers` es global y trae
+`geolocation=()` y una CSP sin los servidores de tiles: `/omnibus/` no puede usar ese
+bloque. Se reescriben en el Worker porque las reglas de `_headers` **se combinan** y el
+navegador intersecta dos CSP para la misma URL — el bloque global le ganaría siempre al
+específico. Si alguien "simplifica" eso moviéndolo a `_headers`, la app de recorridos deja
+de tener GPS y el mapa queda gris, sin ningún error visible.
+
+**Tests.** 54 unitarios + 11 E2E, todos en verde. Suite completa: 775 unitarios
+(3 fallos **preexistentes** en `import-dashboard.test.js`, reproducidos con el árbol
+limpio antes de tocar nada) y 148 E2E en verde.
+
+---
+
 ## 2026-07-31 (tarde) — El CTA de cierre se partía en móvil (BUG-30) + T-14 cerrado
 
 **Motivo.** Captura del sitio **en producción** desde un Android: la flecha del botón

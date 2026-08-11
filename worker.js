@@ -302,5 +302,58 @@ async function handleRequest(request, env, ctx) {
       resp.headers.set('Cache-Control', 'no-cache, must-revalidate');
       return resp;
     }
+    if (path === '/omnibus' || path.startsWith('/omnibus/')) return cabecerasOmnibus(assetResp, path);
     return assetResp;
+}
+
+// ── /omnibus — app de recorridos ──────────────────────────────────
+//
+// Es otra app, con otras necesidades de red, servida por el mismo Worker.
+// Las cabeceras van acá y no en `_headers` porque las reglas de ese archivo
+// se combinan entre sí: dos `Content-Security-Policy` para la misma URL las
+// intersecta el navegador y gana la más restrictiva, así que el bloque
+// global le seguiría ganando al específico. Reescribirlas en el Worker es
+// determinista.
+//
+// Lo que /omnibus necesita y la política global le niega:
+//   · geolocation — el global es `geolocation=()`, que apaga el GPS. Sin
+//     esto la app no tiene absolutamente nada que hacer.
+//   · screen-wake-lock — la pantalla no se puede apagar manejando.
+//   · los servidores de tiles en img-src y connect-src (connect-src además
+//     de img-src porque los mapas offline se bajan con fetch(), no con
+//     <img>), y Overpass/Nominatim para importar recorridos.
+const CSP_OMNIBUS = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https://tile.openstreetmap.org https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://d.basemaps.cartocdn.com",
+  "connect-src 'self' https://tile.openstreetmap.org https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://d.basemaps.cartocdn.com https://overpass-api.de https://overpass.kumi.systems https://overpass.private.coffee https://nominatim.openstreetmap.org",
+  "font-src 'self'",
+  "worker-src 'self'",
+  "manifest-src 'self'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+].join('; ');
+
+function cabecerasOmnibus(assetResp, path) {
+  const resp = new Response(assetResp.body, assetResp);
+  resp.headers.set('Content-Security-Policy', CSP_OMNIBUS);
+  resp.headers.set('Permissions-Policy',
+    'geolocation=(self), screen-wake-lock=(self), camera=(), microphone=(), payment=(), interest-cohort=()');
+  // Los tiles de CARTO/OSM son de otro origen: con `same-origin` el
+  // navegador los descarta y el mapa queda gris.
+  resp.headers.set('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  resp.headers.delete('Cross-Origin-Resource-Policy');
+
+  if (path === '/omnibus/sw.js') {
+    resp.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    // Sin esto el SW solo puede controlar /omnibus/, que es justo su scope.
+    // Se deja explícito para que no dependa de dónde quede el archivo.
+    resp.headers.set('Service-Worker-Allowed', '/omnibus/');
+  } else if (path === '/omnibus' || path === '/omnibus/' || path === '/omnibus/index.html') {
+    resp.headers.set('Cache-Control', 'no-cache, must-revalidate');
+  }
+  return resp;
 }

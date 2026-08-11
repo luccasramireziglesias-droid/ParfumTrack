@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Recorridos — guía GPS de líneas de ómnibus</title>
+<meta name="description" content="Todos los recorridos en el mapa. Elegís el que te toca y el GPS te va guiando calle por calle, con avisos por voz y alerta si te desviás.">
+<meta name="theme-color" content="#0f0f1a">
+<meta name="color-scheme" content="dark">
+<meta name="app-version" content="1.8.0"><!-- OM:VERSION -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icono.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body data-pantalla="lista">
+
+<div id="splash">
+  <div class="splash-logo">🚍</div>
+  <p>Cargando recorridos…</p>
+</div>
+
+<header id="cabecera">
+  <button class="ico-btn oculto" id="btn-atras" aria-label="Volver">‹</button>
+  <h1 id="titulo">Recorridos</h1>
+  <button class="ico-btn" id="btn-ajustes" aria-label="Ajustes">⚙</button>
+</header>
+
+<main>
+
+<!-- ══ LISTA ══════════════════════════════════════════════ -->
+<section id="p-lista" class="pantalla activa">
+  <div class="barra-buscar">
+    <input type="search" id="buscar" class="campo" placeholder="Buscar línea o recorrido…" autocomplete="off">
+  </div>
+  <div id="lista-recorridos" class="lista"></div>
+  <div id="lista-vacia" class="vacio" hidden>
+    <div class="vacio-ico">🗺️</div>
+    <h2>Todavía no cargaste ningún recorrido</h2>
+    <p>Podés grabar uno manejándolo, dibujarlo sobre el mapa, importar un archivo o buscarlo en OpenStreetMap.</p>
+  </div>
+  <button id="fab-nuevo" class="fab" aria-label="Agregar recorrido">＋</button>
+</section>
+
+<!-- ══ DETALLE ════════════════════════════════════════════ -->
+<section id="p-detalle" class="pantalla">
+  <div id="mapa-detalle" class="mapa mapa-medio"></div>
+  <div class="detalle-cab">
+    <div>
+      <h2 id="det-nombre">—</h2>
+      <p id="det-sub" class="sub">—</p>
+    </div>
+  </div>
+  <div class="stats" id="det-stats"></div>
+  <div class="acciones-fila">
+    <button class="btn grande ok" id="det-manejar">🚍 Manejar</button>
+    <button class="btn grande" id="det-estudiar">📖 Estudiar</button>
+  </div>
+  <div class="acciones-fila">
+    <button class="btn gris" id="det-editar">✏️ Editar</button>
+    <button class="btn gris" id="det-offline">⬇️ Mapa offline</button>
+    <button class="btn gris" id="det-mas">⋯ Más</button>
+  </div>
+  <h3 class="titulo-seccion">Hoja de ruta</h3>
+  <ol id="det-pasos" class="pasos"></ol>
+</section>
+
+<!-- ══ MANEJAR ════════════════════════════════════════════ -->
+<section id="p-manejar" class="pantalla">
+  <div id="man-banner" class="banner">
+    <div class="banner-ico" id="man-ico">↑</div>
+    <div class="banner-txt">
+      <div class="banner-dist" id="man-dist">—</div>
+      <div class="banner-accion" id="man-accion">Esperando el GPS…</div>
+    </div>
+  </div>
+
+  <div id="man-alerta" class="alerta-desvio" hidden>
+    <strong>Te saliste del recorrido</strong>
+    <span id="man-alerta-txt"></span>
+  </div>
+
+  <div id="mapa-manejar" class="mapa mapa-manejar"></div>
+
+  <div class="hud">
+    <div class="hud-barra"><div id="man-progreso" class="hud-progreso"></div></div>
+    <div class="hud-datos">
+      <div><span id="man-vel">—</span><small>km/h</small></div>
+      <div><span id="man-falta">—</span><small>falta</small></div>
+      <div><span id="man-parada">—</span><small>próxima parada</small></div>
+    </div>
+    <div class="hud-botones">
+      <button class="btn chico gris" id="man-voz" aria-pressed="true">🔊 Voz</button>
+      <button class="btn chico gris" id="man-centrar">🎯 Centrar</button>
+      <button class="btn chico peligro" id="man-salir">Terminar</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══ GRABAR ═════════════════════════════════════════════ -->
+<section id="p-grabar" class="pantalla">
+  <div id="mapa-grabar" class="mapa mapa-medio"></div>
+  <div class="grabar-estado" id="grab-estado">Listo para grabar</div>
+  <div class="stats" id="grab-stats"></div>
+  <div class="acciones-fila">
+    <button class="btn grande ok" id="grab-toggle">● Empezar a grabar</button>
+    <button class="btn grande peligro" id="grab-fin" disabled>■ Terminar y guardar</button>
+  </div>
+  <div class="acciones-fila">
+    <button class="btn" id="grab-parada" disabled>📍 Marcar parada</button>
+    <button class="btn" id="grab-aviso" disabled>⚠️ Marcar aviso</button>
+  </div>
+  <p class="nota">Dejá el teléfono en el soporte y manejá el recorrido normal. Si podés, que un compañero marque las paradas: no toques la pantalla en movimiento.</p>
+</section>
+
+<!-- ══ EDITAR ═════════════════════════════════════════════ -->
+<section id="p-editar" class="pantalla">
+  <div class="segmentado" id="edit-modo">
+    <button class="seg activo" data-modo="trazado">Trazado</button>
+    <button class="seg" data-modo="paradas">Paradas</button>
+    <button class="seg" data-modo="hitos">Avisos</button>
+  </div>
+  <p class="nota" id="edit-ayuda"></p>
+  <div id="mapa-editar" class="mapa mapa-alto"></div>
+  <div class="stats" id="edit-stats"></div>
+  <div class="acciones-fila">
+    <button class="btn gris" id="edit-deshacer">↶ Deshacer</button>
+    <button class="btn gris" id="edit-invertir">⇄ Invertir sentido</button>
+    <button class="btn gris" id="edit-simplificar">✂️ Simplificar</button>
+  </div>
+  <div class="acciones-fila">
+    <button class="btn grande ok" id="edit-guardar">Guardar cambios</button>
+  </div>
+</section>
+
+<!-- ══ IMPORTAR ═══════════════════════════════════════════ -->
+<section id="p-importar" class="pantalla">
+  <h2 class="titulo-seccion">Buscar en OpenStreetMap</h2>
+  <p class="nota">Trae los recorridos que ya estén mapeados en OSM. Depende de que alguien los haya cargado: si tu línea no aparece o aparece incompleta, grabala o dibujala y listo.</p>
+  <div class="form-fila">
+    <input type="text" id="osm-operador" class="campo" placeholder="Empresa (ej: COETC)" value="COETC">
+    <input type="text" id="osm-linea" class="campo" placeholder="Línea (opcional)">
+  </div>
+  <div class="form-fila">
+    <select id="osm-zona" class="campo">
+      <option value="costa">Ciudad de la Costa y Canelones</option>
+      <option value="montevideo">Montevideo</option>
+      <option value="uruguay">Todo Uruguay</option>
+      <option value="cerca">Cerca mío (20 km)</option>
+    </select>
+    <button class="btn ok" id="osm-buscar">Buscar</button>
+  </div>
+  <div id="osm-resultados" class="lista"></div>
+
+  <h2 class="titulo-seccion">Desde un archivo</h2>
+  <p class="nota">Acepta GPX (grabaciones de GPS), GeoJSON y KML/KMZ sin comprimir. Sirve para pasarle un recorrido a un compañero.</p>
+  <label class="btn bloque" for="archivo">📂 Elegir archivo</label>
+  <input type="file" id="archivo" accept=".gpx,.geojson,.json,.kml,.xml" multiple hidden>
+  <div id="import-resultados" class="lista"></div>
+</section>
+
+<!-- ══ ESTUDIO ════════════════════════════════════════════ -->
+<section id="p-estudio" class="pantalla">
+  <div class="segmentado" id="est-modo">
+    <button class="seg activo" data-modo="repaso">Repaso</button>
+    <button class="seg" data-modo="test">Test</button>
+  </div>
+
+  <div id="est-repaso">
+    <div id="mapa-estudio" class="mapa mapa-medio"></div>
+    <p class="nota">Tocá un paso de la lista para verlo en el mapa. La idea es que puedas seguir el recorrido de memoria antes de subirte.</p>
+    <ol id="est-pasos" class="pasos"></ol>
+  </div>
+
+  <div id="est-test" hidden>
+    <div class="test-marcador"><span id="test-puntaje">0 / 0</span></div>
+    <div class="test-caja">
+      <div id="mapa-test" class="mapa mapa-medio"></div>
+      <p class="test-pregunta" id="test-pregunta">—</p>
+      <div id="test-opciones" class="test-opciones"></div>
+      <p class="test-feedback" id="test-feedback"></p>
+      <button class="btn grande ok" id="test-siguiente" hidden>Siguiente</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<nav id="tabs">
+  <button class="tab activo" data-ir="lista"><span>🗺️</span>Recorridos</button>
+  <button class="tab" data-ir="grabar"><span>⏺️</span>Grabar</button>
+  <button class="tab" data-ir="importar"><span>⬇️</span>Importar</button>
+</nav>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="vendor/leaflet.js"></script>
+<script src="js/00-geo.js"></script>
+<script src="js/01-db.js"></script>
+<script src="js/02-ui.js"></script>
+<script src="js/03-mapa.js"></script>
+<script src="js/04-gps.js"></script>
+<script src="js/05-voz.js"></script>
+<script src="js/06-lista.js"></script>
+<script src="js/07-detalle.js"></script>
+<script src="js/08-manejar.js"></script>
+<script src="js/09-grabar.js"></script>
+<script src="js/10-editar.js"></script>
+<script src="js/11-importar.js"></script>
+<script src="js/12-estudio.js"></script>
+<script src="js/13-offline.js"></script>
+<script src="js/14-app.js"></script>
+</body>
+</html>

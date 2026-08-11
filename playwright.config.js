@@ -22,10 +22,36 @@ module.exports = defineConfig({
     launchOptions: executablePath ? { executablePath } : {},
     trace: process.env.CI ? 'retain-on-failure' : 'off',
   },
-  webServer: {
-    command: 'npx serve -l 8787 -s .',
-    port: 8787,
-    reuseExistingServer: true,
-    timeout: 30000,
-  },
+  // Dos apps, dos servidores. El de ParfumTrack corre con `-s` (modo SPA),
+  // que reescribe CUALQUIER ruta que no sea un archivo al index.html de la
+  // raíz — incluido /omnibus/. Servido así, la app de recorridos recibía el
+  // index.html de ParfumTrack y fallaba con "DB.todos is not a function",
+  // que no se parece en nada al problema real. La app de recorridos se sirve
+  // desde su propia carpeta y sin `-s`.
+  projects: [
+    {
+      name: 'parfumtrack',
+      testIgnore: /omnibus\.spec\.js/,
+      use: { baseURL: 'http://localhost:8787' },
+    },
+    {
+      name: 'omnibus',
+      testMatch: /omnibus\.spec\.js/,
+      use: { baseURL: 'http://localhost:8788' },
+    },
+  ],
+  webServer: [
+    {
+      command: 'npx serve -l 8787 -s .',
+      port: 8787,
+      reuseExistingServer: true,
+      timeout: 30000,
+    },
+    {
+      command: 'npx serve -l 8788 omnibus',
+      port: 8788,
+      reuseExistingServer: true,
+      timeout: 30000,
+    },
+  ],
 });

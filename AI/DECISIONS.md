@@ -540,3 +540,55 @@ serif comunica el registro que el palo seco geométrico no da.
 
 **Lo que NO cambió.** El body, los botones, las stats y todo el texto corrido siguen en
 DM Sans. La serif es solo para titular.
+
+---
+
+## D-30 — La app de recorridos vive en el mismo repo, pero no en ParfumTrack
+
+**Decisión.** "Recorridos" (guía GPS de líneas de ómnibus, pedido del dueño del repo por su
+trabajo en COETC) se agrega como PWA **independiente** en `omnibus/`, servida en
+`/omnibus/` por el mismo Worker. No se integra a ParfumTrack ni se saca a un repo aparte.
+
+**Contexto.** Son dos productos sin nada en común: uno es gestión de ventas de perfumes
+para revendedores de LATAM, el otro es navegación para choferes. Comparten un dueño y un
+dominio, nada más.
+
+**Alternativas evaluadas.**
+- *Meterla como módulo de ParfumTrack.* Descartada: contamina un producto comercial con
+  pantallas que ningún cliente suyo va a usar, mete Leaflet en el bundle de todos y obliga
+  a aflojar la CSP de la app entera para los servidores de tiles.
+- *Repo y Worker aparte.* Es lo más limpio conceptualmente, pero suma infraestructura,
+  otro deploy, otro CI y otro dominio para algo que arranca siendo de una sola persona.
+
+**Por qué esta.** Costo de infraestructura cero y aislamiento real: `omnibus/` no importa
+una sola línea de `src/`, no comparte stores de IndexedDB, no llama a ningún endpoint y no
+entra en `scripts/build.js`. El único punto de contacto es un bloque al final del router.
+
+**Costo aceptado.**
+- La versión sale de `package.json`, así que un release de ParfumTrack le cambia el nombre
+  a la caché del SW de Recorridos y la recachea sin necesidad. Es barato y evita tener dos
+  fuentes de versión, que es la trampa que ya costó tres semanas con `/version`.
+- Los assets de las dos apps se despliegan juntos: no se puede publicar una sin la otra.
+
+**Cuándo reabrirla.** Si Recorridos deja de ser de uso personal y pasa a tener usuarios
+propios, dominio propio o backend propio, ahí sí conviene separarla.
+
+---
+
+## D-31 — Las cabeceras de `/omnibus/` se escriben en el Worker, no en `_headers`
+
+**Decisión.** La CSP y el `Permissions-Policy` de la app de recorridos los pone
+`cabecerasOmnibus()` en `worker.js`, sobreescribiendo lo que ya aplicó el bloque global.
+
+**Contexto.** `_headers` define un `/*` con `geolocation=()` —que apaga el GPS— y una CSP
+sin los servidores de tiles. Recorridos no puede vivir con eso: sin geolocalización la app
+no tiene absolutamente nada que hacer.
+
+**Por qué no un bloque `/omnibus/*` en `_headers`.** Porque las reglas de `_headers` **se
+combinan**: la URL recibiría dos cabeceras `Content-Security-Policy` y el navegador aplica
+la **intersección** de las dos. La política global, que es más restrictiva, le ganaría
+siempre a la específica. El resultado sería un mapa gris y un GPS muerto, sin ningún error
+que explique por qué.
+
+**Costo aceptado.** Hay dos lugares donde mirar cabeceras de seguridad. Está anotado en el
+propio `worker.js` y en `omnibus/README.md`.

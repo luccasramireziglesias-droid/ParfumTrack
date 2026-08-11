@@ -270,3 +270,24 @@ de una pantalla. Es intencional: es preferible romper el build a publicar un HTM
 | Cambiar la versión | `package.json` **y nada más** |
 | Tocar el cacheo offline | `sw.js` (`STATIC_ASSETS`) |
 | Tocar seguridad del backend | `functions/_shared.js` |
+
+## 10. `omnibus/` — otra app, mismo repo
+
+`omnibus/` **no es parte de ParfumTrack.** Es una PWA independiente ("Recorridos", guía GPS
+de líneas de ómnibus) que comparte el repositorio y el Worker, y se sirve en `/omnibus/`.
+
+No importa nada de `src/`, no comparte stores de IndexedDB, no llama a ningún endpoint y no
+pasa por `scripts/build.js`. Sus únicos puntos de contacto con este proyecto son:
+
+| Dónde | Qué |
+|---|---|
+| `worker.js` | `cabecerasOmnibus()` al final del router — CSP y permisos propios para `/omnibus/*` |
+| `scripts/build-omnibus.js` | Propaga la versión de `package.json` y valida el precache del SW |
+| `package.json` | El script `build` lo encadena |
+| `playwright.config.js` | Proyecto y servidor aparte (el de ParfumTrack corre con `-s` y le pisa las rutas) |
+| `tests/assets-publicos.test.js` | `omnibus/` en la lista blanca de carpetas públicas |
+
+**Si tu tarea es sobre recorridos, ómnibus, mapas o GPS, no leas nada más de `AI/`:**
+andá directo a [`omnibus/README.md`](../omnibus/README.md), que documenta esa app entera.
+
+**Si tu tarea es sobre ParfumTrack, `omnibus/` no existe.** No la analices, no la toques.

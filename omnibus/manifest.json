@@ -1,0 +1,23 @@
+{
+  "name": "Recorridos — guía GPS de ómnibus",
+  "short_name": "Recorridos",
+  "description": "Todos los recorridos en el mapa. Elegís el que te toca y el GPS te va guiando calle por calle, con avisos por voz y alerta si te desviás.",
+  "lang": "es-UY",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f0f1a",
+  "theme_color": "#0f0f1a",
+  "categories": ["navigation", "travel", "utilities"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Grabar un recorrido", "short_name": "Grabar", "url": "./#grabar" },
+    { "name": "Ver mis recorridos", "short_name": "Recorridos", "url": "./" }
+  ]
+}

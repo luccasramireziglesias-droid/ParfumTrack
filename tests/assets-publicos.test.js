@@ -39,7 +39,11 @@ const PUBLICO_ESPERADO = new Set([
 ]);
 
 // Carpetas cuyo contenido entero es público a propósito.
-const CARPETAS_PUBLICAS = ['fonts/', 'img/'];
+// `omnibus/` es la app de recorridos: otra PWA servida por el mismo Worker
+// en /omnibus/. Es pública entera a propósito — código de cliente, iconos y
+// Leaflet vendorizado. No guarda nada sensible: los recorridos viven en el
+// IndexedDB del teléfono y no hay endpoint de backend detrás.
+const CARPETAS_PUBLICAS = ['fonts/', 'img/', 'omnibus/'];
 
 /** Replica `createAssetIgnoreFunction()` de wrangler: lee .assetsignore y le suma su propio nombre. */
 function matcherDeWrangler() {

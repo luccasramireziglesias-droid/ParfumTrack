@@ -1,0 +1,352 @@
+/* ══════════════════════════════════════════════════════════════
+   Recorridos — hoja de estilo única.
+
+   Dos reglas mandan sobre todo lo demás, y las dos vienen de que esto se
+   usa arriba de un ómnibus en movimiento:
+   1. Fondo oscuro siempre. De noche una pantalla blanca te encandila y
+      tardás varios segundos en volver a ver la calle.
+   2. Nada táctil abajo de 48 px. Con el vehículo en movimiento no le
+      pegás a un botón chico.
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg:      #0f0f1a;
+  --bg2:     #1a1a2e;
+  --card:    #1e1e35;
+  --borde:   #2c2c47;
+  --texto:   #f0ece4;
+  --tenue:   #9a9ab0;
+  --verde:   #35c78a;
+  --verde2:  #1f8f61;
+  --ambar:   #f0b429;
+  --rojo:    #e05252;
+  --azul:    #4ea8de;
+  --alto-cab: 56px;
+  --alto-tabs: 62px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+/* El `display: none` del atributo `hidden` viene de la hoja del navegador,
+   así que CUALQUIER regla de autor que ponga un display se lo lleva por
+   delante. Pasó con dos elementos, los dos graves: `.alerta-desvio` es
+   `display:flex`, así que la alerta de "te saliste del recorrido" estaba
+   encendida desde que arrancabas el viaje; y `#test-siguiente` es un `.btn`
+   (`inline-flex`), así que el botón "Siguiente" del test aparecía antes de
+   contestar. Esta línea vale por cada `.hidden = true` de todo el JS.
+   Para esconder algo SIN que pierda su lugar en el layout está `.oculto`. */
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--texto);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.45;
+  overscroll-behavior-y: none;
+}
+
+h1, h2, h3 { margin: 0 0 .3em; line-height: 1.2; font-weight: 700; }
+h1 { font-size: 1.15rem; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1.02rem; }
+p  { margin: 0 0 .8em; }
+
+/* ── Splash ─────────────────────────────────────────────── */
+#splash {
+  position: fixed; inset: 0; z-index: 900;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; color: var(--tenue);
+}
+#splash.oculto { display: none; }
+.splash-logo { font-size: 4rem; animation: flota 1.6s ease-in-out infinite; }
+@keyframes flota { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* ── Cabecera y tabs ────────────────────────────────────── */
+#cabecera {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+  height: calc(var(--alto-cab) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--borde);
+}
+#cabecera h1 { flex: 1; margin: 0; text-align: center; font-size: 1.05rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ico-btn {
+  width: 48px; height: 48px; flex: 0 0 48px;
+  background: none; border: 0; color: var(--texto);
+  font-size: 1.6rem; line-height: 1; cursor: pointer; border-radius: 12px;
+}
+.ico-btn:active { background: var(--card); }
+/* El botón de atrás se esconde SIN desaparecer: si se fuera del layout, el
+   título dejaría de estar centrado y saltaría en cada cambio de pantalla. */
+.ico-btn.oculto { visibility: hidden; }
+
+#tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 500;
+  height: calc(var(--alto-tabs) + var(--safe-b));
+  padding-bottom: var(--safe-b);
+  display: flex; background: var(--bg2); border-top: 1px solid var(--borde);
+}
+.tab {
+  flex: 1; background: none; border: 0; color: var(--tenue);
+  font-size: .72rem; font-family: inherit; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+}
+.tab span { font-size: 1.35rem; line-height: 1; }
+.tab.activo { color: var(--verde); }
+
+main {
+  padding: calc(var(--alto-cab) + env(safe-area-inset-top, 0px) + 12px) 14px
+           calc(var(--alto-tabs) + var(--safe-b) + 20px);
+  max-width: 720px; margin: 0 auto;
+}
+
+.pantalla { display: none; }
+.pantalla.activa { display: block; animation: entra .18s ease-out; }
+@keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* El modo manejo se come la pantalla entera: sin cabecera, sin tabs y sin
+   scroll. Cualquier cosa que no sea la próxima maniobra sobra. */
+body[data-pantalla="manejar"] #cabecera,
+body[data-pantalla="manejar"] #tabs { display: none; }
+body[data-pantalla="manejar"] main { padding: 0; max-width: none; }
+body[data-pantalla="manejar"] { overflow: hidden; }
+
+/* ── Controles ──────────────────────────────────────────── */
+.btn {
+  min-height: 48px; padding: 12px 16px;
+  background: var(--card); color: var(--texto);
+  border: 1px solid var(--borde); border-radius: 12px;
+  font-size: .95rem; font-weight: 600; font-family: inherit;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  gap: 6px; flex: 1; text-align: center;
+}
+.btn:active { transform: scale(.98); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.ok      { background: var(--verde2); border-color: var(--verde); color: #eafff5; }
+.btn.peligro { background: #6b2020; border-color: var(--rojo); color: #ffecec; }
+.btn.gris    { background: transparent; }
+.btn.grande  { min-height: 58px; font-size: 1.05rem; }
+.btn.chico   { min-height: 44px; padding: 8px 10px; font-size: .85rem; }
+.btn.bloque  { width: 100%; }
+
+.campo {
+  width: 100%; min-height: 48px; padding: 12px 14px;
+  background: var(--bg2); color: var(--texto);
+  border: 1px solid var(--borde); border-radius: 12px;
+  font-size: 1rem; font-family: inherit;
+}
+.campo:focus { outline: 2px solid var(--verde); outline-offset: -1px; }
+select.campo { appearance: none; }
+
+.acciones-fila { display: flex; gap: 8px; margin-bottom: 10px; }
+.form-fila { display: flex; gap: 8px; margin-bottom: 10px; }
+.form-fila .btn { flex: 0 0 auto; padding-inline: 22px; }
+.barra-buscar { margin-bottom: 12px; }
+.titulo-seccion { margin: 22px 0 8px; color: var(--tenue); font-size: .8rem;
+  text-transform: uppercase; letter-spacing: .06em; }
+.nota { color: var(--tenue); font-size: .85rem; }
+.sub  { color: var(--tenue); font-size: .88rem; margin: 0; }
+
+.segmentado { display: flex; gap: 4px; padding: 4px; margin-bottom: 12px;
+  background: var(--bg2); border: 1px solid var(--borde); border-radius: 12px; }
+.seg { flex: 1; min-height: 42px; background: none; border: 0; border-radius: 9px;
+  color: var(--tenue); font: 600 .9rem/1 var(--font); cursor: pointer; }
+.seg.activo { background: var(--card); color: var(--texto); }
+
+.fab {
+  position: fixed; right: 16px; z-index: 400;
+  bottom: calc(var(--alto-tabs) + var(--safe-b) + 16px);
+  width: 60px; height: 60px; border-radius: 50%; border: 0;
+  background: linear-gradient(135deg, var(--verde), var(--verde2));
+  color: #04120c; font-size: 2rem; line-height: 1; cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,.5);
+}
+
+/* ── Listas y tarjetas ──────────────────────────────────── */
+.lista { display: flex; flex-direction: column; gap: 10px; }
+.tarjeta {
+  background: var(--card); border: 1px solid var(--borde);
+  border-left: 4px solid var(--verde); border-radius: 12px;
+  padding: 13px 14px; cursor: pointer; text-align: left; width: 100%;
+  color: inherit; font-family: inherit;
+}
+.tarjeta:active { background: var(--bg2); }
+.tarjeta h3 { margin: 0 0 3px; font-size: 1rem; }
+.tarjeta .meta { color: var(--tenue); font-size: .82rem; display: flex; gap: 10px; flex-wrap: wrap; }
+.chip { display: inline-block; padding: 2px 8px; border-radius: 999px;
+  background: var(--bg2); border: 1px solid var(--borde); font-size: .72rem; color: var(--tenue); }
+
+.vacio { text-align: center; padding: 48px 20px; color: var(--tenue); }
+.vacio-ico { font-size: 3.4rem; margin-bottom: 10px; }
+
+.stats { display: flex; gap: 8px; margin: 12px 0; }
+.stats > div {
+  flex: 1; background: var(--card); border: 1px solid var(--borde);
+  border-radius: 12px; padding: 10px 8px; text-align: center;
+}
+.stats strong { display: block; font-size: 1.2rem; }
+.stats small { color: var(--tenue); font-size: .72rem; }
+
+/* ── Hoja de ruta ───────────────────────────────────────── */
+.pasos { list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 6px; }
+.paso {
+  display: flex; gap: 11px; align-items: flex-start;
+  background: var(--card); border: 1px solid var(--borde);
+  border-radius: 11px; padding: 11px 13px; cursor: pointer;
+  width: 100%; text-align: left; color: inherit; font-family: inherit; font-size: .93rem;
+}
+.paso.activo { border-color: var(--verde); background: #16342a; }
+.paso-ico { flex: 0 0 30px; height: 30px; border-radius: 8px;
+  background: var(--bg2); display: grid; place-items: center; font-size: 1.05rem; }
+.paso-ico.parada { background: #23405c; color: #bfe4ff; }
+.paso-ico.giro   { background: #4a3a12; color: #ffdc8f; }
+.paso-cuerpo { flex: 1; min-width: 0; }
+.paso-cuerpo b { display: block; font-weight: 600; }
+.paso-cuerpo small { color: var(--tenue); }
+
+/* ── Mapas ──────────────────────────────────────────────── */
+.mapa { width: 100%; border-radius: 12px; background: var(--bg2);
+  border: 1px solid var(--borde); }
+.mapa-medio { height: 42vh; min-height: 240px; margin-bottom: 12px; }
+.mapa-alto  { height: 52vh; min-height: 300px; margin-bottom: 12px; }
+.leaflet-container { background: #10131c; font-family: var(--font); }
+.leaflet-control-attribution { background: rgba(15,15,26,.75) !important; color: var(--tenue) !important; font-size: 10px; }
+.leaflet-control-attribution a { color: var(--azul) !important; }
+.leaflet-bar a { background: var(--card) !important; color: var(--texto) !important; border-color: var(--borde) !important; }
+
+.mk-parada span {
+  display: grid; place-items: center; width: 26px; height: 26px;
+  border-radius: 50%; background: var(--azul); color: #041420;
+  font: 700 12px/1 var(--font); border: 2px solid #0b1017;
+}
+.mk-hito span {
+  display: grid; place-items: center; width: 22px; height: 22px;
+  border-radius: 6px; background: var(--ambar); color: #241a02;
+  font: 700 13px/1 var(--font); border: 2px solid #0b1017;
+}
+.mk-hito.fuerte span { background: var(--rojo); color: #fff; }
+.mk-yo i {
+  display: block; width: 30px; height: 30px;
+  background: var(--verde);
+  clip-path: polygon(50% 0%, 100% 100%, 50% 78%, 0% 100%);
+  filter: drop-shadow(0 0 5px rgba(53,199,138,.9));
+  transition: transform .25s linear;
+}
+.mk-yo.sin-rumbo i { clip-path: circle(38% at 50% 50%); }
+
+/* ── Modo manejo ────────────────────────────────────────── */
+.mapa-manejar {
+  border: 0; border-radius: 0; margin: 0;
+  height: calc(100vh - 148px - 132px - var(--safe-b));
+  min-height: 160px;
+}
+.banner {
+  display: flex; align-items: center; gap: 14px;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+  background: linear-gradient(180deg, #16351f, #123024);
+  border-bottom: 2px solid var(--verde);
+  min-height: 148px;
+}
+.banner.aviso   { background: linear-gradient(180deg, #3d3110, #2d2408); border-bottom-color: var(--ambar); }
+.banner.peligro { background: linear-gradient(180deg, #4a1616, #360f0f); border-bottom-color: var(--rojo); }
+.banner-ico { font-size: 3.8rem; line-height: 1; flex: 0 0 auto; }
+.banner-txt { min-width: 0; }
+.banner-dist   { font-size: 2.5rem; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+.banner-accion { font-size: 1.25rem; font-weight: 600; margin-top: 4px; }
+
+.alerta-desvio {
+  position: absolute; left: 12px; right: 12px; z-index: 450;
+  top: calc(148px + env(safe-area-inset-top, 0px) + 10px);
+  background: var(--rojo); color: #fff; padding: 12px 14px; border-radius: 12px;
+  box-shadow: 0 6px 22px rgba(0,0,0,.55);
+  display: flex; flex-direction: column; gap: 2px;
+  animation: latido 1.1s ease-in-out infinite;
+}
+@keyframes latido { 0%,100% { opacity: 1; } 50% { opacity: .78; } }
+
+.hud {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 460;
+  padding: 8px 12px calc(10px + var(--safe-b));
+  background: var(--bg2); border-top: 1px solid var(--borde);
+}
+.hud-barra { height: 6px; background: var(--borde); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+.hud-progreso { height: 100%; width: 0%; background: var(--verde); transition: width .4s linear; }
+.hud-datos { display: flex; gap: 8px; margin-bottom: 8px; }
+.hud-datos > div { flex: 1; text-align: center; min-width: 0; }
+.hud-datos span { display: block; font-size: 1.2rem; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hud-datos small { color: var(--tenue); font-size: .68rem; }
+.hud-botones { display: flex; gap: 8px; }
+.btn.chico[aria-pressed="false"] { opacity: .45; }
+
+/* ── Grabación ──────────────────────────────────────────── */
+.grabar-estado {
+  padding: 12px 14px; border-radius: 12px; text-align: center; font-weight: 600;
+  background: var(--card); border: 1px solid var(--borde); margin-bottom: 10px;
+}
+.grabar-estado.grabando { background: #4a1616; border-color: var(--rojo); animation: latido 1.6s ease-in-out infinite; }
+.grabar-estado.pausa    { background: #4a3a12; border-color: var(--ambar); }
+
+/* ── Test ───────────────────────────────────────────────── */
+.test-marcador { text-align: right; color: var(--tenue); font-size: .85rem; margin-bottom: 6px; }
+.test-caja { background: var(--card); border: 1px solid var(--borde); border-radius: 12px; padding: 14px; }
+.test-pregunta { font-size: 1.08rem; font-weight: 600; }
+.test-opciones { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.test-opciones .btn { justify-content: flex-start; text-align: left; }
+.test-opciones .btn.correcta   { background: var(--verde2); border-color: var(--verde); }
+.test-opciones .btn.incorrecta { background: #6b2020; border-color: var(--rojo); }
+.test-feedback { min-height: 1.4em; font-size: .9rem; color: var(--tenue); }
+
+/* ── Diálogos y avisos ──────────────────────────────────── */
+.overlay {
+  position: fixed; inset: 0; z-index: 800;
+  background: rgba(4,5,12,.72); backdrop-filter: blur(2px);
+  display: grid; place-items: center; padding: 20px;
+}
+.dialogo {
+  background: var(--card); border: 1px solid var(--borde); border-radius: 16px;
+  padding: 20px; width: 100%; max-width: 420px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.6);
+}
+.dialogo-cuerpo { margin-bottom: 14px; }
+.dialogo-acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+.dialogo-acciones .btn { flex: 1 1 auto; min-width: 110px; }
+
+.toast {
+  position: fixed; z-index: 850; left: 50%; transform: translateX(-50%) translateY(20px);
+  bottom: calc(var(--alto-tabs) + var(--safe-b) + 18px);
+  max-width: 88vw; padding: 12px 18px; border-radius: 12px;
+  background: var(--card); border: 1px solid var(--borde);
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+  font-size: .92rem; text-align: center;
+}
+.toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.ok      { border-color: var(--verde); }
+.toast.error   { border-color: var(--rojo); }
+.toast.aviso   { border-color: var(--ambar); }
+
+/* Quien pide menos movimiento no necesita que le lata la alerta de desvío;
+   el color y la voz ya cumplen el trabajo. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important; }
+}
+
+/* En horizontal (el teléfono acostado en el soporte) el banner se achica
+   para que el mapa siga entrando. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .banner { min-height: 92px; }
+  .banner-dist { font-size: 1.8rem; }
+  .banner-accion { font-size: 1rem; }
+  .banner-ico { font-size: 2.6rem; }
+  .mapa-manejar { height: calc(100vh - 92px - 120px - var(--safe-b)); }
+  .alerta-desvio { top: calc(92px + env(safe-area-inset-top, 0px) + 8px); }
+}
