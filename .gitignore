@@ -30,3 +30,6 @@ test-results/
 *.apk
 *.aab
 *.jks
+
+# Generado por scripts/build-omnibus-standalone.js
+omnibus/recorridos-standalone.html

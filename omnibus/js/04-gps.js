@@ -13,7 +13,15 @@ const GPS = (() => {
   const _subs = new Set();
   let _ultima = null;
 
-  const disponible = () => 'geolocation' in navigator;
+  /**
+   * `'geolocation' in navigator` da true incluso donde el navegador no lo va
+   * a permitir nunca: abriendo el HTML con file://, o por http sin TLS. Ahí
+   * la llamada falla con PERMISSION_DENIED y la app decía "no diste permiso",
+   * que manda a revisar los ajustes del teléfono para un problema que no está
+   * ahí. Hace falta contexto seguro (https o localhost), y punto.
+   */
+  const disponible = () => 'geolocation' in navigator && window.isSecureContext;
+  const contextoInseguro = () => 'geolocation' in navigator && !window.isSecureContext;
 
   /**
    * El rumbo que reporta el GPS (`coords.heading`) viene null en muchos
@@ -111,5 +119,5 @@ const GPS = (() => {
     }
   });
 
-  return { disponible, seguir, ultima, unaVez, mantenerPantalla };
+  return { disponible, contextoInseguro, seguir, ultima, unaVez, mantenerPantalla };
 })();

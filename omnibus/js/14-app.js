@@ -101,7 +101,13 @@ const App = (() => {
       await Lista.cargar();
       _registrarSw();
 
-      if (!GPS.disponible()) {
+      if (GPS.contextoInseguro()) {
+        // El caso típico: la app servida desde una PC de la red local por
+        // http://192.168.x.x. Chrome exige https (o localhost) para dar
+        // ubicación, y sin este aviso el error que ves es "no diste permiso",
+        // que te manda a buscar el problema donde no está.
+        UI.toast('Esta dirección no es https, así que el navegador no da ubicación. Podés dibujar, importar y estudiar; para guiar por GPS hace falta abrirla por https.', 'aviso', 11000);
+      } else if (!GPS.disponible()) {
         UI.toast('Este navegador no tiene GPS: podés estudiar y editar, pero no guiar.', 'aviso', 6000);
       }
     } catch (e) {

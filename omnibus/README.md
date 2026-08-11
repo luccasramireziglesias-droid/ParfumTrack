@@ -15,8 +15,26 @@ npx serve -l 8788 omnibus       # http://localhost:8788
 ```
 
 Tiene que ser **HTTPS o localhost**: sin contexto seguro el navegador no da geolocalización
-ni service worker. En producción queda en
-`https://parfumtrack.luccasramireziglesias.workers.dev/omnibus/`.
+ni service worker. Ojo con servirla desde la PC a un teléfono por `http://192.168.x.x`:
+eso NO es contexto seguro y Chrome no da ubicación. La app lo detecta y lo avisa.
+
+En producción queda en `https://parfumtrack.luccasramireziglesias.workers.dev/omnibus/`.
+
+### Archivo único, sin servidor
+
+```bash
+node scripts/build-omnibus-standalone.js   # omnibus/recorridos-standalone.html (~307 KB)
+```
+
+Mete la app entera —CSS, los 15 módulos, Leaflet y las imágenes— en un solo HTML que se
+abre haciendo doble clic o se manda por WhatsApp. Está en `.gitignore`: se regenera, no se
+versiona.
+
+Qué se pierde ahí: **no hay service worker** (no se puede registrar desde un archivo
+suelto), así que no hay precache ni mapas offline — necesita internet para los tiles. El
+GPS depende de si el navegador le da permiso a un origen `file://`; Chrome de escritorio
+suele hacerlo, en Android es menos confiable. Para manejar de verdad, usá la versión
+servida por https.
 
 ## Pantallas
 
