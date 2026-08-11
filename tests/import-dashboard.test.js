@@ -1,10 +1,26 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
+// 🔴 El reloj va congelado en julio de 2026 y NO es un detalle cosmético.
+//
+// Todo este archivo navega el dashboard con `changeDashboardMonth(-1)`
+// partiendo del mes actual, y el backup de prueba tiene las ventas en junio.
+// Un solo -1 llega a junio únicamente si hoy es julio. Escrito contra
+// `new Date()` real, el archivo pasó en julio de 2026 y se puso rojo solo el
+// 1 de agosto, sin que nadie tocara una línea de código.
+//
+// Eso no es un test que falla: es un test que frena el deploy entero, porque
+// el job `deploy` de .github/workflows/deploy.yml depende de `[test, e2e]`.
+// Durante días no se pudo publicar nada por un cambio de mes del calendario.
+const HOY = new Date('2026-07-15T12:00:00');
+
 describe('Import + Dashboard Month Navigation', () => {
   let mockApp;
   let backupData;
 
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(HOY);
+
     // Mock backup data (similar to the JSON file)
     backupData = {
       ventas: [
@@ -145,7 +161,17 @@ describe('Import + Dashboard Month Navigation', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
+  });
+
+  it('el reloj de la suite está congelado en julio de 2026', () => {
+    // Guardia explícita: si alguien saca los fake timers, falla acá con un
+    // motivo legible en vez de en cuatro tests de ganancias que parecen
+    // hablar de otra cosa.
+    const ahora = new Date();
+    expect(ahora.getMonth()).toBe(6);   // julio, 0-indexed
+    expect(ahora.getFullYear()).toBe(2026);
   });
 
   it('debe importar ventas correctamente', () => {

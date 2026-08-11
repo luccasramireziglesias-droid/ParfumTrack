@@ -10,6 +10,32 @@ Formato: fecha · descripción · causa · solución · archivos · riesgo de re
 
 ---
 
+## BUG-32 — Un test anclado al calendario frenó todos los deploys al cambiar de mes
+**Fecha:** 11/08/2026 · **Riesgo de reintroducción:** 🔴 ALTO
+
+**Descripción.** `tests/import-dashboard.test.js` pasó a rojo el 1 de agosto **sin que
+nadie tocara una línea de código**. Como el job `deploy` depende de `[test, e2e]`, desde
+ese día no se podía publicar nada: ni una feature, ni un fix urgente.
+
+**Causa.** El archivo navegaba el dashboard con un solo `changeDashboardMonth(-1)`
+partiendo de `new Date()` real, y el backup de prueba tiene las ventas en **junio**. Un -1
+llega a junio únicamente si hoy es julio. Escrito en julio de 2026, el test venía con
+fecha de vencimiento incorporada.
+
+**Solución.** Reloj congelado en `2026-07-15` con `vi.useFakeTimers({ toFake: ['Date'] })`
+y `vi.setSystemTime()`, más un test guardia que verifica que el reloj esté congelado: si
+alguien saca los fake timers, falla ahí con un motivo legible en vez de en cuatro tests de
+ganancias que parecen hablar de otra cosa.
+
+**Archivos.** `tests/import-dashboard.test.js`
+
+**Lección.** Cualquier test que use `new Date()` sin congelar es una bomba de tiempo, y en
+este repo una bomba de tiempo **corta el canal de publicación**. Es el mismo patrón que
+dejó `/version` sin rutear tres semanas: la falla no avisa, simplemente algo deja de
+llegar a los usuarios. Test nuevo que dependa de la fecha de hoy → `vi.setSystemTime`.
+
+---
+
 ## BUG-31 — Sin señal, el mapa de Recorridos se pintaba entero de verde fosforescente
 **Fecha:** 11/08/2026 · **Riesgo de reintroducción:** 🟠 MEDIO
 

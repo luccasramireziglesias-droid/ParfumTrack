@@ -9,6 +9,30 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-08-11 (después) — El deploy estaba trabado desde el 1 de agosto (BUG-32)
+
+**Motivo.** Al ir a publicar la app de recorridos apareció que `npm test` venía en rojo con
+3 fallos en `tests/import-dashboard.test.js`. Reproducidos con el árbol limpio: no los
+había traído el cambio nuevo.
+
+**El problema real.** No eran 3 tests molestos: el job `deploy` depende de `[test, e2e]`,
+así que **desde el 1 de agosto no se podía desplegar nada**. Ni la app nueva, ni un fix
+urgente de ParfumTrack. Nadie se había enterado porque el rojo no lo produjo ningún commit.
+
+**Causa.** El test navegaba el dashboard con `changeDashboardMonth(-1)` desde `new Date()`
+real, y las ventas del backup de prueba son de junio. Solo funciona si hoy es julio.
+
+**Fix.** Reloj congelado en julio de 2026 con `vi.useFakeTimers` + `vi.setSystemTime`, más
+un test guardia que falla con un mensaje claro si alguien saca los fake timers.
+
+**Archivos.** `tests/import-dashboard.test.js`
+
+**Impacto.** `npm test` vuelve a 776/776. Canal de publicación destrabado.
+
+**Riesgo.** 🟢 BAJO. Solo toca un archivo de tests; el código de producción no cambia.
+
+---
+
 ## 2026-08-11 — App nueva: "Recorridos", guía GPS de líneas de ómnibus (`/omnibus/`)
 
 **Motivo.** Pedido del dueño del repo, que trabaja en COETC (ómnibus, Ciudad de la Costa):
