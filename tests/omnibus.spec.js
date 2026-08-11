@@ -6,6 +6,10 @@
 // fixes se inyectan a mano — esperar un GPS real en CI no es una opción.
 
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const zlib = require('zlib');
 
 // Los tiles salen a internet: en CI no hay red y cada uno suma segundos de
 // espera. El mapa se dibuja igual, que es lo único que se está probando.
@@ -264,4 +268,102 @@ test('exportar e importar devuelve el mismo recorrido', async ({ page }) => {
       Math.abs(p[0] - original.puntos[i][0]) < 1e-9 && Math.abs(p[1] - original.puntos[i][1]) < 1e-9);
   }, id);
   expect(iguales).toBe(true);
+});
+
+// ── GTFS ───────────────────────────────────────────────────────
+// Prueba del camino completo del importador estrella: un .zip de verdad
+// entra por el <input type="file"> y tiene que terminar en recorridos
+// guardados, con la geometría y las paradas del feed.
+
+/** Un .zip real (deflate crudo + directorio central) desde {nombre: texto}. */
+function armarZip(archivos) {
+  const crc32 = (buf) => {
+    let c, crc = 0xffffffff;
+    for (let i = 0; i < buf.length; i++) {
+      c = (crc ^ buf[i]) & 0xff;
+      for (let k = 0; k < 8; k++) c = c & 1 ? (c >>> 1) ^ 0xedb88320 : c >>> 1;
+      crc = (crc >>> 8) ^ c;
+    }
+    return (crc ^ 0xffffffff) >>> 0;
+  };
+  const locales = [], central = [];
+  let off = 0;
+  for (const [nombre, texto] of Object.entries(archivos)) {
+    const crudo = Buffer.from(texto, 'utf8');
+    const datos = zlib.deflateRawSync(crudo);
+    const crc = crc32(crudo);
+    const nom = Buffer.from(nombre, 'utf8');
+    const lh = Buffer.alloc(30);
+    lh.writeUInt32LE(0x04034b50, 0); lh.writeUInt16LE(20, 4); lh.writeUInt16LE(8, 8);
+    lh.writeUInt32LE(crc, 14); lh.writeUInt32LE(datos.length, 18);
+    lh.writeUInt32LE(crudo.length, 22); lh.writeUInt16LE(nom.length, 26);
+    locales.push(lh, nom, datos);
+    const ch = Buffer.alloc(46);
+    ch.writeUInt32LE(0x02014b50, 0); ch.writeUInt16LE(20, 4); ch.writeUInt16LE(20, 6);
+    ch.writeUInt16LE(8, 10); ch.writeUInt32LE(crc, 16); ch.writeUInt32LE(datos.length, 20);
+    ch.writeUInt32LE(crudo.length, 24); ch.writeUInt16LE(nom.length, 28); ch.writeUInt32LE(off, 42);
+    central.push(ch, nom);
+    off += lh.length + nom.length + datos.length;
+  }
+  const cuerpo = Buffer.concat(locales), dir = Buffer.concat(central);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(Object.keys(archivos).length, 8);
+  eocd.writeUInt16LE(Object.keys(archivos).length, 10);
+  eocd.writeUInt32LE(dir.length, 12); eocd.writeUInt32LE(cuerpo.length, 16);
+  return Buffer.concat([cuerpo, dir, eocd]);
+}
+
+const FEED_GTFS = {
+  'agency.txt': 'agency_id,agency_name\nA1,COETC\nA2,Otra Empresa\n',
+  'routes.txt': 'route_id,agency_id,route_short_name,route_long_name,route_color\n'
+    + 'R710,A1,710,Solymar - Portones,35c78a\nRX,A2,999,Otra,\n',
+  'trips.txt': 'route_id,trip_id,shape_id,direction_id,trip_headsign\n'
+    + 'R710,T1,S1,0,A Portones\nR710,T2,S1,0,A Portones\nRX,T9,S9,0,Otra\n',
+  'shapes.txt': 'shape_id,shape_pt_lat,shape_pt_lon,shape_pt_sequence\n'
+    + 'S1,-34.8215,-55.9560,2\nS1,-34.8235,-55.9560,1\nS1,-34.8215,-55.9500,3\n'
+    + 'S9,-34.7,-55.9,1\nS9,-34.71,-55.9,2\n',
+  'stops.txt': 'stop_id,stop_name,stop_lat,stop_lon\n'
+    + 'P1,"Giannattasio esq. Racine, Lagomar",-34.8230,-55.9560\n'
+    + 'P2,Terminal Portones,-34.8215,-55.9505\n',
+  'stop_times.txt': 'trip_id,stop_id,stop_sequence\nT1,P2,2\nT1,P1,1\nT9,P1,1\n',
+};
+
+test('importa un GTFS real desde el selector de archivos', async ({ page }) => {
+  const zip = path.join(os.tmpdir(), `gtfs-prueba-${Date.now()}.zip`);
+  fs.writeFileSync(zip, armarZip(FEED_GTFS));
+
+  await page.click('.tab[data-ir="importar"]');
+  await expect(page.locator('#p-importar')).toBeVisible();
+
+  await page.setInputFiles('#gtfs-archivo', zip);
+
+  // Un solo recorrido: T1 y T2 son la misma línea y sentido en distinto
+  // horario, y la línea 999 es de otra empresa.
+  const tarjetas = page.locator('#gtfs-resultados .tarjeta');
+  await expect(tarjetas).toHaveCount(1, { timeout: 15000 });
+  await expect(tarjetas.first()).toContainText('710');
+  await expect(tarjetas.first()).toContainText('3 puntos');
+  await expect(tarjetas.first()).toContainText('2 paradas');
+
+  await tarjetas.first().click();
+  await expect(page.locator('#p-detalle')).toBeVisible();
+  await expect(page.locator('#det-nombre')).toContainText('710');
+
+  // La parada con coma en el nombre tiene que haber sobrevivido al CSV.
+  await expect(page.locator('#det-pasos')).toContainText('Giannattasio esq. Racine, Lagomar');
+  fs.unlinkSync(zip);
+});
+
+test('con un filtro de empresa que no existe, ofrece las que sí están', async ({ page }) => {
+  const zip = path.join(os.tmpdir(), `gtfs-vacio-${Date.now()}.zip`);
+  fs.writeFileSync(zip, armarZip(FEED_GTFS));
+
+  await page.click('.tab[data-ir="importar"]');
+  await page.fill('#gtfs-empresa', 'EmpresaQueNoExiste');
+  await page.setInputFiles('#gtfs-archivo', zip);
+
+  await expect(page.locator('#gtfs-resultados')).toContainText('COETC', { timeout: 15000 });
+  await expect(page.locator('#gtfs-resultados')).toContainText('ninguna coincide');
+  fs.unlinkSync(zip);
 });

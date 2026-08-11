@@ -43,7 +43,8 @@ const ESTATICOS = [
   './js/11-importar.js',
   './js/12-estudio.js',
   './js/13-offline.js',
-  './js/14-app.js',
+  './js/15-gtfs.js',
+  './js/99-app.js',
 ];
 
 // PNG de 1×1 con alfa 0, para los tiles que no se pueden traer ni de la red

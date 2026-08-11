@@ -285,6 +285,67 @@ const Importar = (() => {
     }
   }
 
+  // ── GTFS ──────────────────────────────────────────────────
+  function _estadoGtfs(texto, mostrar = true) {
+    const el = UI.$('#gtfs-estado');
+    el.hidden = !mostrar;
+    el.textContent = texto;
+  }
+
+  async function _alElegirGtfs(e) {
+    const file = (e.target.files || [])[0];
+    if (!file) return;
+    e.target.value = '';
+    const cont = UI.$('#gtfs-resultados');
+    cont.innerHTML = '';
+    _estadoGtfs('Leyendo el archivo…');
+
+    try {
+      if (typeof DecompressionStream === 'undefined') {
+        throw new Error('este navegador es muy viejo para descomprimir el .zip acá adentro; probá con Chrome actualizado');
+      }
+      const buffer = await file.arrayBuffer();
+      const { recorridos, agencias, totalRutas } = await GTFS.leer(buffer, {
+        empresa: UI.$('#gtfs-empresa').value,
+        avisar: _estadoGtfs,
+      });
+
+      if (!recorridos.length) {
+        _estadoGtfs('', false);
+        cont.innerHTML = `<p class="nota">El feed tiene ${totalRutas} líneas, pero ninguna coincide con ese filtro.
+          ${agencias.length ? `Las empresas que trae son: ${UI.esc(agencias.slice(0, 25).join(', '))}.` : ''}
+          Probá con uno de esos nombres, con el número de línea, o dejá el filtro vacío para ver todas.</p>`;
+        return;
+      }
+
+      const sinShape = recorridos.filter(r => r._sinShape).length;
+      _estadoGtfs(`${recorridos.length} recorrido(s) encontrados${sinShape ? ` · ⚠️ ${sinShape} sin geometría real` : ''}. Tocá uno para agregarlo.`);
+
+      const todas = document.createElement('button');
+      todas.className = 'btn bloque ok';
+      todas.textContent = `Agregar los ${recorridos.length} de una vez`;
+      todas.onclick = async () => {
+        todas.disabled = true;
+        for (let i = 0; i < recorridos.length; i++) {
+          todas.textContent = `Agregando ${i + 1} de ${recorridos.length}…`;
+          await DB.guardar({ ...recorridos[i] });
+        }
+        UI.toast(`${recorridos.length} recorridos agregados`, 'ok', 4000);
+        UI.irA('lista');
+      };
+      cont.appendChild(todas);
+
+      const lista = document.createElement('div');
+      lista.className = 'lista';
+      cont.appendChild(lista);
+      _pintarResultados(lista, recorridos, 'importado');
+    } catch (err) {
+      _estadoGtfs('', false);
+      cont.innerHTML = `<p class="nota">⚠️ No se pudo leer el GTFS: ${UI.esc(err.message)}</p>`;
+      console.error('[gtfs]', err);
+    }
+  }
+
   // ── Exportar ──────────────────────────────────────────────
   function exportar(rec) {
     const geo = {
@@ -372,6 +433,7 @@ const Importar = (() => {
   function init() {
     UI.$('#osm-buscar').onclick = buscarOsm;
     UI.$('#archivo').addEventListener('change', _alElegirArchivos);
+    UI.$('#gtfs-archivo').addEventListener('change', _alElegirGtfs);
   }
 
   return {

@@ -73,3 +73,14 @@ _p_*
 
 # ── Borradores no linkeados ───────────────────────────────────
 landing-v2.html
+
+# ── App de recorridos: artefactos generados ───────────────────
+# 🔴 `.gitignore` NO alcanza. Son dos listas distintas: git decide qué se
+# versiona, `.assetsignore` decide qué se SUBE al dominio. Estos se generan
+# en local, así que a CI no llegan nunca — pero un `wrangler deploy` desde la
+# máquina de alguien los publicaría. `tests/assets-publicos.test.js` lo cazó.
+dist-recorridos/
+recorridos-para-subir.zip
+omnibus/recorridos-standalone.html
+# Documentación de desarrollo de la app de recorridos.
+omnibus/README.md

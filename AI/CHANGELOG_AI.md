@@ -9,6 +9,49 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-08-11 (noche) — Importador de GTFS en la app de recorridos
+
+**Motivo.** El usuario preguntó si se podían sacar los recorridos de Nextbus. La respuesta
+es que Nextbus **no es la fuente**: la propia app declara que usa los Datos Abiertos del
+Estado uruguayo. Ir a la fuente es legal, más completo y da datos estructurados.
+
+**Qué se agregó.** `omnibus/js/15-gtfs.js`: lector de ZIP y de GTFS sin ninguna librería.
+Descomprime con `DecompressionStream('deflate-raw')` leyendo el directorio central (no los
+encabezados locales en fila), así saca un CSV suelto sin recorrer el zip entero.
+`stop_times.txt` se procesa en **streaming**, porque un feed metropolitano tiene millones
+de filas y cargarlo con un parser normal cuelga un teléfono.
+
+**Decisiones que importan.**
+- Un viaje por línea y sentido. Un feed trae cientos de viajes por línea (uno por horario)
+  con el mismo trazado; importarlos todos daría cientos de recorridos idénticos.
+- Filtro por empresa con fallback al nombre de la línea: el feed metropolitano suele meter
+  todas las empresas bajo una agencia sola.
+- Si una línea no trae `shape_id`, el trazado se arma con las paradas y el recorrido queda
+  marcado con un aviso explícito. Callarlo sería peor: el chofer se entera manejando.
+
+**Renombre.** `14-app.js` → `99-app.js`. El arranque tiene que ejecutarse último, y con
+numeración correlativa cualquier módulo nuevo se colaba después. Con 99 no depende de que
+alguien se acuerde.
+
+**Archivos.** `omnibus/js/15-gtfs.js` (nuevo), `omnibus/js/99-app.js` (renombrado),
+`omnibus/js/11-importar.js`, `omnibus/index.html`, `omnibus/sw.js`, `omnibus/README.md`,
+`scripts/build-omnibus-dist.js` (nuevo), `.assetsignore`,
+`tests/omnibus-gtfs.test.js` (nuevo), `tests/omnibus.spec.js`.
+
+**De paso, `tests/assets-publicos.test.js` cazó algo real:** `dist-recorridos/` estaba en
+`.gitignore` pero no en `.assetsignore`, que son dos listas distintas. En CI no aparece
+nunca, pero un `wrangler deploy` desde una máquina local habría publicado la carpeta
+entera en el dominio.
+
+**Tests.** 19 unitarios nuevos (con un GTFS sintético armado en el test: zip real con
+deflate, filas desordenadas, nombres de parada con comas, línea sin shape) + 2 E2E que
+pasan un .zip de verdad por el `<input type="file">`. Suite: 795 unitarios y 150 E2E, todo
+en verde.
+
+**Riesgo.** 🟢 BAJO. Es una vía de entrada nueva y opcional; nada de lo anterior cambia.
+
+---
+
 ## 2026-08-11 (después) — El deploy estaba trabado desde el 1 de agosto (BUG-32)
 
 **Motivo.** Al ir a publicar la app de recorridos apareció que `npm test` venía en rojo con

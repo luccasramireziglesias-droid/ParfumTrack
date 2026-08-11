@@ -64,7 +64,19 @@ propio origen y lo único que se logra tocándolo es romper la app entera.
 
 ## De dónde salen los recorridos
 
-Cuatro vías, en orden de fiabilidad:
+Cinco vías, en orden de fiabilidad:
+
+0. **GTFS oficial ⭐ — la mejor.** El `.zip` de datos abiertos del transporte trae la
+   geometría exacta de cada recorrido (`shapes.txt`) y todas las paradas en orden. Es la
+   misma fuente que usan las apps de horarios tipo Nextbus, pero de primera mano. Para
+   Uruguay: `catalogodatos.gub.uy` → MTOP → "Horarios Metropolitanos GTFS".
+   Se lee entero en el navegador, sin librerías: `DecompressionStream('deflate-raw')`
+   descomprime el zip y `stop_times.txt` (que puede pesar cientos de MB) se recorre en
+   streaming, fila por fila, descartando lo que no interesa.
+   Del feed se toma **un viaje por línea y sentido**: un feed real trae cientos de viajes
+   por línea, uno por horario, todos con el mismo trazado.
+   ⚠️ Si una línea viene sin `shape_id`, el trazado se arma uniendo paradas con rectas.
+   Sirve para ubicarse, **no para guiar**, y el recorrido queda marcado con ese aviso.
 
 1. **Grabarlo manejando.** La más fiel: sale por donde realmente pasa el ómnibus, con los
    desvíos por obra y los atajos que ningún mapa tiene. Al terminar, el trazado se
@@ -131,7 +143,8 @@ omnibus/
 │   ├── 05-voz.js       ← avisos hablados
 │   ├── 06-lista.js · 07-detalle.js · 08-manejar.js · 09-grabar.js
 │   ├── 10-editar.js · 11-importar.js · 12-estudio.js · 13-offline.js
-│   └── 14-app.js       ← arranque, atrás, ajustes, service worker
+│   ├── 15-gtfs.js      ← lector de ZIP y GTFS, sin librerías
+│   └── 99-app.js       ← arranque, atrás, ajustes, SW. Va último a propósito
 ├── vendor/             ← Leaflet 1.9.4 local (no CDN: tiene que andar offline)
 ├── sw.js · manifest.json · icono.svg · icon-*.png
 └── README.md
