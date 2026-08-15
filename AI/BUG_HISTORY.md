@@ -749,3 +749,77 @@ suma `.ptog-btn` ahí, el test va a exigir que le saquen el inline.
 **Regla derivada.**
 - 🟠 **Un `style=""` inline gana sobre cualquier media query.** Si algo tiene que achicarse
   en móvil, su tamaño va en una clase — nunca inline.
+
+---
+
+## BUG-31 — El excedente del pago inicial dejaba cuotas cobradas a medias 🟠
+**Fecha:** 15/08/2026 · **Riesgo de reintroducción:** 🟠 MEDIO
+
+**Descripción.** Reportado con una captura: una venta de **$5.890 en 3 cuotas** con **$2.000
+cobrados al vender** mostraba la cuota 2 como *"Pagó $37 de $1.963"*, y el recordatorio de
+WhatsApp le pedía a la clienta **$1.926** en vez de una cuota entera.
+
+**La aritmética no estaba rota** — se verificó: los montos sumaban $5.890 exacto en las 8
+combinaciones probadas. El problema era **dónde caía el excedente**: los $37 que sobraban
+del pago inicial (`$2.000 − $1.963`) se **derramaban sobre la cuota siguiente**, dejándola
+nacida con un pago parcial que el usuario no recordaba haber cobrado, y convirtiendo todos
+los cobros siguientes en números raros.
+
+**Decisión del dueño (15/08).** Repartir lo que resta: **el pago inicial es la cuota 1**, y
+el saldo se divide en partes iguales entre las que siguen.
+
+```
+antes:  $1.963 (pago 1.963) + $1.963 (pago 37 → resta 1.926) + $1.964
+ahora:  $2.000 (pagada)     + $1.945                         + $1.945
+```
+
+El diálogo de cobro **no cambia**: sigue precargando lo que resta de esa cuota.
+
+**🔴 Segundo bug encontrado de paso: cuotas negativas.** El cálculo de la última cuota era
+`total − Math.round(total / n) × (n − 1)`, que con montos chicos y muchas cuotas da
+**negativo**: 13 en 8 cuotas daba `2,2,2,2,2,2,2,−1`. Ahora el reparto usa piso y distribuye
+el sobrante de a 1 desde la primera, así ninguna cuota queda negativa y la diferencia entre
+dos cuotas nunca pasa de 1.
+
+**Solución.** Dos funciones nuevas en `db.js` — `_partesIguales()` y `_repartirCuotas()` —
+que son la **única** fuente de los montos. El cálculo estaba **copiado en dos lugares**
+(`_addVentaImpl` y `revertirDevolucion`): si se arreglaba uno solo, deshacer una devolución
+recreaba las cuotas con montos distintos de los originales. Hay un test que lo cubre.
+
+**Archivos.** `src/db.js`, `src/app/03-nueva-venta.js` (placeholder del primer pago y el
+conteo de cuotas cubiertas para el límite Free), `tests/cuotas-reparto.spec.js` (6 tests)
+
+**Verificado:** 624 combinaciones de monto × cuotas × pago inicial suman exacto y ninguna da
+negativa. El fuzzer a `FUZZ_CORRIDAS=30 FUZZ_OPS=120` pasa.
+
+**Reglas derivadas.**
+- 🔴 **Los montos de las cuotas salen de `_repartirCuotas()`.** No recalcularlos a mano en
+  ningún otro lado: ya hubo dos copias que podían divergir.
+- 🟠 **`total − base × (n − 1)` no sirve para repartir enteros.** Con `Math.round` el
+  resultado puede ser negativo. Piso + repartir el sobrante de a 1.
+- 🟠 **Una cuota pendiente no puede nacer con plata encima.** Si sobra de un pago, se
+  reparte; no se derrama sobre la siguiente.
+
+---
+
+## BUG-32 — Tres tests se rompieron solos al cambiar de mes 🟡
+**Fecha:** 15/08/2026 · **Riesgo de reintroducción:** 🟡 MEDIO
+
+**Descripción.** `import-dashboard.test.js` empezó a fallar sin que nadie tocara nada. El
+backup de prueba tiene ventas de **junio 2026** y el test hacía `changeDashboardMonth(-1)`
+dando por sentado que "hoy" era julio. Al pasar el calendario a agosto, ese `-1` cayó en
+julio, donde no hay ventas, y tres tests dieron 0.
+
+**Por qué importa más de lo que parece.** Un test que depende de la fecha del sistema **deja
+CI en rojo un día cualquiera**, sin cambios de código, y frena el deploy. Además gasta el
+tiempo de quien lo investiga buscando una regresión que no existe.
+
+**Solución.** El test calcula cuántos meses hay que retroceder desde hoy hasta junio 2026 y
+navega de a un mes (que es lo que soporta el mock, y lo que haría un usuario tocando la
+flecha). La constante del mes del backup está declarada arriba con nombre.
+
+**Archivos.** `tests/import-dashboard.test.js`
+
+**Regla derivada.**
+- 🟠 **Ningún test puede asumir en qué mes se lo corre.** Si el fixture tiene fechas fijas,
+  hay que calcular el desplazamiento contra `new Date()`, no escribirlo a mano.
