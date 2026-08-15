@@ -4,6 +4,23 @@ describe('Import + Dashboard Month Navigation', () => {
   let mockApp;
   let backupData;
 
+  // Las ventas del backup son de JUNIO 2026. Antes el test hacía
+  // `changeDashboardMonth(-1)` a secas, dando por sentado que "hoy" era julio: el 1 de
+  // agosto empezó a fallar solo, sin que nadie tocara nada, porque ese -1 caía en julio y
+  // ahí no hay ventas. Ahora se calcula cuántos meses hay que retroceder de verdad.
+  const MES_DEL_BACKUP = 5;   // junio, 0-indexed
+  const ANIO_DEL_BACKUP = 2026;
+
+  /** Retrocede mes a mes hasta junio 2026, como haría alguien tocando la flecha. */
+  const irAlMesDelBackup = (app) => {
+    const hoy = new Date();
+    const pasos = (hoy.getFullYear() - ANIO_DEL_BACKUP) * 12 + (hoy.getMonth() - MES_DEL_BACKUP);
+    app.resetDashboardMonth();
+    // De a un paso: el mock solo sabe envolver el año en saltos de ±1.
+    for (let i = 0; i < pasos; i++) app.changeDashboardMonth(-1);
+    return pasos;
+  };
+
   beforeEach(() => {
     // Mock backup data (similar to the JSON file)
     backupData = {
@@ -174,19 +191,19 @@ describe('Import + Dashboard Month Navigation', () => {
     expect(venta.precioCompra).toBe(1890);
   });
 
-  it('debe mostrar 0 ganancias en mes actual (julio)', () => {
+  it('debe mostrar 0 ganancias en el mes actual', () => {
     mockApp.importVentas(backupData);
-    // Reset para que use mes actual (julio)
     mockApp.resetDashboardMonth();
-    const ganancia = mockApp.getMonthGanancia();
-    expect(ganancia).toBe(0);
+    // El backup es de junio 2026: mientras el mes actual no sea ese, no hay ventas.
+    const hoy = new Date();
+    const estamosEnJunio2026 =
+      hoy.getMonth() === MES_DEL_BACKUP && hoy.getFullYear() === ANIO_DEL_BACKUP;
+    expect(mockApp.getMonthGanancia()).toBe(estamosEnJunio2026 ? 3520 : 0);
   });
 
   it('debe mostrar ganancias correctas cuando navega a junio', () => {
     mockApp.importVentas(backupData);
-    // Reset y luego ir a mes anterior (junio)
-    mockApp.resetDashboardMonth();
-    mockApp.changeDashboardMonth(-1); // julio -> junio
+    irAlMesDelBackup(mockApp);
 
     const ganancia = mockApp.getMonthGanancia();
     // Ganancias: (2600-1890) + (2600-1890) + (3700-2700) + (2800-1700)
@@ -196,8 +213,7 @@ describe('Import + Dashboard Month Navigation', () => {
 
   it('debe contar 4 ventas en junio', () => {
     mockApp.importVentas(backupData);
-    mockApp.resetDashboardMonth();
-    mockApp.changeDashboardMonth(-1); // ir a junio
+    irAlMesDelBackup(mockApp);
 
     const count = mockApp.getMonthVentasCount();
     expect(count).toBe(4);
@@ -205,10 +221,9 @@ describe('Import + Dashboard Month Navigation', () => {
 
   it('debe poder navegar múltiples meses hacia atrás', () => {
     mockApp.importVentas(backupData);
-    mockApp.resetDashboardMonth();
-    mockApp.changeDashboardMonth(-1); // junio
-    mockApp.changeDashboardMonth(-1); // mayo
-    mockApp.changeDashboardMonth(-1); // abril
+    irAlMesDelBackup(mockApp);          // junio 2026
+    mockApp.changeDashboardMonth(-1);   // mayo
+    mockApp.changeDashboardMonth(-1);   // abril
 
     const ganancia = mockApp.getMonthGanancia();
     expect(ganancia).toBe(0); // mayo/abril no tienen ventas
@@ -225,21 +240,16 @@ describe('Import + Dashboard Month Navigation', () => {
 
   it('debe mantener correctas las ganancias al navegarse entre meses', () => {
     mockApp.importVentas(backupData);
-    mockApp.resetDashboardMonth();
 
-    // Julio actual
-    expect(mockApp.getMonthGanancia()).toBe(0);
+    // Ida: hasta junio 2026, donde están las 4 ventas
+    irAlMesDelBackup(mockApp);
+    expect(mockApp.getMonthGanancia()).toBe(3520);
 
-    // Ir a junio
-    mockApp.changeDashboardMonth(-1);
-    const gananciaJunio = mockApp.getMonthGanancia();
-    expect(gananciaJunio).toBe(3520);
-
-    // Volver a julio
+    // Un mes adelante: julio 2026, sin ventas
     mockApp.changeDashboardMonth(1);
     expect(mockApp.getMonthGanancia()).toBe(0);
 
-    // Volver a junio
+    // Y de vuelta a junio: el total tiene que ser el mismo que la primera vez
     mockApp.changeDashboardMonth(-1);
     expect(mockApp.getMonthGanancia()).toBe(3520);
   });

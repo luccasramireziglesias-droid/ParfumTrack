@@ -166,7 +166,9 @@
     const primerPagoInput = document.getElementById('venta-primer-pago');
     const n = parseInt(document.getElementById('venta-num-cuotas').value) || 2;
     if (primerPagoInput) {
-      primerPagoInput.placeholder = pvFinal > 0 ? this.fmt(Math.round(pvFinal / n)) : '';
+      // El mismo reparto que usa la base, para que el placeholder no prometa un número
+      // distinto del que después se guarda.
+      primerPagoInput.placeholder = pvFinal > 0 ? this.fmt(DB._partesIguales(pvFinal, n)[0]) : '';
     }
 
     // Plan de cuotas a la vista: cuánto es cada una y cuándo vence la última.
@@ -432,9 +434,9 @@
     // Plan limit check: Free = max 10 pending cuotas
     if (!this.isPro() && this.formaPago === 'cuotas' && numCuotas > 1) {
       const pendingCuotas = this.cuotasData.filter(c => !c.pagado).length;
-      const montoCuotaEst = Math.round(pvFinal / numCuotas) || 1;
-      const cubiertas = !this._primeraCuotaPagada ? 0
-        : (primerPago === null ? 1 : Math.min(numCuotas, Math.floor((primerPago + 0.01) / montoCuotaEst)));
+      // El pago inicial cubre exactamente una cuota —la primera—, sin importar el monto:
+      // lo que sobra ya no se derrama sobre las siguientes, se reparte entre ellas.
+      const cubiertas = this._primeraCuotaPagada ? 1 : 0;
       const newCuotasCount = numCuotas - cubiertas;
       if (pendingCuotas + newCuotasCount > 10) {
         this.appConfirm(

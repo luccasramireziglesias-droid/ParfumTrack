@@ -159,6 +159,52 @@
     return ventas.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
   },
 
+  // ── Reparto de cuotas ─────────────────────────────────────────────────────────
+  // 🔴 Estas dos funciones son la ÚNICA fuente de los montos de las cuotas. Antes el
+  // cálculo estaba copiado en `_addVentaImpl` y en `revertirDevolucion`, y las dos copias
+  // podían dar montos distintos para la misma venta.
+
+  /**
+   * Reparte `total` en `n` partes enteras lo más parejas posible.
+   * La suma SIEMPRE da `total` exacto — es el invariante que verifica el fuzzer.
+   *
+   * ⚠️ No usar `total - base * (n - 1)` para la última, que es como estaba antes:
+   * con `Math.round` y montos chicos ese cálculo da **negativo**. Ejemplo real:
+   * 13 en 8 cuotas → base 2, última = 13 − 14 = −1.
+   */
+  _partesIguales(total, n) {
+    const cant = Math.max(1, Math.floor(n) || 1);
+    const monto = Number(total) || 0;
+    if (cant === 1) return [monto];
+    const base = Math.floor(monto / cant);
+    const partes = Array.from({ length: cant }, () => base);
+    // Lo que sobra se reparte de a 1 desde la primera, así ninguna cuota queda a más
+    // de 1 de distancia de otra. El resto fraccionario (centavos) cae en la última,
+    // que es donde menos molesta.
+    let resto = monto - base * cant;
+    for (let i = 0; i < cant && resto >= 1; i++) { partes[i] += 1; resto -= 1; }
+    if (resto > 0) partes[cant - 1] += resto;
+    return partes;
+  },
+
+  /**
+   * Montos de las cuotas de una venta.
+   *
+   * Con pago inicial, ese pago **es la cuota 1** y lo que queda se reparte parejo entre
+   * las que siguen. Antes el excedente del pago inicial se derramaba sobre la cuota
+   * siguiente: cobrar $2.000 de una venta de $5.890 en 3 dejaba la cuota 2 con un
+   * "pagado $37 de $1.963", y todos los recordatorios pedían $1.926 en vez de una cuota
+   * entera. Decisión del dueño (31/07/2026): repartir lo que resta. Ver BUG-31.
+   */
+  _repartirCuotas(precioVenta, numCuotas, pagoInicial = 0) {
+    const total = Math.max(0, Number(precioVenta) || 0);
+    const cant = Math.max(1, Math.floor(numCuotas) || 1);
+    const inicial = Math.max(0, Math.min(Number(pagoInicial) || 0, total));
+    if (cant === 1) return [total];
+    if (!inicial) return this._partesIguales(total, cant);
+    return [inicial, ...this._partesIguales(total - inicial, cant - 1)];
+  },
+
   async addVenta(v) {
     return this._conLockStock(() => this._addVentaImpl(v));
   },
@@ -194,18 +240,14 @@
       }
 
       try {
-        const montoCuota = Math.round(v.precioVenta / v.numCuotas);
-        const lastCuota = v.precioVenta - montoCuota * (v.numCuotas - 1);
-        // primeraPagada !== false: por defecto la primera cuota se cobra al vender.
-        // primerPago (opcional): monto arbitrario cobrado al vender — se aplica
-        // sobre las cuotas en orden (cubre la 1ª, el excedente pasa a la 2ª, etc.)
+        // El pago inicial ES la cuota 1, y lo que resta se reparte parejo entre las que
+        // siguen. Ver `_repartirCuotas`.
         const primeraPagada = v.primeraPagada !== false;
-        let inicialRestante = 0;
-        if (primeraPagada) {
-          inicialRestante = (v.primerPago === null || v.primerPago === undefined)
-            ? montoCuota
+        const pagoInicial = !primeraPagada ? 0
+          : (v.primerPago === null || v.primerPago === undefined)
+            ? this._partesIguales(v.precioVenta, v.numCuotas)[0]
             : Math.max(0, Math.min(v.primerPago, v.precioVenta));
-        }
+        const montos = this._repartirCuotas(v.precioVenta, v.numCuotas, primeraPagada ? pagoInicial : 0);
         for (let i = 0; i < v.numCuotas; i++) {
           // BUG #10 FIX: Usar fecha segura para suma de meses (evita problemas fin de mes)
           const vence = new Date();
@@ -213,10 +255,10 @@
           const targetYear = vence.getFullYear() + Math.floor(targetMonth / 12);
           vence.setFullYear(targetYear, targetMonth % 12, 1);
           vence.setDate(Math.min(new Date(targetYear, targetMonth % 12 + 1, 0).getDate(), new Date().getDate()));
-          const isLast = i === v.numCuotas - 1;
-          const monto = isLast ? lastCuota : montoCuota;
-          const pago = Math.min(monto, inicialRestante);
-          inicialRestante -= pago;
+          const monto = montos[i];
+          // Solo la primera queda cobrada al vender; el resto arranca en cero. Antes el
+          // excedente se derramaba sobre la siguiente y dejaba cobros a medias.
+          const pago = (i === 0 && primeraPagada) ? monto : 0;
           await this.add('cuotas', {
             ventaId: id,
             perfume: v.perfume,
@@ -404,8 +446,10 @@
     if (v.formaPago === 'cuotas' && v.numCuotas > 1) {
       const existentes = (await this.getAll('cuotas')).filter(c => c.ventaId === id);
       const numeros = new Set(existentes.map(c => c.numero));
-      const montoCuota = Math.round(v.precioVenta / v.numCuotas);
-      const ultima = v.precioVenta - montoCuota * (v.numCuotas - 1);
+      // Mismo reparto que al crear la venta: si acá se calculara distinto, deshacer una
+      // devolución dejaría cuotas con montos que no coinciden con los originales.
+      const montos = this._repartirCuotas(v.precioVenta, v.numCuotas,
+        v.primeraPagada === false ? 0 : v.primerPago);
       for (let i = 1; i <= v.numCuotas; i++) {
         if (numeros.has(i)) continue;
         const vence = new Date();
@@ -416,7 +460,7 @@
           cliente: v.cliente,
           numero: i,
           total: v.numCuotas,
-          monto: i === v.numCuotas ? ultima : montoCuota,
+          monto: montos[i - 1],
           montoTotal: v.precioVenta,
           pagado: false,
           montoPagado: 0,

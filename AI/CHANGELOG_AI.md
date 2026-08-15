@@ -9,6 +9,45 @@ riesgo introduce**. No es un changelog de usuario final.
 
 ---
 
+## 2026-08-15 — Cuotas: el excedente del pago inicial (BUG-31) + tests que dependían del mes (BUG-32)
+
+**Motivo.** Captura del dueño: una venta de $5.890 en 3 cuotas con $2.000 cobrados al vender
+mostraba la cuota 2 como *"Pagó $37 de $1.963"* y el WhatsApp pedía **$1.926**.
+
+**Lo primero que se hizo fue reproducirlo, no arreglarlo.** La aritmética **no estaba rota**:
+los montos sumaban $5.890 exacto en las 8 combinaciones probadas. El defecto era **dónde caía
+el excedente** — los $37 sobrantes del pago inicial se derramaban sobre la cuota siguiente.
+
+**Decisión del dueño:** repartir lo que resta. El pago inicial **es** la cuota 1 y el saldo se
+divide parejo entre las que siguen. El diálogo de cobro no cambia.
+
+```
+antes:  $1.963 (pago 1.963) + $1.963 (pago 37 → resta 1.926) + $1.964
+ahora:  $2.000 (pagada)     + $1.945                         + $1.945
+```
+
+**🔴 Segundo bug encontrado de paso.** El cálculo de la última cuota
+(`total − round(total/n) × (n−1)`) daba **negativo** con montos chicos y muchas cuotas:
+13 en 8 daba `−1`. El reparto nuevo usa piso y distribuye el sobrante de a 1.
+
+**Y el cálculo estaba copiado en dos lugares** (`_addVentaImpl` y `revertirDevolucion`):
+arreglar uno solo habría hecho que deshacer una devolución recreara las cuotas con montos
+distintos de los originales. Ahora hay una sola fuente y un test que lo cubre.
+
+**BUG-32, aparte.** Tres tests de `import-dashboard.test.js` empezaron a fallar **solos** al
+pasar el calendario de julio a agosto: el fixture tiene ventas de junio 2026 y el test hacía
+`changeDashboardMonth(-1)` asumiendo que "hoy" era julio. No era una regresión, pero dejaba
+CI en rojo y frenaba el deploy. Ahora calcula el desplazamiento contra `new Date()`.
+
+**Archivos.** `src/db.js`, `src/app/03-nueva-venta.js`, `tests/cuotas-reparto.spec.js`
+(nuevo, 6 tests), `tests/import-dashboard.test.js`, `AI/BUG_HISTORY.md`
+
+**Riesgo.** 🟠 Medio — toca cómo se reparte plata. Mitigado: 624 combinaciones verificadas
+suman exacto y ninguna da negativa; fuzzer a `FUZZ_CORRIDAS=30 FUZZ_OPS=120`; 721 Vitest +
+143 E2E. **Las cuotas ya creadas no se tocan** — el cambio solo afecta a las ventas nuevas.
+
+---
+
 ## 2026-07-31 (tarde) — El CTA de cierre se partía en móvil (BUG-30) + T-14 cerrado
 
 **Motivo.** Captura del sitio **en producción** desde un Android: la flecha del botón
